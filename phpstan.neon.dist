@@ -8,5 +8,11 @@ parameters:
     paths:
         - src
         - tests
+    excludePaths:
+        - src/Parser/Parser.php
     strictRules:
         strictCalls: false
+    ignoreErrors:
+        -
+            message: "#^Trait jbboehr\\\\IudexMensurarumMysteriorum\\\\Parser\\\\ParserUtils is used zero times and is not analysed\\.$#"
+            path: src/Parser/ParserUtils.php

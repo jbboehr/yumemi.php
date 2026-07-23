@@ -9,6 +9,9 @@
 
     <exclude-pattern>*/.direnv/*</exclude-pattern>
     <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/src/Parser/Ast/Float_.php</exclude-pattern>
+    <exclude-pattern>*/src/Parser/Ast/Integer_.php</exclude-pattern>
+    <exclude-pattern>*/src/Parser/Parser.php</exclude-pattern>
 
     <arg name="basepath" value="."/>
     <arg name="colors"/>

@@ -3,20 +3,24 @@
 namespace jbboehr\IudexMensurarumMysteriorum;
 
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\ConversionFactorResolver;
+use jbboehr\IudexMensurarumMysteriorum\Analyzer\AstConverter;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitNormalizer;
 use jbboehr\IudexMensurarumMysteriorum\Expr\Constant;
 use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
 use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
+use jbboehr\IudexMensurarumMysteriorum\Parser\Parser;
 use jbboehr\IudexMensurarumMysteriorum\Registry\UnitRegistry;
 
 final class Units
 {
+    private readonly AstConverter $astConverter;
     private readonly ConversionFactorResolver $conversionFactorResolver;
     private readonly UnitNormalizer $unitNormalizer;
 
     public function __construct(
         private readonly UnitRegistry $unitRegistry,
     ) {
+        $this->astConverter = new AstConverter($this->unitRegistry);
         $this->unitNormalizer = new UnitNormalizer();
         $this->conversionFactorResolver = new ConversionFactorResolver($this->unitNormalizer);
     }
@@ -46,6 +50,11 @@ final class Units
     public function normalize(Expr $expr): Expr
     {
         return $this->unitNormalizer->normalize($expr);
+    }
+
+    public function parse(string $input): Expr
+    {
+        return $this->astConverter->convert(Parser::parseString($input));
     }
 
     public function quantity(int|Rational $value, Expr $unit): Expr

@@ -21,7 +21,10 @@
     "autoload": {
         "psr-4": {
             "jbboehr\\IudexMensurarumMysteriorum\\": "src"
-        }
+        },
+        "classmap": [
+            "src/Parser/Parser.php"
+        ]
     },
     "require-dev": {
         "ext-bcmath": "*",
@@ -38,6 +41,12 @@
             "jbboehr\\IudexMensurarumMysteriorum\\Scripts\\": "scripts",
             "jbboehr\\IudexMensurarumMysteriorum\\Tests\\": "tests"
         }
+    },
+    "scripts": {
+        "generate-parser": [
+            "bison -S vendor/mrsuh/php-bison-skeleton/src/php-skel.m4 -o src/Parser/Parser.php src/Parser/grammar.y",
+            "sed -i \"s/__DOLLAR__/$/g\" src/Parser/Parser.php"
+        ]
     },
     "config": {
         "sort-packages": true

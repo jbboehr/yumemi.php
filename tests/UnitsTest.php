@@ -47,4 +47,25 @@ final class UnitsTest extends TestCase
 
         $this->assertSame('3/50', $units->convert(1, $metersPerSecond, $kilometersPerMinute)->toString());
     }
+
+    public function testDefaultUnitsParseExpressions(): void
+    {
+        $units = Units::default();
+
+        $this->assertSame('kilometer * minute ^ -1', $units->parse('kilometer / minute')->toString());
+        $this->assertSame('50/3 * meter * second ^ -1', $units->normalize(
+            $units->parse('kilometer / minute'),
+        )->toString());
+    }
+
+    public function testDefaultUnitsUseParsedExpressionsForConversion(): void
+    {
+        $units = Units::default();
+
+        $this->assertSame('3/50', $units->convert(
+            1,
+            $units->parse('meter / second'),
+            $units->parse('kilometer / minute'),
+        )->toString());
+    }
 }

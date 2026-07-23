@@ -34,6 +34,31 @@ final class Rational
         return new self($value);
     }
 
+    public static function fromDecimalString(string $value): self
+    {
+        $matches = null;
+
+        if (preg_match('/^([+-]?\d+)(?:\.(\d+))?(?:e([+-]?\d+))?$/i', $value, $matches) !== 1) {
+            throw new \InvalidArgumentException('Invalid decimal rational string: ' . $value);
+        }
+
+        $whole = $matches[1];
+        $fraction = $matches[2] ?? '';
+        $exponent = (int) ($matches[3] ?? 0);
+        $sign = str_starts_with($whole, '-') ? '-' : '';
+        $digits = ltrim($whole, '+-') . $fraction;
+        $numerator = gmp_init($sign . $digits);
+        $denominator = gmp_pow(10, strlen($fraction));
+
+        if ($exponent >= 0) {
+            $numerator = gmp_mul($numerator, gmp_pow(10, $exponent));
+        } else {
+            $denominator = gmp_mul($denominator, gmp_pow(10, -$exponent));
+        }
+
+        return new self($numerator, $denominator);
+    }
+
     public function div(self $other): self
     {
         return new self(
