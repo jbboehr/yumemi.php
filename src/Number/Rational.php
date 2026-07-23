@@ -47,6 +47,12 @@ final class Rational
         return gmp_cmp($this->numerator, 1) === 0 && gmp_cmp($this->denominator, 1) === 0;
     }
 
+    public function equals(self $other): bool
+    {
+        return gmp_cmp($this->numerator, $other->numerator) === 0
+            && gmp_cmp($this->denominator, $other->denominator) === 0;
+    }
+
     public function mul(self $other): self
     {
         return new self(
