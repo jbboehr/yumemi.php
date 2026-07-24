@@ -1,0 +1,83 @@
+name: ci
+
+on:
+    push:
+        branches:
+            - master
+            - develop
+            - ci
+    pull_request:
+        branches:
+            - master
+
+permissions:
+    contents: read
+
+jobs:
+    nix:
+        name: Nix
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Install Nix
+              uses: cachix/install-nix-action@v31
+              with:
+                  github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Check flake
+              run: nix flake check --print-build-logs
+
+    php:
+        name: PHP ${{ matrix.php-version }}
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                php-version:
+                    - "8.2"
+                    - "8.3"
+                    - "8.4"
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Install PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  coverage: pcov
+                  extensions: bcmath, dom, gmp
+                  php-version: ${{ matrix.php-version }}
+                  tools: composer:v2
+
+            - name: Validate Composer files
+              run: composer validate --strict
+
+            - name: Get Composer cache directory
+              id: composer-cache
+              run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+            - name: Cache Composer packages
+              uses: actions/cache@v4
+              with:
+                  path: ${{ steps.composer-cache.outputs.dir }}
+                  key: ${{ runner.os }}-php-${{ matrix.php-version }}-composer-${{ hashFiles('**/composer.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-php-${{ matrix.php-version }}-composer-
+                      ${{ runner.os }}-php-composer-
+
+            - name: Install dependencies
+              run: composer install --prefer-dist --no-interaction --no-progress
+
+            - name: Check whitespace
+              run: git diff --check
+
+            - name: Run PHPCS
+              run: vendor/bin/phpcs --standard=.phpcs.xml.dist
+
+            - name: Run PHPStan
+              run: vendor/bin/phpstan analyse --no-progress --error-format=raw
+
+            - name: Run PHPUnit
+              run: vendor/bin/phpunit --colors=never
