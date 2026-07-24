@@ -46,8 +46,8 @@ final class RuntimeInvariantTest extends TestCase
 
         foreach (self::compatibleUnitPairs() as [$left, $right]) {
             $this->assertTrue($units->compatible($left, $right), $left . ' should be compatible with ' . $right);
-            $units->conversionFactor($left, $right);
-            $this->addToAssertionCount(1);
+            $factor = $units->conversionFactor($left, $right);
+            $this->assertFalse($factor->toString() === '', $left . ' -> ' . $right . ' should produce a factor');
         }
 
         foreach (self::incompatibleUnitPairs() as [$left, $right]) {
@@ -56,8 +56,8 @@ final class RuntimeInvariantTest extends TestCase
             try {
                 $units->conversionFactor($left, $right);
                 self::fail($left . ' unexpectedly converted to ' . $right);
-            } catch (IncompatibleUnitException) {
-                $this->addToAssertionCount(1);
+            } catch (IncompatibleUnitException $exception) {
+                $this->assertNotSame('', $exception->getMessage());
             }
         }
     }

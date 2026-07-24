@@ -32,7 +32,7 @@ final class Quantity
     ) {
         $this->units = $units;
         $this->value = self::rational($value);
-        $this->unit = ExprReducer::reduce($this->symbolicExprFrom($unit));
+        $this->unit = ExprReducer::reduce(self::symbolicExprFrom($unit));
         $this->resolvedUnit = ExprReducer::reduce($resolvedUnit ?? $this->resolvedExprFrom($unit));
     }
 
@@ -150,7 +150,7 @@ final class Quantity
 
     public function to(Expr|string $unit): self
     {
-        $symbolicExpr = $this->symbolicExprFrom($unit);
+        $symbolicExpr = self::symbolicExprFrom($unit);
         $resolvedExpr = $this->resolvedExprFrom($unit);
 
         return new self(

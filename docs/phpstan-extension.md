@@ -259,11 +259,20 @@ Optional polish (not blockers):
 - Document case-sensitive unit names for static users
 - Circular-alias regression test if desired
 
-## First Concrete Milestone
+## Implementation Progress
 
-1. `extension.neon` + native unit magnitude type (`int`/`float` × reduced unit `Expr`)
+### Piece 1 — unit expression bridge (done)
+
+- `PHPStan\UnitExpressionParser` parses unit strings via IMM `Units`
+- `UnitExpression` / `UnitExpressionParseResult` carry reduced expr, display string, dimension
+- `extension.neon` registers the parser service
+- Covered by `tests/PHPStan/UnitExpressionParserTest`
+
+### First full milestone (next pieces)
+
+1. Native unit magnitude PHPStan `Type` (`int`/`float` × `UnitExpression`)
 2. PHPDoc resolver for `unit_int<'meter'>` / `unit_float<'…'>` (names TBD)
-3. Errors for invalid / unknown unit strings
+3. Errors for invalid / unknown unit strings in PHPDoc
 4. One green inference or rule fixture suite
 
 **Success criterion:** `unit_int<'mass'>` (or similar false friend) is a hard PHPStan error, and

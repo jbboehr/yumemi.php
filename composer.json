@@ -15,7 +15,8 @@
         "doctrine/lexer": "^3.0"
     },
     "suggest": {
-        "ext-bcmath": "Enables decimal conversion output when exact integer conversion is not possible."
+        "ext-bcmath": "Enables decimal conversion output when exact integer conversion is not possible.",
+        "phpstan/phpstan": "Enables the bundled IMM unit types extension (extension.neon; develop against PHPStan 2.x)."
     },
     "bin": [
         "bin/generate-udunits2-catalog"
@@ -34,9 +35,9 @@
         "brick/varexporter": "^0.6",
         "friendsofphp/php-cs-fixer": "^3",
         "mrsuh/php-bison-skeleton": "^1.2",
-        "phpstan/phpstan": "^1.10",
-        "phpstan/phpstan-phpunit": "^1.3",
-        "phpstan/phpstan-strict-rules": "^1.5",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-phpunit": "^2.0",
+        "phpstan/phpstan-strict-rules": "^2.0",
         "phpunit/phpunit": "^11.5"
     },
     "autoload-dev": {
@@ -55,5 +56,12 @@
     },
     "config": {
         "sort-packages": true
+    },
+    "extra": {
+        "phpstan": {
+            "includes": [
+                "extension.neon"
+            ]
+        }
     }
 }

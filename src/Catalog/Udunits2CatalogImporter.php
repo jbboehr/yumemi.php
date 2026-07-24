@@ -117,7 +117,8 @@ final class Udunits2CatalogImporter
             $name = array_shift($aliases);
         }
 
-        if ($name === null && $symbol === null && $aliases === []) {
+        // If name is still null, aliases were empty (see above), so only symbol can identify the unit.
+        if ($name === null && $symbol === null) {
             return;
         }
 
@@ -127,8 +128,9 @@ final class Udunits2CatalogImporter
 
         $def = $def === null ? null : $this->normalizeDefinition($def);
         $type = 'unit';
+        // Guaranteed by the early return above: at least one of name/symbol is non-null.
         $unit = [
-            'name' => $name ?? $symbol ?? throw new \LogicException('UDUNITS2 unit name was not resolved.'),
+            'name' => $name ?? $symbol,
         ];
 
         if ($definition !== null) {

@@ -176,8 +176,8 @@ final class Udunits2CatalogSmokeTest extends TestCase
             try {
                 $units->normalize($name);
                 self::fail('Expected unsupported syntax for affine UDUNITS2 unit: ' . $name);
-            } catch (UnsupportedSyntaxException) {
-                $this->addToAssertionCount(1);
+            } catch (UnsupportedSyntaxException $exception) {
+                $this->assertStringContainsString('@', $exception->getMessage(), $name);
             }
         }
     }

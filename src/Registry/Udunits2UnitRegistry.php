@@ -128,6 +128,7 @@ final class Udunits2UnitRegistry extends UnitRegistry
      */
     private function materializePluralAliases(array $catalog): array
     {
+        /** @var array<string, array{type: 'alias', name: string, def: string}> $additions */
         $additions = [];
 
         foreach ($catalog['units'] as $name => $unit) {
@@ -163,6 +164,7 @@ final class Udunits2UnitRegistry extends UnitRegistry
             $catalog['units'][$plural] = $alias;
         }
 
+        /** @phpstan-var Udunits2Catalog $catalog */
         return $catalog;
     }
 
