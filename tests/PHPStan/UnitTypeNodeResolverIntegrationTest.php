@@ -42,6 +42,17 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $this->assertStringContainsString('Found 1 error', $output, $output);
     }
 
+    /**
+     * Real-world formulas with native unit_float types: each result is passed to a
+     * sink whose PHPDoc parameter carries the expected algebraic unit.
+     */
+    public function testNativeRealWorldFormulasTypecheck(): void
+    {
+        $output = $this->analyse('unit-real-world-native.php');
+
+        $this->assertStringContainsString('[OK] No errors', $output, $output);
+    }
+
     private function analyse(string $fixture): string
     {
         $fixturePath = __DIR__ . '/data/' . $fixture;

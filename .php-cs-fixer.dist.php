@@ -13,6 +13,8 @@ $finder = PhpCsFixer\Finder::create()
         'Parser/Ast/Float_.php',
         'Parser/Ast/Integer_.php',
         'Parser/Parser.php',
+        // PHPStan analyse fixtures: keep one-line sinks colocated with cases.
+        'PHPStan/data',
     ]);
 
 return (new PhpCsFixer\Config())

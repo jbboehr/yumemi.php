@@ -369,4 +369,158 @@ final class RealWorldFormulaTest extends TestCase
         $this->assertSame('kilogram * meter ^ 2 / second ^ 2', $energy->unitToString());
         $this->assertSame('6', $energy->valueIn('kilowatthour')->toString());
     }
+
+    // -----------------------------------------------------------------------
+    // Equivalents of the native-type cases covering add / sub / pow
+    // (see tests/PHPStan/data/unit-real-world-native.php).
+    // -----------------------------------------------------------------------
+
+    public function testMultiLegTripDistanceAddsSegments(): void
+    {
+        $units = Units::default();
+
+        $distance = $units
+            ->quantity(1200, 'meter')
+            ->add($units->quantity(800, 'meter'))
+            ->add($units->quantity(450, 'meter'));
+
+        $this->assertSame('2450', $distance->valueToString());
+        $this->assertSame('meter', $distance->unitToString());
+        $this->assertSame('2450', $distance->valueIn('meter')->toString());
+    }
+
+    public function testNetElevationGainSubtractsTrailheadFromSummit(): void
+    {
+        $units = Units::default();
+
+        $elevation = $units
+            ->quantity(4410, 'meter')
+            ->sub($units->quantity(1800, 'meter'));
+
+        $this->assertSame('2610', $elevation->valueToString());
+        $this->assertSame('meter', $elevation->unitToString());
+        $this->assertSame('2610', $elevation->valueIn('meter')->toString());
+    }
+
+    public function testNetForceAddsDriveAndWindThenSubtractsDrag(): void
+    {
+        $units = Units::default();
+
+        $force = $units
+            ->quantity(5000, 'newton')
+            ->add($units->quantity(200, 'newton'))
+            ->sub($units->quantity(800, 'newton'))
+            ->simplify();
+
+        $this->assertSame('4400', $force->valueToString());
+        $this->assertSame('kilogram * meter / second ^ 2', $force->unitToString());
+        $this->assertSame('4400', $force->valueIn('newton')->toString());
+    }
+
+    public function testKinematicsFinalVelocityAddsAccelerationOverTime(): void
+    {
+        $units = Units::default();
+
+        $velocity = $units
+            ->quantity(10, 'meter / second')
+            ->add(
+                $units
+                    ->quantity(2, 'meter / second^2')
+                    ->mul($units->quantity(5, 'second')),
+            );
+
+        $this->assertSame('20', $velocity->valueToString());
+        $this->assertSame('meter / second', $velocity->unitToString());
+        $this->assertSame('20', $velocity->valueIn('meter / second')->toString());
+    }
+
+    public function testDisplacementAddsInitialPositionAndVelocityOverTime(): void
+    {
+        $units = Units::default();
+
+        $position = $units
+            ->quantity(100, 'meter')
+            ->add(
+                $units
+                    ->quantity(15, 'meter / second')
+                    ->mul($units->quantity(4, 'second')),
+            );
+
+        $this->assertSame('160', $position->valueToString());
+        $this->assertSame('meter', $position->unitToString());
+        $this->assertSame('160', $position->valueIn('meter')->toString());
+    }
+
+    public function testTemperatureRiseSubtractsInitialFromFinalKelvin(): void
+    {
+        $units = Units::default();
+
+        $deltaT = $units
+            ->quantity(350, 'kelvin')
+            ->sub($units->quantity(300, 'kelvin'));
+
+        $this->assertSame('50', $deltaT->valueToString());
+        $this->assertSame('kelvin', $deltaT->unitToString());
+        $this->assertSame('50', $deltaT->valueIn('kelvin')->toString());
+    }
+
+    public function testRemainingFuelRangeSubtractsDistanceDriven(): void
+    {
+        $units = Units::default();
+
+        $range = $units
+            ->quantity(600, 'kilometer')
+            ->sub($units->quantity(185, 'kilometer'));
+
+        $this->assertSame('415', $range->valueToString());
+        $this->assertSame('kilometer', $range->unitToString());
+        $this->assertSame('415', $range->valueIn('kilometer')->toString());
+    }
+
+    public function testSquareFieldAreaViaPower(): void
+    {
+        $this->markTestIncomplete('Quantity has no pow() yet (native: side ** 2).');
+    }
+
+    public function testCubeVolumeViaPower(): void
+    {
+        $this->markTestIncomplete('Quantity has no pow() yet (native: side ** 3).');
+    }
+
+    public function testKineticEnergyViaPower(): void
+    {
+        $this->markTestIncomplete('Quantity has no pow() yet (native: ½ m v ** 2).');
+    }
+
+    public function testFreeFallDistanceViaPower(): void
+    {
+        $this->markTestIncomplete('Quantity has no pow() yet (native: ½ g t ** 2).');
+    }
+
+    public function testDaltonPartialPressuresAdd(): void
+    {
+        $units = Units::default();
+
+        $pressure = $units
+            ->quantity(21000, 'pascal')
+            ->add($units->quantity(79000, 'pascal'));
+
+        $this->assertSame('100000', $pressure->valueToString());
+        $this->assertSame('pascal', $pressure->unitToString());
+        $this->assertSame('100000', $pressure->valueIn('pascal')->toString());
+    }
+
+    public function testEnergyBudgetGeneratedMinusConsumedPlusImported(): void
+    {
+        $units = Units::default();
+
+        $energy = $units
+            ->quantity(new Rational(5_000_000_000, 1), 'joule')
+            ->sub($units->quantity(new Rational(4_200_000_000, 1), 'joule'))
+            ->add($units->quantity(new Rational(300_000_000, 1), 'joule'));
+
+        $this->assertSame('1100000000', $energy->valueToString());
+        $this->assertSame('joule', $energy->unitToString());
+        $this->assertSame('1100000000', $energy->valueIn('joule')->toString());
+    }
 }

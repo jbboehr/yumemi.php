@@ -6,6 +6,7 @@ use jbboehr\IudexMensurarumMysteriorum\PHPStan\UnitExpressionParser;
 use jbboehr\IudexMensurarumMysteriorum\PHPStan\UnitFloatType;
 use jbboehr\IudexMensurarumMysteriorum\PHPStan\UnitIntegerType;
 use jbboehr\IudexMensurarumMysteriorum\PHPStan\UnitOperatorTypeSpecifyingExtension;
+use PHPStan\Type\Constant\ConstantIntegerType;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\FloatType;
 use PHPStan\Type\IntegerType;
@@ -137,6 +138,33 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
 
         $this->assertInstanceOf(UnitFloatType::class, $result);
         $this->assertSame("unit_float<'meter'>", $result->describe(VerbosityLevel::precise()));
+    }
+
+    public function testSubSameUnitKeepsUnit(): void
+    {
+        $a = $this->unitFloat('meter');
+        $b = $this->unitFloat('meter');
+
+        $result = $this->extension->specifyType('-', $a, $b);
+
+        $this->assertInstanceOf(UnitFloatType::class, $result);
+        $this->assertSame("unit_float<'meter'>", $result->describe(VerbosityLevel::precise()));
+    }
+
+    public function testPowConstantIntegerRaisesUnit(): void
+    {
+        $side = $this->unitFloat('meter');
+        $result = $this->extension->specifyType('**', $side, new ConstantIntegerType(2));
+
+        $this->assertInstanceOf(UnitFloatType::class, $result);
+        $this->assertSame("unit_float<'meter ^ 2'>", $result->describe(VerbosityLevel::precise()));
+    }
+
+    public function testPowNonConstantExponentIsError(): void
+    {
+        $result = $this->extension->specifyType('**', $this->unitFloat('meter'), new IntegerType());
+
+        $this->assertInstanceOf(ErrorType::class, $result);
     }
 
     private function unitInt(string $unit): UnitIntegerType

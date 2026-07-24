@@ -3,22 +3,24 @@
 namespace jbboehr\IudexMensurarumMysteriorum\PHPStan;
 
 use jbboehr\IudexMensurarumMysteriorum\Formatter\ExprFormatter;
+use PHPStan\Type\Constant\ConstantIntegerType;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\OperatorTypeSpecifyingExtension;
 use PHPStan\Type\Type;
 
 /**
- * Infers types for +, -, *, / when at least one operand is unit_int or unit_float.
+ * Infers types for +, -, *, /, ** when at least one operand is unit_int or unit_float.
  *
  * Rules (exact unit mode):
  * - + / -: both sides must be unit types with the same reduced unit
  * - * /: combine unit expressions (IMM Expr algebra)
- * - unit op bare numeric: treat bare value as dimensionless
+ * - **: left unit raised to a constant integer exponent
+ * - unit op bare numeric: treat bare value as dimensionless (* / only)
  * - int / int → unit_float (PHP division always yields float)
  */
 final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyingExtension
 {
-    private const SUPPORTED = ['+', '-', '*', '/'];
+    private const SUPPORTED = ['+', '-', '*', '/', '**'];
 
     public function isOperatorSupported(string $operatorSigil, Type $leftSide, Type $rightSide): bool
     {
@@ -37,6 +39,7 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
         return match ($operatorSigil) {
             '+', '-' => $this->specifyAddSub($operatorSigil, $leftUnit, $rightUnit, $leftSide, $rightSide),
             '*', '/' => $this->specifyMulDiv($operatorSigil, $leftUnit, $rightUnit, $leftSide, $rightSide),
+            '**' => $this->specifyPow($leftUnit, $rightUnit, $leftSide, $rightSide),
             default => new ErrorType('Unsupported unit operator: ' . $operatorSigil),
         };
     }
@@ -147,6 +150,46 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
             $expr,
             ExprFormatter::format($expr),
             $unit->dimension->pow(-1),
+        );
+    }
+
+    private function specifyPow(
+        UnitIntegerType|UnitFloatType|null $leftUnit,
+        UnitIntegerType|UnitFloatType|null $rightUnit,
+        Type $leftSide,
+        Type $rightSide,
+    ): Type {
+        if ($rightUnit !== null) {
+            return new ErrorType('Cannot raise a value to a unit power; the exponent must be a bare integer.');
+        }
+
+        if ($leftUnit === null) {
+            return new ErrorType('Cannot raise a bare numeric value to a power involving units.');
+        }
+
+        if (!$rightSide instanceof ConstantIntegerType) {
+            return new ErrorType(
+                'Unit exponentiation requires a constant integer exponent (e.g. $length ** 2).',
+            );
+        }
+
+        $exponent = $rightSide->getValue();
+        $unit = $this->powerUnit($leftUnit->getUnitExpression(), $exponent);
+
+        // PHP: negative exponents yield float; also promote when the base is float-like.
+        $float = $exponent < 0 || $this->resultIsFloat('**', $leftSide, $rightSide);
+
+        return $this->makeMagnitudeType($float, $unit);
+    }
+
+    private function powerUnit(UnitExpression $unit, int $exponent): UnitExpression
+    {
+        $expr = $unit->expr->pow($exponent);
+
+        return new UnitExpression(
+            $expr,
+            ExprFormatter::format($expr),
+            $unit->dimension->pow($exponent),
         );
     }
 
