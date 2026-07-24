@@ -2,6 +2,7 @@
 
 namespace jbboehr\IudexMensurarumMysteriorum;
 
+use jbboehr\IudexMensurarumMysteriorum\Analyzer\ExprComparer;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\ExprReducer;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\NormalizedExpr;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\SymbolicAstConverter;
@@ -206,7 +207,7 @@ final class Quantity
 
     private function assertSameUnit(self $other): void
     {
-        if ($this->unit->toString() === $other->unit->toString()) {
+        if (ExprComparer::equal($this->unit, $other->unit)) {
             return;
         }
 

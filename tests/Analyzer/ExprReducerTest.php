@@ -7,6 +7,7 @@ use jbboehr\IudexMensurarumMysteriorum\Expr\Constant;
 use jbboehr\IudexMensurarumMysteriorum\Expr\Term;
 use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
 use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
+use jbboehr\IudexMensurarumMysteriorum\Units;
 use PHPUnit\Framework\TestCase;
 
 final class ExprReducerTest extends TestCase
@@ -39,6 +40,31 @@ final class ExprReducerTest extends TestCase
             ->mul($second);
 
         $this->assertSame('meter', $expr->toString());
+    }
+
+    public function testEqualsIsStructuralAfterReduction(): void
+    {
+        $meter = new Unit('meter');
+        $second = new Unit('second');
+
+        $left = $meter->mul($second);
+        $right = $second->mul($meter);
+
+        $this->assertTrue($left->equals($right));
+        $this->assertFalse($meter->equals($second));
+        $this->assertTrue((new Constant(2))->mul($meter)->equals($meter->mul(new Constant(2))));
+        $this->assertTrue((new Constant(new Rational(2, 4)))->equals(new Constant(new Rational(1, 2))));
+    }
+
+    public function testUnitEqualsIgnoresDefinitionAndUnitsContext(): void
+    {
+        $units = Units::default();
+        $bound = $units->unit('meter');
+        $bare = new Unit('meter');
+
+        $this->assertInstanceOf(Unit::class, $bound);
+        $this->assertTrue($bound->equals($bare));
+        $this->assertTrue($bare->equals(new Unit('meter', new Constant(1))));
     }
 
     public function testCompoundPowersDistribute(): void

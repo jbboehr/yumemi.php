@@ -218,6 +218,10 @@ weak `Units` fallback when bound.
 
 ### 4. Quantity equality for `add`/`sub` is stringly typed (design risk — medium)
 
+**Status: fixed** (2026-07-24).
+
+**Original finding:**
+
 ```php
 // src/Quantity.php
 private function assertSameUnit(self $other): void
@@ -243,6 +247,13 @@ unit order via `ksort`). It will break or become subtle if:
 **Suggestion:** Add structural `Expr` equality (or compare reduced canonical forms / unit maps +
 constant), and use that here. Optionally compare **resolved** units when dimensional add is
 added.
+
+**Fix notes:**
+
+- `Analyzer\ExprComparer` compares reduced trees structurally.
+- `Expr::equals()` via `MathTrait` delegates to it.
+- `Quantity::assertSameUnit()` uses structural equality on symbolic units (still not dimensions).
+- Unit equality is by name only (ignores definition / bound Units context).
 
 ---
 
@@ -368,7 +379,7 @@ Fine for now; PHPStan diagnostics will want richer structured data (from/to, dim
 1. Resolver adversarial cases (`mass`, `bus`, `METER`, case variants of `Pa`).
    **Done** for morphology false friends; `pa`/`PA` vs `Pa` still documents SI ambiguity.
 2. Power-zero / dimensionless reduction at the facade. **Done** (`Units::parse` / `unit`).
-3. Structural unit equality for add (not only happy-path strings).
+3. Structural unit equality for add (not only happy-path strings). **Done.**
 4. Circular alias/definition protection (once cycle guards exist).
 5. Registry mutation vs cache coherence (if mutability remains).
 6. Error message / unsupported-syntax UX for temperatures (partly covered by smoke lists).
@@ -407,7 +418,7 @@ through. Adversarial tests now reject those false friends; plurals are catalog-b
 
 **Should fix next:**
 
-4. Structural `Expr` equality; use it in `Quantity::add` / `sub`.
+4. Structural `Expr` equality; use it in `Quantity::add` / `sub`. **Done.**
 5. Remove or recontextualize `Unit::dimension()`. **Done** (kept method; internal ctor + Units binding).
 6. Collapse the two AST converters.
 7. Registry immutability + builder sketch.

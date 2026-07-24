@@ -2,6 +2,7 @@
 
 namespace jbboehr\IudexMensurarumMysteriorum\Util;
 
+use jbboehr\IudexMensurarumMysteriorum\Analyzer\ExprComparer;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\ExprReducer;
 use jbboehr\IudexMensurarumMysteriorum\Expr;
 
@@ -13,6 +14,11 @@ trait MathTrait
             $this,
             new Expr\Term($expr, -1),
         ]));
+    }
+
+    public function equals(Expr $expr): bool
+    {
+        return ExprComparer::equal($this, $expr);
     }
 
     public function mul(Expr $expr): Expr

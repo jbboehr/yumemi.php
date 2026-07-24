@@ -61,6 +61,28 @@ final class QuantityTest extends TestCase
         $this->assertSame('300', $quantity->valueIn('centimeter')->toString());
     }
 
+    public function testAddsQuantitiesWithStructurallyEqualUnitsRegardlessOfOperandOrder(): void
+    {
+        $units = Units::default();
+
+        $left = $units->quantity(1, 'meter * second');
+        $right = $units->quantity(2, 'second * meter');
+
+        $quantity = $left->add($right);
+
+        $this->assertSame('3', $quantity->valueToString());
+        $this->assertTrue($left->unit()->equals($right->unit()));
+    }
+
+    public function testAdditionRejectsSameDimensionWithDifferentSymbolicUnits(): void
+    {
+        $units = Units::default();
+
+        $this->expectException(IncompatibleUnitException::class);
+
+        $units->quantity(1, 'meter')->add($units->quantity(1, 'foot'));
+    }
+
     public function testAddsExplicitlyConvertedQuantities(): void
     {
         $units = Units::default();
