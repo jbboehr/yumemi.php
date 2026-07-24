@@ -11,6 +11,7 @@ parameters:
         - tests
     excludePaths:
         - src/Parser/Parser.php
+        - tests/PHPStan/data
     ignoreErrors:
         -
             message: "#^Trait jbboehr\\\\IudexMensurarumMysteriorum\\\\Parser\\\\ParserUtils is used zero times and is not analysed\\.$#"

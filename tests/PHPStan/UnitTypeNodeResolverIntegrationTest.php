@@ -1,0 +1,66 @@
+<?php
+
+namespace jbboehr\IudexMensurarumMysteriorum\Tests\PHPStan;
+
+use PHPUnit\Framework\TestCase;
+
+/**
+ * Integration: run PHPStan on fixture files with the IMM extension loaded.
+ */
+final class UnitTypeNodeResolverIntegrationTest extends TestCase
+{
+    public function testValidUnitPhpDocHasNoErrors(): void
+    {
+        $output = $this->analyse('unit-phpdoc-valid.php');
+
+        $this->assertStringContainsString('[OK] No errors', $output, $output);
+    }
+
+    public function testInvalidUnitPhpDocReportsErrors(): void
+    {
+        $output = $this->analyse('unit-phpdoc-invalid.php');
+
+        $this->assertStringNotContainsString('[OK] No errors', $output, $output);
+        $this->assertStringContainsString('mass', $output);
+        $this->assertTrue(
+            str_contains($output, 'Unit not found')
+            || str_contains($output, 'ERROR')
+            || str_contains($output, 'invalid type'),
+            $output,
+        );
+    }
+
+    private function analyse(string $fixture): string
+    {
+        $fixturePath = __DIR__ . '/data/' . $fixture;
+        $this->assertFileExists($fixturePath);
+
+        $config = sys_get_temp_dir() . '/imm-phpstan-' . md5($fixture) . '.neon';
+        $extension = realpath(__DIR__ . '/../../extension.neon');
+        $this->assertNotFalse($extension);
+
+        $neon = <<<NEON
+includes:
+    - {$extension}
+parameters:
+    level: max
+    paths:
+        - {$fixturePath}
+    reportUnmatchedIgnoredErrors: false
+NEON;
+        file_put_contents($config, $neon);
+
+        $phpstan = realpath(__DIR__ . '/../../vendor/bin/phpstan');
+        $this->assertNotFalse($phpstan);
+
+        $command = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($phpstan)
+            . ' analyse --no-progress --memory-limit=512M --error-format=table '
+            . escapeshellarg('-c') . ' ' . escapeshellarg($config)
+            . ' 2>&1';
+
+        $output = shell_exec($command);
+        @unlink($config);
+
+        return is_string($output) ? $output : '';
+    }
+}

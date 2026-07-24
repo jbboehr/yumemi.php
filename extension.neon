@@ -1,7 +1,11 @@
 # IMM PHPStan extension (incremental).
-# Piece 1: unit expression parsing service only.
-# Later pieces register type node resolvers, types, and rules.
+# Piece 1: unit expression parsing
+# Piece 2: unit_int / unit_float PHPDoc types
 
 services:
     -
         class: jbboehr\IudexMensurarumMysteriorum\PHPStan\UnitExpressionParser
+    -
+        class: jbboehr\IudexMensurarumMysteriorum\PHPStan\UnitTypeNodeResolverExtension
+        tags:
+            - phpstan.phpDoc.typeNodeResolverExtension

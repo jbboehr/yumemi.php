@@ -268,15 +268,22 @@ Optional polish (not blockers):
 - `extension.neon` registers the parser service
 - Covered by `tests/PHPStan/UnitExpressionParserTest`
 
-### First full milestone (next pieces)
+### Piece 2 — native unit types + PHPDoc resolver (done)
 
-1. Native unit magnitude PHPStan `Type` (`int`/`float` × `UnitExpression`)
-2. PHPDoc resolver for `unit_int<'meter'>` / `unit_float<'…'>` (names TBD)
-3. Errors for invalid / unknown unit strings in PHPDoc
-4. One green inference or rule fixture suite
+- `UnitIntegerType` / `UnitFloatType` extend PHPStan int/float with unit identity
+- `UnitTypeNodeResolverExtension` resolves `unit_int<'…'>` and `unit_float<'…'>`
+- Invalid units become `ErrorType` with IMM error messages (e.g. unknown `mass`)
+- Covered by type unit tests + PHPStan CLI integration fixtures
 
-**Success criterion:** `unit_int<'mass'>` (or similar false friend) is a hard PHPStan error, and
-`unit_int<'meter / second'>` is a real type carrying that unit on an int-like magnitude.
+### Next pieces
+
+1. Operator inference for `+` `-` `*` `/` on unit types
+2. Exact vs dimension arithmetic mode / assignment rules polish
+3. Runtime `Quantity` PHPDoc + method inference
+4. Neon config for catalog and policies
+
+**Success criterion (piece 2):** `unit_int<'mass'>` errors; `unit_int<'meter / second'>` is a
+real type.
 
 ## Later Milestones
 
