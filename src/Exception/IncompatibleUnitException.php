@@ -3,6 +3,7 @@
 namespace jbboehr\IudexMensurarumMysteriorum\Exception;
 
 use jbboehr\IudexMensurarumMysteriorum\Expr;
+use jbboehr\IudexMensurarumMysteriorum\Formatter\ExprFormatter;
 
 final class IncompatibleUnitException extends \RuntimeException
 {
@@ -10,8 +11,8 @@ final class IncompatibleUnitException extends \RuntimeException
     {
         return new self(sprintf(
             'Incompatible unit expressions: %s and %s.',
-            $from->toString(),
-            $to->toString(),
+            ExprFormatter::format($from),
+            ExprFormatter::format($to),
         ));
     }
 }

@@ -9,6 +9,10 @@ This project is in early planning. See [docs/planning.md](docs/planning.md) for 
 The runtime API keeps unit arithmetic and unit conversion separate. Quantity operations reduce the unit expression
 that the caller chose, while `to()` and `valueIn()` explicitly convert through the unit catalog.
 
+**String forms:** `Quantity` (and error messages) use display form via `ExprFormatter`
+(e.g. `meter / second`). `Expr::toString()` is a structural/debug dump
+(e.g. `meter * second ^ -1`). Equality uses structure, not either string form.
+
 The PHP examples in this section are executed by the test suite.
 
 ```php

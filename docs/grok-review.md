@@ -277,6 +277,10 @@ the no-resolver mode used by `Quantity` for chosen syntax. Resolving mode remain
 
 ### 6. Dual string representations for expressions
 
+**Status: fixed** (2026-07-24) — documented and routed; both forms kept.
+
+**Original finding:**
+
 | Path                      | Example               |
 | ------------------------- | --------------------- |
 | `Expr::toString()`        | `meter * second ^ -1` |
@@ -287,6 +291,13 @@ the no-resolver mode used by `Quantity` for chosen syntax. Resolving mode remain
 
 **Suggestion:** Pick one canonical display form for public APIs and exceptions, or name them
 explicitly (`toDebugString` vs `toDisplayString`).
+
+**Fix notes:** Kept both deliberately.
+
+- **Structural/debug:** `Expr::toString()` (documented on the interface).
+- **Display:** `ExprFormatter::format()` — Quantity already used this; `IncompatibleUnitException`
+  now does too.
+- README notes the split. Equality remains structural (#4), not string-based.
 
 ---
 

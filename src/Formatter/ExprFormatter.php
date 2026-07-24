@@ -10,6 +10,13 @@ use jbboehr\IudexMensurarumMysteriorum\Expr\Term;
 use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
 use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
 
+/**
+ * User-facing rendering of unit expressions.
+ *
+ * Prefers fraction form for negative powers (e.g. "meter / second") rather than the
+ * structural tree dump from {@see Expr::toString()} (e.g. "meter * second ^ -1").
+ * Quantity display and exception messages should use this formatter.
+ */
 final class ExprFormatter
 {
     public static function format(Expr $expr): string
