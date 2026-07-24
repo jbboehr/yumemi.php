@@ -29,8 +29,10 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
 
         $this->assertTrue($this->extension->isOperatorSupported('+', $meters, $meters));
         $this->assertTrue($this->extension->isOperatorSupported('*', $meters, $bare));
+        $this->assertTrue($this->extension->isOperatorSupported('%', $meters, $meters));
+        $this->assertTrue($this->extension->isOperatorSupported('**', $meters, $bare));
         $this->assertFalse($this->extension->isOperatorSupported('+', $bare, $bare));
-        $this->assertFalse($this->extension->isOperatorSupported('%', $meters, $meters));
+        $this->assertFalse($this->extension->isOperatorSupported('~', $meters, $meters));
     }
 
     public function testAddSameUnitKeepsUnitAndIntegerKind(): void
@@ -163,6 +165,24 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
     public function testPowNonConstantExponentIsError(): void
     {
         $result = $this->extension->specifyType('**', $this->unitFloat('meter'), new IntegerType());
+
+        $this->assertInstanceOf(ErrorType::class, $result);
+    }
+
+    public function testModSameUnitKeepsUnit(): void
+    {
+        $a = $this->unitInt('meter');
+        $b = $this->unitInt('meter');
+
+        $result = $this->extension->specifyType('%', $a, $b);
+
+        $this->assertInstanceOf(UnitIntegerType::class, $result);
+        $this->assertSame("unit_int<'meter'>", $result->describe(VerbosityLevel::precise()));
+    }
+
+    public function testModDifferentUnitsIsError(): void
+    {
+        $result = $this->extension->specifyType('%', $this->unitInt('meter'), $this->unitInt('second'));
 
         $this->assertInstanceOf(ErrorType::class, $result);
     }

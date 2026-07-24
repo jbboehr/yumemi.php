@@ -169,6 +169,38 @@ final class QuantityTest extends TestCase
         $this->assertSame('6 * meter * second', $quantity->expr()->toString());
     }
 
+    public function testRaisesQuantityToIntegerPower(): void
+    {
+        $units = Units::default();
+
+        $area = $units->quantity(3, 'meter')->pow(2);
+
+        $this->assertSame('9', $area->valueToString());
+        $this->assertSame('meter ^ 2', $area->unitToString());
+        $this->assertSame('9', $area->valueIn('meter^2')->toString());
+    }
+
+    public function testRaisesQuantityToNegativePowerInvertsUnit(): void
+    {
+        $units = Units::default();
+
+        $rate = $units->quantity(2, 'second')->pow(-1);
+
+        $this->assertSame('1/2', $rate->valueToString());
+        $this->assertSame('1 / second', $rate->unitToString());
+    }
+
+    public function testNegatesQuantityMagnitude(): void
+    {
+        $units = Units::default();
+
+        $quantity = $units->quantity(5, 'meter')->neg();
+
+        $this->assertSame('-5', $quantity->valueToString());
+        $this->assertSame('meter', $quantity->unitToString());
+        $this->assertSame('5', $quantity->neg()->valueToString());
+    }
+
     public function testRejectsMultiplicationAcrossDifferentUnitsContexts(): void
     {
         $this->expectException(IncompatibleQuantityContextException::class);

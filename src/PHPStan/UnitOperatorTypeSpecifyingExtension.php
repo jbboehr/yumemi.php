@@ -9,10 +9,10 @@ use PHPStan\Type\OperatorTypeSpecifyingExtension;
 use PHPStan\Type\Type;
 
 /**
- * Infers types for +, -, *, /, ** when at least one operand is unit_int or unit_float.
+ * Infers types for +, -, *, /, **, % when at least one operand is unit_int or unit_float.
  *
  * Rules (exact unit mode):
- * - + / -: both sides must be unit types with the same reduced unit
+ * - + / - / %: both sides must be unit types with the same reduced unit
  * - * /: combine unit expressions (IMM Expr algebra)
  * - **: left unit raised to a constant integer exponent
  * - unit op bare numeric: treat bare value as dimensionless (* / only)
@@ -20,7 +20,7 @@ use PHPStan\Type\Type;
  */
 final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyingExtension
 {
-    private const SUPPORTED = ['+', '-', '*', '/', '**'];
+    private const SUPPORTED = ['+', '-', '*', '/', '**', '%'];
 
     public function isOperatorSupported(string $operatorSigil, Type $leftSide, Type $rightSide): bool
     {
@@ -37,7 +37,7 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
         $rightUnit = $this->asUnit($rightSide);
 
         return match ($operatorSigil) {
-            '+', '-' => $this->specifyAddSub($operatorSigil, $leftUnit, $rightUnit, $leftSide, $rightSide),
+            '+', '-', '%' => $this->specifyAddSub($operatorSigil, $leftUnit, $rightUnit, $leftSide, $rightSide),
             '*', '/' => $this->specifyMulDiv($operatorSigil, $leftUnit, $rightUnit, $leftSide, $rightSide),
             '**' => $this->specifyPow($leftUnit, $rightUnit, $leftSide, $rightSide),
             default => new ErrorType('Unsupported unit operator: ' . $operatorSigil),

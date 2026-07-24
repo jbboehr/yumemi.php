@@ -479,22 +479,54 @@ final class RealWorldFormulaTest extends TestCase
 
     public function testSquareFieldAreaViaPower(): void
     {
-        $this->markTestIncomplete('Quantity has no pow() yet (native: side ** 2).');
+        $units = Units::default();
+
+        $area = $units->quantity(100, 'meter')->pow(2)->simplify();
+
+        $this->assertSame('10000', $area->valueToString());
+        $this->assertSame('meter ^ 2', $area->unitToString());
+        $this->assertSame('1', $area->valueIn('hectare')->toString());
     }
 
     public function testCubeVolumeViaPower(): void
     {
-        $this->markTestIncomplete('Quantity has no pow() yet (native: side ** 3).');
+        $units = Units::default();
+
+        $volume = $units->quantity(2, 'meter')->pow(3)->simplify();
+
+        $this->assertSame('8', $volume->valueToString());
+        $this->assertSame('meter ^ 3', $volume->unitToString());
+        $this->assertSame('8', $volume->valueIn('meter^3')->toString());
     }
 
     public function testKineticEnergyViaPower(): void
     {
-        $this->markTestIncomplete('Quantity has no pow() yet (native: ½ m v ** 2).');
+        $units = Units::default();
+
+        $energy = $units
+            ->quantity(1000, 'kilogram')
+            ->mul($units->quantity(10, 'meter / second')->pow(2))
+            ->div(2)
+            ->simplify();
+
+        $this->assertSame('50000', $energy->valueToString());
+        $this->assertSame('kilogram * meter ^ 2 / second ^ 2', $energy->unitToString());
+        $this->assertSame('50000', $energy->valueIn('joule')->toString());
     }
 
     public function testFreeFallDistanceViaPower(): void
     {
-        $this->markTestIncomplete('Quantity has no pow() yet (native: ½ g t ** 2).');
+        $units = Units::default();
+
+        $distance = $units
+            ->quantity(new Rational(981, 100), 'meter / second^2')
+            ->mul($units->quantity(3, 'second')->pow(2))
+            ->div(2)
+            ->simplify();
+
+        $this->assertSame('8829/200', $distance->valueToString());
+        $this->assertSame('meter', $distance->unitToString());
+        $this->assertSame('8829/200', $distance->valueIn('meter')->toString());
     }
 
     public function testDaltonPartialPressuresAdd(): void
@@ -522,5 +554,16 @@ final class RealWorldFormulaTest extends TestCase
         $this->assertSame('1100000000', $energy->valueToString());
         $this->assertSame('joule', $energy->unitToString());
         $this->assertSame('1100000000', $energy->valueIn('joule')->toString());
+    }
+
+    public function testOppositeDisplacementNegatesMagnitude(): void
+    {
+        $units = Units::default();
+
+        $west = $units->quantity(40, 'meter')->neg();
+
+        $this->assertSame('-40', $west->valueToString());
+        $this->assertSame('meter', $west->unitToString());
+        $this->assertSame('-40', $west->valueIn('meter')->toString());
     }
 }

@@ -448,3 +448,32 @@ $consumed = 4.2e9;
 /** @var unit_float<'joule'> $imported */
 $imported = 3.0e8;
 expectEnergyBudget($generated - $consumed + $imported);
+
+// --- Unary minus: reverse a displacement vector component ---
+
+/** @param unit_float<'meter'> $displacement */
+function expectOppositeDisplacement(float $displacement): void {}
+
+/** @var unit_float<'meter'> $east */
+$east = 40.0;
+expectOppositeDisplacement(-$east);
+
+// --- Unary plus is a no-op on unit types ---
+
+/** @param unit_float<'second'> $duration */
+function expectUnaryPlusDuration(float $duration): void {}
+
+/** @var unit_float<'second'> $wait */
+$wait = 12.0;
+expectUnaryPlusDuration(+$wait);
+
+// --- Modulo of same unit (e.g. packing remainder) ---
+
+/** @param unit_int<'meter'> $remainder */
+function expectPackingRemainder(int $remainder): void {}
+
+/** @var unit_int<'meter'> $stockLength */
+$stockLength = 100;
+/** @var unit_int<'meter'> $pieceLength */
+$pieceLength = 12;
+expectPackingRemainder($stockLength % $pieceLength);

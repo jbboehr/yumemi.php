@@ -1,7 +1,7 @@
 # IMM PHPStan extension (incremental).
 # Piece 1: unit expression parsing
 # Piece 2: unit_int / unit_float PHPDoc types
-# Piece 3: arithmetic operator type inference
+# Piece 3: arithmetic operator type inference (+ - * / ** % and unary +/-)
 
 services:
     -
@@ -14,3 +14,7 @@ services:
         class: jbboehr\IudexMensurarumMysteriorum\PHPStan\UnitOperatorTypeSpecifyingExtension
         tags:
             - phpstan.broker.operatorTypeSpecifyingExtension
+    -
+        class: jbboehr\IudexMensurarumMysteriorum\PHPStan\UnitUnaryOperatorTypeSpecifyingExtension
+        tags:
+            - phpstan.broker.unaryOperatorTypeSpecifyingExtension

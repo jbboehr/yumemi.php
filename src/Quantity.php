@@ -115,11 +115,39 @@ final class Quantity
         );
     }
 
+    /**
+     * Unary negation: same unit, negated magnitude.
+     */
+    public function neg(): self
+    {
+        return new self(
+            $this->value->mul(new Rational(-1)),
+            $this->unit,
+            $this->units,
+            $this->resolvedUnit,
+        );
+    }
+
     public function normalize(): self
     {
         $unit = $this->normalizedUnit();
 
         return new self($this->value, $unit, $this->units, $unit);
+    }
+
+    /**
+     * Raise the quantity to an integer power (value and unit).
+     *
+     * Exponent must be an int: unit algebra uses integer powers only.
+     */
+    public function pow(int $power): self
+    {
+        return new self(
+            $this->value->pow($power),
+            $this->unit->pow($power),
+            $this->units,
+            $this->resolvedUnit->pow($power),
+        );
     }
 
     public function simplify(): self
