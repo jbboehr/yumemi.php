@@ -182,6 +182,10 @@ returning. Covered by `UnitsTest::testParseReducesZeroPowersToDimensionless`.
 
 ### 3. `Unit::dimension()` is a footgun (bug/API — medium)
 
+**Status: fixed** (2026-07-24).
+
+**Original finding:**
+
 ```php
 // src/Expr/Unit.php
 public function dimension(): Dimension
@@ -197,8 +201,18 @@ public function dimension(): Dimension
 So the method only works for SI base names or units whose definitions are already fully expanded
 to bases on the object. Easy to misuse; looks public/API-ish.
 
-**Suggestion:** Remove it from `Unit`, or require a `Units` / `DimensionResolver` argument.
-Dimension belongs on the analysis context, not on a free-floating name token.
+**Suggestion (evolved):** Keep `Unit::dimension()` (useful API). Make the constructor `@internal` and
+steer application code through `Units::unit()`. Dimension uses the definition tree first, then a
+weak `Units` fallback when bound.
+
+**Fix notes:**
+
+- `Unit` constructor is `@internal`; docs point at `Units::unit()` / parse / quantity.
+- `Units::unit()` and `Units::parse()` stamp a `WeakReference` to the `Units` context onto unit
+  leaves via `Unit::withUnits()`.
+- `Unit::dimension()`: pure definition-tree path, then catalog fallback through the bound context.
+- Bare `new Unit('foot')` still fails with a message that names `Units::unit()`.
+- `Dimension` remains a pure value object (no registry).
 
 ---
 
@@ -394,7 +408,7 @@ through. Adversarial tests now reject those false friends; plurals are catalog-b
 **Should fix next:**
 
 4. Structural `Expr` equality; use it in `Quantity::add` / `sub`.
-5. Remove or recontextualize `Unit::dimension()`.
+5. Remove or recontextualize `Unit::dimension()`. **Done** (kept method; internal ctor + Units binding).
 6. Collapse the two AST converters.
 7. Registry immutability + builder sketch.
 

@@ -8,6 +8,9 @@ use jbboehr\IudexMensurarumMysteriorum\Analyzer\DimensionResolver;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\ExprReducer;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitNormalizer;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitResolver;
+use jbboehr\IudexMensurarumMysteriorum\Expr\Compound;
+use jbboehr\IudexMensurarumMysteriorum\Expr\Term;
+use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
 use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
 use jbboehr\IudexMensurarumMysteriorum\Parser\Parser;
 use jbboehr\IudexMensurarumMysteriorum\Registry\UnitRegistry;
@@ -65,7 +68,9 @@ final class Units
 
     public function parse(string $input): Expr
     {
-        return ExprReducer::reduce($this->astConverter->convert(Parser::parseString($input)));
+        return $this->bindContext(
+            ExprReducer::reduce($this->astConverter->convert(Parser::parseString($input))),
+        );
     }
 
     public function quantity(int|Rational $value, Expr|string $unit): Quantity
@@ -73,13 +78,44 @@ final class Units
         return new Quantity($value, $unit, $this);
     }
 
+    /**
+     * Resolve a unit name through the catalog.
+     *
+     * This is the supported way for application code to obtain {@see Unit} values.
+     * Constructing {@see Unit} directly is internal and may not be dimensionable.
+     */
     public function unit(string $name): Expr
     {
-        return ExprReducer::reduce($this->unitResolver->resolveOrFail($name));
+        return $this->bindContext(
+            ExprReducer::reduce($this->unitResolver->resolveOrFail($name)),
+        );
     }
 
     private function expr(Expr|string $expr): Expr
     {
         return is_string($expr) ? $this->parse($expr) : $expr;
+    }
+
+    /**
+     * Stamp a weak Units context onto unit leaves so Unit::dimension() can fall back to the catalog.
+     */
+    private function bindContext(Expr $expr): Expr
+    {
+        if ($expr instanceof Unit) {
+            return $expr->withUnits($this);
+        }
+
+        if ($expr instanceof Term) {
+            return new Term($this->bindContext($expr->value), $expr->power);
+        }
+
+        if ($expr instanceof Compound) {
+            return new Compound(array_map(
+                fn (Expr $subexpr): Expr => $this->bindContext($subexpr),
+                $expr->exprs,
+            ));
+        }
+
+        return $expr;
     }
 }
