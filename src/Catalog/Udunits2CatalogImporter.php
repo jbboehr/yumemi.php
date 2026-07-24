@@ -168,6 +168,12 @@ final class Udunits2CatalogImporter
             $this->addAlias($catalog, $alias, $unit['name']);
         }
 
+        // Register explicit UDUNITS2 plurals as aliases so resolution stays fail-closed
+        // without runtime morphology.
+        if ($plural !== null && !isset($catalog['units'][$plural])) {
+            $this->addAlias($catalog, $plural, $unit['name']);
+        }
+
         if (isset($catalog['units'][$unit['name']])) {
             throw new \RuntimeException('Already registered UDUNITS2 unit name: ' . $unit['name']);
         }

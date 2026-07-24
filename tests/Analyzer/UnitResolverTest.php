@@ -3,7 +3,10 @@
 namespace jbboehr\IudexMensurarumMysteriorum\Tests\Analyzer;
 
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitResolver;
+use jbboehr\IudexMensurarumMysteriorum\Exception\UnitNotFoundException;
 use jbboehr\IudexMensurarumMysteriorum\Registry\Udunits2UnitRegistry;
+use jbboehr\IudexMensurarumMysteriorum\Units;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class UnitResolverTest extends TestCase
@@ -23,10 +26,75 @@ final class UnitResolverTest extends TestCase
         $this->assertSame('1/100 * meter', $resolver->resolveOrFail('centimeter')->toString());
     }
 
-    public function testResolvesSimplePlurals(): void
+    public function testResolvesCatalogBackedPlurals(): void
     {
         $resolver = new UnitResolver(new Udunits2UnitRegistry());
 
         $this->assertSame('meter', $resolver->resolveOrFail('meters')->toString());
+        $this->assertSame('second', $resolver->resolveOrFail('seconds')->toString());
+        $this->assertSame('international_inch', $resolver->resolveOrFail('inches')->toString());
+        $this->assertSame('kilogram', $resolver->resolveOrFail('kilograms')->toString());
+    }
+
+    public function testResolvesPrefixPlusCatalogPlural(): void
+    {
+        $resolver = new UnitResolver(new Udunits2UnitRegistry());
+
+        $this->assertSame('1/100 * meter', $resolver->resolveOrFail('centimeters')->toString());
+        $this->assertSame('1/1000 * meter', $resolver->resolveOrFail('millimeters')->toString());
+    }
+
+    public function testResolvesKnownSymbolsCaseSensitively(): void
+    {
+        $resolver = new UnitResolver(new Udunits2UnitRegistry());
+
+        $this->assertSame('pascal', $resolver->resolveOrFail('Pa')->toString());
+        $this->assertSame('meter', $resolver->resolveOrFail('m')->toString());
+    }
+
+    /**
+     * @return list<array{0: string}>
+     */
+    public static function falseFriendProvider(): array
+    {
+        return [
+            ['mass'],
+            ['pass'],
+            ['ass'],
+            ['has'],
+            ['bus'],
+            ['METER'],
+            ['gas'],
+            ['lass'],
+        ];
+    }
+
+    #[DataProvider('falseFriendProvider')]
+    public function testRejectsFalseFriendIdentifiers(string $name): void
+    {
+        $resolver = new UnitResolver(new Udunits2UnitRegistry());
+
+        $this->assertNull($resolver->resolve($name), $name . ' should not resolve');
+
+        $this->expectException(UnitNotFoundException::class);
+        $resolver->resolveOrFail($name);
+    }
+
+    public function testDoesNotApplyNestedPrefixesToInventUnits(): void
+    {
+        $units = Units::default();
+
+        $this->expectException(UnitNotFoundException::class);
+        $units->parse('mass');
+    }
+
+    public function testDoesNotStripPluralToUnrelatedShortAlias(): void
+    {
+        $resolver = new UnitResolver(new Udunits2UnitRegistry());
+
+        // Previously "bus" stripped to "bu" (bushel). Fail-closed resolution must reject it.
+        $this->assertNull($resolver->resolve('bus'));
+        $this->assertSame('bushel', $resolver->resolveOrFail('bushel')->toString());
+        $this->assertSame('bushel', $resolver->resolveOrFail('bu')->toString());
     }
 }

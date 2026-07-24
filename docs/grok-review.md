@@ -11,6 +11,10 @@ potential issues, and readiness for the planned PHPStan dimensional analysis lay
 **Verification at review time:** 150 PHPUnit tests green, PHPStan level max clean, PHP-CS-Fixer
 clean. Several edge cases outside the suite were probed manually.
 
+**Follow-up (same day):** Issue #1 (unit resolver false positives) was fixed after this review was
+written. Original findings are retained below; fixed items are marked **Status: fixed** with a
+short note on what changed. Remaining issues are still open.
+
 ---
 
 ## Executive Summary
@@ -26,8 +30,12 @@ the PHPStan layer depends on this engine.
 Confidence summary:
 
 - Runtime units calculator for **trusted** unit strings: fairly high.
-- Accepting **arbitrary** user or PHPDoc unit strings (exactly what PHPStan will do): not yet —
-  the resolver is too greedy.
+- Accepting **arbitrary** user or PHPDoc unit strings (exactly what PHPStan will do): improved
+  after the fail-closed resolver fix; still needs care for SI prefix × short-symbol compositions
+  (`pa` / `PA`) and for the remaining open issues below.
+
+**Original confidence at review time (superseded for the resolver line):** arbitrary unit strings
+were not yet trustworthy because the resolver was too greedy (see issue #1).
 
 ---
 
@@ -86,10 +94,12 @@ At review time:
 
 ### 1. Unit resolver false positives (bug — high)
 
-`UnitResolver` tries, in order: catalog lookup → **prefix decomposition** → **naive plural
-stripping**, recursively.
+**Status: fixed** (2026-07-24), with a residual note on single-letter SI compositions.
 
-That combination invents units for nonsense or wrong words. Probed examples:
+**Original finding:** `UnitResolver` tried, in order: catalog lookup → **prefix decomposition** →
+**naive plural stripping**, recursively.
+
+That combination invents units for nonsense or wrong words. Probed examples at review time:
 
 | Input   | Resolves to (approx.)              |
 | ------- | ---------------------------------- |
@@ -112,14 +122,14 @@ Root causes:
 - Prefix application does not require the residual to be an exact catalog name without further
   reckless rewriting; recursion allows prefix + prefix + plural stacks.
 
-Relevant code: `src/Analyzer/UnitResolver.php` (`tryLookupWithPrefixes`,
+Relevant code (at review time): `src/Analyzer/UnitResolver.php` (`tryLookupWithPrefixes`,
 `tryLookupStripPlural`).
 
 **Why this matters for the end goal:** PHPStan will treat `Quantity<'mass'>` as a valid unit
 string if resolution succeeds. Silently mapping `mass` to a time quantity is worse than rejecting
 it.
 
-**Suggestion:** Resolve only with:
+**Suggestion (implemented):** Resolve only with:
 
 1. Exact catalog hit (including aliases / generated plurals).
 2. Prefix + residual only if residual is an **exact** known unit or alias (no plural strip inside
@@ -130,6 +140,21 @@ it.
    SI symbols — not accidental prefix matches on `METER`.
 
 Add regression tests for at least: `mass`, `bus`, `METER`, `PA` / `pa` / `Pa`, `pass`.
+
+**Fix notes:**
+
+- `UnitResolver` is fail-closed: exact `lookup`, then a single prefix applied only when the
+  residual is an exact catalog hit. Recursive plural stripping was removed.
+- Plurals such as `meters` / `inches` / `centimeters` work via catalog-backed aliases:
+  - `Udunits2UnitRegistry` materializes conservative English plurals (and explicit `plural`
+    fields) into aliases at load time.
+  - `Udunits2CatalogImporter` registers explicit UDUNITS2 plurals as aliases on future catalog
+    regenerations.
+- Adversarial tests live in `tests/Analyzer/UnitResolverTest.php` (`mass`, `bus`, `METER`, …).
+- **Still open / intentional ambiguity:** one-level SI compositions like `pa` → pico·are and
+  `PA` → peta·ampere remain, because `p`/`P` are prefixes and `a`/`A` are real catalog names.
+  `Pa` still resolves to pascal via exact lookup. Tightening short residual rules is optional
+  follow-up, not the morphology class of bug fixed above.
 
 ---
 
@@ -309,7 +334,7 @@ Fine for now; PHPStan diagnostics will want richer structured data (from/to, dim
 | Class coverage ~35% / lines ~70%                 | Inflated by parser AST nodes / generated parser.           |
 | Importer special-cases only `cm2`                | Fragile; prefer grammar support if needed.                 |
 | `prefixRegex` generated but unused by resolver   | Dead metadata?                                             |
-| Catalog plurals imported but unused              | Same family as issue #1.                                   |
+| Catalog plurals imported but unused              | **Fixed with #1:** load-time plural aliases + importer.    |
 
 ---
 
@@ -320,31 +345,33 @@ Fine for now; PHPStan diagnostics will want richer structured data (from/to, dim
 **Gaps (high value):**
 
 1. Resolver adversarial cases (`mass`, `bus`, `METER`, case variants of `Pa`).
+   **Done** for morphology false friends; `pa`/`PA` vs `Pa` still documents SI ambiguity.
 2. Power-zero / dimensionless reduction at the facade.
 3. Structural unit equality for add (not only happy-path strings).
 4. Circular alias/definition protection (once cycle guards exist).
 5. Registry mutation vs cache coherence (if mutability remains).
 6. Error message / unsupported-syntax UX for temperatures (partly covered by smoke lists).
 
-The suite currently **encodes permissive plural behavior** (`meters` → `meter`) without locking
-the false-positive surface. That is how `mass` slipped through.
+**Original note (resolved for morphology):** the suite encoded permissive plural behavior
+(`meters` → `meter`) without locking the false-positive surface. That is how `mass` slipped
+through. Adversarial tests now reject those false friends; plurals are catalog-backed.
 
 ---
 
 ## Elegance Scorecard (Subjective)
 
-| Area                       | Grade | Comment                                               |
-| -------------------------- | ----- | ----------------------------------------------------- |
-| Architecture               | A−    | Clear, one engine; small API                          |
-| Numeric model              | A     | Rationals done properly                               |
-| Expression reduction       | A−    | Solid; public reduce boundary uneven                  |
-| Registry / name resolution | C     | Biggest correctness debt                              |
-| Quantity API               | B+    | Good semantics; string equality & dual toString       |
-| Errors / UX                | B−    | Typed exceptions, thin messages                       |
-| Duplication                | B     | Converter twin; dimension ownership                   |
-| Tests                      | A−    | Strong invariants; missing adversarial resolver tests |
-| Docs / planning            | A     | Rare quality of intent                                |
-| Static analysis product    | n/a   | Not started                                           |
+| Area                       | Grade | Comment                                             |
+| -------------------------- | ----- | --------------------------------------------------- |
+| Architecture               | A−    | Clear, one engine; small API                        |
+| Numeric model              | A     | Rationals done properly                             |
+| Expression reduction       | A−    | Solid; public reduce boundary uneven                |
+| Registry / name resolution | B     | Was C; fail-closed resolver + plural aliases (#1)   |
+| Quantity API               | B+    | Good semantics; string equality & dual toString     |
+| Errors / UX                | B−    | Typed exceptions, thin messages                     |
+| Duplication                | B     | Converter twin; dimension ownership                 |
+| Tests                      | A−    | Strong invariants; resolver adversarial cases added |
+| Docs / planning            | A     | Rare quality of intent                              |
+| Static analysis product    | n/a   | Not started                                         |
 
 ---
 
@@ -352,8 +379,9 @@ the false-positive surface. That is how `mass` slipped through.
 
 **Must fix soon (blocks trustworthy static analysis):**
 
-1. Fail-closed unit resolution (exact + safe prefix + catalog plurals only).
-2. Regression corpus for false friends and case.
+1. Fail-closed unit resolution (exact + safe prefix + catalog plurals only). **Done.**
+2. Regression corpus for false friends and case. **Done** for morphology false friends;
+   optional tighten for `pa`/`PA` remains.
 3. Canonical reduce at `Units::parse` (or an explicit contract).
 
 **Should fix next:**
@@ -366,21 +394,23 @@ the false-positive surface. That is how `mass` slipped through.
 **Can wait:**
 
 8. Richer exceptions, display-string unification, formula API, affine units, GNU units.
+9. Optional short-residual SI policy (`pa` / `PA` vs `Pa`).
 
 ---
 
 ## Roadmap Alignment
 
-The near-term plan in `docs/planning.md` remains the right order once resolver trust is fixed:
+The near-term plan in `docs/planning.md` remains the right order. Resolver trust for morphology
+false friends is fixed; PHPStan work can start.
 
 1. PHPDoc `Quantity<'meter / second'>` type parsing via the same parser.
 2. Diagnostics for invalid or unknown unit strings.
 3. Return-type inference for `to` / `mul` / `div` / `normalize` / `simplify`.
 4. `add` / `sub` dimensional (then optional exact-unit) checks.
 5. Registry builder / composition.
-6. Catalog edge cases (plurals, affine, log).
+6. Catalog edge cases (remaining plurals policy, affine, log).
 
-Suggested first PHPStan vertical slice after resolver hardening:
+Suggested first PHPStan vertical slice:
 
 ```php
 /** @var Quantity<'meter / second'> $speed */
@@ -397,9 +427,11 @@ If that works against the real runtime reducers, the architecture thesis is prov
 The runtime core is credible and worth keeping. The design instincts (exact math, no silent add
 conversion, UDUNITS2 catalog, dual symbolic/resolved units) are sound.
 
-The one place not to “trust and continue” is **`UnitResolver`**: it is too clever and too
-accepting. For a calculator used with known strings, some false positives are embarrassing. For a
-**PHPStan dimensional analyzer**, they are silent type corruption.
+**Original bottom line (issue #1):** the one place not to “trust and continue” was
+**`UnitResolver`**: too clever and too accepting. Morphology false friends (`mass`, `bus`,
+`METER`, …) were silent type corruption risk for PHPStan.
 
-Suggested immediate next engineering step: stricter resolver + adversarial tests, then the
-PHPStan `Quantity<'...'>` type layer on top of a resolver that fails closed.
+**Update:** fail-closed resolution and catalog-backed plurals address that class of bug.
+Remaining open items (#2–#12 and optional SI short-residual policy) still matter, but they no
+longer block starting the PHPStan `Quantity<'...'>` type layer on a resolver that fails closed
+for invented units.

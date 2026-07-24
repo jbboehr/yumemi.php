@@ -8,6 +8,16 @@ use jbboehr\IudexMensurarumMysteriorum\Expr\Compound;
 use jbboehr\IudexMensurarumMysteriorum\Parser\Parser;
 use jbboehr\IudexMensurarumMysteriorum\Registry\UnitRegistry;
 
+/**
+ * Resolves unit identifiers against a registry.
+ *
+ * Resolution is fail-closed:
+ * 1. exact catalog lookup (units and aliases, including materialised plurals)
+ * 2. a single SI/catalog prefix applied to an exact residual name
+ *
+ * Residuals after a prefix are never re-prefixed or plural-stripped. Unknown
+ * strings such as "mass" or "bus" do not invent units.
+ */
 final class UnitResolver
 {
     /** @var array<string, Expr|null> */
@@ -31,26 +41,12 @@ final class UnitResolver
         }
 
         return $this->cache[$name] = $this->unitRegistry->lookup($name)
-            ?? $this->tryLookupWithPrefixes($name)
-            ?? $this->tryLookupStripPlural($name);
+            ?? $this->tryLookupWithPrefixes($name);
     }
 
     public function resolveOrFail(string $name): Expr
     {
         return $this->resolve($name) ?? throw UnitNotFoundException::create($name);
-    }
-
-    private function tryLookupStripPlural(string $name): ?Expr
-    {
-        if (str_ends_with($name, 'es')) {
-            return $this->resolve(substr($name, 0, -2));
-        }
-
-        if (str_ends_with($name, 's')) {
-            return $this->resolve(substr($name, 0, -1));
-        }
-
-        return null;
     }
 
     private function tryLookupWithPrefixes(string $name): ?Expr
@@ -65,7 +61,8 @@ final class UnitResolver
                 continue;
             }
 
-            $remainingUnit = $this->resolve($remainingName);
+            // Exact catalog hit only — do not recurse into further prefixes or morphology.
+            $remainingUnit = $this->unitRegistry->lookup($remainingName);
             if ($remainingUnit === null) {
                 continue;
             }
