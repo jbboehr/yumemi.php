@@ -28,12 +28,14 @@ final class ExprReducer
             $exprs[] = new Constant($state->constant);
         }
 
-        foreach ($state->units as $name => $power) {
+        foreach ($state->units as $data) {
+            $power = $data['power'];
+
             if ($power === 0) {
                 continue;
             }
 
-            $unit = new Unit($name);
+            $unit = $data['unit'];
             $exprs[] = $power === 1 ? $unit : new Term($unit, $power);
         }
 
@@ -69,10 +71,21 @@ final class ExprReducer
         }
 
         if ($expr instanceof Unit) {
-            $state->units[$expr->name] = ($state->units[$expr->name] ?? 0) + $power;
+            $data = $state->units[$expr->name] ?? [
+                'unit' => $expr,
+                'power' => 0,
+            ];
 
-            if ($state->units[$expr->name] === 0) {
+            if ($data['unit']->isBase() && !$expr->isBase()) {
+                $data['unit'] = $expr;
+            }
+
+            $data['power'] += $power;
+
+            if ($data['power'] === 0) {
                 unset($state->units[$expr->name]);
+            } else {
+                $state->units[$expr->name] = $data;
             }
 
             return;

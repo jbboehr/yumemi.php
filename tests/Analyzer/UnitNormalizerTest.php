@@ -3,6 +3,7 @@
 namespace jbboehr\IudexMensurarumMysteriorum\Tests\Analyzer;
 
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitNormalizer;
+use jbboehr\IudexMensurarumMysteriorum\Analyzer\ExprReducer;
 use jbboehr\IudexMensurarumMysteriorum\Expr\Compound;
 use jbboehr\IudexMensurarumMysteriorum\Expr\Constant;
 use jbboehr\IudexMensurarumMysteriorum\Expr\Term;
@@ -57,5 +58,18 @@ final class UnitNormalizerTest extends TestCase
         ]));
 
         $this->assertSame('1/60 * meter', $expr->toString());
+    }
+
+    public function testInitialReductionPreservesDefinitionsForSubstitution(): void
+    {
+        $meter = new Unit('meter');
+        $kilometer = new Unit('kilometer', new Compound([
+            new Constant(1000),
+            $meter,
+        ]));
+
+        $normalizer = new UnitNormalizer();
+
+        $this->assertSame('1000 * meter', $normalizer->normalize(ExprReducer::reduce($kilometer))->toString());
     }
 }

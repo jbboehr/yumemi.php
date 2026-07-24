@@ -8,7 +8,7 @@ final class ReductionState
 {
     public Rational $constant;
 
-    /** @var array<string, int> */
+    /** @var array<string, array{unit: \jbboehr\IudexMensurarumMysteriorum\Expr\Unit, power: int}> */
     public array $units = [];
 
     public function __construct()

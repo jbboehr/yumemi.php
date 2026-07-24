@@ -60,6 +60,17 @@ final class Rational
         return new self($numerator, $denominator);
     }
 
+    public function add(self $other): self
+    {
+        return new self(
+            gmp_add(
+                gmp_mul($this->numerator, $other->denominator),
+                gmp_mul($other->numerator, $this->denominator),
+            ),
+            gmp_mul($this->denominator, $other->denominator),
+        );
+    }
+
     public function div(self $other): self
     {
         return new self(
@@ -103,6 +114,17 @@ final class Rational
         return new self(
             gmp_pow($this->numerator, $power),
             gmp_pow($this->denominator, $power),
+        );
+    }
+
+    public function sub(self $other): self
+    {
+        return new self(
+            gmp_sub(
+                gmp_mul($this->numerator, $other->denominator),
+                gmp_mul($other->numerator, $this->denominator),
+            ),
+            gmp_mul($this->denominator, $other->denominator),
         );
     }
 

@@ -7,6 +7,11 @@ use PHPUnit\Framework\TestCase;
 
 final class RationalTest extends TestCase
 {
+    public function testAddsRationals(): void
+    {
+        $this->assertSame('5/6', (new Rational(1, 2))->add(new Rational(1, 3))->toString());
+    }
+
     /**
      * @dataProvider decimalStringProvider
      */
@@ -24,5 +29,10 @@ final class RationalTest extends TestCase
         yield 'negative leading zero decimal' => ['-0.25', '-1/4'];
         yield 'decimal exponent' => ['0.9972696', '1246587/1250000'];
         yield 'zero decimal' => ['0.0', '0'];
+    }
+
+    public function testSubtractsRationals(): void
+    {
+        $this->assertSame('1/6', (new Rational(1, 2))->sub(new Rational(1, 3))->toString());
     }
 }

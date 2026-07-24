@@ -6,7 +6,6 @@ use jbboehr\IudexMensurarumMysteriorum\Analyzer\AstConverter;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\ConversionFactorResolver;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitNormalizer;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitResolver;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Constant;
 use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
 use jbboehr\IudexMensurarumMysteriorum\Parser\Parser;
 use jbboehr\IudexMensurarumMysteriorum\Registry\UnitRegistry;
@@ -60,9 +59,9 @@ final class Units
         return $this->astConverter->convert(Parser::parseString($input));
     }
 
-    public function quantity(int|Rational $value, Expr|string $unit): Expr
+    public function quantity(int|Rational $value, Expr|string $unit): Quantity
     {
-        return (new Constant($value))->mul($this->expr($unit));
+        return new Quantity($value, $unit, $this);
     }
 
     public function unit(string $name): Expr
