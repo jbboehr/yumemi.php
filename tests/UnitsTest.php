@@ -2,6 +2,8 @@
 
 namespace jbboehr\IudexMensurarumMysteriorum\Tests;
 
+use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleUnitException;
+use jbboehr\IudexMensurarumMysteriorum\Exception\UnitNotFoundException;
 use jbboehr\IudexMensurarumMysteriorum\Expr\Compound;
 use jbboehr\IudexMensurarumMysteriorum\Expr\Term;
 use jbboehr\IudexMensurarumMysteriorum\Units;
@@ -67,5 +69,32 @@ final class UnitsTest extends TestCase
             $units->parse('meter / second'),
             $units->parse('kilometer / minute'),
         )->toString());
+    }
+
+    public function testDefaultUnitsAcceptStringExpressions(): void
+    {
+        $units = Units::default();
+
+        $this->assertSame('1000 * meter', $units->normalize('kilometer')->toString());
+        $this->assertTrue($units->compatible('meter / second', 'kilometer / minute'));
+        $this->assertSame('3/50', $units->conversionFactor('meter / second', 'kilometer / minute')->toString());
+        $this->assertSame('3/50', $units->convert(1, 'meter / second', 'kilometer / minute')->toString());
+        $this->assertSame('5 * meter', $units->quantity(5, 'meter')->toString());
+    }
+
+    public function testStringExpressionsStillRejectIncompatibleUnits(): void
+    {
+        $units = Units::default();
+
+        $this->expectException(IncompatibleUnitException::class);
+        $units->conversionFactor('meter', 'second');
+    }
+
+    public function testStringExpressionsStillRejectUnknownUnits(): void
+    {
+        $units = Units::default();
+
+        $this->expectException(UnitNotFoundException::class);
+        $units->normalize('league');
     }
 }

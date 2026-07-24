@@ -30,26 +30,26 @@ final class Units
         return new self(UnitRegistry::defaults());
     }
 
-    public function compatible(Expr $left, Expr $right): bool
+    public function compatible(Expr|string $left, Expr|string $right): bool
     {
-        return $this->conversionFactorResolver->compatible($left, $right);
+        return $this->conversionFactorResolver->compatible($this->expr($left), $this->expr($right));
     }
 
-    public function conversionFactor(Expr $from, Expr $to): Rational
+    public function conversionFactor(Expr|string $from, Expr|string $to): Rational
     {
-        return $this->conversionFactorResolver->resolve($from, $to);
+        return $this->conversionFactorResolver->resolve($this->expr($from), $this->expr($to));
     }
 
-    public function convert(int|Rational $value, Expr $from, Expr $to): Rational
+    public function convert(int|Rational $value, Expr|string $from, Expr|string $to): Rational
     {
         $value = $value instanceof Rational ? $value : new Rational($value);
 
         return $value->mul($this->conversionFactor($from, $to));
     }
 
-    public function normalize(Expr $expr): Expr
+    public function normalize(Expr|string $expr): Expr
     {
-        return $this->unitNormalizer->normalize($expr);
+        return $this->unitNormalizer->normalize($this->expr($expr));
     }
 
     public function parse(string $input): Expr
@@ -57,13 +57,18 @@ final class Units
         return $this->astConverter->convert(Parser::parseString($input));
     }
 
-    public function quantity(int|Rational $value, Expr $unit): Expr
+    public function quantity(int|Rational $value, Expr|string $unit): Expr
     {
-        return (new Constant($value))->mul($unit);
+        return (new Constant($value))->mul($this->expr($unit));
     }
 
     public function unit(string $name): Unit
     {
         return $this->unitRegistry->get($name);
+    }
+
+    private function expr(Expr|string $expr): Expr
+    {
+        return is_string($expr) ? $this->parse($expr) : $expr;
     }
 }
