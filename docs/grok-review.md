@@ -359,14 +359,20 @@ Not wrong — slightly muddy ownership. Fine until performance matters.
 
 ### 10. `Units::default()` is not a singleton
 
-Every call is a new instance. Documented behavior is tested (`add` across two defaults throws a
-context error). Good for purity, surprising for users who write:
+**Status: fixed** (2026-07-24).
+
+**Original finding:** Every call is a new instance. Documented behavior is tested (`add` across
+two defaults throws a context error). Good for purity, surprising for users who write:
 
 ```php
 Units::default()->quantity(...)->add(Units::default()->quantity(...));
 ```
 
 **Suggestion:** README callout; or a lazy singleton with clear “custom registry → new Units.”
+
+**Fix notes:** `Units::default()` is a lazy singleton. Context isolation still works via
+`new Units($registry)`. README notes the shared default. Context-mismatch tests use two
+explicit `Units` instances.
 
 ---
 

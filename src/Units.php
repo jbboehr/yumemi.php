@@ -18,6 +18,8 @@ use jbboehr\IudexMensurarumMysteriorum\Registry\Udunits2UnitRegistry;
 
 final class Units
 {
+    private static ?self $default = null;
+
     private readonly AstConverter $astConverter;
     private readonly ConversionFactorResolver $conversionFactorResolver;
     private readonly DimensionResolver $dimensionResolver;
@@ -37,9 +39,16 @@ final class Units
         );
     }
 
+    /**
+     * Shared default context backed by the UDUNITS2 catalog.
+     *
+     * Repeated calls return the same instance, so quantities from separate
+     * Units::default() calls can be combined. For an isolated catalog or tests,
+     * construct {@see self} with an explicit registry instead.
+     */
     public static function default(): self
     {
-        return new self(new Udunits2UnitRegistry());
+        return self::$default ??= new self(new Udunits2UnitRegistry());
     }
 
     public function compatible(Expr|string $left, Expr|string $right): bool

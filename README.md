@@ -13,6 +13,9 @@ that the caller chose, while `to()` and `valueIn()` explicitly convert through t
 (e.g. `meter / second`). `Expr::toString()` is a structural/debug dump
 (e.g. `meter * second ^ -1`). Equality uses structure, not either string form.
 
+**`Units::default()`** returns a shared instance (safe to call repeatedly). Use
+`new Units($registry)` when you need an isolated catalog or context.
+
 The PHP examples in this section are executed by the test suite.
 
 ```php

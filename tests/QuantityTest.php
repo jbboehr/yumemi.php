@@ -6,6 +6,7 @@ use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleQuantityContextExce
 use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleUnitException;
 use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
 use jbboehr\IudexMensurarumMysteriorum\Quantity;
+use jbboehr\IudexMensurarumMysteriorum\Registry\Udunits2UnitRegistry;
 use jbboehr\IudexMensurarumMysteriorum\Units;
 use PHPUnit\Framework\TestCase;
 
@@ -122,13 +123,25 @@ final class QuantityTest extends TestCase
         $units->quantity(1, 'meter')->add($units->quantity(1, 'second'));
     }
 
+    public function testDefaultUnitsInstanceIsShared(): void
+    {
+        $this->assertSame(Units::default(), Units::default());
+
+        $total = Units::default()
+            ->quantity(1, 'meter')
+            ->add(Units::default()->quantity(2, 'meter'));
+
+        $this->assertSame('3', $total->valueToString());
+    }
+
     public function testRejectsAdditionAcrossDifferentUnitsContexts(): void
     {
         $this->expectException(IncompatibleQuantityContextException::class);
 
-        Units::default()
-            ->quantity(1, 'meter')
-            ->add(Units::default()->quantity(1, 'meter'));
+        $left = new Units(new Udunits2UnitRegistry());
+        $right = new Units(new Udunits2UnitRegistry());
+
+        $left->quantity(1, 'meter')->add($right->quantity(1, 'meter'));
     }
 
     public function testMultipliesByQuantity(): void
@@ -146,9 +159,10 @@ final class QuantityTest extends TestCase
     {
         $this->expectException(IncompatibleQuantityContextException::class);
 
-        Units::default()
-            ->quantity(1, 'meter')
-            ->mul(Units::default()->quantity(1, 'meter'));
+        $left = new Units(new Udunits2UnitRegistry());
+        $right = new Units(new Udunits2UnitRegistry());
+
+        $left->quantity(1, 'meter')->mul($right->quantity(1, 'meter'));
     }
 
     public function testDividesByQuantity(): void
@@ -166,18 +180,20 @@ final class QuantityTest extends TestCase
     {
         $this->expectException(IncompatibleQuantityContextException::class);
 
-        Units::default()
-            ->quantity(1, 'meter')
-            ->div(Units::default()->quantity(1, 'meter'));
+        $left = new Units(new Udunits2UnitRegistry());
+        $right = new Units(new Udunits2UnitRegistry());
+
+        $left->quantity(1, 'meter')->div($right->quantity(1, 'meter'));
     }
 
     public function testRejectsSubtractionAcrossDifferentUnitsContexts(): void
     {
         $this->expectException(IncompatibleQuantityContextException::class);
 
-        Units::default()
-            ->quantity(1, 'meter')
-            ->sub(Units::default()->quantity(1, 'meter'));
+        $left = new Units(new Udunits2UnitRegistry());
+        $right = new Units(new Udunits2UnitRegistry());
+
+        $left->quantity(1, 'meter')->sub($right->quantity(1, 'meter'));
     }
 
     public function testMultipliesByScalar(): void
