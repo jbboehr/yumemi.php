@@ -2,6 +2,8 @@
 
 namespace jbboehr\IudexMensurarumMysteriorum;
 
+use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleUnitException;
+
 /**
  * Brand a native int/float with a unit for static analysis (and light runtime checks).
  *
@@ -25,4 +27,42 @@ function unit(int|float $value, string $unit): int|float
     }
 
     return $value;
+}
+
+/**
+ * Convert a native magnitude from one unit to another (catalog scale factors).
+ *
+ * Use when units share a dimension but not a normalized form (e.g. foot → meter,
+ * mile/hour → meter/second). Definitionally identical units (kilometer vs 1000*meter)
+ * do not require this for PHPStan assignment; conversion still yields a float.
+ *
+ * Always returns float (conversion factors are often non-integral). PHPStan brands
+ * the result as unit_float<'$to'> when both unit strings are constants and compatible.
+ *
+ * @param int|float $value
+ */
+function unit_to(int|float $value, string $from, string $to): float
+{
+    $units = Units::default();
+
+    try {
+        $factor = $units->conversionFactor($from, $to);
+    } catch (IncompatibleUnitException $exception) {
+        throw new \InvalidArgumentException(
+            'Cannot convert with unit_to(): ' . $exception->getMessage(),
+            0,
+            $exception,
+        );
+    } catch (\Throwable $exception) {
+        throw new \InvalidArgumentException(
+            'Invalid unit expression for unit_to(): ' . $exception->getMessage(),
+            0,
+            $exception,
+        );
+    }
+
+    $numerator = (float) gmp_strval($factor->numerator);
+    $denominator = (float) gmp_strval($factor->denominator);
+
+    return ((float) $value) * ($numerator / $denominator);
 }

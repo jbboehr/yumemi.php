@@ -2,9 +2,13 @@
 
 namespace jbboehr\IudexMensurarumMysteriorum\Tests;
 
+use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
+use jbboehr\IudexMensurarumMysteriorum\Units;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 use function jbboehr\IudexMensurarumMysteriorum\unit;
+use function jbboehr\IudexMensurarumMysteriorum\unit_to;
 
 final class UnitFunctionTest extends TestCase
 {
@@ -20,5 +24,137 @@ final class UnitFunctionTest extends TestCase
         $this->expectExceptionMessage('Invalid unit expression');
 
         unit(1.0, 'not_a_real_unit_xyz');
+    }
+
+    /**
+     * @return iterable<string, array{0: int|float, 1: string, 2: string}>
+     */
+    public static function unitToCompatibleProvider(): iterable
+    {
+        // length
+        yield 'foot → meter' => [3.0, 'foot', 'meter'];
+        yield 'meter → foot' => [1.0, 'meter', 'foot'];
+        yield 'inch → centimeter' => [1.0, 'inch', 'centimeter'];
+        yield 'yard → meter' => [1.0, 'yard', 'meter'];
+        yield 'kilometer → meter' => [1.0, 'kilometer', 'meter'];
+        yield 'meter → centimeter' => [1.0, 'meter', 'centimeter'];
+        yield 'centimeter → meter' => [100.0, 'centimeter', 'meter'];
+        yield 'mile → kilometer' => [1.0, 'mile', 'kilometer'];
+
+        // mass
+        yield 'pound → kilogram' => [1.0, 'pound', 'kilogram'];
+        yield 'kilogram → gram' => [1.0, 'kilogram', 'gram'];
+        yield 'gram → kilogram' => [1000.0, 'gram', 'kilogram'];
+
+        // time
+        yield 'hour → second' => [1.0, 'hour', 'second'];
+        yield 'second → hour' => [3600.0, 'second', 'hour'];
+        yield 'minute → second' => [1.0, 'minute', 'second'];
+
+        // volume / area
+        yield 'liter → meter^3' => [1.0, 'liter', 'meter^3'];
+        yield 'meter^2 → centimeter^2' => [1.0, 'meter^2', 'centimeter^2'];
+
+        // derived SI (factor 1 after normalize)
+        yield 'newton → kg·m/s²' => [1.0, 'newton', 'kilogram * meter / second^2'];
+        yield 'joule → newton·meter' => [1.0, 'joule', 'newton * meter'];
+        yield 'pascal → newton/m²' => [1.0, 'pascal', 'newton / meter^2'];
+        yield 'watt → joule/second' => [1.0, 'watt', 'joule / second'];
+
+        // compound speed
+        yield 'mile/hour → meter/second' => [60.0, 'mile / hour', 'meter / second'];
+        yield 'meter/second → kilometer/hour' => [1.0, 'meter / second', 'kilometer / hour'];
+        yield 'knot → meter/second' => [1.0, 'knot', 'meter / second'];
+
+        // identity / alias scale (factor 1)
+        yield 'meter → meter' => [5.0, 'meter', 'meter'];
+        yield 'kilometer → 1000*meter' => [2.0, 'kilometer', '1000 * meter'];
+
+        // int magnitude
+        yield 'int inches → meters' => [12, 'inch', 'meter'];
+    }
+
+    #[DataProvider('unitToCompatibleProvider')]
+    public function testUnitToMatchesCatalogFactor(int|float $value, string $from, string $to): void
+    {
+        $expected = $this->expectedConvertedFloat($value, $from, $to);
+        $actual = unit_to($value, $from, $to);
+
+        $this->assertEqualsWithDelta(
+            $expected,
+            $actual,
+            1e-9,
+            sprintf('unit_to(%s, %s, %s)', var_export($value, true), $from, $to),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{0: int|float, 1: string, 2: string}>
+     */
+    public static function unitToRoundTripProvider(): iterable
+    {
+        yield 'foot ↔ meter' => [5.0, 'foot', 'meter'];
+        yield 'pound ↔ kilogram' => [10.0, 'pound', 'kilogram'];
+        yield 'mile/hour ↔ meter/second' => [60.0, 'mile / hour', 'meter / second'];
+        yield 'liter ↔ meter^3' => [2.5, 'liter', 'meter^3'];
+        yield 'inch ↔ centimeter' => [7.0, 'inch', 'centimeter'];
+    }
+
+    #[DataProvider('unitToRoundTripProvider')]
+    public function testUnitToRoundTrip(int|float $value, string $from, string $to): void
+    {
+        $converted = unit_to($value, $from, $to);
+        $back = unit_to($converted, $to, $from);
+
+        $this->assertEqualsWithDelta((float) $value, $back, 1e-9);
+    }
+
+    /**
+     * @return iterable<string, array{0: string, 1: string}>
+     */
+    public static function unitToIncompatibleProvider(): iterable
+    {
+        yield 'length vs time' => ['meter', 'second'];
+        yield 'mass vs length' => ['kilogram', 'meter'];
+        yield 'force vs energy' => ['newton', 'joule'];
+        yield 'speed vs acceleration' => ['meter / second', 'meter / second^2'];
+        yield 'area vs volume' => ['meter^2', 'meter^3'];
+        yield 'unknown unit' => ['meter', 'not_a_real_unit_xyz'];
+        yield 'from unknown' => ['not_a_real_unit_xyz', 'meter'];
+    }
+
+    #[DataProvider('unitToIncompatibleProvider')]
+    public function testUnitToRejectsIncompatibleOrInvalid(string $from, string $to): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        unit_to(1.0, $from, $to);
+    }
+
+    public function testUnitToWithBrandedUnitValue(): void
+    {
+        $feet = unit(3.0, 'foot');
+        $meters = unit_to($feet, 'foot', 'meter');
+
+        $this->assertEqualsWithDelta($this->expectedConvertedFloat(3.0, 'foot', 'meter'), $meters, 1e-12);
+    }
+
+    private function expectedConvertedFloat(int|float $value, string $from, string $to): float
+    {
+        $factor = Units::default()->conversionFactor($from, $to);
+
+        // Prefer exact rational arithmetic when the magnitude is an int.
+        if (is_int($value)) {
+            $converted = Units::default()->convert($value, $from, $to);
+
+            return $this->rationalToFloat($converted);
+        }
+
+        return ((float) $value) * $this->rationalToFloat($factor);
+    }
+
+    private function rationalToFloat(Rational $rational): float
+    {
+        return (float) gmp_strval($rational->numerator) / (float) gmp_strval($rational->denominator);
     }
 }

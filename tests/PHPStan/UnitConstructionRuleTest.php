@@ -41,4 +41,9 @@ final class UnitConstructionRuleTest extends RuleTestCase
             ],
         ]);
     }
+
+    public function testUnitToFootToMeterAcceptedAsMeter(): void
+    {
+        $this->analyse([__DIR__ . '/Fixtures/UnitToConversionCase.php'], []);
+    }
 }

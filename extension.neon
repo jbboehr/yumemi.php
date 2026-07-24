@@ -3,6 +3,7 @@
 # Piece 2: unit_int / unit_float PHPDoc types
 # Piece 3: arithmetic operator type inference (+ - * / ** % and unary +/-)
 # Piece 4: unit() construction helper (dynamic return type)
+# Piece 5: unit_to() conversion helper (dynamic return type)
 
 services:
     -
@@ -21,5 +22,9 @@ services:
             - phpstan.broker.unaryOperatorTypeSpecifyingExtension
     -
         class: jbboehr\IudexMensurarumMysteriorum\PHPStan\UnitFunctionDynamicReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: jbboehr\IudexMensurarumMysteriorum\PHPStan\UnitToFunctionDynamicReturnTypeExtension
         tags:
             - phpstan.broker.dynamicFunctionReturnTypeExtension
