@@ -180,6 +180,16 @@ final class QuantityTest extends TestCase
         $this->assertSame('3/2 * meter', $quantity->toString());
     }
 
+    public function testExposesDimension(): void
+    {
+        $units = Units::default();
+
+        $quantity = $units->quantity(2, 'centimeter / second');
+
+        $this->assertSame([1, 0, -1, 0, 0, 0, 0], $quantity->dimension()->powers());
+        $this->assertTrue($quantity->dimension()->equals($units->dimension('meter / second')));
+    }
+
     public function testExpressionUsesSymbolicUnitMath(): void
     {
         $units = Units::default();

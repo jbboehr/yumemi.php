@@ -35,6 +35,14 @@ final class Udunits2UnitRegistryTest extends TestCase
         $this->assertSame('12 * international_inch', $unit->definition?->toString());
     }
 
+    public function testLookupReturnedUnitsExposeDimensions(): void
+    {
+        $registry = new Udunits2UnitRegistry();
+
+        $this->assertSame('length', $registry->get('foot')->dimension()->toString());
+        $this->assertSame('length * mass / time ^ 2', $registry->get('newton')->dimension()->toString());
+    }
+
     public function testLookupReturnsNullForMissingUnits(): void
     {
         $registry = new Udunits2UnitRegistry();

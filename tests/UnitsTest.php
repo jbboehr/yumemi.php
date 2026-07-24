@@ -27,6 +27,17 @@ final class UnitsTest extends TestCase
         $this->assertFalse($units->compatible('meter', 'second'));
     }
 
+    public function testDefaultUnitsExposeDimensions(): void
+    {
+        $units = Units::default();
+        $dimension = $units->dimension('newton');
+
+        $this->assertSame([1, 1, -2, 0, 0, 0, 0], $dimension->powers());
+        $this->assertSame('length * mass / time ^ 2', $dimension->toString());
+        $this->assertTrue($dimension->equals($units->dimension('kilogram * meter / second^2')));
+        $this->assertTrue($units->dimension('percent')->isDimensionless());
+    }
+
     public function testDefaultUnitsConvertValues(): void
     {
         $units = Units::default();

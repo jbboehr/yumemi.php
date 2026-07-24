@@ -5,6 +5,7 @@ namespace jbboehr\IudexMensurarumMysteriorum;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\ExprReducer;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\NormalizedExpr;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\SymbolicAstConverter;
+use jbboehr\IudexMensurarumMysteriorum\Dimension;
 use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleQuantityContextException;
 use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleUnitException;
 use jbboehr\IudexMensurarumMysteriorum\Expr\Constant;
@@ -68,6 +69,11 @@ final class Quantity
             $this->units,
             $this->resolvedUnit,
         );
+    }
+
+    public function dimension(): Dimension
+    {
+        return $this->units->dimension($this->resolvedUnit);
     }
 
     public function expr(): Expr

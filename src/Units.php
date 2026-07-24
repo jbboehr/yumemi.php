@@ -4,6 +4,7 @@ namespace jbboehr\IudexMensurarumMysteriorum;
 
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\AstConverter;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\ConversionFactorResolver;
+use jbboehr\IudexMensurarumMysteriorum\Analyzer\DimensionResolver;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitNormalizer;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitResolver;
 use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
@@ -15,6 +16,7 @@ final class Units
 {
     private readonly AstConverter $astConverter;
     private readonly ConversionFactorResolver $conversionFactorResolver;
+    private readonly DimensionResolver $dimensionResolver;
     private readonly UnitNormalizer $unitNormalizer;
     private readonly UnitResolver $unitResolver;
 
@@ -24,6 +26,7 @@ final class Units
         $this->unitResolver = new UnitResolver($this->unitRegistry);
         $this->astConverter = new AstConverter($this->unitResolver);
         $this->unitNormalizer = new UnitNormalizer();
+        $this->dimensionResolver = new DimensionResolver($this->unitNormalizer);
         $this->conversionFactorResolver = new ConversionFactorResolver($this->unitNormalizer);
     }
 
@@ -47,6 +50,11 @@ final class Units
         $value = $value instanceof Rational ? $value : new Rational($value);
 
         return $value->mul($this->conversionFactor($from, $to));
+    }
+
+    public function dimension(Expr|string $expr): Dimension
+    {
+        return $this->dimensionResolver->resolve($this->expr($expr));
     }
 
     public function normalize(Expr|string $expr): Expr
