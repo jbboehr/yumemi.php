@@ -5,6 +5,7 @@ namespace jbboehr\IudexMensurarumMysteriorum;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\ExprReducer;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\NormalizedExpr;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\SymbolicAstConverter;
+use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleQuantityContextException;
 use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleUnitException;
 use jbboehr\IudexMensurarumMysteriorum\Expr\Constant;
 use jbboehr\IudexMensurarumMysteriorum\Formatter\ExprFormatter;
@@ -18,13 +19,16 @@ final class Quantity
     private readonly Units $units;
     private readonly Expr $resolvedUnit;
 
+    /**
+     * @internal Prefer Units::quantity() for application code.
+     */
     public function __construct(
         int|Rational $value,
         Expr|string $unit,
-        ?Units $units = null,
+        Units $units,
         ?Expr $resolvedUnit = null,
     ) {
-        $this->units = $units ?? Units::default();
+        $this->units = $units;
         $this->value = self::rational($value);
         $this->unit = ExprReducer::reduce($this->symbolicExprFrom($unit));
         $this->resolvedUnit = ExprReducer::reduce($resolvedUnit ?? $this->resolvedExprFrom($unit));
@@ -32,6 +36,7 @@ final class Quantity
 
     public function add(self $other): self
     {
+        $this->assertSameContext($other);
         $this->assertSameUnit($other);
 
         return new self(
@@ -45,6 +50,8 @@ final class Quantity
     public function div(self|int|Rational $other): self
     {
         if ($other instanceof self) {
+            $this->assertSameContext($other);
+
             $unit = $this->unit->div($other->unit);
 
             return new self(
@@ -71,6 +78,8 @@ final class Quantity
     public function mul(self|int|Rational $other): self
     {
         if ($other instanceof self) {
+            $this->assertSameContext($other);
+
             $unit = $this->unit->mul($other->unit);
 
             return new self(
@@ -111,6 +120,7 @@ final class Quantity
 
     public function sub(self $other): self
     {
+        $this->assertSameContext($other);
         $this->assertSameUnit($other);
 
         return new self(
@@ -167,6 +177,15 @@ final class Quantity
     public function __toString(): string
     {
         return $this->toString();
+    }
+
+    private function assertSameContext(self $other): void
+    {
+        if ($this->units === $other->units) {
+            return;
+        }
+
+        throw IncompatibleQuantityContextException::create();
     }
 
     private function assertSameUnit(self $other): void

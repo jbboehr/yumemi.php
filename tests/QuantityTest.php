@@ -2,8 +2,10 @@
 
 namespace jbboehr\IudexMensurarumMysteriorum\Tests;
 
+use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleQuantityContextException;
 use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleUnitException;
 use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
+use jbboehr\IudexMensurarumMysteriorum\Quantity;
 use jbboehr\IudexMensurarumMysteriorum\Units;
 use PHPUnit\Framework\TestCase;
 
@@ -71,6 +73,15 @@ final class QuantityTest extends TestCase
         $units->quantity(1, 'meter')->add($units->quantity(1, 'second'));
     }
 
+    public function testRejectsAdditionAcrossDifferentUnitsContexts(): void
+    {
+        $this->expectException(IncompatibleQuantityContextException::class);
+
+        Units::default()
+            ->quantity(1, 'meter')
+            ->add(Units::default()->quantity(1, 'meter'));
+    }
+
     public function testMultipliesByQuantity(): void
     {
         $units = Units::default();
@@ -82,6 +93,15 @@ final class QuantityTest extends TestCase
         $this->assertSame('6 * meter * second', $quantity->expr()->toString());
     }
 
+    public function testRejectsMultiplicationAcrossDifferentUnitsContexts(): void
+    {
+        $this->expectException(IncompatibleQuantityContextException::class);
+
+        Units::default()
+            ->quantity(1, 'meter')
+            ->mul(Units::default()->quantity(1, 'meter'));
+    }
+
     public function testDividesByQuantity(): void
     {
         $units = Units::default();
@@ -91,6 +111,24 @@ final class QuantityTest extends TestCase
         $this->assertSame('3/2', $quantity->valueToString());
         $this->assertSame('meter / second', $quantity->unitToString());
         $this->assertSame('3/2 * meter * second ^ -1', $quantity->expr()->toString());
+    }
+
+    public function testRejectsDivisionAcrossDifferentUnitsContexts(): void
+    {
+        $this->expectException(IncompatibleQuantityContextException::class);
+
+        Units::default()
+            ->quantity(1, 'meter')
+            ->div(Units::default()->quantity(1, 'meter'));
+    }
+
+    public function testRejectsSubtractionAcrossDifferentUnitsContexts(): void
+    {
+        $this->expectException(IncompatibleQuantityContextException::class);
+
+        Units::default()
+            ->quantity(1, 'meter')
+            ->sub(Units::default()->quantity(1, 'meter'));
     }
 
     public function testMultipliesByScalar(): void
@@ -194,5 +232,17 @@ final class QuantityTest extends TestCase
 
         $this->assertSame('2', $quantity->value()->toString());
         $this->assertSame('1/100 * meter * second ^ -1', $quantity->unit()->toString());
+    }
+
+    public function testConstructorRequiresUnitsContext(): void
+    {
+        $constructor = new \ReflectionMethod(Quantity::class, '__construct');
+        $parameters = $constructor->getParameters();
+        $parameter = $parameters[2] ?? throw new \LogicException('Quantity constructor context parameter is missing.');
+        $type = $parameter->getType();
+
+        $this->assertFalse($parameter->isOptional());
+        $this->assertInstanceOf(\ReflectionNamedType::class, $type);
+        $this->assertSame(Units::class, $type->getName());
     }
 }
