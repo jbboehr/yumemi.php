@@ -87,6 +87,14 @@ final class UnitsTest extends TestCase
         )->toString());
     }
 
+    public function testParseReducesZeroPowersToDimensionless(): void
+    {
+        $units = Units::default();
+
+        $this->assertSame('1', $units->parse('meter^0')->toString());
+        $this->assertTrue($units->dimension('meter^0')->isDimensionless());
+    }
+
     public function testDefaultUnitsUseParsedExpressionsForConversion(): void
     {
         $units = Units::default();

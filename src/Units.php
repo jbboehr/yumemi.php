@@ -5,6 +5,7 @@ namespace jbboehr\IudexMensurarumMysteriorum;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\AstConverter;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\ConversionFactorResolver;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\DimensionResolver;
+use jbboehr\IudexMensurarumMysteriorum\Analyzer\ExprReducer;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitNormalizer;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitResolver;
 use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
@@ -64,7 +65,7 @@ final class Units
 
     public function parse(string $input): Expr
     {
-        return $this->astConverter->convert(Parser::parseString($input));
+        return ExprReducer::reduce($this->astConverter->convert(Parser::parseString($input)));
     }
 
     public function quantity(int|Rational $value, Expr|string $unit): Quantity
@@ -74,7 +75,7 @@ final class Units
 
     public function unit(string $name): Expr
     {
-        return $this->unitResolver->resolveOrFail($name);
+        return ExprReducer::reduce($this->unitResolver->resolveOrFail($name));
     }
 
     private function expr(Expr|string $expr): Expr

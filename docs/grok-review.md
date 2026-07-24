@@ -11,9 +11,9 @@ potential issues, and readiness for the planned PHPStan dimensional analysis lay
 **Verification at review time:** 150 PHPUnit tests green, PHPStan level max clean, PHP-CS-Fixer
 clean. Several edge cases outside the suite were probed manually.
 
-**Follow-up (same day):** Issue #1 (unit resolver false positives) was fixed after this review was
-written. Original findings are retained below; fixed items are marked **Status: fixed** with a
-short note on what changed. Remaining issues are still open.
+**Follow-up (same day):** Issues are being fixed one-by-one after this review was written. Original
+findings are retained below; fixed items are marked **Status: fixed** with a short note on what
+changed.
 
 ---
 
@@ -160,6 +160,10 @@ Add regression tests for at least: `mass`, `bus`, `METER`, `PA` / `pa` / `Pa`, `
 
 ### 2. `meter^0` is not reduced by `parse()` (bug — medium)
 
+**Status: fixed** (2026-07-24).
+
+**Original finding:**
+
 ```text
 parse("meter^0") => "meter ^ 0"   // Term with power 0
 ```
@@ -170,6 +174,9 @@ not reduce. Callers that format without reducing see a meaningless unit factor.
 **Suggestion:** Either always reduce at the `Units` boundary (`parse` / `unit`), or document that
 `Expr` values may be unreduced and provide `Units::reduce()`. Prefer reducing at the facade for
 predictability.
+
+**Fix notes:** `Units::parse()` and `Units::unit()` now run `ExprReducer::reduce()` before
+returning. Covered by `UnitsTest::testParseReducesZeroPowersToDimensionless`.
 
 ---
 
@@ -346,7 +353,7 @@ Fine for now; PHPStan diagnostics will want richer structured data (from/to, dim
 
 1. Resolver adversarial cases (`mass`, `bus`, `METER`, case variants of `Pa`).
    **Done** for morphology false friends; `pa`/`PA` vs `Pa` still documents SI ambiguity.
-2. Power-zero / dimensionless reduction at the facade.
+2. Power-zero / dimensionless reduction at the facade. **Done** (`Units::parse` / `unit`).
 3. Structural unit equality for add (not only happy-path strings).
 4. Circular alias/definition protection (once cycle guards exist).
 5. Registry mutation vs cache coherence (if mutability remains).
@@ -382,7 +389,7 @@ through. Adversarial tests now reject those false friends; plurals are catalog-b
 1. Fail-closed unit resolution (exact + safe prefix + catalog plurals only). **Done.**
 2. Regression corpus for false friends and case. **Done** for morphology false friends;
    optional tighten for `pa`/`PA` remains.
-3. Canonical reduce at `Units::parse` (or an explicit contract).
+3. Canonical reduce at `Units::parse` (or an explicit contract). **Done.**
 
 **Should fix next:**
 
