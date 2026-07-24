@@ -261,6 +261,34 @@ The current runtime `Quantity::add()` and `Quantity::sub()` are stricter than th
 the same reduced symbolic unit expression unless the caller explicitly converts one side first. That keeps runtime math
 predictable while leaving room for PHPStan configuration later.
 
+## Formula Interpolation Idea
+
+There may be value in a small format-string-like API for formulas:
+
+```php
+$distance = $units->formula('{} meter / second * {} second', 3, 2);
+```
+
+Or with named placeholders:
+
+```php
+$distance = $units->formula('{velocity} * {time}', [
+    'velocity' => $units->quantity(3, 'meter / second'),
+    'time' => $units->quantity(2, 'second'),
+]);
+```
+
+If added, this should be typed interpolation, not string concatenation. Placeholder values should become expression
+nodes:
+
+- `int`, `Rational`, or numeric strings become scalar constants
+- `Quantity` values become quantity expressions
+- `Expr` values become expression fragments
+- raw unit strings should either be rejected or require an explicit wrapper
+
+This is a convenience API, not the core model. It should wait until quantity arithmetic, formatting, and PHPStan
+semantics are stable enough that formula strings can share the same runtime/static behavior.
+
 ## Deferred Work
 
 The multiplicative runtime foundation is now strong enough to start static analysis work. Remaining runtime gaps are
