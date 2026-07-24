@@ -301,18 +301,19 @@ mostly catalog semantics, API polish, and edge-case formatting.
 - Logarithmic units
 - Better numeric output policies for decimal/float conversion
 - Exact-unit strictness mode
-- PHPStan static analysis extension
-- Scalar-specific PHPDoc types such as `unit_int` or `unit_float`
+- PHPStan static analysis extension — see [phpstan-extension.md](phpstan-extension.md)
+- Scalar-specific PHPDoc types such as `unit_int` or `unit_float` (optional edge types; not the core model)
 - Public documentation for generated catalog regeneration
 - Public documentation for runtime guarantees and non-goals
 
 ## Near-Term Roadmap
 
-Suggested next slices:
+Suggested next slices (detail in [phpstan-extension.md](phpstan-extension.md)):
 
 1. Add PHPStan type parsing.
-   Start with PHPDoc `Quantity<'meter / second'>`. Parse the unit string through IMM's runtime parser and store the
-   parsed expression in a custom PHPStan type.
+   Start with PHPDoc `Quantity<'meter / second'>` (sugar for `Quantity<Rational, 'meter / second'>`).
+   Parse the unit string through IMM's runtime parser and store the parsed expression in a custom
+   PHPStan type that also tracks number kind.
 
 2. Add PHPStan diagnostics for invalid unit strings.
    Invalid unit syntax or unknown units in `Quantity<'...'>` should produce normal PHPStan errors with useful messages.
@@ -321,7 +322,7 @@ Suggested next slices:
    Infer `to('foot')`, `normalize()`, `simplify()`, `mul()`, and `div()` using the same runtime expression logic.
 
 4. Add PHPStan checks for `add()` and `sub()`.
-   Reject incompatible dimensions first. Later, make exact-unit strictness configurable.
+   Match runtime exact-unit rules first. Later, optional dimensional mode via config.
 
 5. Harden registry extensibility. **Started:** immutable `UnitRegistry` + `UnitRegistryBuilder`
    (`empty()` / `default()` with UDUNITS2, `define('name = expr')`, `add()`, `alias()`,
