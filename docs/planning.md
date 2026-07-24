@@ -1,77 +1,186 @@
-# Iudex Mensurarum Mysteriorum Notes
+# Iudex Mensurarum Mysteriorum Planning
 
 Working title:
 
 - Full name: `Iudex Mensurarum Mysteriorum`
-- Short package/repo candidate: `jbboehr/imm`
-- PHP namespace candidate: `jbboehr\IudexMensurarumMysteriorum\`
+- Package/repo: `jbboehr/imm`
+- PHP namespace: `jbboehr\IudexMensurarumMysteriorum\`
 - Meaning: roughly "Judge of the Mysteries of Measures"
 
-The name is intentionally overdramatic, Latin, and chuuni-adjacent. The acronym `imm` keeps the package
+The name is intentionally overdramatic, Latin, and chuuni-adjacent. The acronym `imm` keeps day-to-day package use
 practical while the namespace and README preserve the full title. `Iudex Mensurarum Mysteriorum` was chosen partly
 because its cadence is close to `Index Librorum Prohibitorum`.
 
-## Existing Code Assessment
+## Project Goal
 
-There are two old projects:
+IMM should be both:
 
-- `units.php`: the stronger core dimensional-analysis library
-- `phpstan-units`: an early PHPStan prototype
+- A runtime unit expression, dimensional compatibility, and conversion library.
+- A PHPStan extension for static dimensional analysis.
 
-`units.php` is worth reusing as reference material. It already has the important conceptual pieces:
-
-- Parser for unit expressions
-- AST conversion into an expression model
-- Unit registry backed by generated UDUNITS2 data
-- Prefix and plural resolution
-- Normalization of derived units to base units
-- Expression reduction and cancellation
-- Conversion-factor compatibility checks
-
-`phpstan-units` is less worth preserving directly. It duplicates the unit/expression model, hardcodes a few unit
-classes and conversions, and the PHPStan multiplication extension is still a stub returning `NeverType`. It is useful
-as a sketch of how to register PHPStan extensions, but not as the foundation.
-
-Conclusion: do not restart the ideas from zero, but do start a clean repo. Treat `units.php` as the reference
-implementation and `phpstan-units` as disposable prototype scaffolding.
-
-The new project should not be static-analysis-only. It should also be usable as a runtime unit conversion library.
-PHPStan should be an integration layer over the same runtime-safe core, not a parallel implementation.
-
-## Architecture Direction
-
-The new project should integrate the core unit engine and PHPStan extension in one repo.
-
-Suggested shape:
-
-```text
-src/
-  Expr/
-  Parser/
-  Registry/
-  Analyzer/
-  PHPStan/
-data/
-tests/
-  Unit/
-  Analyzer/
-  PHPStan/
-extension.neon
-composer.json
-```
+The runtime library is the source of truth. PHPStan should be an adapter over the same parser, registry, normalizer,
+and conversion semantics rather than a separate implementation.
 
 Important principle:
 
 > One expression model. One registry. One normalization engine.
 
-PHPStan should not have a separate hardcoded unit model. It should ask the core engine to parse, normalize, combine,
-and compare unit expressions.
+## Old Code Assessment
+
+The old work was split across two repositories:
+
+- `units.php`: stronger runtime/parser/analyzer foundation
+- `phpstan-units`: early PHPStan prototype
+
+Useful pieces from `units.php`:
+
+- Bison parser for unit expressions
+- AST model for parsed unit syntax
+- AST-to-expression conversion approach
+- Unit registry backed by generated UDUNITS2 data
+- Prefix and plural resolution
+- Derived-unit normalization
+- Expression reduction and cancellation
+- Conversion-factor compatibility checks
+
+Less useful pieces from `phpstan-units`:
+
+- Hardcoded unit classes and conversion classes
+- Duplicated expression model
+- Stub PHPStan operator extension
+
+Conclusion: `units.php` is the reference implementation. `phpstan-units` is useful only as a sketch of PHPStan
+extension registration.
+
+## Current Status
+
+Already implemented:
+
+- Composer/Nix/project scaffold
+- Exact `Rational` number type
+- Core expression model:
+  - `Expr`
+  - `Expr\Constant`
+  - `Expr\Unit`
+  - `Expr\Term`
+  - `Expr\Compound`
+- Canonical expression reduction:
+  - flatten compounds
+  - combine constants
+  - combine unit powers
+  - cancel inverse units
+  - deterministic unit ordering
+- Derived-unit normalization
+- Tiny in-memory default registry:
+  - `meter`
+  - `second`
+  - `foot`
+  - `kilometer`
+  - `minute`
+- Runtime conversion-factor resolver
+- Public `Units` facade with `Expr|string` ergonomics:
+  - `unit()`
+  - `parse()`
+  - `normalize()`
+  - `compatible()`
+  - `conversionFactor()`
+  - `convert()`
+  - `quantity()`
+- Ported generated parser from `units.php`:
+  - grammar
+  - lexer
+  - AST nodes
+  - generated `Parser.php`
+  - Composer/Makefile generation wiring
+- AST converter for supported runtime syntax:
+  - identifiers
+  - integer constants
+  - decimal/scientific constants
+  - multiplication
+  - division
+  - integer powers
+- Explicit rejection for parsed-but-unsupported syntax:
+  - addition
+  - subtraction
+  - `@`
+
+Current verification:
+
+- PHPUnit passes
+- PHPStan passes
+- PHPCS passes
+- Composer validation passes
+
+Known test-suite issue:
+
+- PHPUnit reports one deprecation warning, likely from config/tooling. It has not affected test execution.
+
+## Runtime API Direction
+
+The current API is intentionally small:
+
+```php
+$units = Units::default();
+
+$units->normalize('kilometer'); // 1000 * meter
+$units->compatible('meter / second', 'kilometer / minute'); // true
+$units->conversionFactor('meter / second', 'kilometer / minute'); // 3/50
+$units->convert(1, 'kilometer', 'meter'); // 1000
+```
+
+The next runtime API should introduce a real `Quantity` value object. Returning raw `Expr` from `quantity()` is not a
+good long-term API for a runtime conversion library.
+
+Desired shape:
+
+```php
+$distance = $units->quantity(12, 'foot');
+$meters = $distance->to('meter');
+
+$speed = $units->quantity(1, 'meter / second');
+$pace = $speed->to('kilometer / minute');
+```
+
+Possible `Quantity` methods:
+
+- `value(): Rational`
+- `unit(): Expr`
+- `to(Expr|string $unit): self`
+- `mul(self|int|Rational $other): self`
+- `div(self|int|Rational $other): self`
+- `toExpr(): Expr`
+- `toString(): string`
+
+## Parser And Syntax Direction
+
+The parser is intentionally broader than the semantic runtime layer. This is acceptable because the long-term goal is
+UDUNITS2 compatibility, but syntax must not imply semantic support.
+
+Supported by parser and converter now:
+
+- `meter`
+- `meter * second`
+- `meter second`
+- `meter / second`
+- `meter^2`
+- `second^-2`
+- `(meter / second)^2`
+- decimal constants such as `1.25 meter`
+- scientific notation accepted by the lexer
+
+Parsed but unsupported by converter:
+
+- `meter + second`
+- `meter - second`
+- `meter @ 2`
+
+This should remain explicit until offsets/affine units are designed.
 
 ## Design Choices
 
-Prefer unit strings in PHPDoc over one PHP class per unit.
+Prefer unit strings over one PHP class per unit.
 
-Possible syntax:
+Good user-facing syntax:
 
 ```php
 /** @var Quantity<'meter'> */
@@ -81,128 +190,77 @@ $distance;
 $speed;
 ```
 
-This is more scalable than:
+Avoid making users define or reference classes like:
 
 ```php
 /** @var intWithUnit<Meter> */
 $distance;
 ```
 
-The string form can represent compound units without requiring a PHP class for every unit or derived unit.
+The string form can represent compound units without requiring a PHP class for every base, derived, or compound unit.
 
-Runtime conversion should be a first-class design goal. That means the core should expose a real API for parsing units,
-checking compatibility, converting values, and possibly representing quantities.
+## Compatibility And Conversion
 
-Static analysis can still use phantom types in PHPDoc, but those phantom types should correspond to the same unit
-expressions understood by the runtime library.
+Dimensional compatibility and conversion are related but distinct:
 
-## Runtime Library Goals
-
-The runtime API should support at least:
-
-```php
-$units = Units::default();
-
-$meter = $units->unit('meter');
-$foot = $units->unit('foot');
-
-$factor = $units->conversionFactor('foot', 'meter');
-$value = $units->convert(12, 'foot', 'meter');
-```
-
-If a runtime quantity object is included:
-
-```php
-$distance = Quantity::of(12, 'foot');
-$meters = $distance->to('meter');
-```
-
-Core runtime responsibilities:
-
-- Parse unit expressions
-- Normalize units to base dimensions
-- Check dimensional compatibility
-- Compute exact rational conversion factors where possible
-- Convert numeric values with explicit precision behavior
-- Reject incompatible conversions with clear exceptions
-
-Important design point: dimensional compatibility and conversion are related but distinct. `meter` and `foot` have
-compatible dimensions, but converting between them requires a scale factor. Some units, especially temperature offsets,
-may need affine conversion later and should not be forced into the simple multiplicative model too early.
-
-## First Useful Version
-
-The first milestone should focus on multiplicative dimensional compatibility and runtime conversion for simple
-scale-based units.
-
-Implement enough to support:
-
-```php
-/** @var Quantity<'meter'> $m */
-/** @var Quantity<'second'> $s */
-
-$m + $m; // ok
-$m + $s; // error
-$m * $s; // Quantity<'meter second'>
-$m / $s; // Quantity<'meter / second'>
-```
-
-Initial scope:
-
-- Parse unit expressions like `meter`, `meter / second`, and `meter second^-2`
-- Normalize expressions to canonical base dimensions
-- Compare dimensional compatibility
-- Compute conversion factors for simple multiplicative units
-- Convert runtime numeric values between compatible scale-based units
-- Infer units through multiplication and division
-- Report PHPStan errors for incompatible addition/subtraction
-- Add PHPStan fixture tests proving the behavior
-
-Defer:
-
-- Full UDUNITS2 import
-- Temperature offsets and other affine units
-- Exact-unit strictness
-- Scalar-specific `unit_int` / `unit_float` types
-
-## Later Modes
+- `meter` and `foot` are dimensionally compatible.
+- Converting between them requires a scale factor.
+- `meter` and `second` are incompatible.
 
 Eventually support two compatibility modes:
 
 - `dimension`: allow compatible dimensions such as `meter + foot`
 - `exact`: require identical units unless an explicit conversion is used
 
-Default should probably be `dimension`, because dimensional analysis primarily cares that the dimensions match. Exact
-unit checking can be a stricter project option.
+Default should probably be `dimension`, because dimensional analysis primarily cares that dimensions match. Exact unit
+checking can be a stricter project/PHPStan option.
 
-## Porting Strategy
+## Deferred Work
 
-Port from `units.php` in pieces:
+Defer these until the multiplicative runtime foundation is stronger:
 
-1. Expression model
-2. Canonical reducer
-3. Parser
-4. Tiny hand-written registry
-5. Unit normalization
-6. Runtime conversion-factor resolver
-7. Quantity/value API
-8. PHPStan type representation
-9. PHPStan operator/rule tests
-10. Generated UDUNITS2 registry
+- Full UDUNITS2 import
+- GNU Units import
+- Prefix and plural resolution
+- Offset and affine units, especially temperature
+- Logarithmic units
+- Better numeric output policies for decimal/float conversion
+- Exact-unit strictness mode
+- PHPStan static analysis extension
+- Scalar-specific PHPDoc types such as `unit_int` or `unit_float`
 
-The reducer/canonicalizer is the part that needs the most rigor. It should have explicit invariants and tests before
-PHPStan integration gets complicated.
+## Near-Term Roadmap
 
-## Practical Recommendation
+Suggested next slices:
 
-Start the repo under `imm.php`, scaffold Composer, then build and test the runtime core outside PHPStan first.
+1. Add `Quantity`.
+   Make runtime values first-class instead of returning raw expression objects from `Units::quantity()`.
 
-First real proof:
+2. Add a registry abstraction.
+   The current `UnitRegistry` is concrete and tiny. Before UDUNITS2, introduce an interface or registry composition
+   strategy so generated and user-provided registries have a clean place to plug in.
 
-```php
-parse('meter / second')->normalize()->toString();
-parse('kilometer')->normalize()->isCompatibleWith(parse('meter'));
-convert(1, 'kilometer', 'meter'); // 1000
+3. Add aliases/prefixes/plurals.
+   This should reuse the old `UnitResolver` idea, but adapt it to IMM's expression and registry model.
+
+4. Port/generated UDUNITS2 registry.
+   Bring over the old data generation scripts after the registry API is ready.
+
+5. Add PHPStan type parsing.
+   Start with PHPDoc `Quantity<'meter / second'>` and make PHPStan parse the unit string through IMM's runtime parser.
+
+6. Add PHPStan rules/operators.
+   Use runtime normalization and compatibility checks to report incompatible addition, subtraction, assignments, and
+   function arguments.
+
+## Current Architecture Sketch
+
+```text
+Parser string -> Parser\Ast
+Parser\Ast -> Analyzer\AstConverter -> Expr
+Expr -> Analyzer\UnitNormalizer -> normalized Expr
+normalized Expr -> Analyzer\ConversionFactorResolver -> Rational factor
+Units facade -> public runtime API
 ```
 
-Only after that works should the PHPStan extension wrap it.
+The PHPStan layer should later reuse the same pipeline.
