@@ -2,14 +2,15 @@
 
 namespace jbboehr\IudexMensurarumMysteriorum\Registry;
 
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\AstConverter;
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitResolver;
-use jbboehr\IudexMensurarumMysteriorum\Expr;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Constant;
 use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
-use jbboehr\IudexMensurarumMysteriorum\Parser\Parser;
 
 /**
+ * UDUNITS2 catalog data source.
+ *
+ * This class does not parse definition strings or own a UnitResolver/AstConverter.
+ * {@see \jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitResolver} reads {@see record()}
+ * rows and builds expression trees.
+ *
  * @phpstan-type Udunits2BaseUnit array{type: 'base', name: string, definition?: string, plural?: string, comment?: string}
  * @phpstan-type Udunits2DimensionlessUnit array{
  *     type: 'dimensionless',
@@ -27,6 +28,7 @@ use jbboehr\IudexMensurarumMysteriorum\Parser\Parser;
  *     prefixes: array<string, string>,
  *     prefixRegex?: string
  * }
+ * @phpstan-import-type CatalogRecord from UnitRegistry
  */
 final class Udunits2UnitRegistry extends UnitRegistry
 {
@@ -35,35 +37,50 @@ final class Udunits2UnitRegistry extends UnitRegistry
     /** @phpstan-var Udunits2Catalog */
     private readonly array $catalog;
 
-    /** @var array<string, Unit|null> */
-    private array $cache = [];
-
-    private readonly AstConverter $astConverter;
-
     public function __construct(?string $dataFile = null)
     {
         parent::__construct();
 
         $this->catalog = $this->loadCatalog($dataFile ?? self::DATA_FILE);
-        $this->astConverter = new AstConverter(new UnitResolver($this));
     }
 
+    /**
+     * Catalog-backed registries do not precompose Units; use UnitResolver or Units::unit().
+     */
     public function lookup(string $name): ?Unit
     {
-        if (array_key_exists($name, $this->cache)) {
-            return $this->cache[$name];
-        }
+        return null;
+    }
 
+    /**
+     * @phpstan-return CatalogRecord|null
+     */
+    public function record(string $name): ?array
+    {
         $unit = $this->catalog['units'][$name] ?? null;
         if ($unit === null) {
-            return $this->cache[$name] = null;
+            return null;
         }
 
-        return $this->cache[$name] = match ($unit['type']) {
-            'alias' => $this->lookup($unit['def']),
-            'base' => new Unit($unit['name']),
-            'dimensionless' => new Unit($unit['name'], new Constant(1)),
-            'unit' => new Unit($unit['name'], $this->definitionToExpr($unit['def'])),
+        return match ($unit['type']) {
+            'alias' => [
+                'type' => 'alias',
+                'name' => $unit['name'],
+                'def' => $unit['def'],
+            ],
+            'base' => [
+                'type' => 'base',
+                'name' => $unit['name'],
+            ],
+            'dimensionless' => [
+                'type' => 'dimensionless',
+                'name' => $unit['name'],
+            ],
+            'unit' => [
+                'type' => 'unit',
+                'name' => $unit['name'],
+                'def' => $unit['def'],
+            ],
         };
     }
 
@@ -75,14 +92,6 @@ final class Udunits2UnitRegistry extends UnitRegistry
         return $this->catalog['prefixes'];
     }
 
-    private function definitionToExpr(string $definition): Expr
-    {
-        return $this->astConverter->convert(Parser::parseString($definition));
-    }
-
-    /**
-     * @phpstan-return Udunits2Catalog
-     */
     /**
      * @phpstan-return Udunits2Catalog
      */

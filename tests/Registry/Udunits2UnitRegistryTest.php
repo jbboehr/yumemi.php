@@ -2,6 +2,7 @@
 
 namespace jbboehr\IudexMensurarumMysteriorum\Tests\Registry;
 
+use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitResolver;
 use jbboehr\IudexMensurarumMysteriorum\Exception\UnsupportedUnitDimensionException;
 use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
 use jbboehr\IudexMensurarumMysteriorum\Registry\Udunits2UnitRegistry;
@@ -10,40 +11,73 @@ use PHPUnit\Framework\TestCase;
 
 final class Udunits2UnitRegistryTest extends TestCase
 {
-    public function testLookupReturnsBaseUnits(): void
+    public function testRecordReturnsBaseUnits(): void
     {
         $registry = new Udunits2UnitRegistry();
-        $unit = $registry->lookup('meter');
+        $record = $registry->record('meter');
 
-        $this->assertInstanceOf(Unit::class, $unit);
-        $this->assertSame('meter', $unit->toString());
-        $this->assertTrue($unit->isBase());
+        $this->assertNotNull($record);
+        $this->assertSame('base', $record['type']);
+        $this->assertSame('meter', $record['name']);
     }
 
-    public function testLookupResolvesAliasesImmediately(): void
+    public function testRecordReturnsAliases(): void
     {
         $registry = new Udunits2UnitRegistry();
 
-        $this->assertSame('meter', $registry->get('m')->toString());
-        $this->assertSame('international_foot', $registry->get('foot')->toString());
+        $this->assertSame([
+            'type' => 'alias',
+            'name' => 'm',
+            'def' => 'meter',
+        ], $registry->record('m'));
+        $this->assertSame('international_foot', $registry->record('foot')['def'] ?? null);
     }
 
-    public function testLookupReturnsDerivedUnitsWithDefinitions(): void
+    public function testRecordReturnsDerivedUnitDefinitionStrings(): void
     {
         $registry = new Udunits2UnitRegistry();
-        $unit = $registry->get('international_foot');
+        $record = $registry->record('international_foot');
 
-        $this->assertFalse($unit->isBase());
-        $this->assertSame('12 * international_inch', $unit->definition?->toString());
+        $this->assertNotNull($record);
+        $this->assertSame('unit', $record['type']);
+        $this->assertSame('12 international_inches', $record['def'] ?? null);
     }
 
-    public function testLookupReturnedUnitsExposeDimensionsFromDefinitionTree(): void
+    public function testLookupDoesNotPrecomposeUnits(): void
     {
         $registry = new Udunits2UnitRegistry();
 
-        // Catalog-loaded units carry definition trees, so dimension works without Units binding.
-        $this->assertSame('length', $registry->get('foot')->dimension()->toString());
-        $this->assertSame('length * mass / time ^ 2', $registry->get('newton')->dimension()->toString());
+        $this->assertNull($registry->lookup('meter'));
+        $this->assertNull($registry->lookup('newton'));
+    }
+
+    public function testResolverBuildsUnitsFromCatalogRecords(): void
+    {
+        $resolver = new UnitResolver(new Udunits2UnitRegistry());
+
+        $meter = $resolver->resolveOrFail('meter');
+        $foot = $resolver->resolveOrFail('foot');
+        $internationalFoot = $resolver->resolveOrFail('international_foot');
+
+        $this->assertInstanceOf(Unit::class, $meter);
+        $this->assertTrue($meter->isBase());
+        $this->assertInstanceOf(Unit::class, $foot);
+        $this->assertSame('international_foot', $foot->toString());
+        $this->assertInstanceOf(Unit::class, $internationalFoot);
+        $this->assertFalse($internationalFoot->isBase());
+        $this->assertSame('12 * international_inch', $internationalFoot->definition?->toString());
+    }
+
+    public function testResolverBuiltUnitsExposeDimensionsFromDefinitionTree(): void
+    {
+        $resolver = new UnitResolver(new Udunits2UnitRegistry());
+        $foot = $resolver->resolveOrFail('foot');
+        $newton = $resolver->resolveOrFail('newton');
+
+        $this->assertInstanceOf(Unit::class, $foot);
+        $this->assertInstanceOf(Unit::class, $newton);
+        $this->assertSame('length', $foot->dimension()->toString());
+        $this->assertSame('length * mass / time ^ 2', $newton->dimension()->toString());
     }
 
     public function testUnitsFacadeUnitsExposeDimensions(): void
@@ -58,11 +92,11 @@ final class Udunits2UnitRegistryTest extends TestCase
         $this->assertSame('length * mass / time ^ 2', $newton->dimension()->toString());
     }
 
-    public function testLookupReturnsNullForMissingUnits(): void
+    public function testRecordReturnsNullForMissingUnits(): void
     {
         $registry = new Udunits2UnitRegistry();
 
-        $this->assertNull($registry->lookup('supercalifragilisticexpialidocious'));
+        $this->assertNull($registry->record('supercalifragilisticexpialidocious'));
     }
 
     public function testBareUnitDimensionRequiresUnitsContextOrDefinition(): void

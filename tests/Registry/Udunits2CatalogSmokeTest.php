@@ -2,6 +2,7 @@
 
 namespace jbboehr\IudexMensurarumMysteriorum\Tests\Registry;
 
+use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitResolver;
 use jbboehr\IudexMensurarumMysteriorum\Exception\UnsupportedSyntaxException;
 use jbboehr\IudexMensurarumMysteriorum\Registry\Udunits2UnitRegistry;
 use jbboehr\IudexMensurarumMysteriorum\Units;
@@ -48,6 +49,7 @@ final class Udunits2CatalogSmokeTest extends TestCase
     {
         $catalog = self::catalog();
         $registry = new Udunits2UnitRegistry();
+        $resolver = new UnitResolver($registry);
         $failures = [];
         $lookedUpCount = 0;
 
@@ -57,8 +59,13 @@ final class Udunits2CatalogSmokeTest extends TestCase
             }
 
             try {
-                if ($registry->lookup($name) === null) {
-                    $failures[] = $name . ' returned null';
+                if ($registry->record($name) === null) {
+                    $failures[] = $name . ' missing catalog record';
+                    continue;
+                }
+
+                if ($resolver->resolve($name) === null) {
+                    $failures[] = $name . ' failed to resolve';
                     continue;
                 }
 
@@ -75,7 +82,7 @@ final class Udunits2CatalogSmokeTest extends TestCase
     public function testSupportedUdunits2AliasesResolveToTheirTargets(): void
     {
         $catalog = self::catalog();
-        $registry = new Udunits2UnitRegistry();
+        $resolver = new UnitResolver(new Udunits2UnitRegistry());
         $failures = [];
         $aliasCount = 0;
 
@@ -85,8 +92,8 @@ final class Udunits2CatalogSmokeTest extends TestCase
             }
 
             try {
-                $alias = $registry->get($name);
-                $target = $registry->get($unit['def']);
+                $alias = $resolver->resolveOrFail($name);
+                $target = $resolver->resolveOrFail($unit['def']);
 
                 if ($alias->toString() !== $target->toString()) {
                     $failures[] = sprintf(

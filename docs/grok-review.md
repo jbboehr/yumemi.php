@@ -315,13 +315,25 @@ custom-units work.
 
 ### 8. Circular construction / layered caching
 
-`Udunits2UnitRegistry` constructs `AstConverter(UnitResolver($this))`, while `UnitResolver`
-constructs another `AstConverter($this)`. Prefix defs and unit defs both parse through that loop
-with separate caches. It works, but it is hard to follow and easy to re-enter during catalog bugs
-(circular aliases would recurse until stack overflow — no cycle guard).
+**Status: fixed** (2026-07-24).
+
+**Original finding:** `Udunits2UnitRegistry` constructs `AstConverter(UnitResolver($this))`, while
+`UnitResolver` constructs another `AstConverter($this)`. Prefix defs and unit defs both parse
+through that loop with separate caches. It works, but it is hard to follow and easy to re-enter
+during catalog bugs (circular aliases would recurse until stack overflow — no cycle guard).
 
 **Suggestion:** Explicit “definition parser” owned by the registry, cycle detection for aliases
 and definitions, single resolve cache keyed by name.
+
+**Fix notes (refined):** Registry is catalog-only (phone book). It does **not** own resolver or
+converter.
+
+- `UnitRegistry::record()` exposes raw catalog rows; default registries return null and use
+  precomposed `lookup()` Units instead.
+- `Udunits2UnitRegistry` only loads/materializes catalog data; `lookup()` always returns null.
+- `UnitResolver` is the only resolving brain: records → Units/Exprs, one cache, one AstConverter
+  for defs/prefixes, cycle detection via an in-flight `$resolving` set.
+- App path remains `Units` → one `UnitResolver` → registry data.
 
 ---
 

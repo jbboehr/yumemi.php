@@ -7,6 +7,19 @@ use jbboehr\IudexMensurarumMysteriorum\Expr\Compound;
 use jbboehr\IudexMensurarumMysteriorum\Expr\Constant;
 use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
 
+/**
+ * Unit name table / catalog data source.
+ *
+ * Hand-built registries expose precomposed {@see Unit} values via {@see lookup()}.
+ * Catalog-backed registries expose raw rows via {@see record()}; {@see Analyzer\UnitResolver}
+ * parses definitions and is the only resolving brain.
+ *
+ * @phpstan-type CatalogRecord array{
+ *     type: 'base'|'dimensionless'|'unit'|'alias',
+ *     name: string,
+ *     def?: string
+ * }
+ */
 class UnitRegistry
 {
     /** @var array<string, Unit> */
@@ -54,6 +67,19 @@ class UnitRegistry
     public function lookup(string $name): ?Unit
     {
         return $this->units[$name] ?? null;
+    }
+
+    /**
+     * Raw catalog row for catalog-backed registries.
+     *
+     * Default registries that only store precomposed Units return null; the resolver
+     * then uses {@see lookup()} instead.
+     *
+     * @phpstan-return CatalogRecord|null
+     */
+    public function record(string $name): ?array
+    {
+        return null;
     }
 
     /**
