@@ -32,7 +32,8 @@ use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
  */
 final class Udunits2UnitRegistry extends UnitRegistry
 {
-    private const DATA_FILE = __DIR__ . '/../../data/udunits2.php';
+    /** Path to the generated UDUNITS2 catalog shipped with this package. */
+    public const DATA_FILE = __DIR__ . '/../../data/udunits2.php';
 
     /** @phpstan-var Udunits2Catalog */
     private readonly array $catalog;

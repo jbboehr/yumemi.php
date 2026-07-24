@@ -303,13 +303,23 @@ explicitly (`toDebugString` vs `toDisplayString`).
 
 ### 7. Mutable registry behind an assumed-stable `Units` context
 
-`UnitRegistry::register()` is public; `Quantity` treats `$this->units === $other->units` as a
-closed world. Mutating a shared registry after quantities exist can desync caches in
-`UnitResolver` / `Udunits2UnitRegistry` (both cache lookups, including negative cache of `null`).
+**Status: fixed** (2026-07-24).
+
+**Original finding:** `UnitRegistry::register()` is public; `Quantity` treats
+`$this->units === $other->units` as a closed world. Mutating a shared registry after quantities
+exist can desync caches in `UnitResolver` / `Udunits2UnitRegistry`.
 
 **Suggestion:** Freeze registries after build, or document immutability and stop exposing
 `register` on the hot path. A builder that returns an immutable registry fits the planned
 custom-units work.
+
+**Fix notes:**
+
+- `UnitRegistry` is immutable after construction (no public `register()`).
+- `UnitRegistryBuilder` is the mutable construction API (`empty()` / `default()` for UDUNITS2,
+  `define()`, `add()`, `alias()`, `build()`).
+- `CompositeUnitRegistry` layers custom prebuilt units over UDUNITS2 (overlay wins).
+- Resolver caches remain valid for the lifetime of a registry instance.
 
 ---
 
@@ -449,7 +459,7 @@ Fine for now; PHPStan diagnostics will want richer structured data (from/to, dim
 2. Power-zero / dimensionless reduction at the facade. **Done** (`Units::parse` / `unit`).
 3. Structural unit equality for add (not only happy-path strings). **Done.**
 4. Circular alias/definition protection (once cycle guards exist).
-5. Registry mutation vs cache coherence (if mutability remains).
+5. Registry mutation vs cache coherence. **Done** (immutable registry + builder).
 6. Error message / unsupported-syntax UX for temperatures (partly covered by smoke lists).
 
 **Original note (resolved for morphology):** the suite encoded permissive plural behavior

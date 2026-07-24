@@ -202,17 +202,22 @@ Difficulty to finish: M/L
 Pint lets users define units in text files and programmatically. IMM can currently construct a `UnitRegistry`, but the
 ergonomics are too low-level for application use.
 
-Likely minimum API:
+Current API (immutable build):
 
 ```php
-$registry = UnitRegistry::builder()
-    ->withUdunits2()
+use jbboehr\IudexMensurarumMysteriorum\Registry\UnitRegistry;
+use jbboehr\IudexMensurarumMysteriorum\Units;
+
+$registry = UnitRegistryBuilder::default()
     ->define('widget = 12 * meter')
-    ->alias('widget', 'widgets')
+    ->alias('widgets', 'widget')
     ->build();
 
 $units = new Units($registry);
+$units->quantity(1, 'widget')->valueIn('meter')->toString(); // "12"
 ```
+
+Still missing: user-defined base dimensions (new SI axes).
 
 Design questions:
 

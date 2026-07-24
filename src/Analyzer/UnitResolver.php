@@ -120,15 +120,23 @@ final class UnitResolver
 
     /**
      * Exact catalog/prebuilt hit only — no prefix decomposition.
+     *
+     * Prebuilt {@see UnitRegistry::lookup()} entries win over catalog {@see UnitRegistry::record()}
+     * rows so builder overlays can override UDUNITS2 names.
      */
     private function resolveExact(string $name): ?Expr
     {
+        $prebuilt = $this->unitRegistry->lookup($name);
+        if ($prebuilt !== null) {
+            return $prebuilt;
+        }
+
         $record = $this->unitRegistry->record($name);
         if ($record !== null) {
             return $this->exprFromRecord($record);
         }
 
-        return $this->unitRegistry->lookup($name);
+        return null;
     }
 
     /**

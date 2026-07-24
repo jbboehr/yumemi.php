@@ -323,9 +323,9 @@ Suggested next slices:
 4. Add PHPStan checks for `add()` and `sub()`.
    Reject incompatible dimensions first. Later, make exact-unit strictness configurable.
 
-5. Harden registry extensibility.
-   Decide whether `UnitRegistry` should remain a concrete base class, become an interface, or be composed behind a
-   resolver that can merge generated and user-defined units.
+5. Harden registry extensibility. **Started:** immutable `UnitRegistry` + `UnitRegistryBuilder`
+   (`empty()` / `default()` with UDUNITS2, `define('name = expr')`, `add()`, `alias()`,
+   `CompositeUnitRegistry`). Remaining: user-defined base dimensions.
 
 6. Improve catalog semantics.
    Replace simple plural stripping with catalog plural aliases where possible, and design explicit behavior for affine
