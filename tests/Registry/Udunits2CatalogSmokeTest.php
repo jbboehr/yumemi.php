@@ -3,6 +3,7 @@
 namespace jbboehr\IudexMensurarumMysteriorum\Tests\Registry;
 
 use jbboehr\IudexMensurarumMysteriorum\Exception\UnsupportedSyntaxException;
+use jbboehr\IudexMensurarumMysteriorum\Registry\Udunits2UnitRegistry;
 use jbboehr\IudexMensurarumMysteriorum\Units;
 use PHPUnit\Framework\TestCase;
 use Throwable;
@@ -42,6 +43,82 @@ final class Udunits2CatalogSmokeTest extends TestCase
         ],
         'logarithmic' => [],
     ];
+
+    public function testLooksUpEverySupportedUdunits2CatalogEntry(): void
+    {
+        $catalog = self::catalog();
+        $registry = new Udunits2UnitRegistry();
+        $failures = [];
+        $lookedUpCount = 0;
+
+        foreach ($catalog['units'] as $name => $unit) {
+            if ($this->unsupportedReason($catalog, $name) !== null) {
+                continue;
+            }
+
+            try {
+                if ($registry->lookup($name) === null) {
+                    $failures[] = $name . ' returned null';
+                    continue;
+                }
+
+                $lookedUpCount++;
+            } catch (Throwable $exception) {
+                $failures[] = sprintf('%s: %s: %s', $name, $exception::class, $exception->getMessage());
+            }
+        }
+
+        $this->assertSame([], $failures);
+        $this->assertGreaterThan(500, $lookedUpCount);
+    }
+
+    public function testSupportedUdunits2AliasesResolveToTheirTargets(): void
+    {
+        $catalog = self::catalog();
+        $registry = new Udunits2UnitRegistry();
+        $failures = [];
+        $aliasCount = 0;
+
+        foreach ($catalog['units'] as $name => $unit) {
+            if ($unit['type'] !== 'alias' || $this->unsupportedReason($catalog, $name) !== null) {
+                continue;
+            }
+
+            try {
+                $alias = $registry->get($name);
+                $target = $registry->get($unit['def']);
+
+                if ($alias->toString() !== $target->toString()) {
+                    $failures[] = sprintf(
+                        '%s resolved to %s instead of %s',
+                        $name,
+                        $alias->toString(),
+                        $target->toString(),
+                    );
+                    continue;
+                }
+
+                $aliasCount++;
+            } catch (Throwable $exception) {
+                $failures[] = sprintf('%s: %s: %s', $name, $exception::class, $exception->getMessage());
+            }
+        }
+
+        $this->assertSame([], $failures);
+        $this->assertGreaterThan(250, $aliasCount);
+    }
+
+    public function testUdunits2PrefixesResolveWithLongestPrefixFirst(): void
+    {
+        $units = Units::default();
+
+        $this->assertSame('10 * meter', $units->normalize('dekameter')->toString());
+        $this->assertSame('10 * meter', $units->normalize('dameter')->toString());
+        $this->assertSame('1/1000 * meter', $units->normalize('millimeter')->toString());
+        $this->assertSame('1/1000000 * meter', $units->normalize('micrometer')->toString());
+
+        $this->assertSame('10000 * kilogram', $units->normalize('dat')->toString());
+    }
 
     public function testNormalizesEverySupportedUdunits2Definition(): void
     {

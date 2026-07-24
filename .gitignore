@@ -8,4 +8,5 @@ clover.xml
 result*
 /.pre-commit-config.yaml
 /coverage/
+/tmp/
 /vendor/
