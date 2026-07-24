@@ -44,7 +44,7 @@
               enabled ++ [ all.pcov ];
           };
         pkgs = nixpkgs.legacyPackages.${system};
-        php = buildEnv pkgs.php;
+        php = buildEnv pkgs.php82;
         src = gitignore.lib.gitignoreSource ./.;
 
         treefmt = treefmt-nix.lib.evalModule pkgs {
@@ -62,7 +62,10 @@
           hooks = {
             actionlint.enable = true;
             shellcheck.enable = true;
-            treefmt.enable = true;
+            treefmt = {
+              enable = true;
+              require_serial = true;
+            };
           };
         };
       in
