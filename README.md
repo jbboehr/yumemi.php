@@ -1,8 +1,16 @@
 # Iudex Mensurarum Mysteriorum
 
-Runtime unit conversion and static dimensional analysis for PHP.
+Runtime unit conversion and dimensional analysis for PHP.
 
-This project is in early planning. See [docs/planning.md](docs/planning.md) for the initial design notes.
+**Status**
+
+- **Runtime library:** usable — unit expressions, UDUNITS2 catalog, quantities, exact
+  rational conversion, dimensional checks.
+- **PHPStan extension:** not shipped yet (next focus). Package metadata may still mention
+  static analysis as a goal.
+
+Design notes: [docs/planning.md](docs/planning.md). Code-quality snapshot:
+[docs/grok-review.md](docs/grok-review.md).
 
 ## Runtime Usage
 

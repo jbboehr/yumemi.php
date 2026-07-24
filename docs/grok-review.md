@@ -400,12 +400,23 @@ Fine for now; PHPStan diagnostics will want richer structured data (from/to, dim
 
 ### 12. Project packaging / hygiene nits
 
+**Status: partially fixed** (2026-07-24).
+
+**Original finding:**
+
 - README still says “early planning” while the runtime is substantial.
 - `composer.json` suggests a bundled PHPStan extension that does not exist yet.
 - `tmp/` is gitignored (good); keep old prototypes out of the mental model for contributors.
 - PHPUnit reports one deprecation warning (config/tooling).
 - `UnitRegistry::defaults()` is a tiny hand-built stub next to full UDUNITS2 — clarify test-only
   vs public.
+
+**Fix notes:**
+
+- README status updated (runtime usable; PHPStan next / not shipped).
+- Removed premature `phpstan/phpstan` suggest; description notes extension is planned.
+- PHPUnit config migrated to current 10.5 schema (deprecation cleared).
+- `tmp/` left alone (gitignored). `UnitRegistry::defaults()` left as test fixture for now.
 
 ---
 

@@ -3,6 +3,7 @@
 namespace jbboehr\IudexMensurarumMysteriorum\Tests\Number;
 
 use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class RationalTest extends TestCase
@@ -12,9 +13,7 @@ final class RationalTest extends TestCase
         $this->assertSame('5/6', (new Rational(1, 2))->add(new Rational(1, 3))->toString());
     }
 
-    /**
-     * @dataProvider decimalStringProvider
-     */
+    #[DataProvider('decimalStringProvider')]
     public function testParsesDecimalStringsExactly(string $input, string $expected): void
     {
         $this->assertSame($expected, Rational::fromDecimalString($input)->toString());
@@ -36,9 +35,7 @@ final class RationalTest extends TestCase
         $this->assertSame('1/6', (new Rational(1, 2))->sub(new Rational(1, 3))->toString());
     }
 
-    /**
-     * @dataProvider integerTruncationProvider
-     */
+    #[DataProvider('integerTruncationProvider')]
     public function testConvertsToIntByTruncatingTowardZero(Rational $rational, int $expected): void
     {
         $this->assertSame($expected, $rational->toInt());

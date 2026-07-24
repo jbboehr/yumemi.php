@@ -2,13 +2,12 @@
 
 namespace jbboehr\IudexMensurarumMysteriorum\Tests\Documentation;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class ReadmeExamplesTest extends TestCase
 {
-    /**
-     * @dataProvider readmePhpExampleProvider
-     */
+    #[DataProvider('readmePhpExampleProvider')]
     public function testReadmePhpExamplesExecute(string $label, string $code): void
     {
         $pipes = [];
