@@ -27,6 +27,9 @@
         },
         "classmap": [
             "src/Parser/Parser.php"
+        ],
+        "files": [
+            "src/functions.php"
         ]
     },
     "require-dev": {

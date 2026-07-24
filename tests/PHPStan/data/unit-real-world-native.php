@@ -4,9 +4,11 @@
  * Real-world formula cases using native unit_float types (PHPStan analyse).
  *
  * Mirrors tests/RealWorldFormulaTest.php, but:
- * - magnitudes are plain floats with unit_float PHPDoc
+ * - magnitudes are plain floats with unit_float PHPDoc (@var) — not unit()
  * - arithmetic uses PHP operators (*, /)
  * - each result is passed to a sink with the expected unit in the signature
+ *
+ * Construction via unit() is covered separately (UnitFunction* / Fixtures).
  *
  * Sink params use definitional (normalized) unit equality: e.g. m*a is accepted as
  * newton, but meter is not accepted as foot (same dimension, different scale).
