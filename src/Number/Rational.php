@@ -47,7 +47,8 @@ final class Rational
         $exponent = (int) ($matches[3] ?? 0);
         $sign = str_starts_with($whole, '-') ? '-' : '';
         $digits = ltrim($whole, '+-') . $fraction;
-        $numerator = gmp_init($sign . $digits);
+        $digits = ltrim($digits, '0');
+        $numerator = gmp_init($sign . ($digits === '' ? '0' : $digits), 10);
         $denominator = gmp_pow(10, strlen($fraction));
 
         if ($exponent >= 0) {
