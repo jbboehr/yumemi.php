@@ -7,7 +7,7 @@ use jbboehr\IudexMensurarumMysteriorum\Expr\Compound;
 use jbboehr\IudexMensurarumMysteriorum\Expr\Constant;
 use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
 
-final class UnitRegistry
+class UnitRegistry
 {
     /** @var array<string, Unit> */
     private array $units = [];
@@ -48,7 +48,20 @@ final class UnitRegistry
 
     public function get(string $name): Unit
     {
-        return $this->units[$name] ?? throw UnitNotFoundException::create($name);
+        return $this->lookup($name) ?? throw UnitNotFoundException::create($name);
+    }
+
+    public function lookup(string $name): ?Unit
+    {
+        return $this->units[$name] ?? null;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function prefixes(): array
+    {
+        return [];
     }
 
     public function register(Unit $unit): void

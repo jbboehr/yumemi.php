@@ -3,6 +3,7 @@
 namespace jbboehr\IudexMensurarumMysteriorum\Tests;
 
 use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleUnitException;
+use jbboehr\IudexMensurarumMysteriorum\Exception\UnsupportedSyntaxException;
 use jbboehr\IudexMensurarumMysteriorum\Exception\UnitNotFoundException;
 use jbboehr\IudexMensurarumMysteriorum\Expr\Compound;
 use jbboehr\IudexMensurarumMysteriorum\Expr\Term;
@@ -15,23 +16,38 @@ final class UnitsTest extends TestCase
     {
         $units = Units::default();
 
-        $this->assertSame('1000 * meter', $units->normalize($units->unit('kilometer'))->toString());
+        $this->assertSame('1000 * meter', $units->normalize('kilometer')->toString());
     }
 
     public function testDefaultUnitsCheckCompatibility(): void
     {
         $units = Units::default();
 
-        $this->assertTrue($units->compatible($units->unit('kilometer'), $units->unit('meter')));
-        $this->assertFalse($units->compatible($units->unit('meter'), $units->unit('second')));
+        $this->assertTrue($units->compatible('kilometer', 'meter'));
+        $this->assertFalse($units->compatible('meter', 'second'));
     }
 
     public function testDefaultUnitsConvertValues(): void
     {
         $units = Units::default();
 
-        $this->assertSame('1000', $units->convert(1, $units->unit('kilometer'), $units->unit('meter'))->toString());
-        $this->assertSame('60', $units->convert(1, $units->unit('minute'), $units->unit('second'))->toString());
+        $this->assertSame('1000', $units->convert(1, 'kilometer', 'meter')->toString());
+        $this->assertSame('60', $units->convert(1, 'minute', 'second')->toString());
+    }
+
+    public function testDefaultUnitsUseUdunits2AliasesForImperialConversions(): void
+    {
+        $units = Units::default();
+
+        $this->assertSame('1/12', $units->conversionFactor('inch', 'foot')->toString());
+        $this->assertSame('124', $units->convert(1488, 'inch', 'foot')->toString());
+    }
+
+    public function testDefaultUnitsUseUdunits2LargeScaleConversions(): void
+    {
+        $units = Units::default();
+
+        $this->assertSame('94607300000000000000000000', $units->conversionFactor('light_year', 'angstrom')->toString());
     }
 
     public function testDefaultUnitsConvertCompoundValues(): void
@@ -54,7 +70,7 @@ final class UnitsTest extends TestCase
     {
         $units = Units::default();
 
-        $this->assertSame('kilometer * minute ^ -1', $units->parse('kilometer / minute')->toString());
+        $this->assertSame('1000 * meter * minute ^ -1', $units->parse('kilometer / minute')->toString());
         $this->assertSame('50/3 * meter * second ^ -1', $units->normalize(
             $units->parse('kilometer / minute'),
         )->toString());
@@ -96,5 +112,13 @@ final class UnitsTest extends TestCase
 
         $this->expectException(UnitNotFoundException::class);
         $units->normalize('league');
+    }
+
+    public function testDefaultUnitsRejectAffineUdunits2DefinitionsForNow(): void
+    {
+        $units = Units::default();
+
+        $this->expectException(UnsupportedSyntaxException::class);
+        $units->normalize('degree_Celsius');
     }
 }

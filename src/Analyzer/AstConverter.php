@@ -18,12 +18,11 @@ use jbboehr\IudexMensurarumMysteriorum\Parser\Ast\Integer_;
 use jbboehr\IudexMensurarumMysteriorum\Parser\Ast\Mul;
 use jbboehr\IudexMensurarumMysteriorum\Parser\Ast\Pow;
 use jbboehr\IudexMensurarumMysteriorum\Parser\Ast\Sub;
-use jbboehr\IudexMensurarumMysteriorum\Registry\UnitRegistry;
 
 final class AstConverter
 {
     public function __construct(
-        private readonly UnitRegistry $unitRegistry,
+        private readonly UnitResolver $unitResolver,
     ) {
     }
 
@@ -35,7 +34,7 @@ final class AstConverter
                 new Term($this->convert($ast->right), -1),
             ]),
             Float_::class => new Constant(Rational::fromDecimalString($ast->value)),
-            Identifier::class => $this->unitRegistry->get($ast->identifier),
+            Identifier::class => $this->unitResolver->resolveOrFail($ast->identifier),
             Integer_::class => new Constant(gmp_init($ast->value)),
             Mul::class => new Compound([
                 $this->convert($ast->left),

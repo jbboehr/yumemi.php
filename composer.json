@@ -18,6 +18,9 @@
         "ext-bcmath": "Enables decimal conversion output when exact integer conversion is not possible.",
         "phpstan/phpstan": "Enables static dimensional analysis through the bundled PHPStan extension."
     },
+    "bin": [
+        "bin/generate-udunits2-catalog"
+    ],
     "autoload": {
         "psr-4": {
             "jbboehr\\IudexMensurarumMysteriorum\\": "src"
@@ -28,6 +31,7 @@
     },
     "require-dev": {
         "ext-bcmath": "*",
+        "ext-dom": "*",
         "brick/varexporter": "^0.4.0",
         "mrsuh/php-bison-skeleton": "^1.2",
         "phpstan/phpstan": "^1.10",

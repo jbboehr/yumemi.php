@@ -2,32 +2,35 @@
 
 namespace jbboehr\IudexMensurarumMysteriorum;
 
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\ConversionFactorResolver;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\AstConverter;
+use jbboehr\IudexMensurarumMysteriorum\Analyzer\ConversionFactorResolver;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitNormalizer;
+use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitResolver;
 use jbboehr\IudexMensurarumMysteriorum\Expr\Constant;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
 use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
 use jbboehr\IudexMensurarumMysteriorum\Parser\Parser;
 use jbboehr\IudexMensurarumMysteriorum\Registry\UnitRegistry;
+use jbboehr\IudexMensurarumMysteriorum\Registry\Udunits2UnitRegistry;
 
 final class Units
 {
     private readonly AstConverter $astConverter;
     private readonly ConversionFactorResolver $conversionFactorResolver;
     private readonly UnitNormalizer $unitNormalizer;
+    private readonly UnitResolver $unitResolver;
 
     public function __construct(
         private readonly UnitRegistry $unitRegistry,
     ) {
-        $this->astConverter = new AstConverter($this->unitRegistry);
+        $this->unitResolver = new UnitResolver($this->unitRegistry);
+        $this->astConverter = new AstConverter($this->unitResolver);
         $this->unitNormalizer = new UnitNormalizer();
         $this->conversionFactorResolver = new ConversionFactorResolver($this->unitNormalizer);
     }
 
     public static function default(): self
     {
-        return new self(UnitRegistry::defaults());
+        return new self(new Udunits2UnitRegistry());
     }
 
     public function compatible(Expr|string $left, Expr|string $right): bool
@@ -62,9 +65,9 @@ final class Units
         return (new Constant($value))->mul($this->expr($unit));
     }
 
-    public function unit(string $name): Unit
+    public function unit(string $name): Expr
     {
-        return $this->unitRegistry->get($name);
+        return $this->unitResolver->resolveOrFail($name);
     }
 
     private function expr(Expr|string $expr): Expr
