@@ -8,6 +8,25 @@ use jbboehr\IudexMensurarumMysteriorum\Formatter\ExprFormatter;
 
 final class IncompatibleUnitException extends \RuntimeException
 {
+    public readonly Expr $from;
+    public readonly Expr $to;
+    public readonly ?Dimension $fromDimension;
+    public readonly ?Dimension $toDimension;
+
+    public function __construct(
+        string $message,
+        Expr $from,
+        Expr $to,
+        ?Dimension $fromDimension = null,
+        ?Dimension $toDimension = null,
+    ) {
+        parent::__construct($message);
+        $this->from = $from;
+        $this->to = $to;
+        $this->fromDimension = $fromDimension;
+        $this->toDimension = $toDimension;
+    }
+
     public static function create(
         Expr $from,
         Expr $to,
@@ -21,14 +40,20 @@ final class IncompatibleUnitException extends \RuntimeException
         );
 
         if ($fromDimension !== null && $toDimension !== null) {
-            $message = sprintf(
-                '%s Dimensions: %s vs %s.',
-                $message,
-                $fromDimension->toString(),
-                $toDimension->toString(),
-            );
+            if ($fromDimension->equals($toDimension)) {
+                $message .= sprintf(
+                    ' Both have dimension %s; convert explicitly before adding or subtracting.',
+                    $fromDimension->toString(),
+                );
+            } else {
+                $message .= sprintf(
+                    ' Dimensions: %s vs %s.',
+                    $fromDimension->toString(),
+                    $toDimension->toString(),
+                );
+            }
         }
 
-        return new self($message);
+        return new self($message, $from, $to, $fromDimension, $toDimension);
     }
 }

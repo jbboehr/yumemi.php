@@ -65,7 +65,51 @@ final class UnitResolver
 
     public function resolveOrFail(string $name): Expr
     {
-        return $this->resolve($name) ?? throw UnitNotFoundException::create($name);
+        return $this->resolve($name)
+            ?? throw UnitNotFoundException::create($name, $this->suggestNames($name));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function suggestNames(string $name): array
+    {
+        $names = $this->unitRegistry->names();
+        if ($names === []) {
+            return [];
+        }
+
+        $suggestions = [];
+        $nameLower = strtolower($name);
+
+        foreach ($names as $candidate) {
+            if ($candidate === $name) {
+                continue;
+            }
+
+            if (strcasecmp($candidate, $name) === 0) {
+                $suggestions[$candidate] = 0;
+            }
+        }
+
+        foreach ($names as $candidate) {
+            if (isset($suggestions[$candidate]) || $candidate === $name) {
+                continue;
+            }
+
+            if (abs(strlen($candidate) - strlen($name)) > 2) {
+                continue;
+            }
+
+            $distance = levenshtein($nameLower, strtolower($candidate));
+            if ($distance > 0 && $distance <= 2) {
+                $suggestions[$candidate] = $distance;
+            }
+        }
+
+        asort($suggestions, SORT_NUMERIC);
+
+        return array_slice(array_keys($suggestions), 0, 5);
     }
 
     private function resolveUncached(string $name): ?Expr

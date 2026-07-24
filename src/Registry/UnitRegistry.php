@@ -61,12 +61,29 @@ class UnitRegistry
 
     public function get(string $name): Unit
     {
-        return $this->lookup($name) ?? throw UnitNotFoundException::create($name);
+        return $this->lookup($name) ?? throw UnitNotFoundException::create(
+            $name,
+            // Cheap exact-case suggestions only; full levenshtein lives in UnitResolver.
+            array_values(array_filter(
+                $this->names(),
+                static fn (string $candidate): bool => strcasecmp($candidate, $name) === 0 && $candidate !== $name,
+            )),
+        );
     }
 
     public function lookup(string $name): ?Unit
     {
         return $this->units[$name] ?? null;
+    }
+
+    /**
+     * Known unit names in this registry (for error suggestions and introspection).
+     *
+     * @return list<string>
+     */
+    public function names(): array
+    {
+        return array_keys($this->units);
     }
 
     /**

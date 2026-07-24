@@ -378,11 +378,23 @@ explicit `Units` instances.
 
 ### 11. Exception quality is minimal
 
+**Status: improved** (2026-07-24). Structured fields added; PHPStan source spans still future work.
+
+**Original finding:**
+
 - `IncompatibleUnitException` prints two expressions, not dimensions.
 - `IncompatibleQuantityContextException` has no identifying detail.
 - `UnitNotFoundException` does not suggest near-matches.
 
 Fine for now; PHPStan diagnostics will want richer structured data (from/to, dimensions, span).
+
+**Fix notes:**
+
+- `IncompatibleUnitException`: display-form units, optional dimensions, distinct copy for
+  same-dimension symbolic mismatch vs true dimension clash; public `$from` / `$to` / dimensions.
+- `IncompatibleQuantityContextException`: documents shared default; includes `spl_object_id`s.
+- `UnitNotFoundException`: near-match suggestions (case + levenshtein) via `UnitRegistry::names()`.
+- `UnsupportedSyntaxException`: hints for affine `@` and additive unit syntax; public expression.
 
 ---
 

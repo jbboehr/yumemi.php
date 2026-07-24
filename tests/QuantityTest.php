@@ -79,9 +79,17 @@ final class QuantityTest extends TestCase
     {
         $units = Units::default();
 
-        $this->expectException(IncompatibleUnitException::class);
-
-        $units->quantity(1, 'meter')->add($units->quantity(1, 'foot'));
+        try {
+            $units->quantity(1, 'meter')->add($units->quantity(1, 'foot'));
+            self::fail('Expected IncompatibleUnitException');
+        } catch (IncompatibleUnitException $exception) {
+            $this->assertStringContainsString('meter', $exception->getMessage());
+            $this->assertStringContainsString('foot', $exception->getMessage());
+            $this->assertStringContainsString('convert explicitly', $exception->getMessage());
+            $this->assertNotNull($exception->fromDimension);
+            $this->assertNotNull($exception->toDimension);
+            $this->assertTrue($exception->fromDimension->equals($exception->toDimension));
+        }
     }
 
     public function testAddsExplicitlyConvertedQuantities(): void
@@ -136,12 +144,18 @@ final class QuantityTest extends TestCase
 
     public function testRejectsAdditionAcrossDifferentUnitsContexts(): void
     {
-        $this->expectException(IncompatibleQuantityContextException::class);
-
         $left = new Units(new Udunits2UnitRegistry());
         $right = new Units(new Udunits2UnitRegistry());
 
-        $left->quantity(1, 'meter')->add($right->quantity(1, 'meter'));
+        try {
+            $left->quantity(1, 'meter')->add($right->quantity(1, 'meter'));
+            self::fail('Expected IncompatibleQuantityContextException');
+        } catch (IncompatibleQuantityContextException $exception) {
+            $this->assertNotNull($exception->leftContextId);
+            $this->assertNotNull($exception->rightContextId);
+            $this->assertNotSame($exception->leftContextId, $exception->rightContextId);
+            $this->assertStringContainsString('#' . $exception->leftContextId, $exception->getMessage());
+        }
     }
 
     public function testMultipliesByQuantity(): void

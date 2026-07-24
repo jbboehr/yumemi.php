@@ -137,7 +137,13 @@ final class UnitsTest extends TestCase
     {
         $units = Units::default();
 
-        $this->expectException(UnsupportedSyntaxException::class);
-        $units->normalize('degree_Celsius');
+        try {
+            $units->normalize('degree_Celsius');
+            self::fail('Expected UnsupportedSyntaxException');
+        } catch (UnsupportedSyntaxException $exception) {
+            $this->assertStringContainsString('@', $exception->getMessage());
+            $this->assertStringContainsString('Affine', $exception->getMessage());
+            $this->assertStringContainsString('@', $exception->expression);
+        }
     }
 }

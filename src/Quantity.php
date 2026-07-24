@@ -202,7 +202,7 @@ final class Quantity
             return;
         }
 
-        throw IncompatibleQuantityContextException::create();
+        throw IncompatibleQuantityContextException::create($this->units, $other->units);
     }
 
     private function assertSameUnit(self $other): void
@@ -211,7 +211,12 @@ final class Quantity
             return;
         }
 
-        throw IncompatibleUnitException::create($this->unit, $other->unit);
+        throw IncompatibleUnitException::create(
+            $this->unit,
+            $other->unit,
+            $this->dimension(),
+            $other->dimension(),
+        );
     }
 
     private function resolvedExprFrom(Expr|string $expr): Expr

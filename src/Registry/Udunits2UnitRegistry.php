@@ -53,6 +53,14 @@ final class Udunits2UnitRegistry extends UnitRegistry
     }
 
     /**
+     * @return list<string>
+     */
+    public function names(): array
+    {
+        return array_keys($this->catalog['units']);
+    }
+
+    /**
      * @phpstan-return CatalogRecord|null
      */
     public function record(string $name): ?array

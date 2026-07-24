@@ -80,6 +80,34 @@ final class UnitResolverTest extends TestCase
         $resolver->resolveOrFail($name);
     }
 
+    public function testUnknownUnitErrorIncludesNearMatchSuggestions(): void
+    {
+        $resolver = new UnitResolver(new Udunits2UnitRegistry());
+
+        try {
+            $resolver->resolveOrFail('metr');
+            self::fail('Expected UnitNotFoundException');
+        } catch (UnitNotFoundException $exception) {
+            $this->assertSame('metr', $exception->unitName);
+            $this->assertNotEmpty($exception->suggestions);
+            $this->assertContains('meter', $exception->suggestions);
+            $this->assertStringContainsString('Did you mean', $exception->getMessage());
+        }
+    }
+
+    public function testUnknownUnitErrorSuggestsCaseVariants(): void
+    {
+        $resolver = new UnitResolver(new Udunits2UnitRegistry());
+
+        try {
+            $resolver->resolveOrFail('Meter');
+            self::fail('Expected UnitNotFoundException for Meter');
+        } catch (UnitNotFoundException $exception) {
+            $this->assertSame('Meter', $exception->unitName);
+            $this->assertContains('meter', $exception->suggestions);
+        }
+    }
+
     public function testDoesNotApplyNestedPrefixesToInventUnits(): void
     {
         $units = Units::default();
