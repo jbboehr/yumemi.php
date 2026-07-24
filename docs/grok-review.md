@@ -261,11 +261,17 @@ added.
 
 ### 5. Near-duplicate converters
 
-`AstConverter` and `SymbolicAstConverter` differ only in `Identifier` handling (resolve vs bare
-`Unit`). That will drift.
+**Status: fixed** (2026-07-24).
+
+**Original finding:** `AstConverter` and `SymbolicAstConverter` differ only in `Identifier`
+handling (resolve vs bare `Unit`). That will drift.
 
 **Suggestion:** One converter with a strategy or callback for identifiers, or a flag such as
 `resolved: bool`.
+
+**Fix notes:** Single `AstConverter` with optional `UnitResolver`. `AstConverter::symbolic()` is
+the no-resolver mode used by `Quantity` for chosen syntax. Resolving mode remains the default for
+`Units::parse` / registry definition parsing. Dual _semantics_ kept; dual _classes_ removed.
 
 ---
 
@@ -420,7 +426,7 @@ through. Adversarial tests now reject those false friends; plurals are catalog-b
 
 4. Structural `Expr` equality; use it in `Quantity::add` / `sub`. **Done.**
 5. Remove or recontextualize `Unit::dimension()`. **Done** (kept method; internal ctor + Units binding).
-6. Collapse the two AST converters.
+6. Collapse the two AST converters. **Done.**
 7. Registry immutability + builder sketch.
 
 **Can wait:**

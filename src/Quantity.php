@@ -2,10 +2,10 @@
 
 namespace jbboehr\IudexMensurarumMysteriorum;
 
+use jbboehr\IudexMensurarumMysteriorum\Analyzer\AstConverter;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\ExprComparer;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\ExprReducer;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\NormalizedExpr;
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\SymbolicAstConverter;
 use jbboehr\IudexMensurarumMysteriorum\Dimension;
 use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleQuantityContextException;
 use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleUnitException;
@@ -231,6 +231,6 @@ final class Quantity
 
     private static function symbolicExprFrom(Expr|string $expr): Expr
     {
-        return is_string($expr) ? (new SymbolicAstConverter())->convert(Parser::parseString($expr)) : $expr;
+        return is_string($expr) ? AstConverter::symbolic()->convert(Parser::parseString($expr)) : $expr;
     }
 }

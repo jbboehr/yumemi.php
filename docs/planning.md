@@ -336,7 +336,7 @@ Suggested next slices:
 ```text
 UDUNITS2 XML -> Udunits2CatalogImporter -> PhpCatalogExporter -> data/udunits2.php
 data/udunits2.php -> Udunits2UnitRegistry -> UnitResolver
-Parser string -> Parser\Ast -> AstConverter/SymbolicAstConverter -> Expr
+Parser string -> Parser\Ast -> AstConverter (resolving or symbolic) -> Expr
 Expr -> ExprReducer -> reduced Expr
 Expr -> UnitNormalizer -> normalized Expr
 normalized Expr -> ConversionFactorResolver -> Rational factor
