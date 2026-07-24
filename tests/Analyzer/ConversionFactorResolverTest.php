@@ -32,6 +32,8 @@ final class ConversionFactorResolverTest extends TestCase
         $resolver = new ConversionFactorResolver(new UnitNormalizer());
 
         $this->expectException(IncompatibleUnitException::class);
+        $this->expectExceptionMessage('Dimensions: length vs time');
+
         $resolver->resolve(new Unit('meter'), new Unit('second'));
     }
 

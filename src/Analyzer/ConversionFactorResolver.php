@@ -2,8 +2,8 @@
 
 namespace jbboehr\IudexMensurarumMysteriorum\Analyzer;
 
-use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleUnitException;
 use jbboehr\IudexMensurarumMysteriorum\Dimension;
+use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleUnitException;
 use jbboehr\IudexMensurarumMysteriorum\Expr;
 use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
 
@@ -13,8 +13,9 @@ final class ConversionFactorResolver
 
     public function __construct(
         private readonly UnitNormalizer $unitNormalizer,
+        ?DimensionResolver $dimensionResolver = null,
     ) {
-        $this->dimensionResolver = new DimensionResolver($this->unitNormalizer);
+        $this->dimensionResolver = $dimensionResolver ?? new DimensionResolver($this->unitNormalizer);
     }
 
     public function compatible(Expr $left, Expr $right): bool
@@ -32,8 +33,12 @@ final class ConversionFactorResolver
         $fromNormal = $this->unitNormalizer->normalize($from);
         $toNormal = $this->unitNormalizer->normalize($to);
 
-        if (!DimensionResolver::resolveNormalized($fromNormal)->equals(DimensionResolver::resolveNormalized($toNormal))) {
-            throw IncompatibleUnitException::create($from, $to);
+        // Use already-normalized trees; do not normalize again via DimensionResolver::resolve().
+        $fromDimension = DimensionResolver::resolveNormalized($fromNormal);
+        $toDimension = DimensionResolver::resolveNormalized($toNormal);
+
+        if (!$fromDimension->equals($toDimension)) {
+            throw IncompatibleUnitException::create($from, $to, $fromDimension, $toDimension);
         }
 
         return NormalizedExpr::constant($fromNormal)->div(NormalizedExpr::constant($toNormal));

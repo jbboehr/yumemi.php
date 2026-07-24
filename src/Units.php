@@ -31,7 +31,10 @@ final class Units
         $this->astConverter = new AstConverter($this->unitResolver);
         $this->unitNormalizer = new UnitNormalizer();
         $this->dimensionResolver = new DimensionResolver($this->unitNormalizer);
-        $this->conversionFactorResolver = new ConversionFactorResolver($this->unitNormalizer);
+        $this->conversionFactorResolver = new ConversionFactorResolver(
+            $this->unitNormalizer,
+            $this->dimensionResolver,
+        );
     }
 
     public static function default(): self

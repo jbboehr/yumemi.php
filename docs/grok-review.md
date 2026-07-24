@@ -339,11 +339,21 @@ converter.
 
 ### 9. `ConversionFactorResolver` vs dimension checks
 
-`compatible()` uses `DimensionResolver::resolve` (normalize inside). `resolve()` re-normalizes
-and uses `resolveNormalized`. Consistent enough, but it double-normalizes and constructs its own
-`DimensionResolver` even though `Units` already has one.
+**Status: fixed** (2026-07-24).
+
+**Original finding:** `compatible()` uses `DimensionResolver::resolve` (normalize inside).
+`resolve()` re-normalizes and uses `resolveNormalized`. Consistent enough, but it
+double-normalizes and constructs its own `DimensionResolver` even though `Units` already has one.
 
 Not wrong — slightly muddy ownership. Fine until performance matters.
+
+**Fix notes:**
+
+- `ConversionFactorResolver` accepts an optional shared `DimensionResolver` (defaults to one
+  built from its `UnitNormalizer` for standalone tests).
+- `Units` injects its single `DimensionResolver` instance.
+- Conversion factor path still normalizes once, then `resolveNormalized` (no second normalize).
+- Incompatible conversion errors include dimensions when available.
 
 ---
 
