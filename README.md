@@ -99,6 +99,44 @@ assert($rate->toString() === '2/3 * centimeter / (foot * second)');
 assert($rate->valueIn('1 / second')->toString() === '25/1143');
 ```
 
+Use `normalize()` when you want to substitute unit definitions without changing the quantity value.
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+use jbboehr\IudexMensurarumMysteriorum\Units;
+
+$units = Units::default();
+
+$rate = $units->quantity(2, 'centimeter / second')->normalize();
+
+assert($rate->valueToString() === '2');
+assert($rate->unitToString() === '1/100 * meter / second');
+assert($rate->toString() === '1/50 * meter / second');
+assert($rate->valueIn('meter / second')->toString() === '1/50');
+```
+
+Use `simplify()` when you want to substitute unit definitions and fold the unit scale factor into the value.
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+use jbboehr\IudexMensurarumMysteriorum\Units;
+
+$units = Units::default();
+
+$rate = $units->quantity(2, 'centimeter / second')->simplify();
+
+assert($rate->valueToString() === '1/50');
+assert($rate->unitToString() === 'meter / second');
+assert($rate->toString() === '1/50 * meter / second');
+assert($rate->valueIn('centimeter / second')->toString() === '2');
+```
+
 ## License
 
 This project is licensed under the [AGPL v3+](https://www.gnu.org/licenses/agpl-3.0) License - see

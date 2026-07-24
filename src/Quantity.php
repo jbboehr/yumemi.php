@@ -3,6 +3,7 @@
 namespace jbboehr\IudexMensurarumMysteriorum;
 
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\ExprReducer;
+use jbboehr\IudexMensurarumMysteriorum\Analyzer\NormalizedExpr;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\SymbolicAstConverter;
 use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleUnitException;
 use jbboehr\IudexMensurarumMysteriorum\Expr\Constant;
@@ -88,6 +89,26 @@ final class Quantity
         );
     }
 
+    public function normalize(): self
+    {
+        $unit = $this->normalizedUnit();
+
+        return new self($this->value, $unit, $this->units, $unit);
+    }
+
+    public function simplify(): self
+    {
+        $unit = $this->normalizedUnit();
+        $unitWithoutConstant = NormalizedExpr::withoutConstant($unit);
+
+        return new self(
+            $this->value->mul(NormalizedExpr::constant($unit)),
+            $unitWithoutConstant,
+            $this->units,
+            $unitWithoutConstant,
+        );
+    }
+
     public function sub(self $other): self
     {
         $this->assertSameUnit($other);
@@ -115,18 +136,17 @@ final class Quantity
 
     public function toString(): string
     {
-        $unit = $this->unitToString();
-
-        if ($unit === '1') {
-            return $this->value->toString();
-        }
-
-        return $this->value->toString() . ' * ' . $unit;
+        return ExprFormatter::format($this->expr());
     }
 
     public function unitToString(): string
     {
         return ExprFormatter::format($this->unit);
+    }
+
+    public function valueToString(): string
+    {
+        return $this->value->toString();
     }
 
     public function valueIn(Expr|string $unit): Rational
@@ -151,6 +171,11 @@ final class Quantity
     private function resolvedExprFrom(Expr|string $expr): Expr
     {
         return is_string($expr) ? $this->units->parse($expr) : $expr;
+    }
+
+    private function normalizedUnit(): Expr
+    {
+        return $this->units->normalize($this->resolvedUnit);
     }
 
     private static function rational(int|Rational $value): Rational
