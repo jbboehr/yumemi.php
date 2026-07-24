@@ -30,6 +30,18 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         );
     }
 
+    public function testUnitArithmeticFixtureReportsIncompatibleAdd(): void
+    {
+        $output = $this->analyse('unit-ops.php');
+
+        // PHPStan InvalidBinaryOperationRule reports ErrorType as binaryOp.invalid;
+        // our custom ErrorType reason is not surfaced in the message.
+        $this->assertStringContainsString('binaryOp.invalid', $output, $output);
+        $this->assertStringContainsString("unit_int<'meter'>", $output, $output);
+        $this->assertStringContainsString("unit_int<'second'>", $output, $output);
+        $this->assertStringContainsString('Found 1 error', $output, $output);
+    }
+
     private function analyse(string $fixture): string
     {
         $fixturePath = __DIR__ . '/data/' . $fixture;
