@@ -132,7 +132,7 @@ final class QuantityTest extends TestCase
 
         $quantity = $units->quantity(2, 'meter / second')->mul($units->quantity(3, 'second'));
 
-        $this->assertSame('6', $quantity->value->toString());
+        $this->assertSame('6', $quantity->valueToString());
         $this->assertSame('meter', $quantity->unitToString());
         $this->assertSame('6 * meter', $quantity->toString());
     }
@@ -184,5 +184,15 @@ final class QuantityTest extends TestCase
         $this->assertSame('25/1143', $quantity->valueToString());
         $this->assertSame('1 / second', $quantity->unitToString());
         $this->assertSame('25/1143 / second', $quantity->toString());
+    }
+
+    public function testAccessorsExposeStoredValueAndUnit(): void
+    {
+        $units = Units::default();
+
+        $quantity = $units->quantity(2, 'centimeter / second')->normalize();
+
+        $this->assertSame('2', $quantity->value()->toString());
+        $this->assertSame('1/100 * meter * second ^ -1', $quantity->unit()->toString());
     }
 }

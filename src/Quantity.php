@@ -144,9 +144,19 @@ final class Quantity
         return ExprFormatter::format($this->unit);
     }
 
+    public function unit(): Expr
+    {
+        return $this->unit;
+    }
+
     public function valueToString(): string
     {
         return $this->value->toString();
+    }
+
+    public function value(): Rational
+    {
+        return $this->value;
     }
 
     public function valueIn(Expr|string $unit): Rational
