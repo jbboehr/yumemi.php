@@ -35,19 +35,20 @@ final class UnitFloatType extends FloatType
     public function equals(Type $type): bool
     {
         return $type instanceof self
-            && $this->unit->equals($type->unit);
+            && $this->unit->equivalent($type->unit);
     }
 
     public function accepts(Type $type, bool $strictTypes): AcceptsResult
     {
-        if ($type instanceof self) {
-            if ($this->unit->equals($type->unit)) {
+        // unit_float accepts unit_float or unit_int with definitionally equivalent units.
+        if ($type instanceof self || $type instanceof UnitIntegerType) {
+            if ($this->unit->equivalent($type->getUnitExpression())) {
                 return AcceptsResult::createYes();
             }
 
             return AcceptsResult::createNo([
                 sprintf(
-                    'Unit %s is not assignable to unit_float<%s>.',
+                    'Unit %s is not assignable to unit_float<%s> (normalized forms differ).',
                     $type->describe(VerbosityLevel::typeOnly()),
                     $this->unit->displayString,
                 ),
@@ -68,8 +69,8 @@ final class UnitFloatType extends FloatType
 
     public function isSuperTypeOf(Type $type): IsSuperTypeOfResult
     {
-        if ($type instanceof self) {
-            return $this->unit->equals($type->unit)
+        if ($type instanceof self || $type instanceof UnitIntegerType) {
+            return $this->unit->equivalent($type->getUnitExpression())
                 ? IsSuperTypeOfResult::createYes()
                 : IsSuperTypeOfResult::createNo();
         }

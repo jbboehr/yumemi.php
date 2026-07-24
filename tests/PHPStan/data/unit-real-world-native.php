@@ -8,8 +8,8 @@
  * - arithmetic uses PHP operators (*, /)
  * - each result is passed to a sink with the expected unit in the signature
  *
- * Expected units are the *algebraic* product of the operations (exact unit mode).
- * Conversion to named SI derived units (newton, joule, …) is not covered here yet.
+ * Sink params use definitional (normalized) unit equality: e.g. m*a is accepted as
+ * newton, but meter is not accepted as foot (same dimension, different scale).
  *
  * Sink functions stay one-line and colocated with each case (excluded from CS Fixer).
  */
@@ -25,9 +25,9 @@ $distanceMi = 60.0;
 $timeH = 1.0;
 expectHighwaySpeed($distanceMi / $timeH);
 
-// --- Newton's second law: F = m a ---
+// --- Newton's second law: F = m a (expanded form ≡ newton after normalize) ---
 
-/** @param unit_float<'kilogram * meter / second ^ 2'> $force */
+/** @param unit_float<'newton'> $force */
 function expectForce(float $force): void {}
 
 /** @var unit_float<'kilogram'> $massKg */
@@ -36,9 +36,9 @@ $massKg = 1500.0;
 $accel = 3.0;
 expectForce($massKg * $accel);
 
-// --- Work: F × d ---
+// --- Work: F × d (expanded form ≡ joule) ---
 
-/** @param unit_float<'kilogram * meter ^ 2 / second ^ 2'> $work */
+/** @param unit_float<'joule'> $work */
 function expectWork(float $work): void {}
 
 /** @var unit_float<'kilogram'> $workMass */
@@ -49,9 +49,9 @@ $workAccel = 3.0;
 $workDistance = 100.0;
 expectWork($workMass * $workAccel * $workDistance);
 
-// --- Pressure: force / area (newton kept symbolic) ---
+// --- Pressure: force / area (newton / m² ≡ pascal) ---
 
-/** @param unit_float<'newton / meter ^ 2'> $pressure */
+/** @param unit_float<'pascal'> $pressure */
 function expectPressureFromForceOverArea(float $pressure): void {}
 
 /** @var unit_float<'newton'> $forceN */
@@ -93,9 +93,9 @@ $densityMass = 1000.0;
 $densityVolume = 1.0;
 expectDensity($densityMass / $densityVolume);
 
-// --- Ohm's law: V = I R ---
+// --- Ohm's law: V = I R (ampere * ohm ≡ volt) ---
 
-/** @param unit_float<'ampere * ohm'> $voltage */
+/** @param unit_float<'volt'> $voltage */
 function expectOhmsLawVoltage(float $voltage): void {}
 
 /** @var unit_float<'ampere'> $currentA */
@@ -129,9 +129,9 @@ $trackSpeed = 10.0;
 $circumference = $radius * $piApprox * 2;
 expectCircularTrackPeriod($circumference / $trackSpeed);
 
-// --- Kinetic energy: ½ m v² ---
+// --- Kinetic energy: ½ m v² (≡ joule) ---
 
-/** @param unit_float<'kilogram * meter ^ 2 / second ^ 2'> $energy */
+/** @param unit_float<'joule'> $energy */
 function expectKineticEnergy(float $energy): void {}
 
 /** @var unit_float<'kilogram'> $keMass */
@@ -140,9 +140,9 @@ $keMass = 1000.0;
 $keSpeed = 10.0;
 expectKineticEnergy($keMass * $keSpeed * $keSpeed / 2);
 
-// --- Momentum: m v ---
+// --- Momentum: m v (≡ newton * second) ---
 
-/** @param unit_float<'kilogram * meter / second'> $momentum */
+/** @param unit_float<'newton * second'> $momentum */
 function expectMomentum(float $momentum): void {}
 
 /** @var unit_float<'kilogram'> $momMass */
@@ -151,9 +151,9 @@ $momMass = 1000.0;
 $momVelocity = 10.0;
 expectMomentum($momMass * $momVelocity);
 
-// --- Impulse: F t ---
+// --- Impulse: F t (≡ kilogram * meter / second) ---
 
-/** @param unit_float<'newton * second'> $impulse */
+/** @param unit_float<'kilogram * meter / second'> $impulse */
 function expectImpulse(float $impulse): void {}
 
 /** @var unit_float<'newton'> $impulseForce */
@@ -162,9 +162,9 @@ $impulseForce = 500.0;
 $impulseTime = 4.0;
 expectImpulse($impulseForce * $impulseTime);
 
-// --- Hydrostatic pressure: ρ g h ---
+// --- Hydrostatic pressure: ρ g h (≡ pascal) ---
 
-/** @param unit_float<'kilogram / (meter * second ^ 2)'> $pressure */
+/** @param unit_float<'pascal'> $pressure */
 function expectHydrostaticPressure(float $pressure): void {}
 
 /** @var unit_float<'kilogram / meter^3'> $rho */
@@ -175,9 +175,9 @@ $g = 9.81;
 $depth = 5.0;
 expectHydrostaticPressure($rho * $g * $depth);
 
-// --- Electric charge: I t ---
+// --- Electric charge: I t (≡ coulomb) ---
 
-/** @param unit_float<'ampere * second'> $charge */
+/** @param unit_float<'coulomb'> $charge */
 function expectCharge(float $charge): void {}
 
 /** @var unit_float<'ampere'> $chargeCurrent */
@@ -186,9 +186,9 @@ $chargeCurrent = 2.0;
 $chargeTime = 30.0;
 expectCharge($chargeCurrent * $chargeTime);
 
-// --- Capacitance: Q / V ---
+// --- Capacitance: Q / V (≡ farad) ---
 
-/** @param unit_float<'coulomb / volt'> $capacitance */
+/** @param unit_float<'farad'> $capacitance */
 function expectCapacitance(float $capacitance): void {}
 
 /** @var unit_float<'coulomb'> $capCharge */
@@ -197,9 +197,9 @@ $capCharge = 60.0;
 $capVoltage = 12.0;
 expectCapacitance($capCharge / $capVoltage);
 
-// --- Magnetic flux density: Φ / A ---
+// --- Magnetic flux density: Φ / A (≡ tesla) ---
 
-/** @param unit_float<'weber / meter ^ 2'> $fluxDensity */
+/** @param unit_float<'tesla'> $fluxDensity */
 function expectFluxDensity(float $fluxDensity): void {}
 
 /** @var unit_float<'weber'> $flux */
@@ -208,9 +208,9 @@ $flux = 3.0;
 $fluxArea = 2.0;
 expectFluxDensity($flux / $fluxArea);
 
-// --- Illuminance: Φv / A ---
+// --- Illuminance: Φv / A (≡ lux) ---
 
-/** @param unit_float<'lumen / meter ^ 2'> $illuminance */
+/** @param unit_float<'lux'> $illuminance */
 function expectIlluminance(float $illuminance): void {}
 
 /** @var unit_float<'lumen'> $luminousFlux */
@@ -219,9 +219,9 @@ $luminousFlux = 800.0;
 $illumArea = 20.0;
 expectIlluminance($luminousFlux / $illumArea);
 
-// --- Absorbed dose: E / m ---
+// --- Absorbed dose: E / m (≡ gray) ---
 
-/** @param unit_float<'joule / kilogram'> $dose */
+/** @param unit_float<'gray'> $dose */
 function expectAbsorbedDose(float $dose): void {}
 
 /** @var unit_float<'joule'> $doseEnergy */
@@ -230,9 +230,9 @@ $doseEnergy = 6.0;
 $doseMass = 2.0;
 expectAbsorbedDose($doseEnergy / $doseMass);
 
-// --- Catalytic activity: n / t ---
+// --- Catalytic activity: n / t (≡ katal) ---
 
-/** @param unit_float<'mole / second'> $activity */
+/** @param unit_float<'katal'> $activity */
 function expectCatalyticActivity(float $activity): void {}
 
 /** @var unit_float<'mole'> $amount */
@@ -241,9 +241,9 @@ $amount = 6.0;
 $catalyticTime = 3.0;
 expectCatalyticActivity($amount / $catalyticTime);
 
-// --- Radioactivity: events / t ---
+// --- Radioactivity: events / t (≡ becquerel) ---
 
-/** @param unit_float<'1 / second'> $activity */
+/** @param unit_float<'becquerel'> $activity */
 function expectRadioactivity(float $activity): void {}
 
 /** @var unit_float<'1'> $events */
@@ -272,9 +272,9 @@ $bmiMass = 80.0;
 $bmiHeight = 2.0;
 expectBodyMassIndex($bmiMass / $bmiHeight / $bmiHeight);
 
-// --- Conductance: I / V ---
+// --- Conductance: I / V (≡ siemens) ---
 
-/** @param unit_float<'ampere / volt'> $conductance */
+/** @param unit_float<'siemens'> $conductance */
 function expectConductance(float $conductance): void {}
 
 /** @var unit_float<'ampere'> $condCurrent */
@@ -401,9 +401,9 @@ function expectCubeVolume(float $volume): void {}
 $cubeSide = 2.0;
 expectCubeVolume($cubeSide ** 3);
 
-// --- Kinetic energy with **: ½ m v² ---
+// --- Kinetic energy with **: ½ m v² (≡ joule) ---
 
-/** @param unit_float<'kilogram * meter ^ 2 / second ^ 2'> $energy */
+/** @param unit_float<'joule'> $energy */
 function expectKineticEnergyPow(float $energy): void {}
 
 /** @var unit_float<'kilogram'> $keMassPow */
@@ -477,3 +477,26 @@ $stockLength = 100;
 /** @var unit_int<'meter'> $pieceLength */
 $pieceLength = 12;
 expectPackingRemainder($stockLength % $pieceLength);
+
+// --- Scale aliases: kilometer ≡ 1000 * meter ≡ 100000 * centimeter ---
+
+/** @param unit_float<'kilometer'> $distance */
+function expectKilometerDistance(float $distance): void {}
+
+/** @var unit_float<'1000 * meter'> $asThousandMeters */
+$asThousandMeters = 5.0;
+expectKilometerDistance($asThousandMeters);
+
+/** @var unit_float<'100000 * centimeter'> $asCm */
+$asCm = 5.0;
+expectKilometerDistance($asCm);
+
+// --- Same dimension, different scale must NOT pass (meter ≉ foot) ---
+// PHPStan should report argument.type here; integration test asserts that error.
+
+/** @param unit_float<'meter'> $length */
+function expectMetersOnly(float $length): void {}
+
+/** @var unit_float<'foot'> $feet */
+$feet = 3.0;
+expectMetersOnly($feet);

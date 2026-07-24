@@ -35,19 +35,19 @@ final class UnitIntegerType extends IntegerType
     public function equals(Type $type): bool
     {
         return $type instanceof self
-            && $this->unit->equals($type->unit);
+            && $this->unit->equivalent($type->unit);
     }
 
     public function accepts(Type $type, bool $strictTypes): AcceptsResult
     {
         if ($type instanceof self) {
-            if ($this->unit->equals($type->unit)) {
+            if ($this->unit->equivalent($type->unit)) {
                 return AcceptsResult::createYes();
             }
 
             return AcceptsResult::createNo([
                 sprintf(
-                    'Unit %s is not assignable to unit_int<%s>.',
+                    'Unit %s is not assignable to unit_int<%s> (normalized forms differ).',
                     $type->describe(VerbosityLevel::typeOnly()),
                     $this->unit->displayString,
                 ),
@@ -69,7 +69,7 @@ final class UnitIntegerType extends IntegerType
     public function isSuperTypeOf(Type $type): IsSuperTypeOfResult
     {
         if ($type instanceof self) {
-            return $this->unit->equals($type->unit)
+            return $this->unit->equivalent($type->unit)
                 ? IsSuperTypeOfResult::createYes()
                 : IsSuperTypeOfResult::createNo();
         }

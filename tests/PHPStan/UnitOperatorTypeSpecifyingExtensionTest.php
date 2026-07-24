@@ -65,6 +65,28 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
         $this->assertStringContainsString('incompatible units', strtolower($result->getReason() ?? ''));
     }
 
+    public function testAddDefinitionallyEquivalentUnitsSucceeds(): void
+    {
+        $result = $this->extension->specifyType(
+            '+',
+            $this->unitFloat('kilometer'),
+            $this->unitFloat('1000 * meter'),
+        );
+
+        $this->assertInstanceOf(UnitFloatType::class, $result);
+    }
+
+    public function testAddSameDimensionDifferentScaleIsError(): void
+    {
+        $result = $this->extension->specifyType(
+            '+',
+            $this->unitFloat('meter'),
+            $this->unitFloat('foot'),
+        );
+
+        $this->assertInstanceOf(ErrorType::class, $result);
+    }
+
     public function testAddUnitAndBareNumericIsError(): void
     {
         $result = $this->extension->specifyType('+', $this->unitInt('meter'), new IntegerType());

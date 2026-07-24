@@ -75,6 +75,46 @@ final class UnitMagnitudeTypeTest extends TestCase
         $this->assertTrue($intMeters->accepts($floatMeters, true)->no());
     }
 
+    public function testDefinitionallyEquivalentUnitsAreAssignable(): void
+    {
+        $km = $this->unitFloat('kilometer');
+        $thousandMeters = $this->unitFloat('1000 * meter');
+        $hundredThousandCm = $this->unitFloat('100000 * centimeter');
+
+        $this->assertTrue($km->getUnitExpression()->equivalent($thousandMeters->getUnitExpression()));
+        $this->assertTrue($km->accepts($thousandMeters, true)->yes());
+        $this->assertTrue($thousandMeters->accepts($hundredThousandCm, true)->yes());
+        $this->assertTrue($km->isSuperTypeOf($hundredThousandCm)->yes());
+    }
+
+    public function testDerivedSiUnitsMatchExpandedBaseForm(): void
+    {
+        $newton = $this->unitFloat('newton');
+        $expanded = $this->unitFloat('kilogram * meter / second^2');
+
+        $this->assertTrue($newton->accepts($expanded, true)->yes());
+        $this->assertTrue($expanded->accepts($newton, true)->yes());
+    }
+
+    public function testSameDimensionDifferentScaleIsNotAssignable(): void
+    {
+        $meters = $this->unitFloat('meter');
+        $feet = $this->unitFloat('foot');
+
+        $this->assertTrue($meters->getUnitExpression()->sameDimension($feet->getUnitExpression()));
+        $this->assertFalse($meters->getUnitExpression()->equivalent($feet->getUnitExpression()));
+        $this->assertTrue($meters->accepts($feet, true)->no());
+    }
+
+    public function testUnitFloatAcceptsEquivalentUnitInt(): void
+    {
+        $floatMeters = $this->unitFloat('meter');
+        $intMeters = $this->unitInt('meter');
+
+        $this->assertTrue($floatMeters->accepts($intMeters, true)->yes());
+        $this->assertTrue($floatMeters->isSuperTypeOf($intMeters)->yes());
+    }
+
     private function unitInt(string $unit): UnitIntegerType
     {
         $parsed = (new UnitExpressionParser())->parse($unit);

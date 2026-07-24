@@ -58,7 +58,9 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
             ));
         }
 
-        if (!$leftUnit->getUnitExpression()->equals($rightUnit->getUnitExpression())) {
+        // + / - / % require definitionally identical units (normalized equality),
+        // not merely the same dimension (meter + foot stays an error).
+        if (!$leftUnit->getUnitExpression()->equivalent($rightUnit->getUnitExpression())) {
             return new ErrorType(sprintf(
                 'Cannot use %s with incompatible units %s and %s.',
                 $operatorSigil,
@@ -123,33 +125,39 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
     private function multiplyUnits(UnitExpression $left, UnitExpression $right): UnitExpression
     {
         $expr = $left->expr->mul($right->expr);
+        $normalized = $left->normalizedExpr->mul($right->normalizedExpr);
 
         return new UnitExpression(
             $expr,
             ExprFormatter::format($expr),
             $left->dimension->mul($right->dimension),
+            $normalized,
         );
     }
 
     private function divideUnits(UnitExpression $left, UnitExpression $right): UnitExpression
     {
         $expr = $left->expr->div($right->expr);
+        $normalized = $left->normalizedExpr->div($right->normalizedExpr);
 
         return new UnitExpression(
             $expr,
             ExprFormatter::format($expr),
             $left->dimension->div($right->dimension),
+            $normalized,
         );
     }
 
     private function invertUnit(UnitExpression $unit): UnitExpression
     {
         $expr = $unit->expr->pow(-1);
+        $normalized = $unit->normalizedExpr->pow(-1);
 
         return new UnitExpression(
             $expr,
             ExprFormatter::format($expr),
             $unit->dimension->pow(-1),
+            $normalized,
         );
     }
 
@@ -185,11 +193,13 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
     private function powerUnit(UnitExpression $unit, int $exponent): UnitExpression
     {
         $expr = $unit->expr->pow($exponent);
+        $normalized = $unit->normalizedExpr->pow($exponent);
 
         return new UnitExpression(
             $expr,
             ExprFormatter::format($expr),
             $unit->dimension->pow($exponent),
+            $normalized,
         );
     }
 

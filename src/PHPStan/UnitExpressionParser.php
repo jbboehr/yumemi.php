@@ -35,11 +35,13 @@ final class UnitExpressionParser
         try {
             $expr = $this->units->parse($unitString);
             $dimension = $this->units->dimension($expr);
+            $normalized = $this->units->normalize($expr);
 
             return UnitExpressionParseResult::ok(new UnitExpression(
                 $expr,
                 ExprFormatter::format($expr),
                 $dimension,
+                $normalized,
             ));
         } catch (UnitNotFoundException $exception) {
             return UnitExpressionParseResult::invalid($exception->getMessage());

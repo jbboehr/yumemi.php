@@ -44,13 +44,23 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
 
     /**
      * Real-world formulas with native unit_float types: each result is passed to a
-     * sink whose PHPDoc parameter carries the expected algebraic unit.
+     * sink whose PHPDoc parameter carries the expected unit (normalized equality).
+     *
+     * Exactly one intentional error: foot is not assignable to meter (same
+     * dimension, different scale after normalize).
      */
     public function testNativeRealWorldFormulasTypecheck(): void
     {
         $output = $this->analyse('unit-real-world-native.php');
 
-        $this->assertStringContainsString('[OK] No errors', $output, $output);
+        $this->assertStringContainsString('argument.type', $output, $output);
+        $this->assertStringContainsString("unit_float<'meter'>", $output, $output);
+        $this->assertTrue(
+            str_contains($output, 'foot') || str_contains($output, 'international_foot'),
+            $output,
+        );
+        $this->assertStringContainsString('normalized forms differ', $output, $output);
+        $this->assertStringContainsString('Found 1 error', $output, $output);
     }
 
     private function analyse(string $fixture): string

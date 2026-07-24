@@ -11,7 +11,9 @@ parameters:
         - tests
     excludePaths:
         - src/Parser/Parser.php
+        # Intentionally invalid / analysed only via PHPUnit fixtures.
         - tests/PHPStan/data
+        - tests/PHPStan/Fixtures
     ignoreErrors:
         -
             message: "#^Trait jbboehr\\\\IudexMensurarumMysteriorum\\\\Parser\\\\ParserUtils is used zero times and is not analysed\\.$#"
