@@ -35,4 +35,52 @@ final class RationalTest extends TestCase
     {
         $this->assertSame('1/6', (new Rational(1, 2))->sub(new Rational(1, 3))->toString());
     }
+
+    /**
+     * @dataProvider integerTruncationProvider
+     */
+    public function testConvertsToIntByTruncatingTowardZero(Rational $rational, int $expected): void
+    {
+        $this->assertSame($expected, $rational->toInt());
+    }
+
+    /**
+     * @return iterable<string, array{Rational, int}>
+     */
+    public static function integerTruncationProvider(): iterable
+    {
+        yield 'positive fraction' => [new Rational(3, 2), 1];
+        yield 'negative fraction' => [new Rational(-3, 2), -1];
+        yield 'positive proper fraction' => [new Rational(1, 2), 0];
+        yield 'negative proper fraction' => [new Rational(-1, 2), 0];
+        yield 'positive mixed fraction' => [new Rational(7, 3), 2];
+        yield 'negative mixed fraction' => [new Rational(-7, 3), -2];
+    }
+
+    public function testConvertsExactIntegerToInt(): void
+    {
+        $this->assertSame(42, (new Rational(42))->toIntExact());
+        $this->assertSame(-42, (new Rational(-42))->toIntExact());
+    }
+
+    public function testExactIntegerConversionRejectsFraction(): void
+    {
+        $this->expectException(\UnexpectedValueException::class);
+
+        (new Rational(3, 2))->toIntExact();
+    }
+
+    public function testIntegerConversionRejectsOverflow(): void
+    {
+        $this->expectException(\OverflowException::class);
+
+        (new Rational(gmp_add(PHP_INT_MAX, 1)))->toInt();
+    }
+
+    public function testExactIntegerConversionRejectsOverflow(): void
+    {
+        $this->expectException(\OverflowException::class);
+
+        (new Rational(gmp_sub(PHP_INT_MIN, 1)))->toIntExact();
+    }
 }

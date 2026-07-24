@@ -163,6 +163,8 @@ Current `Quantity` methods:
 - `expr(): Expr`
 - `to(Expr|string $unit): self`
 - `valueIn(Expr|string $unit): Rational`
+- `intValueIn(Expr|string $unit): int`
+- `exactIntValueIn(Expr|string $unit): int`
 - `add(self $other): self`
 - `sub(self $other): self`
 - `mul(self|int|Rational $other): self`

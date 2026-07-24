@@ -136,4 +136,27 @@ final class Rational
 
         return gmp_strval($this->numerator) . '/' . gmp_strval($this->denominator);
     }
+
+    public function toInt(): int
+    {
+        return self::nativeInt(gmp_div_q($this->numerator, $this->denominator, GMP_ROUND_ZERO));
+    }
+
+    public function toIntExact(): int
+    {
+        if (gmp_cmp($this->denominator, 1) !== 0) {
+            throw new \UnexpectedValueException('Rational value is not an exact integer: ' . $this->toString());
+        }
+
+        return self::nativeInt($this->numerator);
+    }
+
+    private static function nativeInt(GMP $value): int
+    {
+        if (gmp_cmp($value, PHP_INT_MAX) > 0 || gmp_cmp($value, PHP_INT_MIN) < 0) {
+            throw new \OverflowException('Rational value does not fit in a native integer: ' . gmp_strval($value));
+        }
+
+        return gmp_intval($value);
+    }
 }

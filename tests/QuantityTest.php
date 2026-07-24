@@ -23,6 +23,33 @@ final class QuantityTest extends TestCase
         $this->assertSame('124 * foot', $quantity->toString());
     }
 
+    public function testReturnsExactConvertedIntegerValue(): void
+    {
+        $units = Units::default();
+
+        $quantity = $units->quantity(1488, 'inch');
+
+        $this->assertSame(124, $quantity->exactIntValueIn('foot'));
+        $this->assertSame(124, $quantity->intValueIn('foot'));
+    }
+
+    public function testReturnsConvertedIntegerValueByTruncatingTowardZero(): void
+    {
+        $units = Units::default();
+
+        $this->assertSame(1, $units->quantity(5, 'foot')->intValueIn('meter'));
+        $this->assertSame(-1, $units->quantity(-5, 'foot')->intValueIn('meter'));
+    }
+
+    public function testExactConvertedIntegerValueRejectsFraction(): void
+    {
+        $units = Units::default();
+
+        $this->expectException(\UnexpectedValueException::class);
+
+        $units->quantity(5, 'foot')->exactIntValueIn('meter');
+    }
+
     public function testAddsCompatibleQuantities(): void
     {
         $units = Units::default();

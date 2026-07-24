@@ -75,6 +75,16 @@ final class Quantity
         return (new Constant($this->value))->mul($this->unit);
     }
 
+    public function exactIntValueIn(Expr|string $unit): int
+    {
+        return $this->valueIn($unit)->toIntExact();
+    }
+
+    public function intValueIn(Expr|string $unit): int
+    {
+        return $this->valueIn($unit)->toInt();
+    }
+
     public function mul(self|int|Rational $other): self
     {
         if ($other instanceof self) {
