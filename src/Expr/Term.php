@@ -3,6 +3,7 @@
 namespace jbboehr\IudexMensurarumMysteriorum\Expr;
 
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\ExprReducer;
+use jbboehr\IudexMensurarumMysteriorum\Dimension;
 use jbboehr\IudexMensurarumMysteriorum\Expr;
 use jbboehr\IudexMensurarumMysteriorum\Util\MathTrait;
 
@@ -14,6 +15,11 @@ final class Term implements Expr
         public readonly Expr $value,
         public readonly int $power = 1,
     ) {
+    }
+
+    public function dimension(): Dimension
+    {
+        return $this->value->dimension()->pow($this->power);
     }
 
     public function toString(): string

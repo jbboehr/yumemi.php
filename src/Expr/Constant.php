@@ -4,6 +4,7 @@ namespace jbboehr\IudexMensurarumMysteriorum\Expr;
 
 use GMP;
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\ExprReducer;
+use jbboehr\IudexMensurarumMysteriorum\Dimension;
 use jbboehr\IudexMensurarumMysteriorum\Expr;
 use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
 use jbboehr\IudexMensurarumMysteriorum\Util\MathTrait;
@@ -17,6 +18,11 @@ final class Constant implements Expr
     public function __construct(int|GMP|Rational $value = 1)
     {
         $this->value = $value instanceof Rational ? $value : Rational::fromInteger($value);
+    }
+
+    public function dimension(): Dimension
+    {
+        return Dimension::dimensionless();
     }
 
     public function toString(): string

@@ -3,6 +3,7 @@
 namespace jbboehr\IudexMensurarumMysteriorum\Expr;
 
 use jbboehr\IudexMensurarumMysteriorum\Analyzer\ExprReducer;
+use jbboehr\IudexMensurarumMysteriorum\Dimension;
 use jbboehr\IudexMensurarumMysteriorum\Expr;
 use jbboehr\IudexMensurarumMysteriorum\Util\MathTrait;
 
@@ -16,6 +17,17 @@ final class Compound implements Expr
     public function __construct(
         public readonly array $exprs,
     ) {
+    }
+
+    public function dimension(): Dimension
+    {
+        $dimension = Dimension::dimensionless();
+
+        foreach ($this->exprs as $expr) {
+            $dimension = $dimension->mul($expr->dimension());
+        }
+
+        return $dimension;
     }
 
     public function toString(): string

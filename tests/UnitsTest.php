@@ -38,6 +38,26 @@ final class UnitsTest extends TestCase
         $this->assertTrue($units->dimension('percent')->isDimensionless());
     }
 
+    public function testUnitExpressionsExposeDimensionDirectly(): void
+    {
+        $units = Units::default();
+
+        // Units::unit() returns an Expr that may be a Compound (prefixed/derived),
+        // yet dimension() now resolves on any node, not just Unit leaves.
+        $this->assertInstanceOf(Compound::class, $units->unit('centimeter'));
+        $this->assertSame('length', $units->unit('centimeter')->dimension()->toString());
+        $this->assertSame('length', $units->unit('kilometer')->dimension()->toString());
+
+        $newton = $units->unit('newton')->dimension();
+        $this->assertSame([1, 1, -2, 0, 0, 0, 0], $newton->powers());
+        $this->assertTrue($newton->equals($units->dimension('newton')));
+
+        // Parsed compound expressions resolve too, matching the Units facade.
+        $this->assertSame('mass / time ^ 2', $units->parse('newton / meter')->dimension()->toString());
+        $this->assertSame('length ^ 2', $units->parse('meter^2')->dimension()->toString());
+        $this->assertTrue($units->parse('meter^0')->dimension()->isDimensionless());
+    }
+
     public function testDefaultUnitsConvertValues(): void
     {
         $units = Units::default();
