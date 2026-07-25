@@ -235,7 +235,18 @@ final class Quantity
 
     private function assertSameUnit(self $other): void
     {
+        // Fast path: symbolically identical units. Also the robust path for
+        // bare symbolic units that may not normalize through the catalog.
         if (ExprComparer::equal($this->unit, $other->unit)) {
+            return;
+        }
+
+        // Exact-scale aliases (e.g. kilometer ≡ 1000 * meter). Normalized
+        // equality — including the leading constant — implies a conversion
+        // factor of exactly 1, so raw magnitude addition stays exact and no
+        // value conversion is needed. This matches the PHPStan operator layer,
+        // which accepts the same definitionally-equivalent units for + / -.
+        if (ExprComparer::equal($this->normalizedUnit(), $other->normalizedUnit())) {
             return;
         }
 

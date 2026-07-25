@@ -75,6 +75,41 @@ final class QuantityTest extends TestCase
         $this->assertTrue($left->unit()->equals($right->unit()));
     }
 
+    public function testAddsExactScaleAliasUnitsWithoutConversion(): void
+    {
+        $units = Units::default();
+
+        // kilometer and 1000 * meter are definitionally equivalent (exact-scale
+        // aliases), so no value conversion is needed and raw magnitudes add.
+        $quantity = $units->quantity(1, 'kilometer')->add($units->quantity(1, '1000 * meter'));
+
+        $this->assertSame('2', $quantity->valueToString());
+        $this->assertSame('kilometer', $quantity->unitToString());
+        $this->assertSame('2000', $quantity->valueIn('meter')->toString());
+    }
+
+    public function testSubtractsExactScaleAliasUnitsWithoutConversion(): void
+    {
+        $units = Units::default();
+
+        $quantity = $units->quantity(3, 'kilometer')->sub($units->quantity(1, '1000 * meter'));
+
+        $this->assertSame('2', $quantity->valueToString());
+        $this->assertSame('kilometer', $quantity->unitToString());
+        $this->assertSame('2000', $quantity->valueIn('meter')->toString());
+    }
+
+    public function testAdditionStillRejectsDifferentScaleUnitsOfSameDimension(): void
+    {
+        $units = Units::default();
+
+        // 1 km + 1000 m is a genuine scale difference (factor 1000, not 1) and
+        // must stay an error: it needs an explicit value conversion first.
+        $this->expectException(IncompatibleUnitException::class);
+
+        $units->quantity(1, 'kilometer')->add($units->quantity(1000, 'meter'));
+    }
+
     public function testAdditionRejectsSameDimensionWithDifferentSymbolicUnits(): void
     {
         $units = Units::default();
