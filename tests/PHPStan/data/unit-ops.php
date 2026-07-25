@@ -12,6 +12,8 @@ $b = 0;
 $t = 0;
 /** @var unit_int<'meter / second'> $v */
 $v = 0;
+/** @var unit_float<'meter'> $floatDistance */
+$floatDistance = 0.0;
 
 $sum = $a + $b;
 $distance = $v * $t;
@@ -21,3 +23,6 @@ $rate = 1 / $t;
 
 // Should error: incompatible units
 $bad = $a + $t;
+
+// Should error: modulo requires unit_int operands
+$badModulo = $floatDistance % $floatDistance;

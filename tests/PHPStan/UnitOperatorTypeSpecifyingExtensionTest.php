@@ -202,9 +202,42 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
         $this->assertSame("unit_int<'meter'>", $result->describe(VerbosityLevel::precise()));
     }
 
+    public function testModDefinitionallyEquivalentUnitsKeepsLeftUnit(): void
+    {
+        $result = $this->extension->specifyType(
+            '%',
+            $this->unitInt('kilometer'),
+            $this->unitInt('1000 * meter'),
+        );
+
+        $this->assertInstanceOf(UnitIntegerType::class, $result);
+        $this->assertSame("unit_int<'1000 * meter'>", $result->describe(VerbosityLevel::precise()));
+    }
+
     public function testModDifferentUnitsIsError(): void
     {
         $result = $this->extension->specifyType('%', $this->unitInt('meter'), $this->unitInt('second'));
+
+        $this->assertInstanceOf(ErrorType::class, $result);
+    }
+
+    public function testModUnitAndDimensionlessUnitIsError(): void
+    {
+        $result = $this->extension->specifyType('%', $this->unitInt('meter'), $this->unitInt('1'));
+
+        $this->assertInstanceOf(ErrorType::class, $result);
+    }
+
+    public function testModUnitFloatIsError(): void
+    {
+        $result = $this->extension->specifyType('%', $this->unitFloat('meter'), $this->unitFloat('meter'));
+
+        $this->assertInstanceOf(ErrorType::class, $result);
+    }
+
+    public function testModUnitAndBareNumericIsError(): void
+    {
+        $result = $this->extension->specifyType('%', $this->unitInt('meter'), new IntegerType());
 
         $this->assertInstanceOf(ErrorType::class, $result);
     }

@@ -12,9 +12,10 @@ use PHPStan\Type\Type;
  * Infers types for +, -, *, /, **, % when at least one operand is unit_int or unit_float.
  *
  * Rules (exact unit mode):
- * - + / - / %: both sides must be unit types with the same reduced unit
+ * - + / -: both sides must be unit types with equivalent normalized units
  * - * /: combine unit expressions (IMM Expr algebra)
  * - **: left unit raised to a constant integer exponent
+ * - %: both sides must be unit_int values with equivalent normalized units
  * - unit op bare numeric: treat bare value as dimensionless (* / only)
  * - int / int → unit_float (PHP division always yields float)
  */
@@ -37,9 +38,10 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
         $rightUnit = $this->asUnit($rightSide);
 
         return match ($operatorSigil) {
-            '+', '-', '%' => $this->specifyAddSub($operatorSigil, $leftUnit, $rightUnit, $leftSide, $rightSide),
+            '+', '-' => $this->specifyAddSub($operatorSigil, $leftUnit, $rightUnit, $leftSide, $rightSide),
             '*', '/' => $this->specifyMulDiv($operatorSigil, $leftUnit, $rightUnit, $leftSide, $rightSide),
             '**' => $this->specifyPow($leftUnit, $rightUnit, $leftSide, $rightSide),
+            '%' => $this->specifyMod($leftUnit, $rightUnit),
             default => new ErrorType('Unsupported unit operator: ' . $operatorSigil),
         };
     }
@@ -58,7 +60,7 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
             ));
         }
 
-        // + / - / % require definitionally identical units (normalized equality),
+        // + / - require definitionally identical units (normalized equality),
         // not merely the same dimension (meter + foot stays an error).
         if (!$leftUnit->getUnitExpression()->equivalent($rightUnit->getUnitExpression())) {
             return new ErrorType(sprintf(
@@ -73,6 +75,27 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
             $this->resultIsFloat($operatorSigil, $leftSide, $rightSide),
             $leftUnit->getUnitExpression(),
         );
+    }
+
+    private function specifyMod(
+        UnitIntegerType|UnitFloatType|null $leftUnit,
+        UnitIntegerType|UnitFloatType|null $rightUnit,
+    ): Type {
+        if (!$leftUnit instanceof UnitIntegerType || !$rightUnit instanceof UnitIntegerType) {
+            return new ErrorType(
+                'Cannot use % with unit values unless both operands are unit_int values with equivalent units.',
+            );
+        }
+
+        if (!$leftUnit->getUnitExpression()->equivalent($rightUnit->getUnitExpression())) {
+            return new ErrorType(sprintf(
+                'Cannot use %% with incompatible units %s and %s.',
+                $leftUnit->getUnitExpression()->displayString,
+                $rightUnit->getUnitExpression()->displayString,
+            ));
+        }
+
+        return new UnitIntegerType($leftUnit->getUnitExpression());
     }
 
     private function specifyMulDiv(
