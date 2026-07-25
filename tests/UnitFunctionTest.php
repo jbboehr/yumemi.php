@@ -150,7 +150,7 @@ final class UnitFunctionTest extends TestCase
             return $this->rationalToFloat($converted);
         }
 
-        return ((float) $value) * $this->rationalToFloat($factor);
+        return $value * $this->rationalToFloat($factor);
     }
 
     private function rationalToFloat(Rational $rational): float

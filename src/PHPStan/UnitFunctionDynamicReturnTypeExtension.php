@@ -39,9 +39,7 @@ final class UnitFunctionDynamicReturnTypeExtension implements DynamicFunctionRet
         $unitType = $scope->getType($args[1]->value);
         $constantStrings = $unitType->getConstantStrings();
         if (count($constantStrings) !== 1) {
-            return new ErrorType(
-                "unit() requires a constant unit string, e.g. unit(1.0, 'meter').",
-            );
+            return null;
         }
 
         $parsed = $this->parser->parse($constantStrings[0]->getValue());

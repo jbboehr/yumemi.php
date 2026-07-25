@@ -38,11 +38,17 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
         }
 
         $fromUnit = $this->constantUnit($scope->getType($args[1]->value), 'from');
+        if ($fromUnit === null) {
+            return null;
+        }
         if ($fromUnit instanceof ErrorType) {
             return $fromUnit;
         }
 
         $toUnit = $this->constantUnit($scope->getType($args[2]->value), 'to');
+        if ($toUnit === null) {
+            return null;
+        }
         if ($toUnit instanceof ErrorType) {
             return $toUnit;
         }
@@ -71,14 +77,11 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
         return new UnitFloatType($toUnit);
     }
 
-    private function constantUnit(Type $type, string $role): UnitExpression|ErrorType
+    private function constantUnit(Type $type, string $role): UnitExpression|ErrorType|null
     {
         $constantStrings = $type->getConstantStrings();
         if (count($constantStrings) !== 1) {
-            return new ErrorType(sprintf(
-                "unit_to() requires a constant %s unit string, e.g. unit_to(3.0, 'foot', 'meter').",
-                $role,
-            ));
+            return null;
         }
 
         $parsed = $this->parser->parse($constantStrings[0]->getValue());
