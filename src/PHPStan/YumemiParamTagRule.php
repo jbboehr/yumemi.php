@@ -41,6 +41,8 @@ use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\CallLike;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
+use PhpParser\Node\Expr\New_;
+use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PHPStan\Analyser\Scope;
@@ -66,7 +68,8 @@ use PHPStan\Type\VerbosityLevel;
  * Only *branded* arguments are checked. A bare native value (a plain int/float) is the graceful
  * escape hatch and passes silently; a branded value carrying the wrong unit (e.g. a
  * unit_int<'meter'> where feet are expected) is a dimensional mistake and is reported. Registered on
- * {@see CallLike} so one rule covers function and method calls (static calls / `new` are deferred).
+ * {@see CallLike} so one rule covers function calls, instance and static method calls, and `new`
+ * (constructor) calls; dynamic or anonymous class/method targets are left unresolved.
  *
  * @implements Rule<CallLike>
  */
@@ -92,6 +95,8 @@ final class YumemiParamTagRule implements Rule
         [$paramTypes, $parameters] = match (true) {
             $node instanceof FuncCall => $this->resolveFunction($node, $scope),
             $node instanceof MethodCall => $this->resolveMethod($node, $scope),
+            $node instanceof StaticCall => $this->resolveStaticCall($node, $scope),
+            $node instanceof New_ => $this->resolveNew($node, $scope),
             default => [[], []],
         };
 
@@ -153,8 +158,61 @@ final class YumemiParamTagRule implements Rule
             return [[], []];
         }
 
-        $method = $calledOnType->getMethod($methodName, $scope);
+        return $this->resolveFromMethod($calledOnType->getMethod($methodName, $scope), $node->getArgs(), $scope);
+    }
 
+    /**
+     * @return array{array<string, Type>, list<ParameterReflection>}
+     */
+    private function resolveStaticCall(StaticCall $node, Scope $scope): array
+    {
+        // Dynamic method / class names (`$obj::$m()`, `$class::m()`) aren't resolved here.
+        if (!$node->name instanceof Identifier || !$node->class instanceof Name) {
+            return [[], []];
+        }
+
+        $classType = $scope->resolveTypeByName($node->class);
+        $methodName = $node->name->toString();
+        if (!$classType->hasMethod($methodName)->yes()) {
+            return [[], []];
+        }
+
+        return $this->resolveFromMethod($classType->getMethod($methodName, $scope), $node->getArgs(), $scope);
+    }
+
+    /**
+     * @return array{array<string, Type>, list<ParameterReflection>}
+     */
+    private function resolveNew(New_ $node, Scope $scope): array
+    {
+        // Dynamic (`new $class()`) and anonymous (`new class {}`) instantiations aren't resolved here.
+        if (!$node->class instanceof Name) {
+            return [[], []];
+        }
+
+        $className = $scope->resolveName($node->class);
+        if (!$this->reflectionProvider->hasClass($className)) {
+            return [[], []];
+        }
+
+        $classReflection = $this->reflectionProvider->getClass($className);
+        if (!$classReflection->hasConstructor()) {
+            return [[], []];
+        }
+
+        return $this->resolveFromMethod($classReflection->getConstructor(), $node->getArgs(), $scope);
+    }
+
+    /**
+     * Shared tail for method-like calls (instance / static / constructor): apply the fast-path guard,
+     * read @yumemi-param types, and align them against the resolved parameters.
+     *
+     * @param array<Arg> $args
+     *
+     * @return array{array<string, Type>, list<ParameterReflection>}
+     */
+    private function resolveFromMethod(ExtendedMethodReflection $method, array $args, Scope $scope): array
+    {
         // Fast path: a method that inherits no phpdoc has only its own comment as a tag source, so a
         // missing @yumemi-param there means nothing to check. Overriding/implementing methods may
         // inherit the tag from an ancestor (verified: the rule fires on doc-less overrides/impls), so
@@ -176,7 +234,7 @@ final class YumemiParamTagRule implements Rule
             return [[], []];
         }
 
-        $acceptor = ParametersAcceptorSelector::selectFromArgs($scope, $node->getArgs(), $method->getVariants(), null);
+        $acceptor = ParametersAcceptorSelector::selectFromArgs($scope, $args, $method->getVariants(), null);
 
         return [$paramTypes, $acceptor->getParameters()];
     }

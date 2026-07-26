@@ -407,9 +407,11 @@ with `@yumemi-param unit_int<'meter'> $length`; branded arguments carrying the w
 
 - `YumemiDocTagReader::paramTypes()` parses the `<type> $name` payloads (reusing the same `TypeStringResolver` route),
   keyed by parameter name; only branded unit payloads are kept
-- `YumemiParamTagRule` is registered on `PhpParser\Node\Expr\CallLike`, so one rule covers function and method calls
-  (PHPStan's `LazyRegistry` dispatches a node to rules registered on any of its parent classes). It resolves the callee
-  reflection, maps positional and named arguments to parameter names via `ParametersAcceptorSelector`, and checks each
+- `YumemiParamTagRule` is registered on `PhpParser\Node\Expr\CallLike`, so one rule covers function calls, instance and
+  static method calls, and `new` (constructor) calls (PHPStan's `LazyRegistry` dispatches a node to rules registered on
+  any of its parent classes). Each subtype resolves its callee reflection — function via `ReflectionProvider`, instance
+  method via the receiver type, static method via `resolveTypeByName()`, constructor via `ClassReflection` — then shares
+  one tail that maps positional and named arguments to parameter names via `ParametersAcceptorSelector` and checks each
   branded argument with the expected type's `accepts()`
 - **Only branded arguments are checked**: a bare native value is the graceful escape hatch and passes silently; a
   branded value with an incompatible unit yields a `yumemi.paramType` error carrying the `accepts()` reason as the tip
@@ -417,12 +419,13 @@ with `@yumemi-param unit_int<'meter'> $length`; branded arguments carrying the w
   case — unconditionally for functions (no inheritance), and for methods only when they do not inherit phpdoc. A method
   that overrides a parent or implements an interface can inherit the tag from an ancestor (`getResolvedPhpDoc()`
   resolves it), so it always takes the full path; the split is decided by comparing `getPrototype()`'s declaring class
-- Covered by `YumemiParamTagRuleTest` (a `RuleTestCase` asserting exact message + line + tip for function and method
-  calls, positional and named args; the annotated function/classes are `require`d into the process), including an
-  inheritance regression fixture proving a tag inherited by a doc-less override / interface implementation is still
-  checked (i.e. the fast path never skips it)
-- **Deferred:** static calls and `new` (the rule already dispatches on `CallLike`; only the per-subtype reflection
-  branch is missing); a stricter opt-in mode that also rejects bare-native arguments at `@yumemi-param` positions
+- Covered by `YumemiParamTagRuleTest` (a `RuleTestCase` asserting exact message + line + tip for function, instance
+  method, static method, and constructor calls, positional and named args; the annotated free function and inheritance
+  types are `require`d into the process, the rest are PSR-4 autoloaded), including an inheritance regression fixture
+  proving a tag inherited by a doc-less override / interface implementation is still checked (i.e. the fast path never
+  skips it)
+- **Deferred:** dynamic (`$class::m()`, `new $class()`) and anonymous-class targets are left unresolved; a stricter
+  opt-in mode that also rejects bare-native arguments at `@yumemi-param` positions
 
 ### Next pieces
 

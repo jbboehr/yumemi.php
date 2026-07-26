@@ -106,4 +106,20 @@ final class YumemiParamTagRuleTest extends RuleTestCase
             ],
         ]);
     }
+
+    public function testStaticCallAndConstructorParamTagsAreChecked(): void
+    {
+        $this->analyse([__DIR__ . '/data/yumemi-tag-param-static-new.php'], [
+            [
+                "@yumemi-param: parameter \$length expects unit_int<'meter'>, unit_int<'international_foot'> given.",
+                8,
+                "Unit unit_int<'international_foot'> is not assignable to unit_int<'meter'> (normalized forms differ).",
+            ],
+            [
+                "@yumemi-param: parameter \$length expects unit_int<'meter'>, unit_int<'international_foot'> given.",
+                9,
+                "Unit unit_int<'international_foot'> is not assignable to unit_int<'meter'> (normalized forms differ).",
+            ],
+        ]);
+    }
 }
