@@ -91,7 +91,7 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $fixturePath = __DIR__ . '/data/' . $fixture;
         $this->assertFileExists($fixturePath);
 
-        $config = sys_get_temp_dir() . '/imm-phpstan-' . md5($fixture) . '.neon';
+        $config = sys_get_temp_dir() . '/yumemi-phpstan-' . md5($fixture) . '.neon';
         $extension = realpath(__DIR__ . '/../../extension.neon');
         $this->assertNotFalse($extension);
 

@@ -1,5 +1,5 @@
 {
-  description = "jbboehr/imm";
+  description = "jbboehr/yumemi";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
