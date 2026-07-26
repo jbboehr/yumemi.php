@@ -36,16 +36,21 @@
 
 namespace jbboehr\Yumemi\Tests\Documentation;
 
-use PHPUnit\Framework\TestCase;
+use jbboehr\Yumemi\PHPStan\YumemiParamTagRule;
+use PhpParser\Node;
+use PhpParser\Node\Expr\CallLike;
+use PhpParser\Node\Expr\FuncCall;
+use PHPStan\Analyser\Scope;
+use PHPStan\Rules\Functions\CallToFunctionParametersRule;
+use PHPStan\Rules\Rule;
+use PHPStan\Testing\RuleTestCase;
 
 /**
- * Runs the PHPStan-relevant README code blocks through the real extension and checks that the
- * documented static diagnostics actually fire.
+ * Checks that the documented static diagnostics in the README actually fire, in-process.
  *
  * Companion to {@see ReadmeExamplesTest}, which executes every block at runtime. Here each
- * PHPStan-relevant block (one that mentions a unit type or a `//!` marker) is written to a temp
- * file and analysed at level max with extension.neon loaded. The convention read straight from the
- * block body:
+ * PHPStan-relevant block (one that mentions a unit type or a `//!` marker) is analysed with the
+ * real extension loaded, and the convention read straight from the block body:
  *
  *   //! <substring>
  *   <the offending statement>
@@ -53,15 +58,78 @@ use PHPUnit\Framework\TestCase;
  * asserts the analyser reports an error whose message (or tip) contains `<substring>` — so the
  * "…is rejected" comments in the README are verified, not just decorative. A block with no `//!`
  * marker must analyse clean, which pins down the documented *good* code too.
+ *
+ * No subprocess: the diagnostics come from the real rules pulled out of the container — PHPStan's
+ * own {@see CallToFunctionParametersRule} for the native unit_float argument checks, and Yumemi's
+ * own {@see YumemiParamTagRule} for the @yumemi-param path — composed into one rule so a single
+ * {@see RuleTestCase} covers both. Each block is `require`d into the process first so file-local
+ * functions resolve in reflection (same reason {@see \jbboehr\Yumemi\Tests\PHPStan\YumemiReturnTagExtensionTest}
+ * requires its fixtures); the blocks are already runtime-safe because ReadmeExamplesTest runs them.
+ *
+ * @extends RuleTestCase<Rule<Node>>
  */
-final class ReadmePhpStanExamplesTest extends TestCase
+final class ReadmePhpStanExamplesTest extends RuleTestCase
 {
     private const MARKER = '//!';
 
     /**
      * Tokens that mark a README block as PHPStan-relevant (vs. a pure runtime example).
      */
-    private const UNIT_TOKENS = ["unit_int<", "unit_float<", "Quantity<'", '@yumemi-', self::MARKER];
+    private const UNIT_TOKENS = ['unit_int<', 'unit_float<', "Quantity<'", '@yumemi-', self::MARKER];
+
+    protected function getRule(): Rule
+    {
+        $functionRule = self::getContainer()->getByType(CallToFunctionParametersRule::class); // @phpstan-ignore phpstanApi.classConstant
+        $yumemiRule = self::getContainer()->getByType(YumemiParamTagRule::class);
+
+        $composite = new class ($functionRule, $yumemiRule) implements Rule {
+            /**
+             * @param Rule<FuncCall> $functionRule
+             * @param Rule<CallLike> $yumemiRule
+             */
+            public function __construct(
+                private readonly Rule $functionRule,
+                private readonly Rule $yumemiRule,
+            ) {
+            }
+
+            public function getNodeType(): string
+            {
+                return CallLike::class;
+            }
+
+            /**
+             * @return list<\PHPStan\Rules\IdentifierRuleError>
+             */
+            public function processNode(Node $node, Scope $scope): array
+            {
+                $errors = [];
+
+                // Core argument checking only applies to plain function calls here.
+                if ($node instanceof FuncCall) {
+                    foreach ($this->functionRule->processNode($node, $scope) as $error) {
+                        $errors[] = $error;
+                    }
+                }
+
+                // The @yumemi-param rule handles every call form (function / method / static / new).
+                if ($node instanceof CallLike) {
+                    foreach ($this->yumemiRule->processNode($node, $scope) as $error) {
+                        $errors[] = $error;
+                    }
+                }
+
+                return $errors;
+            }
+        };
+
+        return $composite;
+    }
+
+    public static function getAdditionalConfigFiles(): array
+    {
+        return [self::projectRoot() . '/extension.neon'];
+    }
 
     public function testPhpStanRelevantReadmeExamplesMatchDocumentedDiagnostics(): void
     {
@@ -69,17 +137,24 @@ final class ReadmePhpStanExamplesTest extends TestCase
         self::assertNotEmpty($blocks, 'Expected at least one PHPStan-relevant README code block.');
 
         $dir = self::analysisDir();
+        $previousCwd = getcwd();
 
         try {
-            foreach ($blocks as $name => $code) {
-                file_put_contents($dir . '/' . $name . '.php', $code);
-            }
+            // Blocks resolve `require 'vendor/autoload.php'` relative to the working directory.
+            chdir(self::projectRoot());
 
-            $errorsByBasename = self::analyse($dir);
+            $files = [];
+            foreach ($blocks as $name => $code) {
+                $file = $dir . '/' . $name . '.php';
+                file_put_contents($file, $code);
+                // Declare the block's file-local functions so reflection can resolve calls to them.
+                require_once $file;
+                $files[$name] = $file;
+            }
 
             foreach ($blocks as $name => $code) {
                 $expected = self::markers($code);
-                $actual = $errorsByBasename[$name . '.php'] ?? [];
+                $actual = self::errorsFor($this->gatherAnalyserErrors([$files[$name]]));
 
                 $report = self::report($name, $expected, $actual);
 
@@ -93,6 +168,9 @@ final class ReadmePhpStanExamplesTest extends TestCase
                 }
             }
         } finally {
+            if (is_string($previousCwd)) {
+                chdir($previousCwd);
+            }
             self::removeDir($dir);
         }
     }
@@ -154,6 +232,27 @@ final class ReadmePhpStanExamplesTest extends TestCase
     }
 
     /**
+     * Normalise analyser errors to the (message, tip) shape the assertions work with.
+     *
+     * @param list<\PHPStan\Analyser\Error> $errors
+     *
+     * @return list<array{message: string, tip: string}>
+     */
+    private static function errorsFor(array $errors): array
+    {
+        $out = [];
+
+        foreach ($errors as $error) {
+            $out[] = [
+                'message' => $error->getMessage(),
+                'tip' => $error->getTip() ?? '',
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
      * @param list<array{message: string, tip: string}> $errors
      */
     private static function anyErrorContains(array $errors, string $substring): bool
@@ -165,112 +264,6 @@ final class ReadmePhpStanExamplesTest extends TestCase
         }
 
         return false;
-    }
-
-    /**
-     * Run PHPStan once over the whole temp dir and return reported errors grouped by file basename.
-     *
-     * @return array<string, list<array{message: string, tip: string}>>
-     */
-    private static function analyse(string $dir): array
-    {
-        $extension = realpath(self::projectRoot() . '/extension.neon');
-        self::assertNotFalse($extension);
-
-        $functions = realpath(self::projectRoot() . '/src/functions.php');
-        self::assertNotFalse($functions);
-
-        $config = $dir . '/phpstan.neon';
-        $neon = <<<NEON
-            includes:
-                - {$extension}
-            parameters:
-                level: max
-                paths:
-                    - {$dir}
-                scanFiles:
-                    - {$functions}
-                reportUnmatchedIgnoredErrors: false
-            NEON;
-        file_put_contents($config, $neon);
-
-        $phpstan = realpath(self::projectRoot() . '/vendor/bin/phpstan');
-        self::assertNotFalse($phpstan);
-
-        [$stdout, $stderr, $exitCode] = self::runProcess([
-            PHP_BINARY,
-            $phpstan,
-            'analyse',
-            '--no-progress',
-            '--memory-limit=512M',
-            '--error-format=json',
-            '-c',
-            $config,
-        ]);
-
-        $decoded = json_decode($stdout, true);
-        self::assertIsArray(
-            $decoded,
-            "PHPStan did not emit JSON (exit {$exitCode}).\nSTDOUT:\n{$stdout}\nSTDERR:\n{$stderr}",
-        );
-
-        $files = $decoded['files'] ?? null;
-        if (!is_array($files)) {
-            return [];
-        }
-
-        $byBasename = [];
-
-        foreach ($files as $path => $fileData) {
-            if (!is_array($fileData) || !is_array($fileData['messages'] ?? null)) {
-                continue;
-            }
-
-            foreach ($fileData['messages'] as $message) {
-                if (!is_array($message)) {
-                    continue;
-                }
-
-                $byBasename[basename((string) $path)][] = [
-                    'message' => self::asString($message['message'] ?? null),
-                    'tip' => self::asString($message['tip'] ?? null),
-                ];
-            }
-        }
-
-        return $byBasename;
-    }
-
-    private static function asString(mixed $value): string
-    {
-        return is_string($value) ? $value : '';
-    }
-
-    /**
-     * @param list<string> $command
-     *
-     * @return array{string, string, int}
-     */
-    private static function runProcess(array $command): array
-    {
-        $descriptors = [
-            0 => ['pipe', 'r'],
-            1 => ['pipe', 'w'],
-            2 => ['pipe', 'w'],
-        ];
-
-        $process = proc_open($command, $descriptors, $pipes, self::projectRoot());
-        self::assertIsResource($process);
-
-        fclose($pipes[0]);
-        $stdout = stream_get_contents($pipes[1]);
-        $stderr = stream_get_contents($pipes[2]);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-
-        $exitCode = proc_close($process);
-
-        return [is_string($stdout) ? $stdout : '', is_string($stderr) ? $stderr : '', $exitCode];
     }
 
     /**
