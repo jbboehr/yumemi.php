@@ -77,6 +77,11 @@ The right strategy is not "be Pint in PHP." The right strategy is:
 
 The most important missing feature is not an exotic unit feature. It is the PHPStan type layer.
 
+> **Update 2026-07-25:** The static-analysis estimate above (0–5%) is stale. The native
+> `unit_int` / `unit_float` PHPStan path now ships — PHPDoc types, diagnostics, operator inference,
+> and `unit()` / `unit_to()` helpers — so the intended static feature set is meaningfully underway.
+> The `Quantity<'…'>` object path is the main piece still missing (see §21).
+
 ## Current IMM Foundation
 
 Current codebase facts:
@@ -626,9 +631,17 @@ Recommendation: Add integer `pow()` soon. Defer fractional powers and transcende
 
 ### 21. Static Analysis With PHPStan
 
-Status: Absent
+Status: Partial (native path shipped; `Quantity` object path pending)
 Importance: P0
 Difficulty: XL
+
+> **Update 2026-07-25:** The **native `unit_int` / `unit_float`** static path is implemented:
+> PHPDoc type resolution, invalid-unit and standalone invalid-call diagnostics
+> (`imm.invalidUnitCall`), operator inference (`+ - * / ** %`), `unit()` / `unit_to()` dynamic
+> return types, and assignment/parameter checks via the branded types' `accepts()`. Of the must-have
+> pieces below, everything is covered **for native types**; the outstanding work is the
+> `Quantity<'…'>` object generic and its method inference, plus the exact-vs-dimension config mode.
+> See [phpstan-extension.md](phpstan-extension.md).
 
 This is IMM's main differentiator. Pint has Python typing for magnitude types, but it is not primarily a static
 dimensional analyzer. IMM should aim to make PHPDoc unit strings meaningful to PHPStan.
@@ -897,7 +910,7 @@ Recommendation: Keep the current setup. Do not spend more time here until featur
 | Constants                      | Partial          | P2         | M          | Later             |
 | Comparisons/predicates         | Absent/partial   | P1         | M          | Soon              |
 | Math functions                 | Absent           | P2         | L          | Later             |
-| PHPStan unit types             | Absent           | P0         | XL         | Now               |
+| PHPStan unit types             | Partial (native) | P0         | XL         | Now               |
 | Function boundary checking     | Absent           | P1/P2      | M/L        | After PHPStan MVP |
 | Serialization                  | Absent           | P2         | M          | Later             |
 | Arrays/scientific ecosystem    | Absent           | P3         | L/XL       | Defer             |
@@ -947,14 +960,17 @@ Goal: make `Quantity<'meter / second'>` meaningful.
 
 Work:
 
-- Parse PHPDoc unit generics.
-- Diagnose invalid unit strings and unknown units.
-- Infer `Units::quantity()`.
-- Infer `Quantity::to()`, `mul()`, `div()`, `normalize()`, and `simplify()`.
-- Check `add()` and `sub()`.
-- Decide strict exact-unit vs dimension-compatible modes.
+- ~~Parse PHPDoc unit generics.~~ **Done for native `unit_int` / `unit_float`; `Quantity<…>` pending.**
+- ~~Diagnose invalid unit strings and unknown units.~~ **Done** (incl. standalone invalid-call diagnostics).
+- Infer `Units::quantity()`. **Pending** (object path).
+- Infer `Quantity::to()`, `mul()`, `div()`, `normalize()`, and `simplify()`. **Pending** (object path).
+- ~~Check `add()` and `sub()`.~~ **Done for native types (exact unit); object-path checks pending.**
+- Decide strict exact-unit vs dimension-compatible modes. **Exact done; dimension mode + config pending.**
 
 This is the project's main differentiator and should take priority over Pint-style convenience features.
+
+> **Update 2026-07-25:** The native-type half of this milestone is delivered; the runtime
+> `Quantity<…>` object generic + method inference and the dimension-mode config are what's left.
 
 ### Milestone 4: Runtime API Polish
 

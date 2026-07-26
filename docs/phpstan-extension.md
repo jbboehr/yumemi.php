@@ -275,24 +275,73 @@ Optional polish (not blockers):
 - Invalid units become `ErrorType` with IMM error messages (e.g. unknown `mass`)
 - Covered by type unit tests + PHPStan CLI integration fixtures
 
+### Piece 3 — arithmetic operator inference (done)
+
+- `UnitOperatorTypeSpecifyingExtension` infers `+ - * / ** %` when at least one operand is a
+  unit type; `UnitUnaryOperatorTypeSpecifyingExtension` handles unary `+` / `-`
+- `+` / `-` require normalized-equivalent units (exact scale, not merely same dimension);
+  `*` / `/` combine unit exprs via the IMM `Expr` algebra; `**` requires a constant integer
+  exponent; `%` is restricted to `unit_int` operands with equivalent units (PHP integer modulo)
+- `int` × `float` promotion and `/`-always-float follow native PHP rules
+- Covered by `UnitOperatorTypeSpecifyingExtensionTest`, `UnitUnaryOperatorTypeSpecifyingExtensionTest`,
+  `UnitMagnitudeTypeTest`, and the `unit-ops.php` CLI integration fixture
+
+### Piece 4 — `unit()` construction helper (done)
+
+- `UnitFunctionDynamicReturnTypeExtension` infers `unit_int<'…'>` / `unit_float<'…'>` from
+  `unit($value, 'meter')` when the unit string is constant
+- Invalid unit strings yield an `ErrorType` (with reason); non-constant strings fall back to the
+  native signature so unrelated code is not poisoned
+
+### Piece 5 — `unit_to()` conversion helper (done)
+
+- `UnitToFunctionDynamicReturnTypeExtension` infers `unit_float<'to'>` from
+  `unit_to($value, 'from', 'to')`, always float (conversion factors are generally non-integral)
+- Checks that a branded value's unit matches `from`, and that `from` / `to` share a dimension;
+  `ErrorType` (with reason) otherwise
+
+### Piece 6 — invalid-call diagnostics (done)
+
+- `InvalidUnitCallRule` reports standalone `imm.invalidUnitCall` diagnostics for invalid
+  `unit()` / `unit_to()` calls, independent of whether the result is later used
+- Reuses the extensions' shared `inferType(FuncCall, Scope): ?Type` and surfaces its `getReason()`,
+  so validation and messages stay a single source of truth
+- Covered by `InvalidUnitCallRuleTest`
+- Note: binary-operator misuse (e.g. `meter + second`) is already diagnosed by PHPStan core's
+  `InvalidBinaryOperationRule` (`binaryOp.invalid`), so no sibling operator rule was added
+
 ### Next pieces
 
-1. Operator inference for `+` `-` `*` `/` on unit types
-2. Exact vs dimension arithmetic mode / assignment rules polish
-3. Runtime `Quantity` PHPDoc + method inference
-4. Neon config for catalog and policies
+1. **Runtime `Quantity` PHPDoc + method inference** — the object path is still untouched. Resolve
+   `Quantity<'meter / second'>` (sugar for `Quantity<Rational, '…'>`), infer `Units::quantity()`,
+   and infer `to()` / `mul()` / `div()` / `normalize()` / `simplify()` plus `add()` / `sub()`
+   checks. This is the original headline goal and the largest remaining gap.
+2. **Exact vs dimension arithmetic mode + neon config** — only exact-unit is implemented today;
+   add the relaxed dimension mode and a `parameters.imm` config shape (arithmetic mode, catalog,
+   bare-numeric policy).
+3. **Richer identifiers / messages** — stable per-cause error identifiers beyond the current
+   `imm.invalidUnitCall`.
 
 **Success criterion (piece 2):** `unit_int<'mass'>` errors; `unit_int<'meter / second'>` is a
-real type.
+real type. **(met)**
+
+> **Update 2026-07-25:** Pieces 3–6 are complete (commits `343027f`, `185d01f`, `515e722`,
+> `a2180ed`, and the invalid-call rule). The native `unit_int` / `unit_float` path — PHPDoc
+> resolution, validation, operator inference, `unit()` / `unit_to()` helpers, assignment checks via
+> the branded types' `accepts()`, and standalone invalid-call diagnostics — is now in place. What
+> remains is the runtime `Quantity` object path and the exact-vs-dimension config work.
 
 ## Later Milestones
 
-1. Operator inference for `+` `-` `*` `/` on native unit types
+1. ~~Operator inference for `+` `-` `*` `/` on native unit types~~ **(done — Piece 3)**
 2. Exact vs dimension arithmetic mode
 3. Runtime `Quantity` PHPDoc + method inference (Rational × unit)
 4. Bridges between native unit types and `Quantity`
 5. Neon config for catalog and policies
 6. Richer messages / structured identifiers
+
+> **Update 2026-07-25:** Milestone 1 is done. Milestones 2–6 remain; see the reduced "Next pieces"
+> list above, which is now the authoritative near-term plan.
 
 ## Summary Slogans
 

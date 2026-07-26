@@ -310,19 +310,22 @@ mostly catalog semantics, API polish, and edge-case formatting.
 
 Suggested next slices (detail in [phpstan-extension.md](phpstan-extension.md)):
 
-1. Add PHPStan type parsing.
-   Start with PHPDoc `Quantity<'meter / second'>` (sugar for `Quantity<Rational, 'meter / second'>`).
-   Parse the unit string through IMM's runtime parser and store the parsed expression in a custom
-   PHPStan type that also tracks number kind.
+1. Add PHPStan type parsing. **Done for the native path:** `unit_int<'…'>` / `unit_float<'…'>`
+   resolve via `UnitTypeNodeResolverExtension`, parsing the string through IMM's runtime parser and
+   storing the reduced expression on `UnitIntegerType` / `UnitFloatType`. **Remaining:** the
+   `Quantity<'meter / second'>` object generic (sugar for `Quantity<Rational, '…'>`).
 
-2. Add PHPStan diagnostics for invalid unit strings.
-   Invalid unit syntax or unknown units in `Quantity<'...'>` should produce normal PHPStan errors with useful messages.
+2. Add PHPStan diagnostics for invalid unit strings. **Done:** invalid units become `ErrorType`
+   with IMM messages in PHPDoc and constant args, and `InvalidUnitCallRule` now emits standalone
+   `imm.invalidUnitCall` diagnostics for invalid `unit()` / `unit_to()` calls.
 
-3. Add PHPStan return-type inference for `Quantity` methods.
-   Infer `to('foot')`, `normalize()`, `simplify()`, `mul()`, and `div()` using the same runtime expression logic.
+3. Add PHPStan return-type inference. **Done for the native path:** operator inference for
+   `+ - * / ** %`, plus `unit()` / `unit_to()` dynamic return types. **Remaining:** the `Quantity`
+   _method_ inference (`to()`, `normalize()`, `simplify()`, `mul()`, `div()`).
 
-4. Add PHPStan checks for `add()` and `sub()`.
-   Match runtime exact-unit rules first. Later, optional dimensional mode via config.
+4. Add PHPStan checks for `add()` and `sub()`. **Done for the native path:** `+` / `-` require
+   normalized-equivalent units via the operator extension. **Remaining:** the optional dimensional
+   mode via config, and the `Quantity::add()` / `sub()` object-path checks.
 
 5. Harden registry extensibility. **Started:** immutable `UnitRegistry` + `UnitRegistryBuilder`
    (`empty()` / `default()` with UDUNITS2, `define('name = expr')`, `add()`, `alias()`,
@@ -331,6 +334,12 @@ Suggested next slices (detail in [phpstan-extension.md](phpstan-extension.md)):
 6. Improve catalog semantics.
    Replace simple plural stripping with catalog plural aliases where possible, and design explicit behavior for affine
    and logarithmic definitions.
+
+> **Update 2026-07-25:** Slices 1–4 are done for the **native `unit_int` / `unit_float`** static
+> path (PHPDoc types, invalid-string and invalid-call diagnostics, operator/`unit()`/`unit_to()`
+> inference, exact-unit `+` / `-`). The runtime **`Quantity<…>` object path** (generic + method
+> inference) and the exact-vs-dimension config mode are the main PHPStan items still open. See
+> [phpstan-extension.md](phpstan-extension.md) "Next pieces".
 
 ## Current Architecture Sketch
 
