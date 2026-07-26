@@ -79,7 +79,10 @@ final class YumemiReturnTagFunctionReturnTypeExtension implements DynamicFunctio
     private function brandedReturnType(FunctionReflection $functionReflection): ?Type
     {
         $docComment = $functionReflection->getDocComment();
-        if ($docComment === null) {
+
+        // Fast path: skip resolving/scanning the phpdoc unless the raw comment mentions our tag.
+        // Runs on every function, so this substring test avoids the common no-tag case entirely.
+        if ($docComment === null || !str_contains($docComment, YumemiDocTagReader::RETURN_TAG)) {
             return null;
         }
 

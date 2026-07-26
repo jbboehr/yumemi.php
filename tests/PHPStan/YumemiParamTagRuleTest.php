@@ -43,6 +43,7 @@ use PHPStan\Testing\RuleTestCase;
 // The @yumemi-param function must exist in the process so native reflection can resolve it; the
 // annotated class is autoloaded via PSR-4 and needs no require.
 require_once __DIR__ . '/Fixtures/YumemiTagParamFunctions.php';
+require_once __DIR__ . '/Fixtures/YumemiTagParamInheritanceClasses.php';
 
 /**
  * Checks that a branded argument carrying the wrong unit is rejected at a @yumemi-param position,
@@ -80,6 +81,27 @@ final class YumemiParamTagRuleTest extends RuleTestCase
             [
                 "@yumemi-param: parameter \$length expects unit_int<'meter'>, unit_int<'international_foot'> given.",
                 22,
+                "Unit unit_int<'international_foot'> is not assignable to unit_int<'meter'> (normalized forms differ).",
+            ],
+        ]);
+    }
+
+    /**
+     * Guards the fast-path optimisation: a @yumemi-param inherited by a doc-less override or interface
+     * implementation must still be checked (the guard only trusts a method's own comment when it has
+     * no ancestor prototype to inherit from).
+     */
+    public function testInheritedParamTagsAreStillChecked(): void
+    {
+        $this->analyse([__DIR__ . '/data/yumemi-tag-param-inheritance.php'], [
+            [
+                "@yumemi-param: parameter \$length expects unit_int<'meter'>, unit_int<'international_foot'> given.",
+                10,
+                "Unit unit_int<'international_foot'> is not assignable to unit_int<'meter'> (normalized forms differ).",
+            ],
+            [
+                "@yumemi-param: parameter \$length expects unit_int<'meter'>, unit_int<'international_foot'> given.",
+                11,
                 "Unit unit_int<'international_foot'> is not assignable to unit_int<'meter'> (normalized forms differ).",
             ],
         ]);

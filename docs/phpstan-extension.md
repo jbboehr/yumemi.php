@@ -391,8 +391,10 @@ branded unit type.
   never poisons unrelated analysis (fail-open, matching `UnitsQuantityReturnTypeExtension`)
 - `YumemiReturnTagFunctionReturnTypeExtension` (a `DynamicFunctionReturnTypeExtension`, covering every function via
   `isFunctionSupported`) resolves the callee's doc comment via `FileTypeMapper` and brands the return
-- Covered by `YumemiReturnTagExtensionTest` — a CLI integration test (assertType fixtures run through the real PHPStan
-  binary, since `TypeInferenceTestCase` does not index file-local function declarations), including an enforcement
+- **Fast path:** because `isFunctionSupported` runs on every function, a `str_contains($docComment, '@yumemi-return')`
+  guard short-circuits before any phpdoc resolution/scan for the overwhelmingly common no-tag case
+- Covered by `YumemiReturnTagExtensionTest` — a `TypeInferenceTestCase` matrix (the annotated functions are `require`d
+  into the process, since the harness does not index functions local to the analysed fixture), plus a CLI enforcement
   fixture proving the brand flows into core `argument.type` checking, not just `assertType`
 - **Deferred:** `@yumemi-return` on object methods (blocked by PHPStan's per-class `getClass()` dynamic-return hook);
   `@yumemi-var`; a validation rule surfacing invalid-unit tag payloads (currently silently ignored); bundled stub files
@@ -411,9 +413,14 @@ with `@yumemi-param unit_int<'meter'> $length`; branded arguments carrying the w
   branded argument with the expected type's `accepts()`
 - **Only branded arguments are checked**: a bare native value is the graceful escape hatch and passes silently; a
   branded value with an incompatible unit yields a `yumemi.paramType` error carrying the `accepts()` reason as the tip
+- **Fast path:** a `str_contains($docComment, '@yumemi-param')` guard skips phpdoc resolution/scan for the common no-tag
+  case — unconditionally for functions (no inheritance), and for methods only when they do not inherit phpdoc. A method
+  that overrides a parent or implements an interface can inherit the tag from an ancestor (`getResolvedPhpDoc()`
+  resolves it), so it always takes the full path; the split is decided by comparing `getPrototype()`'s declaring class
 - Covered by `YumemiParamTagRuleTest` (a `RuleTestCase` asserting exact message + line + tip for function and method
-  calls, positional and named args; the annotated function is `require`d into the process, the class is PSR-4
-  autoloaded)
+  calls, positional and named args; the annotated function/classes are `require`d into the process), including an
+  inheritance regression fixture proving a tag inherited by a doc-less override / interface implementation is still
+  checked (i.e. the fast path never skips it)
 - **Deferred:** static calls and `new` (the rule already dispatches on `CallLike`; only the per-subtype reflection
   branch is missing); a stricter opt-in mode that also rejects bare-native arguments at `@yumemi-param` positions
 

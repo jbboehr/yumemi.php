@@ -44,6 +44,7 @@ use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PHPStan\Analyser\Scope;
+use PHPStan\Reflection\ExtendedMethodReflection;
 use PHPStan\Reflection\ParameterReflection;
 use PHPStan\Reflection\ParametersAcceptorSelector;
 use PHPStan\Reflection\ReflectionProvider;
@@ -113,7 +114,9 @@ final class YumemiParamTagRule implements Rule
         $function = $this->reflectionProvider->getFunction($node->name, $scope);
 
         $docComment = $function->getDocComment();
-        if ($docComment === null) {
+
+        // Fast path: functions have no phpdoc inheritance, so the raw comment is authoritative.
+        if ($docComment === null || !str_contains($docComment, YumemiDocTagReader::PARAM_TAG)) {
             return [[], []];
         }
 
@@ -151,6 +154,17 @@ final class YumemiParamTagRule implements Rule
         }
 
         $method = $calledOnType->getMethod($methodName, $scope);
+
+        // Fast path: a method that inherits no phpdoc has only its own comment as a tag source, so a
+        // missing @yumemi-param there means nothing to check. Overriding/implementing methods may
+        // inherit the tag from an ancestor (verified: the rule fires on doc-less overrides/impls), so
+        // they always take the full resolve path below.
+        if (!$this->inheritsPhpDoc($method)) {
+            $ownDocComment = $method->getDocComment();
+            if ($ownDocComment === null || !str_contains($ownDocComment, YumemiDocTagReader::PARAM_TAG)) {
+                return [[], []];
+            }
+        }
 
         $phpDoc = $method->getResolvedPhpDoc();
         if ($phpDoc === null) {
@@ -239,5 +253,24 @@ final class YumemiParamTagRule implements Rule
         $last = $parameters[array_key_last($parameters)];
 
         return $last->isVariadic() ? $last->getName() : null;
+    }
+
+    /**
+     * Whether the method may inherit phpdoc (and thus a @yumemi-param) from an ancestor.
+     *
+     * True when its prototype is declared on a different class — i.e. it overrides a parent method or
+     * implements an interface method. Such methods must resolve the full (inherited) phpdoc; only
+     * methods whose prototype is themselves can trust their own raw doc comment for the fast path.
+     */
+    private function inheritsPhpDoc(ExtendedMethodReflection $method): bool
+    {
+        try {
+            $prototype = $method->getPrototype();
+        } catch (\Throwable) {
+            // No resolvable prototype: be conservative and take the full resolve path.
+            return true;
+        }
+
+        return $prototype->getDeclaringClass()->getName() !== $method->getDeclaringClass()->getName();
     }
 }
