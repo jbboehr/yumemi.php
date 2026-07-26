@@ -1,13 +1,15 @@
 # Iudex Mensurarum Mysticarum『夢見』〜ＹＵＭＥＭＩ〜
 
-Runtime unit conversion and dimensional analysis for PHP. Short name: **Yumemi** (夢見, "dreaming").
+![Iudex Mensurarum Mysticarum『夢見』〜ＹＵＭＥＭＩ〜 — dimensional analysis for PHP](.github/assets/yumemi-banner.png)
+
+Runtime unit conversion and static dimensional analysis for PHP and PHPStan.
 
 **Status**
 
 - **Runtime library:** usable — unit expressions, UDUNITS2 catalog, quantities, exact
   rational conversion, dimensional checks.
-- **PHPStan extension:** not shipped yet (next focus). Package metadata may still mention
-  static analysis as a goal.
+- **PHPStan extension:** in development — unit-branded types, operator inference, and
+  invalid-call diagnostics implemented; not yet a stable release.
 
 Design notes: [docs/planning.md](docs/planning.md). PHPStan plan:
 [docs/phpstan-extension.md](docs/phpstan-extension.md). Code-quality snapshot:
