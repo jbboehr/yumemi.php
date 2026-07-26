@@ -3,7 +3,19 @@
 use PhpCsFixer\Runner\Parallel\ParallelConfigFactory;
 
 $header = <<<'EOF'
-Iudex Mensurarum Mysticarum『夢見』〜ＹＵＭＥＭＩ〜
++--------------------------------------------------------------------------------------------------------------+
+|        *                 .                         *                  .                         *            |
+|   .              *                      .                    *                      .                        |
+|             .                 .                  *                         .                 *               |
+-      *                    .             *                    .                         .                     -
+
+                              Iudex Mensurarum Mysticarum『夢見』〜ＹＵＭＥＭＩ〜
+
+-                                          .----------------.                                                  -
+|                                      .--'        __        '--.                                              |
+|                                  .--'          .'  '.          '--.                                          |
+|                             .---'            .'      '.            '---.                                     |
++--------------------------------------------------------------------------------------------------------------+
 
 Copyright (c) anno Domini nostri Jesu Christi MMXXVI, John Boehr & contributors
 
