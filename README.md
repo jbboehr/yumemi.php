@@ -157,5 +157,41 @@ assert($rate->valueIn('centimeter / second')->toString() === '2');
 
 ## License
 
-This project is licensed under the [AGPL v3+](https://www.gnu.org/licenses/agpl-3.0) License - see
-[LICENSE.md](LICENSE.md) for details.
+This project is licensed under the **GNU Affero General Public License version 3 with the Romic Exception**:
+
+```text
+AGPL-3.0-only WITH romic-exception
+```
+
+The Romic Exception permits this project to be linked or combined with other code without subjecting that other code to the AGPL merely because of the linking or combination.
+
+Modifications to the covered project remain subject to the Project License, including its source-availability requirements for modified versions made available over a computer network.
+
+See [`LICENSE`](LICENSE.md) and [`LICENSE_EXCEPTION`](docs/LICENSE_EXCEPTION.md) for the complete terms.
+
+### Contributions
+
+Contributions are accepted under special contribution terms.
+
+Unless the contributor affirmatively elects the CLA route described in [`CONTRIBUTING.md`](CONTRIBUTING.md), each contribution is submitted under either of the following licenses, at each recipient’s option:
+
+```text
+AGPL-3.0-only WITH romic-exception OR Apache-2.0
+```
+
+The public project incorporates accepted contributions under the Project License.
+
+The Apache-2.0 alternative applies only to the contributor-authored portions of a contribution. It does **not** make this project as a whole available under Apache-2.0.
+
+A contributor who prefers their contribution to remain publicly copyleft-only may instead elect the project’s Contributor License Agreement directly in the applicable pull request. Under that route, the contribution is publicly licensed under the Project License while the [Project Steward](docs/STEWARD.md) receives the additional rights specified in the CLA.
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) before submitting a contribution.
+
+### Commercial licensing
+
+Alternative commercial licenses may be available from the Project Steward for users who want to modify or use the project under different terms.
+
+Contact:
+
+> John Boehr
+> jbboehr@gmail.com

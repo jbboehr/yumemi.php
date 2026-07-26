@@ -2,7 +2,7 @@
     "name": "jbboehr/yumemi",
     "description": "Runtime unit conversion and dimensional analysis for PHP (PHPStan extension planned).",
     "type": "library",
-    "license": "AGPL-3.0-or-later",
+    "license": "AGPL-3.0-only WITH romic-exception",
     "homepage": "https://github.com/jbboehr/yumemi.php",
     "support": {
         "issues": "https://github.com/jbboehr/yumemi.php/issues",
