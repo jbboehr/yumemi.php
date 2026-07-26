@@ -2,7 +2,6 @@
 
 namespace jbboehr\IudexMensurarumMysteriorum\PHPStan;
 
-use jbboehr\IudexMensurarumMysteriorum\Formatter\ExprFormatter;
 use PHPStan\Type\Constant\ConstantIntegerType;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\OperatorTypeSpecifyingExtension;
@@ -107,8 +106,8 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
     ): Type {
         if ($leftUnit !== null && $rightUnit !== null) {
             $unit = $operatorSigil === '*'
-                ? $this->multiplyUnits($leftUnit->getUnitExpression(), $rightUnit->getUnitExpression())
-                : $this->divideUnits($leftUnit->getUnitExpression(), $rightUnit->getUnitExpression());
+                ? UnitExpressionAlgebra::multiply($leftUnit->getUnitExpression(), $rightUnit->getUnitExpression())
+                : UnitExpressionAlgebra::divide($leftUnit->getUnitExpression(), $rightUnit->getUnitExpression());
 
             return $this->makeMagnitudeType(
                 $this->resultIsFloat($operatorSigil, $leftSide, $rightSide),
@@ -135,7 +134,7 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
             // scalar / unit → inverse unit
             return $this->makeMagnitudeType(
                 true, // division
-                $this->invertUnit($rightUnit->getUnitExpression()),
+                UnitExpressionAlgebra::invert($rightUnit->getUnitExpression()),
             );
         }
 
@@ -143,45 +142,6 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
             'Cannot use %s with these operand types for unit values.',
             $operatorSigil,
         ));
-    }
-
-    private function multiplyUnits(UnitExpression $left, UnitExpression $right): UnitExpression
-    {
-        $expr = $left->expr->mul($right->expr);
-        $normalized = $left->normalizedExpr->mul($right->normalizedExpr);
-
-        return new UnitExpression(
-            $expr,
-            ExprFormatter::format($expr),
-            $left->dimension->mul($right->dimension),
-            $normalized,
-        );
-    }
-
-    private function divideUnits(UnitExpression $left, UnitExpression $right): UnitExpression
-    {
-        $expr = $left->expr->div($right->expr);
-        $normalized = $left->normalizedExpr->div($right->normalizedExpr);
-
-        return new UnitExpression(
-            $expr,
-            ExprFormatter::format($expr),
-            $left->dimension->div($right->dimension),
-            $normalized,
-        );
-    }
-
-    private function invertUnit(UnitExpression $unit): UnitExpression
-    {
-        $expr = $unit->expr->pow(-1);
-        $normalized = $unit->normalizedExpr->pow(-1);
-
-        return new UnitExpression(
-            $expr,
-            ExprFormatter::format($expr),
-            $unit->dimension->pow(-1),
-            $normalized,
-        );
     }
 
     private function specifyPow(
@@ -205,25 +165,12 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
         }
 
         $exponent = $rightSide->getValue();
-        $unit = $this->powerUnit($leftUnit->getUnitExpression(), $exponent);
+        $unit = UnitExpressionAlgebra::power($leftUnit->getUnitExpression(), $exponent);
 
         // PHP: negative exponents yield float; also promote when the base is float-like.
         $float = $exponent < 0 || $this->resultIsFloat('**', $leftSide, $rightSide);
 
         return $this->makeMagnitudeType($float, $unit);
-    }
-
-    private function powerUnit(UnitExpression $unit, int $exponent): UnitExpression
-    {
-        $expr = $unit->expr->pow($exponent);
-        $normalized = $unit->normalizedExpr->pow($exponent);
-
-        return new UnitExpression(
-            $expr,
-            ExprFormatter::format($expr),
-            $unit->dimension->pow($exponent),
-            $normalized,
-        );
     }
 
     private function makeMagnitudeType(bool $float, UnitExpression $unit): UnitIntegerType|UnitFloatType

@@ -5,6 +5,7 @@
 # Piece 4: unit() construction helper (dynamic return type)
 # Piece 5: unit_to() conversion helper (dynamic return type)
 # Piece 6: invalid unit() / unit_to() call diagnostics (rule)
+# Piece 7: Quantity<'...'> object type + Units::quantity() return type
 
 services:
     -
@@ -33,3 +34,7 @@ services:
         class: jbboehr\IudexMensurarumMysteriorum\PHPStan\InvalidUnitCallRule
         tags:
             - phpstan.rules.rule
+    -
+        class: jbboehr\IudexMensurarumMysteriorum\PHPStan\UnitsQuantityReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicMethodReturnTypeExtension

@@ -16,6 +16,7 @@ use PHPStan\Type\Type;
  *
  * - unit_int<'meter / second'>
  * - unit_float<'kilogram'>
+ * - Quantity<'meter / second'>
  *
  * Unit strings are validated through {@see UnitExpressionParser}.
  */
@@ -24,6 +25,7 @@ final class UnitTypeNodeResolverExtension implements TypeNodeResolverExtension
     private const NAMES = [
         'unit_int' => 'int',
         'unit_float' => 'float',
+        'quantity' => 'quantity',
     ];
 
     public function __construct(
@@ -80,6 +82,7 @@ final class UnitTypeNodeResolverExtension implements TypeNodeResolverExtension
         return match (self::NAMES[$name]) {
             'int' => new UnitIntegerType($unit),
             'float' => new UnitFloatType($unit),
+            'quantity' => new QuantityType($unit),
         };
     }
 
