@@ -170,7 +170,8 @@ plus IDEs and phpDocumentor — see only native `int`: an unfamiliar tag, never 
 documented mechanism for custom PHPDoc metadata.
 
 Tag family: `@yumemi-param`, `@yumemi-return`, `@yumemi-var` (one namespaced family; not `@phpstan-yumemi-param` — there
-is no conditional-tag mechanism, so it would just be another unknown tag either way).
+is no conditional-tag mechanism, so it would just be another unknown tag either way). `@yumemi-param` and
+`@yumemi-return` are implemented; `@yumemi-var` was investigated and declined (see the progress log below).
 
 | Environment                                  | Sees                                |
 | -------------------------------------------- | ----------------------------------- |
@@ -384,9 +385,10 @@ First slice of the extension-optional annotation surface (see "Annotation Surfac
 type in its signature and adds `@yumemi-return unit_int<'foot'>`; when the extension is loaded, call sites see the
 branded unit type.
 
-- `YumemiDocTagReader` reads the vendor-prefixed tags (`@yumemi-return` today; `@yumemi-param` / `@yumemi-var` reserved)
-  from a `ResolvedPhpDocBlock`. Unknown tags survive as `GenericTagValueNode`; the type payload is re-parsed through
-  PHPStan's `TypeStringResolver` so it reaches `UnitTypeNodeResolverExtension` — one parser, one meaning
+- `YumemiDocTagReader` reads the vendor-prefixed tags (`@yumemi-return` here, `@yumemi-param` in Piece 9; `@yumemi-var`
+  reserved but declined — see below) from a `ResolvedPhpDocBlock`. Unknown tags survive as `GenericTagValueNode`; the
+  type payload is re-parsed through PHPStan's `TypeStringResolver` so it reaches `UnitTypeNodeResolverExtension` — one
+  parser, one meaning
 - Only branded unit types are honoured; a native type or an invalid-unit `ErrorType` is treated as absent, so a tag
   never poisons unrelated analysis (fail-open, matching `UnitsQuantityReturnTypeExtension`)
 - `YumemiReturnTagFunctionReturnTypeExtension` (a `DynamicFunctionReturnTypeExtension`, covering every function via
@@ -396,9 +398,9 @@ branded unit type.
 - Covered by `YumemiReturnTagExtensionTest` — a `TypeInferenceTestCase` matrix (the annotated functions are `require`d
   into the process, since the harness does not index functions local to the analysed fixture), plus a CLI enforcement
   fixture proving the brand flows into core `argument.type` checking, not just `assertType`
-- **Deferred:** `@yumemi-return` on object methods (blocked by PHPStan's per-class `getClass()` dynamic-return hook);
-  `@yumemi-var`; a validation rule surfacing invalid-unit tag payloads (currently silently ignored); bundled stub files
-  for third-party libraries
+- **Deferred:** `@yumemi-return` on object methods (blocked by PHPStan's per-class `getClass()` dynamic-return hook); a
+  validation rule surfacing invalid-unit tag payloads (currently silently ignored); bundled stub files for third-party
+  libraries
 
 ### Piece 9 — extension-optional `@yumemi-param` argument checking (done)
 
@@ -427,6 +429,48 @@ with `@yumemi-param unit_int<'meter'> $length`; branded arguments carrying the w
 - **Deferred:** dynamic (`$class::m()`, `new $class()`) and anonymous-class targets are left unresolved; a stricter
   opt-in mode that also rejects bare-native arguments at `@yumemi-param` positions
 
+### `@yumemi-var` — investigated, not pursued (2026-07-26)
+
+The third tag in the family was considered and declined. Two findings, which compound:
+
+**Propagation is already solved by the extension-required `@var`.** A native-position `@var unit_int<'…'>` brands a
+local variable and flows through operators, so the local/property use case needs no new tag:
+
+```php
+/** @var unit_int<'foot'> $x */
+$x = 3;
+// assertType confirms: $x is unit_int<'international_foot'>, and so is $x + $x
+```
+
+(Verified via a CLI assertType probe. Property `@var` should resolve through the same `UnitTypeNodeResolverExtension`;
+confirm with a fixture if ever pursued.)
+
+**A custom `@yumemi-var` cannot propagate.** Reviewed every `*Extension` interface PHPStan exposes; the type-affecting
+ones are all call / operator / property-reflection shaped (`Dynamic{Function,Method,StaticMethod}ReturnTypeExtension`,
+`OperatorTypeSpecifyingExtension`, `ExpressionTypeResolverExtension`, `TypeNodeResolverExtension`,
+`PropertiesClassReflectionExtension`). None can inject a type into a variable's scope from an unknown statement-level
+tag:
+
+- `TypeNodeResolverExtension` only fires where PHPStan already parses a type — never inside an unknown `@yumemi-var`.
+- `ExpressionTypeResolverExtension` receives `(Expr, Scope)`, but the annotation isn't attached to the `$x` node and it
+  can't scope a branding forward to later uses.
+- Variable/property types are set by core `NodeScopeResolver` **before** rules run, and rules are read-only, so a rule
+  can't propagate either.
+
+The most a custom tag could do is a **check-only** rule (validate an assignment's RHS against the declared unit, like
+`@yumemi-param` for assignments) — with **no propagation**, which is strictly weaker than `@var unit_int<'…'>`.
+
+**Why decline.** Graceful degradation — the reason `@yumemi-param` / `@yumemi-return` exist — protects _external_
+consumers (other libraries, IDEs, phpDocumentor) from seeing `unit_int` as an unknown type on a _public API_. A `@var`
+is a local implementation detail with no external audience; anyone annotating local units already runs the extension, so
+they should use `@var unit_int<'…'>` directly. The one niche a custom tag would serve — a codebase that runs the
+extension in some CI configs but not others and wants a local `@var unit_int` to stay quiet in the without-extension
+runs — is too narrow to justify the machinery.
+
+**Decision:** use `@var unit_int<'…'>` for locals and properties; do not add `@yumemi-var`. Revisit only if the
+mixed-config niche becomes real, in which case a check-only assignment rule is the ceiling. (The `YumemiDocTagReader`
+already reserves the `@yumemi-var` constant, so a future check-only rule would slot in without churn.)
+
 ### Next pieces
 
 1. **Runtime `Quantity` PHPDoc + method inference** — the object path is still untouched. Resolve
@@ -436,9 +480,10 @@ with `@yumemi-param unit_int<'meter'> $length`; branded arguments carrying the w
 2. **Exact vs dimension arithmetic mode + neon config** — only exact-unit is implemented today; add the relaxed
    dimension mode and a `parameters.yumemi` config shape (arithmetic mode, catalog, bare-numeric policy).
 3. **Richer identifiers / messages** — stable per-cause error identifiers beyond the current `yumemi.invalidUnitCall`.
-4. **Extension-optional annotations** — `@yumemi-param` / `@yumemi-return` / `@yumemi-var` graceful-degradation tags
-   plus bundled stub files for third-party libraries (see "Annotation Surface"). Distinct from the mandatory
-   native-position path already shipped.
+4. **Stub files for third-party libraries** — the last remaining piece of the extension-optional surface. The
+   `@yumemi-return` (Piece 8) and `@yumemi-param` (Piece 9) tags are done; `@yumemi-var` was investigated and declined
+   (see above). What is left is bundling `.stub` files via a `StubFilesExtension` so `@yumemi-*` tags can enrich
+   libraries you do not control (see "Annotation Surface").
 
 **Success criterion (piece 2):** `unit_int<'mass'>` errors; `unit_int<'meter / second'>` is a real type. **(met)**
 
