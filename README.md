@@ -1,6 +1,4 @@
-# Iudex Mensurarum Mysticarum『夢見』〜ＹＵＭＥＭＩ〜
-
-![Iudex Mensurarum Mysticarum『夢見』〜ＹＵＭＥＭＩ〜 — dimensional analysis for PHP](.github/assets/yumemi-banner.png)
+# ![Iudex Mensurarum Mysticarum『夢見』〜ＹＵＭＥＭＩ〜 — dimensional analysis for PHP](.github/assets/yumemi-banner.png)
 
 Runtime unit conversion and static dimensional analysis for PHP and PHPStan.
 
