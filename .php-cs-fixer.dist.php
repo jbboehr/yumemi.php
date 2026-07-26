@@ -2,6 +2,25 @@
 
 use PhpCsFixer\Runner\Parallel\ParallelConfigFactory;
 
+$header = <<<'EOF'
+Iudex Mensurarum Mysticarum『夢見』〜ＹＵＭＥＭＩ〜
+
+Copyright (c) anno Domini nostri Jesu Christi MMXXVI, John Boehr & contributors
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+EOF;
+
 $finder = PhpCsFixer\Finder::create()
     ->files()
     ->name('*.php')
@@ -13,8 +32,10 @@ $finder = PhpCsFixer\Finder::create()
         'Parser/Ast/Float_.php',
         'Parser/Ast/Integer_.php',
         'Parser/Parser.php',
-        // PHPStan analyse fixtures: keep one-line sinks colocated with cases.
+        // PHPStan fixtures: keep one-line sinks colocated with cases, and keep line
+        // numbers stable for RuleTestCase assertions (no license header shifting them).
         'PHPStan/data',
+        'PHPStan/Fixtures',
     ]);
 
 return (new PhpCsFixer\Config())
@@ -26,4 +47,10 @@ return (new PhpCsFixer\Config())
     ->setRiskyAllowed(false)
     ->setRules([
         '@PSR12' => true,
+        'header_comment' => [
+            'header' => $header,
+            'comment_type' => 'PHPDoc',
+            'location' => 'after_open',
+            'separate' => 'both',
+        ],
     ]);
