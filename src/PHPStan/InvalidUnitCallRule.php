@@ -81,7 +81,7 @@ final class InvalidUnitCallRule implements Rule
 
         return [
             RuleErrorBuilder::message($reason)
-                ->identifier('imm.invalidUnitCall')
+                ->identifier('yumemi.invalidUnitCall')
                 ->build(),
         ];
     }

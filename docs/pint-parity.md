@@ -637,7 +637,7 @@ Difficulty: XL
 
 > **Update 2026-07-25:** The **native `unit_int` / `unit_float`** static path is implemented:
 > PHPDoc type resolution, invalid-unit and standalone invalid-call diagnostics
-> (`imm.invalidUnitCall`), operator inference (`+ - * / ** %`), `unit()` / `unit_to()` dynamic
+> (`yumemi.invalidUnitCall`), operator inference (`+ - * / ** %`), `unit()` / `unit_to()` dynamic
 > return types, and assignment/parameter checks via the branded types' `accepts()`. Of the must-have
 > pieces below, everything is covered **for native types**; the outstanding work is the
 > `Quantity<'…'>` object generic and its method inference, plus the exact-vs-dimension config mode.

@@ -321,7 +321,7 @@ Suggested next slices (detail in [phpstan-extension.md](phpstan-extension.md)):
 
 2. Add PHPStan diagnostics for invalid unit strings. **Done:** invalid units become `ErrorType`
    with Yumemi messages in PHPDoc and constant args, and `InvalidUnitCallRule` now emits standalone
-   `imm.invalidUnitCall` diagnostics for invalid `unit()` / `unit_to()` calls.
+   `yumemi.invalidUnitCall` diagnostics for invalid `unit()` / `unit_to()` calls.
 
 3. Add PHPStan return-type inference. **Done for the native path:** operator inference for
    `+ - * / ** %`, plus `unit()` / `unit_to()` dynamic return types. **Remaining:** the `Quantity`

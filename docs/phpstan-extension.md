@@ -302,7 +302,7 @@ Optional polish (not blockers):
 
 ### Piece 6 — invalid-call diagnostics (done)
 
-- `InvalidUnitCallRule` reports standalone `imm.invalidUnitCall` diagnostics for invalid
+- `InvalidUnitCallRule` reports standalone `yumemi.invalidUnitCall` diagnostics for invalid
   `unit()` / `unit_to()` calls, independent of whether the result is later used
 - Reuses the extensions' shared `inferType(FuncCall, Scope): ?Type` and surfaces its `getReason()`,
   so validation and messages stay a single source of truth
@@ -320,7 +320,7 @@ Optional polish (not blockers):
    add the relaxed dimension mode and a `parameters.yumemi` config shape (arithmetic mode, catalog,
    bare-numeric policy).
 3. **Richer identifiers / messages** — stable per-cause error identifiers beyond the current
-   `imm.invalidUnitCall`.
+   `yumemi.invalidUnitCall`.
 
 **Success criterion (piece 2):** `unit_int<'mass'>` errors; `unit_int<'meter / second'>` is a
 real type. **(met)**

@@ -43,7 +43,7 @@ Relevant locations:
 
 **Status: FIXED.** Added `InvalidUnitCallRule` (`src/PHPStan/InvalidUnitCallRule.php`), a PHPStan `Rule` over
 `FuncCall` nodes, registered in `extension.neon` under the `phpstan.rules.rule` tag. It now reports a standalone
-diagnostic (`imm.invalidUnitCall`) for invalid `unit()` / `unit_to()` calls, independent of whether the result is
+diagnostic (`yumemi.invalidUnitCall`) for invalid `unit()` / `unit_to()` calls, independent of whether the result is
 later used.
 
 > **Note (added by Claude, 2026-07-25):** Implemented by reusing the existing validation rather than duplicating
@@ -55,7 +55,7 @@ later used.
 > unknown from/to and dimensional mismatch and value/from mismatch in `unit_to()`) and confirms valid and
 > non-constant (unanalysable) calls produce nothing. The rule also fired on a real intentional call in
 > `tests/UnitFunctionTest.php:26` (a runtime-rejection test), which now carries an inline
-> `@phpstan-ignore imm.invalidUnitCall` documenting the intent.
+> `@phpstan-ignore yumemi.invalidUnitCall` documenting the intent.
 >
 > Follow-up worth tracking (not done): the operator layer has the same silent-`ErrorType` gap. `meter + second`,
 > `unit_int % unit_float`, and unit ± bare-numeric all infer `ErrorType` from
