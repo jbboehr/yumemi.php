@@ -53,7 +53,19 @@
             enable = true;
             package = pkgs.nixfmt;
           };
-          programs.prettier.enable = true;
+          programs.prettier = {
+            enable = true;
+            settings = {
+              proseWrap = "always";
+              printWidth = 120;
+              overrides = [
+                {
+                  files = "LICENSE.md";
+                  options.proseWrap = "preserve";
+                }
+              ];
+            };
+          };
         };
 
         pre-commit-check = pre-commit-hooks.lib.${system}.run {

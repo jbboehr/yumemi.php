@@ -22,8 +22,8 @@ Yumemi should be both:
 - A runtime unit expression, dimensional compatibility, and conversion library.
 - A PHPStan extension for static dimensional analysis.
 
-The runtime library is the source of truth. PHPStan should be an adapter over the same parser, registry, normalizer,
-and conversion semantics rather than a separate implementation.
+The runtime library is the source of truth. PHPStan should be an adapter over the same parser, registry, normalizer, and
+conversion semantics rather than a separate implementation.
 
 Important principle:
 
@@ -53,8 +53,8 @@ Less useful pieces from `phpstan-units`:
 - Duplicated expression model
 - Stub PHPStan operator extension
 
-Conclusion: `units.php` is the reference implementation. `phpstan-units` is useful only as a sketch of PHPStan
-extension registration.
+Conclusion: `units.php` is the reference implementation. `phpstan-units` is useful only as a sketch of PHPStan extension
+registration.
 
 ## Current Status
 
@@ -242,8 +242,8 @@ $distance;
 
 The string form can represent compound units without requiring a PHP class for every base, derived, or compound unit.
 
-The PHPStan extension should eventually make `Quantity<'meter / second'>` meaningful statically, but runtime
-application code should continue to use ordinary `Units` and `Quantity` objects.
+The PHPStan extension should eventually make `Quantity<'meter / second'>` meaningful statically, but runtime application
+code should continue to use ordinary `Units` and `Quantity` objects.
 
 ## Compatibility And Conversion
 
@@ -314,36 +314,34 @@ mostly catalog semantics, API polish, and edge-case formatting.
 
 Suggested next slices (detail in [phpstan-extension.md](phpstan-extension.md)):
 
-1. Add PHPStan type parsing. **Done for the native path:** `unit_int<'…'>` / `unit_float<'…'>`
-   resolve via `UnitTypeNodeResolverExtension`, parsing the string through Yumemi's runtime parser and
-   storing the reduced expression on `UnitIntegerType` / `UnitFloatType`. **Remaining:** the
-   `Quantity<'meter / second'>` object generic (sugar for `Quantity<Rational, '…'>`).
+1. Add PHPStan type parsing. **Done for the native path:** `unit_int<'…'>` / `unit_float<'…'>` resolve via
+   `UnitTypeNodeResolverExtension`, parsing the string through Yumemi's runtime parser and storing the reduced
+   expression on `UnitIntegerType` / `UnitFloatType`. **Remaining:** the `Quantity<'meter / second'>` object generic
+   (sugar for `Quantity<Rational, '…'>`).
 
-2. Add PHPStan diagnostics for invalid unit strings. **Done:** invalid units become `ErrorType`
-   with Yumemi messages in PHPDoc and constant args, and `InvalidUnitCallRule` now emits standalone
-   `yumemi.invalidUnitCall` diagnostics for invalid `unit()` / `unit_to()` calls.
+2. Add PHPStan diagnostics for invalid unit strings. **Done:** invalid units become `ErrorType` with Yumemi messages in
+   PHPDoc and constant args, and `InvalidUnitCallRule` now emits standalone `yumemi.invalidUnitCall` diagnostics for
+   invalid `unit()` / `unit_to()` calls.
 
-3. Add PHPStan return-type inference. **Done for the native path:** operator inference for
-   `+ - * / ** %`, plus `unit()` / `unit_to()` dynamic return types. **Remaining:** the `Quantity`
-   _method_ inference (`to()`, `normalize()`, `simplify()`, `mul()`, `div()`).
+3. Add PHPStan return-type inference. **Done for the native path:** operator inference for `+ - * / ** %`, plus `unit()`
+   / `unit_to()` dynamic return types. **Remaining:** the `Quantity` _method_ inference (`to()`, `normalize()`,
+   `simplify()`, `mul()`, `div()`).
 
-4. Add PHPStan checks for `add()` and `sub()`. **Done for the native path:** `+` / `-` require
-   normalized-equivalent units via the operator extension. **Remaining:** the optional dimensional
-   mode via config, and the `Quantity::add()` / `sub()` object-path checks.
+4. Add PHPStan checks for `add()` and `sub()`. **Done for the native path:** `+` / `-` require normalized-equivalent
+   units via the operator extension. **Remaining:** the optional dimensional mode via config, and the `Quantity::add()`
+   / `sub()` object-path checks.
 
-5. Harden registry extensibility. **Started:** immutable `UnitRegistry` + `UnitRegistryBuilder`
-   (`empty()` / `default()` with UDUNITS2, `define('name = expr')`, `add()`, `alias()`,
-   `CompositeUnitRegistry`). Remaining: user-defined base dimensions.
+5. Harden registry extensibility. **Started:** immutable `UnitRegistry` + `UnitRegistryBuilder` (`empty()` / `default()`
+   with UDUNITS2, `define('name = expr')`, `add()`, `alias()`, `CompositeUnitRegistry`). Remaining: user-defined base
+   dimensions.
 
-6. Improve catalog semantics.
-   Replace simple plural stripping with catalog plural aliases where possible, and design explicit behavior for affine
-   and logarithmic definitions.
+6. Improve catalog semantics. Replace simple plural stripping with catalog plural aliases where possible, and design
+   explicit behavior for affine and logarithmic definitions.
 
-> **Update 2026-07-25:** Slices 1–4 are done for the **native `unit_int` / `unit_float`** static
-> path (PHPDoc types, invalid-string and invalid-call diagnostics, operator/`unit()`/`unit_to()`
-> inference, exact-unit `+` / `-`). The runtime **`Quantity<…>` object path** (generic + method
-> inference) and the exact-vs-dimension config mode are the main PHPStan items still open. See
-> [phpstan-extension.md](phpstan-extension.md) "Next pieces".
+> **Update 2026-07-25:** Slices 1–4 are done for the **native `unit_int` / `unit_float`** static path (PHPDoc types,
+> invalid-string and invalid-call diagnostics, operator/`unit()`/`unit_to()` inference, exact-unit `+` / `-`). The
+> runtime **`Quantity<…>` object path** (generic + method inference) and the exact-vs-dimension config mode are the main
+> PHPStan items still open. See [phpstan-extension.md](phpstan-extension.md) "Next pieces".
 
 ## Current Architecture Sketch
 

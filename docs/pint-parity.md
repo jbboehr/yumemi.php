@@ -77,10 +77,10 @@ The right strategy is not "be Pint in PHP." The right strategy is:
 
 The most important missing feature is not an exotic unit feature. It is the PHPStan type layer.
 
-> **Update 2026-07-25:** The static-analysis estimate above (0–5%) is stale. The native
-> `unit_int` / `unit_float` PHPStan path now ships — PHPDoc types, diagnostics, operator inference,
-> and `unit()` / `unit_to()` helpers — so the intended static feature set is meaningfully underway.
-> The `Quantity<'…'>` object path is the main piece still missing (see §21).
+> **Update 2026-07-25:** The static-analysis estimate above (0–5%) is stale. The native `unit_int` / `unit_float`
+> PHPStan path now ships — PHPDoc types, diagnostics, operator inference, and `unit()` / `unit_to()` helpers — so the
+> intended static feature set is meaningfully underway. The `Quantity<'…'>` object path is the main piece still missing
+> (see §21).
 
 ## Current Yumemi Foundation
 
@@ -122,9 +122,7 @@ PHPStan extension -> same parser/registry/reducer/conversion semantics
 
 ### 1. Expression Model And Reduction
 
-Status: Partial
-Importance: P0
-Difficulty to finish: M
+Status: Partial Importance: P0 Difficulty to finish: M
 
 Yumemi has the core expression representation and deterministic reduction:
 
@@ -147,9 +145,7 @@ Recommendation: Keep the strategy. Improve equality and dimensions before buildi
 
 ### 2. Unit Parser
 
-Status: Partial
-Importance: P0
-Difficulty to finish: M
+Status: Partial Importance: P0 Difficulty to finish: M
 
 Yumemi already parses a useful unit expression language:
 
@@ -178,9 +174,7 @@ problem.
 
 ### 3. Registry And Default Catalog
 
-Status: Partial
-Importance: P0
-Difficulty to finish: M
+Status: Partial Importance: P0 Difficulty to finish: M
 
 Yumemi uses generated UDUNITS2 catalog data and resolves aliases and prefixes. This is the right foundation. It avoids
 inventing definitions and gives immediate coverage across SI, common derived units, US/imperial units, astronomical
@@ -200,12 +194,10 @@ other features.
 
 ### 4. Custom Unit Definitions
 
-Status: Absent
-Importance: P0/P1
-Difficulty to finish: M/L
+Status: Absent Importance: P0/P1 Difficulty to finish: M/L
 
-Pint lets users define units in text files and programmatically. Yumemi can currently construct a `UnitRegistry`, but the
-ergonomics are too low-level for application use.
+Pint lets users define units in text files and programmatically. Yumemi can currently construct a `UnitRegistry`, but
+the ergonomics are too low-level for application use.
 
 Current API (immutable build):
 
@@ -236,9 +228,7 @@ Recommendation: Implement this before a public release. It is essential for real
 
 ### 5. Quantity Creation API
 
-Status: Partial
-Importance: P0
-Difficulty to finish: S/M
+Status: Partial Importance: P0 Difficulty to finish: S/M
 
 Current API:
 
@@ -261,9 +251,7 @@ Recommendation: Keep `Units::quantity()` as the primary constructor. It makes re
 
 ### 6. Quantity Arithmetic
 
-Status: Partial
-Importance: P0
-Difficulty to finish: M
+Status: Partial Importance: P0 Difficulty to finish: M
 
 Yumemi supports:
 
@@ -292,9 +280,7 @@ than silently changing current semantics.
 
 ### 7. Explicit Conversion And Compatibility
 
-Status: Partial
-Importance: P0
-Difficulty to finish: M
+Status: Partial Importance: P0 Difficulty to finish: M
 
 Yumemi can compute conversion factors, convert values, check compatibility, and convert `Quantity` instances to a target
 unit. This is the minimum viable runtime.
@@ -311,9 +297,7 @@ scope.
 
 ### 8. Normalization, Simplification, Base Units, And Root Units
 
-Status: Partial
-Importance: P1
-Difficulty to finish: M/L
+Status: Partial Importance: P1 Difficulty to finish: M/L
 
 Yumemi currently has:
 
@@ -328,8 +312,8 @@ Pint has several related operations:
 - `to_preferred()`
 - `to_compact()`
 
-Yumemi's `simplify()` is closest to a root/base-unit conversion. It does not yet support preferred units, compact display,
-or named derived-unit output.
+Yumemi's `simplify()` is closest to a root/base-unit conversion. It does not yet support preferred units, compact
+display, or named derived-unit output.
 
 Remaining work:
 
@@ -338,14 +322,12 @@ Remaining work:
 - Add preferred unit selection later.
 - Add compact prefix selection later.
 
-Recommendation: Keep current semantics, but document them precisely. Naming matters here because Pint users will
-expect specific distinctions.
+Recommendation: Keep current semantics, but document them precisely. Naming matters here because Pint users will expect
+specific distinctions.
 
 ### 9. Dimensionality API
 
-Status: Partial/internal
-Importance: P0/P1
-Difficulty to finish: M
+Status: Partial/internal Importance: P0/P1 Difficulty to finish: M
 
 Yumemi can determine compatibility internally by normalizing units and comparing dimension expressions. It does not yet
 expose a clean public dimensionality object.
@@ -368,12 +350,10 @@ Recommendation: Add this before or during PHPStan MVP. Static diagnostics need g
 
 ### 10. Numeric Types And Output Policy
 
-Status: Partial
-Importance: P1
-Difficulty to finish: M
+Status: Partial Importance: P1 Difficulty to finish: M
 
-Yumemi currently uses exact rational values, which is a strong choice for conversion correctness and deterministic tests.
-It avoids hidden float rounding in core logic.
+Yumemi currently uses exact rational values, which is a strong choice for conversion correctness and deterministic
+tests. It avoids hidden float rounding in core logic.
 
 What exists:
 
@@ -403,9 +383,7 @@ Do not let floats become the internal representation.
 
 ### 11. Formatting And Display Units
 
-Status: Partial
-Importance: P1
-Difficulty to finish: M/L
+Status: Partial Importance: P1 Difficulty to finish: M/L
 
 Yumemi has a basic expression formatter and string methods. Pint has extensive formatting: plain, abbreviated, pretty,
 HTML, LaTeX, siunitx, localized output, and custom magnitude formatting.
@@ -433,9 +411,7 @@ Recommendation: Build a small formatter now, not a Pint-sized formatter. Aim for
 
 ### 12. Aliases, Prefixes, Plurals, Symbols, And Case Sensitivity
 
-Status: Partial
-Importance: P1
-Difficulty to finish: M
+Status: Partial Importance: P1 Difficulty to finish: M
 
 Yumemi currently resolves generated aliases and prefixes, and uses simple plural stripping. That is enough for common
 examples, but it will surprise users on edge cases.
@@ -452,9 +428,7 @@ Recommendation: Tighten this before calling the catalog "UDUNITS2-compatible" in
 
 ### 13. Offset And Affine Units
 
-Status: Absent/unsupported
-Importance: P1
-Difficulty: L/XL
+Status: Absent/unsupported Importance: P1 Difficulty: L/XL
 
 This is the biggest runtime semantic gap for ordinary users. Celsius and Fahrenheit matter in everyday software, and
 Pint supports them with nonmultiplicative conversion rules and delta units.
@@ -479,12 +453,10 @@ are in place.
 
 ### 14. Logarithmic Units
 
-Status: Absent/skipped by importer
-Importance: P2/P3
-Difficulty: XL
+Status: Absent/skipped by importer Importance: P2/P3 Difficulty: XL
 
-Pint supports logarithmic units such as decibels, though its own docs present the feature carefully. Yumemi currently skips
-logarithmic definitions during UDUNITS2 import.
+Pint supports logarithmic units such as decibels, though its own docs present the feature carefully. Yumemi currently
+skips logarithmic definitions during UDUNITS2 import.
 
 Why it is hard:
 
@@ -497,9 +469,7 @@ Recommendation: Defer. It is not needed for a useful first version.
 
 ### 15. Contexts
 
-Status: Absent
-Importance: P2
-Difficulty: XL
+Status: Absent Importance: P2 Difficulty: XL
 
 Pint contexts allow conversions that are dimensionally invalid under normal rules, such as wavelength to frequency via
 the speed of light. They can also be parameterized and scoped.
@@ -517,14 +487,12 @@ Possible PHP shape:
 $units->withContext('spectroscopy', fn (Units $u) => $wavelength->to('hertz'));
 ```
 
-Recommendation: Defer until after the static analyzer has ordinary dimensional checks. Contexts are useful, but they
-are not necessary for the first compelling version.
+Recommendation: Defer until after the static analyzer has ordinary dimensional checks. Contexts are useful, but they are
+not necessary for the first compelling version.
 
 ### 16. Unit Systems
 
-Status: Absent
-Importance: P2
-Difficulty: L
+Status: Absent Importance: P2 Difficulty: L
 
 Pint has systems such as MKS, CGS, SI, US, and imperial. A system changes what "base units" or preferred reductions
 mean.
@@ -543,12 +511,10 @@ Recommendation: Useful, but secondary. Preferred units are probably more valuabl
 
 ### 17. Preferred And Compact Units
 
-Status: Absent
-Importance: P2
-Difficulty: M/L
+Status: Absent Importance: P2 Difficulty: M/L
 
-Pint can choose more readable units, such as turning a very large hertz value into terahertz. Yumemi does not currently do
-this.
+Pint can choose more readable units, such as turning a very large hertz value into terahertz. Yumemi does not currently
+do this.
 
 Needed pieces:
 
@@ -561,9 +527,7 @@ Recommendation: Defer until formatting and custom registry composition exist.
 
 ### 18. Constants
 
-Status: Partial
-Importance: P2
-Difficulty: M
+Status: Partial Importance: P2 Difficulty: M
 
 UDUNITS2 includes constants such as `pi`, `gravity`, and `avogadro_constant`. Yumemi imports many of them as units or
 dimensionless units with decimal definitions. Because Yumemi parses decimal definitions into rationals, constants become
@@ -584,12 +548,10 @@ catalog says they are exact.
 
 ### 19. Comparisons, Equality, And Predicates
 
-Status: Absent/partial
-Importance: P1
-Difficulty: M
+Status: Absent/partial Importance: P1 Difficulty: M
 
-Pint quantities can participate in many mathematical and comparison operations. PHP cannot overload operators, but Yumemi
-can still provide explicit methods.
+Pint quantities can participate in many mathematical and comparison operations. PHP cannot overload operators, but
+Yumemi can still provide explicit methods.
 
 Useful API:
 
@@ -610,12 +572,10 @@ Recommendation: Add explicit methods with clear names. For example, `equalsQuant
 
 ### 20. Math Functions
 
-Status: Absent
-Importance: P2
-Difficulty: L
+Status: Absent Importance: P2 Difficulty: L
 
-Pint integrates with many NumPy functions and enforces dimensional rules for functions like trig, sqrt, exp, and log.
-In PHP, the equivalent would be explicit methods or utility functions.
+Pint integrates with many NumPy functions and enforces dimensional rules for functions like trig, sqrt, exp, and log. In
+PHP, the equivalent would be explicit methods or utility functions.
 
 Useful subset:
 
@@ -631,17 +591,14 @@ Recommendation: Add integer `pow()` soon. Defer fractional powers and transcende
 
 ### 21. Static Analysis With PHPStan
 
-Status: Partial (native path shipped; `Quantity` object path pending)
-Importance: P0
-Difficulty: XL
+Status: Partial (native path shipped; `Quantity` object path pending) Importance: P0 Difficulty: XL
 
-> **Update 2026-07-25:** The **native `unit_int` / `unit_float`** static path is implemented:
-> PHPDoc type resolution, invalid-unit and standalone invalid-call diagnostics
-> (`yumemi.invalidUnitCall`), operator inference (`+ - * / ** %`), `unit()` / `unit_to()` dynamic
-> return types, and assignment/parameter checks via the branded types' `accepts()`. Of the must-have
-> pieces below, everything is covered **for native types**; the outstanding work is the
-> `Quantity<'…'>` object generic and its method inference, plus the exact-vs-dimension config mode.
-> See [phpstan-extension.md](phpstan-extension.md).
+> **Update 2026-07-25:** The **native `unit_int` / `unit_float`** static path is implemented: PHPDoc type resolution,
+> invalid-unit and standalone invalid-call diagnostics (`yumemi.invalidUnitCall`), operator inference (`+ - * / ** %`),
+> `unit()` / `unit_to()` dynamic return types, and assignment/parameter checks via the branded types' `accepts()`. Of
+> the must-have pieces below, everything is covered **for native types**; the outstanding work is the `Quantity<'…'>`
+> object generic and its method inference, plus the exact-vs-dimension config mode. See
+> [phpstan-extension.md](phpstan-extension.md).
 
 This is Yumemi's main differentiator. Pint has Python typing for magnitude types, but it is not primarily a static
 dimensional analyzer. Yumemi should aim to make PHPDoc unit strings meaningful to PHPStan.
@@ -680,14 +637,12 @@ Main risks:
 - Static analysis cannot run arbitrary runtime code safely.
 - User-defined registries need a config story, not just runtime APIs.
 
-Recommendation: This should be the next major feature track. Start with static parsing and diagnostics, then return
-type inference, then arithmetic checks.
+Recommendation: This should be the next major feature track. Start with static parsing and diagnostics, then return type
+inference, then arithmetic checks.
 
 ### 22. Function Boundary Checking
 
-Status: Absent
-Importance: P1/P2
-Difficulty: M/L
+Status: Absent Importance: P1/P2 Difficulty: M/L
 
 Pint has runtime decorators such as `wraps()` to convert and check function arguments. PHP has a better opportunity:
 attributes plus PHPStan rules.
@@ -720,9 +675,7 @@ Recommendation: Prefer PHPDoc generics first. Attributes can be added later if t
 
 ### 23. Serialization
 
-Status: Absent
-Importance: P2
-Difficulty: M
+Status: Absent Importance: P2 Difficulty: M
 
 Applications will eventually need to store quantities in JSON, databases, messages, and config files.
 
@@ -745,9 +698,7 @@ Recommendation: Add after the public quantity API stabilizes.
 
 ### 24. Arrays, Collections, And Scientific-PHP Integration
 
-Status: Absent
-Importance: P3
-Difficulty: L/XL
+Status: Absent Importance: P3 Difficulty: L/XL
 
 Pint has major NumPy, xarray, Dask, and ecosystem integration. PHP does not have an equivalent dominant numerical array
 ecosystem.
@@ -762,9 +713,7 @@ Recommendation: Do not chase Pint here. Add small helpers only when a real PHP u
 
 ### 25. Measurements And Uncertainty
 
-Status: Absent
-Importance: P3
-Difficulty: M/L
+Status: Absent Importance: P3 Difficulty: M/L
 
 Pint supports measurements with uncertainty. Yumemi does not.
 
@@ -778,9 +727,7 @@ Recommendation: Defer. It is not needed for dimensional analysis MVP.
 
 ### 26. Buckingham Pi Theorem
 
-Status: Absent
-Importance: P3
-Difficulty: M/L
+Status: Absent Importance: P3 Difficulty: M/L
 
 Pint includes Buckingham Pi theorem helpers for dimensional analysis. This is mathematically related but not central to
 runtime conversion or PHPStan diagnostics.
@@ -789,9 +736,7 @@ Recommendation: Defer indefinitely unless Yumemi grows a scientific-computing au
 
 ### 27. Currency
 
-Status: Absent
-Importance: P3
-Difficulty: L
+Status: Absent Importance: P3 Difficulty: L
 
 Pint documents currency conversion as an advanced topic. Yumemi should avoid this in core because exchange rates are
 time-varying, jurisdictional, and application-specific.
@@ -801,9 +746,7 @@ really needs them.
 
 ### 28. Localization
 
-Status: Absent
-Importance: P3
-Difficulty: M/L
+Status: Absent Importance: P3 Difficulty: M/L
 
 Pint can localize formatted unit names with Babel. PHP has internationalization tooling, but this is not central to
 Yumemi's static-analysis goal.
@@ -812,9 +755,7 @@ Recommendation: Defer. Make formatter internals extensible enough that localizat
 
 ### 29. Performance And Caching
 
-Status: Partial
-Importance: P1
-Difficulty: M
+Status: Partial Importance: P1 Difficulty: M
 
 Current performance is probably fine for tests and small runtime use, but PHPStan integration will stress the parser,
 normalizer, and registry repeatedly.
@@ -831,9 +772,7 @@ Recommendation: Add caches when PHPStan work begins. Static analysis will make p
 
 ### 30. Error Messages And Developer UX
 
-Status: Partial
-Importance: P1
-Difficulty: M
+Status: Partial Importance: P1 Difficulty: M
 
 Current exceptions exist, but user-facing diagnostics need more detail.
 
@@ -849,9 +788,7 @@ Recommendation: Treat this as part of the PHPStan MVP, not as later polish.
 
 ### 31. Documentation And Examples
 
-Status: Partial
-Importance: P1
-Difficulty: M
+Status: Partial Importance: P1 Difficulty: M
 
 The README examples are executable tests, which is good. Documentation now needs to separate current behavior from
 future intent.
@@ -870,9 +807,7 @@ Recommendation: Keep README small. Put deeper material in `docs/`.
 
 ### 32. Packaging, CI, And Release Hygiene
 
-Status: Partial
-Importance: P0/P1
-Difficulty: M
+Status: Partial Importance: P0/P1 Difficulty: M
 
 The project has Composer, Nix, treefmt, pre-commit hooks, PHP-CS-Fixer, PHPStan, PHPUnit, and GitHub Actions. That is a
 good base.
@@ -969,8 +904,8 @@ Work:
 
 This is the project's main differentiator and should take priority over Pint-style convenience features.
 
-> **Update 2026-07-25:** The native-type half of this milestone is delivered; the runtime
-> `Quantity<…>` object generic + method inference and the dimension-mode config are what's left.
+> **Update 2026-07-25:** The native-type half of this milestone is delivered; the runtime `Quantity<…>` object generic +
+> method inference and the dimension-mode config are what's left.
 
 ### Milestone 4: Runtime API Polish
 
@@ -1010,8 +945,8 @@ Do not restart from scratch. The current code has the right core shape:
 
 The parts to change are mostly API boundaries and missing layers, not the underlying strategy.
 
-Do not chase full Pint parity as the product goal. Pint parity is too broad and too Python-specific. Yumemi should instead
-target:
+Do not chase full Pint parity as the product goal. Pint parity is too broad and too Python-specific. Yumemi should
+instead target:
 
 1. A reliable scalar multiplicative runtime.
 2. Strong PHPStan diagnostics and inference.

@@ -21,18 +21,16 @@ These are related but not the same product surface:
 | **Runtime `Quantity`** | **`Rational` only** (exact conversion)              | Code that opts into the Yumemi value object |
 | **PHPStan unit types** | **Native magnitudes** (`int`, `float`, …) plus unit | App code that stays on native PHP types     |
 
-It is fine — and intentional — that runtime storage stays Rational-only while static analysis
-tracks `int` / `float` (and later other natives) with units. Most PHPStan users will annotate
-and check **native-typed** variables and parameters; they may never construct a runtime
-`Quantity`.
+It is fine — and intentional — that runtime storage stays Rational-only while static analysis tracks `int` / `float`
+(and later other natives) with units. Most PHPStan users will annotate and check **native-typed** variables and
+parameters; they may never construct a runtime `Quantity`.
 
-Yumemi runtime still supplies the **unit engine** (parse, resolve, reduce, dimension, convert
-factors). PHPStan attaches that engine to native types and optional `Quantity` types.
+Yumemi runtime still supplies the **unit engine** (parse, resolve, reduce, dimension, convert factors). PHPStan attaches
+that engine to native types and optional `Quantity` types.
 
 ## Guiding Principle
 
-> PHPStan reuses Yumemi’s unit engine; it does not require every analysed value to be a runtime
-> `Quantity`.
+> PHPStan reuses Yumemi’s unit engine; it does not require every analysed value to be a runtime `Quantity`.
 
 Use the same:
 
@@ -72,8 +70,8 @@ or equivalently a single generic:
 /** @var UnitValue<float, 'meter / second'> $speed */
 ```
 
-These describe **PHPStan-level** magnitudes. At runtime the variable is still a plain `int` or
-`float` unless the user also wraps a `Quantity`.
+These describe **PHPStan-level** magnitudes. At runtime the variable is still a plain `int` or `float` unless the user
+also wraps a `Quantity`.
 
 ### Runtime `Quantity` (optional path)
 
@@ -94,8 +92,7 @@ For code that uses the object API, PHPStan can still understand:
 /** @var Quantity<Rational, 'meter'> $q */ // explicit; Rational is the only runtime storage
 ```
 
-`Quantity` annotations default number kind to **`Rational`**. They are not required for the
-native-type analysis path.
+`Quantity` annotations default number kind to **`Rational`**. They are not required for the native-type analysis path.
 
 ### Why both layers
 
@@ -105,9 +102,8 @@ native-type analysis path.
 | Analyse ordinary PHP (`int`/`float` APIs, loops, arrays) | Static `unit_int` / `unit_float` (or `UnitValue<int\|float, U>`) |
 | Unit algebra (mul/div/add checks)                        | Shared Yumemi `Expr` + dimension engine                          |
 
-Codex-style pushback on **`intWithUnit` as a second runtime world** still applies: do not invent
-a parallel library of instrumented ints. Do use **PHPStan types** that behave like `int`/`float`
-with an attached unit for analysis.
+Codex-style pushback on **`intWithUnit` as a second runtime world** still applies: do not invent a parallel library of
+instrumented ints. Do use **PHPStan types** that behave like `int`/`float` with an attached unit for analysis.
 
 ### Challenges of native unit types (accepted tradeoffs)
 
@@ -141,8 +137,8 @@ Avoid one PHP class per unit. Unit identity is always Yumemi `Expr` from unit st
 
 ## Vertical Slices (Implementation Order)
 
-Ship thin end-to-end slices. Prefer proving **native unit types** early, since that is the main
-PHPStan audience. Runtime `Quantity` support can follow or trail slightly.
+Ship thin end-to-end slices. Prefer proving **native unit types** early, since that is the main PHPStan audience.
+Runtime `Quantity` support can follow or trail slightly.
 
 ### Slice 1 — Native unit PHPDoc + validation
 
@@ -208,8 +204,7 @@ Composer:
 
 - Autoload PHPStan classes with the library
 - `extra.phpstan.includes` → `extension.neon` when published
-- Do **not** hard-require `phpstan/phpstan` at runtime for app code; only when the extension is
-  loaded
+- Do **not** hard-require `phpstan/phpstan` at runtime for app code; only when the extension is loaded
 
 ## What To Reuse (Do Not Fork)
 
@@ -230,8 +225,8 @@ Composer:
 3. **Rule tests** — incompatible add, unknown unit, unsafe cast
 4. **Quantity fixtures** — secondary path once native types work
 
-Follow PHPStan extension testing patterns (`TypeInferenceTestCase`, `RuleTestCase`, or current
-equivalents for the PHPStan major version in use).
+Follow PHPStan extension testing patterns (`TypeInferenceTestCase`, `RuleTestCase`, or current equivalents for the
+PHPStan major version in use).
 
 ## Non-Goals For Early Versions
 
@@ -277,35 +272,35 @@ Optional polish (not blockers):
 
 ### Piece 3 — arithmetic operator inference (done)
 
-- `UnitOperatorTypeSpecifyingExtension` infers `+ - * / ** %` when at least one operand is a
-  unit type; `UnitUnaryOperatorTypeSpecifyingExtension` handles unary `+` / `-`
-- `+` / `-` require normalized-equivalent units (exact scale, not merely same dimension);
-  `*` / `/` combine unit exprs via the Yumemi `Expr` algebra; `**` requires a constant integer
-  exponent; `%` is restricted to `unit_int` operands with equivalent units (PHP integer modulo)
+- `UnitOperatorTypeSpecifyingExtension` infers `+ - * / ** %` when at least one operand is a unit type;
+  `UnitUnaryOperatorTypeSpecifyingExtension` handles unary `+` / `-`
+- `+` / `-` require normalized-equivalent units (exact scale, not merely same dimension); `*` / `/` combine unit exprs
+  via the Yumemi `Expr` algebra; `**` requires a constant integer exponent; `%` is restricted to `unit_int` operands
+  with equivalent units (PHP integer modulo)
 - `int` × `float` promotion and `/`-always-float follow native PHP rules
 - Covered by `UnitOperatorTypeSpecifyingExtensionTest`, `UnitUnaryOperatorTypeSpecifyingExtensionTest`,
   `UnitMagnitudeTypeTest`, and the `unit-ops.php` CLI integration fixture
 
 ### Piece 4 — `unit()` construction helper (done)
 
-- `UnitFunctionDynamicReturnTypeExtension` infers `unit_int<'…'>` / `unit_float<'…'>` from
-  `unit($value, 'meter')` when the unit string is constant
-- Invalid unit strings yield an `ErrorType` (with reason); non-constant strings fall back to the
-  native signature so unrelated code is not poisoned
+- `UnitFunctionDynamicReturnTypeExtension` infers `unit_int<'…'>` / `unit_float<'…'>` from `unit($value, 'meter')` when
+  the unit string is constant
+- Invalid unit strings yield an `ErrorType` (with reason); non-constant strings fall back to the native signature so
+  unrelated code is not poisoned
 
 ### Piece 5 — `unit_to()` conversion helper (done)
 
-- `UnitToFunctionDynamicReturnTypeExtension` infers `unit_float<'to'>` from
-  `unit_to($value, 'from', 'to')`, always float (conversion factors are generally non-integral)
-- Checks that a branded value's unit matches `from`, and that `from` / `to` share a dimension;
-  `ErrorType` (with reason) otherwise
+- `UnitToFunctionDynamicReturnTypeExtension` infers `unit_float<'to'>` from `unit_to($value, 'from', 'to')`, always
+  float (conversion factors are generally non-integral)
+- Checks that a branded value's unit matches `from`, and that `from` / `to` share a dimension; `ErrorType` (with reason)
+  otherwise
 
 ### Piece 6 — invalid-call diagnostics (done)
 
-- `InvalidUnitCallRule` reports standalone `yumemi.invalidUnitCall` diagnostics for invalid
-  `unit()` / `unit_to()` calls, independent of whether the result is later used
-- Reuses the extensions' shared `inferType(FuncCall, Scope): ?Type` and surfaces its `getReason()`,
-  so validation and messages stay a single source of truth
+- `InvalidUnitCallRule` reports standalone `yumemi.invalidUnitCall` diagnostics for invalid `unit()` / `unit_to()`
+  calls, independent of whether the result is later used
+- Reuses the extensions' shared `inferType(FuncCall, Scope): ?Type` and surfaces its `getReason()`, so validation and
+  messages stay a single source of truth
 - Covered by `InvalidUnitCallRuleTest`
 - Note: binary-operator misuse (e.g. `meter + second`) is already diagnosed by PHPStan core's
   `InvalidBinaryOperationRule` (`binaryOp.invalid`), so no sibling operator rule was added
@@ -313,23 +308,20 @@ Optional polish (not blockers):
 ### Next pieces
 
 1. **Runtime `Quantity` PHPDoc + method inference** — the object path is still untouched. Resolve
-   `Quantity<'meter / second'>` (sugar for `Quantity<Rational, '…'>`), infer `Units::quantity()`,
-   and infer `to()` / `mul()` / `div()` / `normalize()` / `simplify()` plus `add()` / `sub()`
-   checks. This is the original headline goal and the largest remaining gap.
-2. **Exact vs dimension arithmetic mode + neon config** — only exact-unit is implemented today;
-   add the relaxed dimension mode and a `parameters.yumemi` config shape (arithmetic mode, catalog,
-   bare-numeric policy).
-3. **Richer identifiers / messages** — stable per-cause error identifiers beyond the current
-   `yumemi.invalidUnitCall`.
+   `Quantity<'meter / second'>` (sugar for `Quantity<Rational, '…'>`), infer `Units::quantity()`, and infer `to()` /
+   `mul()` / `div()` / `normalize()` / `simplify()` plus `add()` / `sub()` checks. This is the original headline goal
+   and the largest remaining gap.
+2. **Exact vs dimension arithmetic mode + neon config** — only exact-unit is implemented today; add the relaxed
+   dimension mode and a `parameters.yumemi` config shape (arithmetic mode, catalog, bare-numeric policy).
+3. **Richer identifiers / messages** — stable per-cause error identifiers beyond the current `yumemi.invalidUnitCall`.
 
-**Success criterion (piece 2):** `unit_int<'mass'>` errors; `unit_int<'meter / second'>` is a
-real type. **(met)**
+**Success criterion (piece 2):** `unit_int<'mass'>` errors; `unit_int<'meter / second'>` is a real type. **(met)**
 
-> **Update 2026-07-25:** Pieces 3–6 are complete (commits `343027f`, `185d01f`, `515e722`,
-> `a2180ed`, and the invalid-call rule). The native `unit_int` / `unit_float` path — PHPDoc
-> resolution, validation, operator inference, `unit()` / `unit_to()` helpers, assignment checks via
-> the branded types' `accepts()`, and standalone invalid-call diagnostics — is now in place. What
-> remains is the runtime `Quantity` object path and the exact-vs-dimension config work.
+> **Update 2026-07-25:** Pieces 3–6 are complete (commits `343027f`, `185d01f`, `515e722`, `a2180ed`, and the
+> invalid-call rule). The native `unit_int` / `unit_float` path — PHPDoc resolution, validation, operator inference,
+> `unit()` / `unit_to()` helpers, assignment checks via the branded types' `accepts()`, and standalone invalid-call
+> diagnostics — is now in place. What remains is the runtime `Quantity` object path and the exact-vs-dimension config
+> work.
 
 ## Later Milestones
 
@@ -340,8 +332,8 @@ real type. **(met)**
 5. Neon config for catalog and policies
 6. Richer messages / structured identifiers
 
-> **Update 2026-07-25:** Milestone 1 is done. Milestones 2–6 remain; see the reduced "Next pieces"
-> list above, which is now the authoritative near-term plan.
+> **Update 2026-07-25:** Milestone 1 is done. Milestones 2–6 remain; see the reduced "Next pieces" list above, which is
+> now the authoritative near-term plan.
 
 ## Summary Slogans
 
