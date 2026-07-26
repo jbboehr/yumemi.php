@@ -135,6 +135,79 @@ Avoid one PHP class per unit. Unit identity is always Yumemi `Expr` from unit st
 - `unitExpr = null`
 - Operations stay unknown or degrade; do not invent units
 
+## Annotation Surface: extension-required vs extension-optional
+
+Two ways to attach a unit, chosen by whether consumers must install the extension.
+
+### Extension-required (native type position)
+
+`unit_int<'…'>` / `unit_float<'…'>` work in any normal PHPDoc type position — `@param`, `@return`, `@var`, and inside
+compound types (`list<unit_int<'foot'>>`, `unit_int<'foot'>|null`, `array<string, unit_float<'meter'>>`).
+`UnitTypeNodeResolverExtension` resolves them wherever PHPStan parses a type.
+
+```php
+/** @param unit_int<'foot'> $height */
+```
+
+Cost: **the extension is required.** Without our resolver, PHPStan treats `unit_int` as an unknown class/type and errors
+in consumer code. Use only in first-party projects that mandate the extension.
+
+### Extension-optional (vendor-prefixed tag)
+
+For public APIs that only _optionally_ support Yumemi, pair the ordinary native tag with a vendor-prefixed one:
+
+```php
+/**
+ * @param int $length
+ * @yumemi-param unit_int<'foot'> $length
+ * @yumemi-return unit_int<'square-foot'>
+ */
+function area(int $length): int { /* ... */ }
+```
+
+PHPStan preserves unknown tags as generic PHPDoc nodes and otherwise ignores them, so consumers without the extension —
+plus IDEs and phpDocumentor — see only native `int`: an unfamiliar tag, never a nonexistent type. This is PHPStan's
+documented mechanism for custom PHPDoc metadata.
+
+Tag family: `@yumemi-param`, `@yumemi-return`, `@yumemi-var` (one namespaced family; not `@phpstan-yumemi-param` — there
+is no conditional-tag mechanism, so it would just be another unknown tag either way).
+
+| Environment                                  | Sees                                |
+| -------------------------------------------- | ----------------------------------- |
+| Extension installed                          | `int` **plus** dimensional check    |
+| No extension (PHPStan / IDE / phpDocumentor) | plain `int`; unknown tag ignored    |
+| Third-party consumer                         | no hard dependency on the extension |
+
+### Third-party libraries you don't control
+
+Ship **stub files** from the extension rather than editing foreign source. A bundled `StubFilesExtension` (tagged
+`phpstan.stubFilesExtension`) auto-registers `.stub` files carrying `@yumemi-*` tags, so consumers don't hand-add
+`parameters.stubFiles`. Stub declarations must match the real namespace/class/method/params; native types written only
+in the stub are ignored, so keep matching native signatures for readability.
+
+```php
+final class YumemiStubFilesExtension implements StubFilesExtension
+{
+    public function getFiles(): array
+    {
+        return [__DIR__ . '/../stubs/some-geometry-library.stub'];
+    }
+}
+```
+
+### Implementation notes (for when this slice lands)
+
+- Unknown tags arrive as `GenericTagValueNode`; read via `PhpDocNode::getTagsByName('@yumemi-param')`.
+- Read from the **resolved** PHPDoc attached to reflection (`ExtendedMethodReflection::getResolvedPhpDoc()`; for
+  functions route the doc comment through `FileTypeMapper::getResolvedPhpDoc()`), **not** the raw source doc comment —
+  otherwise stub-contributed tags are invisible.
+- A `TypeNodeResolverExtension` alone will **not** parse the type inside `@yumemi-param`: the whole tag is generic text,
+  and PHPStan only invokes the type resolver in recognized type positions. Parse the `unit_int<'foot'> $length` payload
+  yourself — feed the type part through `TypeStringResolver` so it reaches the existing resolver and `unit_int<'…'>`
+  keeps exactly one parser and one meaning. Reuse `UnitExpressionParser`; do not add a second unit grammar.
+
+References: PHPStan docs — Custom PHPDoc Types, Stub Files, Stub Files Extensions, Reflection.
+
 ## Vertical Slices (Implementation Order)
 
 Ship thin end-to-end slices. Prefer proving **native unit types** early, since that is the main PHPStan audience.
@@ -314,6 +387,9 @@ Optional polish (not blockers):
 2. **Exact vs dimension arithmetic mode + neon config** — only exact-unit is implemented today; add the relaxed
    dimension mode and a `parameters.yumemi` config shape (arithmetic mode, catalog, bare-numeric policy).
 3. **Richer identifiers / messages** — stable per-cause error identifiers beyond the current `yumemi.invalidUnitCall`.
+4. **Extension-optional annotations** — `@yumemi-param` / `@yumemi-return` / `@yumemi-var` graceful-degradation tags
+   plus bundled stub files for third-party libraries (see "Annotation Surface"). Distinct from the mandatory
+   native-position path already shipped.
 
 **Success criterion (piece 2):** `unit_int<'mass'>` errors; `unit_int<'meter / second'>` is a real type. **(met)**
 
