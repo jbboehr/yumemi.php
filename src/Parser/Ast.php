@@ -1,6 +1,6 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Parser;
+namespace jbboehr\Yumemi\Parser;
 
 interface Ast
 {

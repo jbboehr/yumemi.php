@@ -9,8 +9,8 @@
  * Note: catalog parse may rewrite names (foot → international_foot, kilometer → 1000 * meter).
  */
 
-use function jbboehr\IudexMensurarumMysteriorum\unit;
-use function jbboehr\IudexMensurarumMysteriorum\unit_to;
+use function jbboehr\Yumemi\unit;
+use function jbboehr\Yumemi\unit_to;
 use function PHPStan\Testing\assertType;
 
 // --- unit() ---

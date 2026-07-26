@@ -1,9 +1,9 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests\Registry;
+namespace jbboehr\Yumemi\Tests\Registry;
 
-use jbboehr\IudexMensurarumMysteriorum\Exception\UnitNotFoundException;
-use jbboehr\IudexMensurarumMysteriorum\Registry\UnitRegistry;
+use jbboehr\Yumemi\Exception\UnitNotFoundException;
+use jbboehr\Yumemi\Registry\UnitRegistry;
 use PHPUnit\Framework\TestCase;
 
 final class UnitRegistryTest extends TestCase

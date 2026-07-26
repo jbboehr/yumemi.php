@@ -1,10 +1,10 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests\PHPStan;
+namespace jbboehr\Yumemi\Tests\PHPStan;
 
-use jbboehr\IudexMensurarumMysteriorum\PHPStan\UnitExpressionParser;
-use jbboehr\IudexMensurarumMysteriorum\PHPStan\UnitFloatType;
-use jbboehr\IudexMensurarumMysteriorum\PHPStan\UnitIntegerType;
+use jbboehr\Yumemi\PHPStan\UnitExpressionParser;
+use jbboehr\Yumemi\PHPStan\UnitFloatType;
+use jbboehr\Yumemi\PHPStan\UnitIntegerType;
 use PHPStan\Type\FloatType;
 use PHPStan\Type\IntegerType;
 use PHPStan\Type\VerbosityLevel;

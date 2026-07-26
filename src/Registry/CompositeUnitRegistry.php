@@ -1,8 +1,8 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Registry;
+namespace jbboehr\Yumemi\Registry;
 
-use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
+use jbboehr\Yumemi\Expr\Unit;
 
 /**
  * Immutable layered registry: overlay wins, then base (e.g. custom units over UDUNITS2).

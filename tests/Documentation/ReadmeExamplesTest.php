@@ -1,6 +1,6 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests\Documentation;
+namespace jbboehr\Yumemi\Tests\Documentation;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;

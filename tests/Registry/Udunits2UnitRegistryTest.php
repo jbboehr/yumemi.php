@@ -1,12 +1,12 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests\Registry;
+namespace jbboehr\Yumemi\Tests\Registry;
 
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitResolver;
-use jbboehr\IudexMensurarumMysteriorum\Exception\UnsupportedUnitDimensionException;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
-use jbboehr\IudexMensurarumMysteriorum\Registry\Udunits2UnitRegistry;
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\Analyzer\UnitResolver;
+use jbboehr\Yumemi\Exception\UnsupportedUnitDimensionException;
+use jbboehr\Yumemi\Expr\Unit;
+use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
+use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\TestCase;
 
 final class Udunits2UnitRegistryTest extends TestCase

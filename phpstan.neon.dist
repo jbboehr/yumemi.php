@@ -16,5 +16,5 @@ parameters:
         - tests/PHPStan/Fixtures
     ignoreErrors:
         -
-            message: "#^Trait jbboehr\\\\IudexMensurarumMysteriorum\\\\Parser\\\\ParserUtils is used zero times and is not analysed\\.$#"
+            message: "#^Trait jbboehr\\\\Yumemi\\\\Parser\\\\ParserUtils is used zero times and is not analysed\\.$#"
             path: src/Parser/ParserUtils.php

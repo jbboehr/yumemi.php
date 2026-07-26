@@ -1,14 +1,14 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests\Analyzer;
+namespace jbboehr\Yumemi\Tests\Analyzer;
 
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\DimensionResolver;
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitNormalizer;
-use jbboehr\IudexMensurarumMysteriorum\Exception\UnsupportedUnitDimensionException;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Compound;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Constant;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Term;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
+use jbboehr\Yumemi\Analyzer\DimensionResolver;
+use jbboehr\Yumemi\Analyzer\UnitNormalizer;
+use jbboehr\Yumemi\Exception\UnsupportedUnitDimensionException;
+use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Expr\Constant;
+use jbboehr\Yumemi\Expr\Term;
+use jbboehr\Yumemi\Expr\Unit;
 use PHPUnit\Framework\TestCase;
 
 final class DimensionResolverTest extends TestCase

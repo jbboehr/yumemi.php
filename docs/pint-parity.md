@@ -210,8 +210,8 @@ ergonomics are too low-level for application use.
 Current API (immutable build):
 
 ```php
-use jbboehr\IudexMensurarumMysteriorum\Registry\UnitRegistry;
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\Registry\UnitRegistry;
+use jbboehr\Yumemi\Units;
 
 $registry = UnitRegistryBuilder::default()
     ->define('widget = 12 * meter')

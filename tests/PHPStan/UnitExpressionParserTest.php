@@ -1,10 +1,10 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests\PHPStan;
+namespace jbboehr\Yumemi\Tests\PHPStan;
 
-use jbboehr\IudexMensurarumMysteriorum\PHPStan\UnitExpressionParser;
-use jbboehr\IudexMensurarumMysteriorum\Registry\UnitRegistryBuilder;
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\PHPStan\UnitExpressionParser;
+use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
+use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

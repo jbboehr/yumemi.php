@@ -1,8 +1,8 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests\PHPStan;
+namespace jbboehr\Yumemi\Tests\PHPStan;
 
-use jbboehr\IudexMensurarumMysteriorum\PHPStan\InvalidUnitCallRule;
+use jbboehr\Yumemi\PHPStan\InvalidUnitCallRule;
 use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;
 

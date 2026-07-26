@@ -1,10 +1,10 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\PHPStan;
+namespace jbboehr\Yumemi\PHPStan;
 
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\ExprComparer;
-use jbboehr\IudexMensurarumMysteriorum\Dimension;
-use jbboehr\IudexMensurarumMysteriorum\Expr;
+use jbboehr\Yumemi\Analyzer\ExprComparer;
+use jbboehr\Yumemi\Dimension;
+use jbboehr\Yumemi\Expr;
 
 /**
  * A successfully parsed unit expression for PHPStan types.

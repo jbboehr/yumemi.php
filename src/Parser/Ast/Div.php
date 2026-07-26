@@ -1,8 +1,8 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Parser\Ast;
+namespace jbboehr\Yumemi\Parser\Ast;
 
-use jbboehr\IudexMensurarumMysteriorum\Parser\Ast;
+use jbboehr\Yumemi\Parser\Ast;
 
 final class Div implements Ast
 {

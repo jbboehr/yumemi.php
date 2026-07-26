@@ -1,11 +1,11 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Analyzer;
+namespace jbboehr\Yumemi\Analyzer;
 
-use jbboehr\IudexMensurarumMysteriorum\Dimension;
-use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleUnitException;
-use jbboehr\IudexMensurarumMysteriorum\Expr;
-use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
+use jbboehr\Yumemi\Dimension;
+use jbboehr\Yumemi\Exception\IncompatibleUnitException;
+use jbboehr\Yumemi\Expr;
+use jbboehr\Yumemi\Number\Rational;
 
 final class ConversionFactorResolver
 {

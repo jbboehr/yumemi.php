@@ -1,6 +1,6 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests\PHPStan;
+namespace jbboehr\Yumemi\Tests\PHPStan;
 
 use PHPStan\Testing\TypeInferenceTestCase;
 use PHPUnit\Framework\Attributes\DataProvider;

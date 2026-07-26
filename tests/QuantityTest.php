@@ -1,13 +1,13 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests;
+namespace jbboehr\Yumemi\Tests;
 
-use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleQuantityContextException;
-use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleUnitException;
-use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
-use jbboehr\IudexMensurarumMysteriorum\Quantity;
-use jbboehr\IudexMensurarumMysteriorum\Registry\Udunits2UnitRegistry;
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
+use jbboehr\Yumemi\Exception\IncompatibleUnitException;
+use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\Quantity;
+use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
+use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\TestCase;
 
 final class QuantityTest extends TestCase

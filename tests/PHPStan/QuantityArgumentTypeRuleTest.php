@@ -1,6 +1,6 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests\PHPStan;
+namespace jbboehr\Yumemi\Tests\PHPStan;
 
 use PHPStan\Rules\Methods\CallMethodsRule;
 use PHPStan\Rules\Rule;
@@ -31,7 +31,7 @@ final class QuantityArgumentTypeRuleTest extends RuleTestCase
     {
         $this->analyse([__DIR__ . '/Fixtures/QuantityUnitMismatch.php'], [
             [
-                'Parameter #1 $length of method jbboehr\IudexMensurarumMysteriorum\Tests\PHPStan\Fixtures\QuantityUnitMismatch::expectMeters() expects Quantity<\'meter\'>, Quantity<\'international_foot\'> given.',
+                'Parameter #1 $length of method jbboehr\Yumemi\Tests\PHPStan\Fixtures\QuantityUnitMismatch::expectMeters() expects Quantity<\'meter\'>, Quantity<\'international_foot\'> given.',
                 21,
                 'Unit Quantity<\'international_foot\'> is not assignable to Quantity<\'meter\'> (normalized forms differ).',
             ],

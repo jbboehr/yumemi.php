@@ -1,13 +1,13 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests\Analyzer;
+namespace jbboehr\Yumemi\Tests\Analyzer;
 
-use jbboehr\IudexMensurarumMysteriorum\Expr\Compound;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Constant;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Term;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
-use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Expr\Constant;
+use jbboehr\Yumemi\Expr\Term;
+use jbboehr\Yumemi\Expr\Unit;
+use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\TestCase;
 
 final class ExprReducerTest extends TestCase

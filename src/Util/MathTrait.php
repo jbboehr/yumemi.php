@@ -1,10 +1,10 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Util;
+namespace jbboehr\Yumemi\Util;
 
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\ExprComparer;
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\ExprReducer;
-use jbboehr\IudexMensurarumMysteriorum\Expr;
+use jbboehr\Yumemi\Analyzer\ExprComparer;
+use jbboehr\Yumemi\Analyzer\ExprReducer;
+use jbboehr\Yumemi\Expr;
 
 trait MathTrait
 {

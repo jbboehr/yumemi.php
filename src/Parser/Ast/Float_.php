@@ -1,6 +1,6 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Parser\Ast;
+namespace jbboehr\Yumemi\Parser\Ast;
 
 final class Float_ implements Number
 {

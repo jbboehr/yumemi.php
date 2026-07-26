@@ -1,6 +1,6 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Catalog;
+namespace jbboehr\Yumemi\Catalog;
 
 use Brick\VarExporter\VarExporter;
 

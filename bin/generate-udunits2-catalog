@@ -3,4 +3,4 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
-exit((new jbboehr\IudexMensurarumMysteriorum\Command\GenerateUdunits2CatalogCommand())->run($argv));
+exit((new jbboehr\Yumemi\Command\GenerateUdunits2CatalogCommand())->run($argv));

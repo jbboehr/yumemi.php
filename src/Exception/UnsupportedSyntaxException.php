@@ -1,8 +1,8 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Exception;
+namespace jbboehr\Yumemi\Exception;
 
-use jbboehr\IudexMensurarumMysteriorum\Parser\Ast;
+use jbboehr\Yumemi\Parser\Ast;
 
 final class UnsupportedSyntaxException extends \RuntimeException
 {

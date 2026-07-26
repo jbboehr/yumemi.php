@@ -1,14 +1,14 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests;
+namespace jbboehr\Yumemi\Tests;
 
-use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-use function jbboehr\IudexMensurarumMysteriorum\unit;
-use function jbboehr\IudexMensurarumMysteriorum\unit_to;
+use function jbboehr\Yumemi\unit;
+use function jbboehr\Yumemi\unit_to;
 
 final class UnitFunctionTest extends TestCase
 {

@@ -1,16 +1,16 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests\Registry;
+namespace jbboehr\Yumemi\Tests\Registry;
 
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitResolver;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Compound;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Constant;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
-use jbboehr\IudexMensurarumMysteriorum\Registry\CompositeUnitRegistry;
-use jbboehr\IudexMensurarumMysteriorum\Registry\Udunits2UnitRegistry;
-use jbboehr\IudexMensurarumMysteriorum\Registry\UnitRegistry;
-use jbboehr\IudexMensurarumMysteriorum\Registry\UnitRegistryBuilder;
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\Analyzer\UnitResolver;
+use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Expr\Constant;
+use jbboehr\Yumemi\Expr\Unit;
+use jbboehr\Yumemi\Registry\CompositeUnitRegistry;
+use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
+use jbboehr\Yumemi\Registry\UnitRegistry;
+use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
+use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\TestCase;
 
 final class UnitRegistryBuilderTest extends TestCase

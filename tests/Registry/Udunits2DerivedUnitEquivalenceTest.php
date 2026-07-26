@@ -1,8 +1,8 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests\Registry;
+namespace jbboehr\Yumemi\Tests\Registry;
 
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\TestCase;
 
 final class Udunits2DerivedUnitEquivalenceTest extends TestCase

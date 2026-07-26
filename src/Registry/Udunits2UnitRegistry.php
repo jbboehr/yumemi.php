@@ -1,14 +1,14 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Registry;
+namespace jbboehr\Yumemi\Registry;
 
-use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
+use jbboehr\Yumemi\Expr\Unit;
 
 /**
  * UDUNITS2 catalog data source.
  *
  * This class does not parse definition strings or own a UnitResolver/AstConverter.
- * {@see \jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitResolver} reads {@see record()}
+ * {@see \jbboehr\Yumemi\Analyzer\UnitResolver} reads {@see record()}
  * rows and builds expression trees.
  *
  * @phpstan-type Udunits2BaseUnit array{type: 'base', name: string, definition?: string, plural?: string, comment?: string}

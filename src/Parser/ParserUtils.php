@@ -1,15 +1,15 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Parser;
+namespace jbboehr\Yumemi\Parser;
 
-use jbboehr\IudexMensurarumMysteriorum\Parser\Ast\Add;
-use jbboehr\IudexMensurarumMysteriorum\Parser\Ast\At;
-use jbboehr\IudexMensurarumMysteriorum\Parser\Ast\Div;
-use jbboehr\IudexMensurarumMysteriorum\Parser\Ast\Float_;
-use jbboehr\IudexMensurarumMysteriorum\Parser\Ast\Integer_;
-use jbboehr\IudexMensurarumMysteriorum\Parser\Ast\Mul;
-use jbboehr\IudexMensurarumMysteriorum\Parser\Ast\Pow;
-use jbboehr\IudexMensurarumMysteriorum\Parser\Ast\Sub;
+use jbboehr\Yumemi\Parser\Ast\Add;
+use jbboehr\Yumemi\Parser\Ast\At;
+use jbboehr\Yumemi\Parser\Ast\Div;
+use jbboehr\Yumemi\Parser\Ast\Float_;
+use jbboehr\Yumemi\Parser\Ast\Integer_;
+use jbboehr\Yumemi\Parser\Ast\Mul;
+use jbboehr\Yumemi\Parser\Ast\Pow;
+use jbboehr\Yumemi\Parser\Ast\Sub;
 
 trait ParserUtils
 {

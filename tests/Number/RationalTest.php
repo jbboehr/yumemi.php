@@ -1,8 +1,8 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests\Number;
+namespace jbboehr\Yumemi\Tests\Number;
 
-use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
+use jbboehr\Yumemi\Number\Rational;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

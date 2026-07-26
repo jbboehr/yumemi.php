@@ -1,6 +1,6 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Parser;
+namespace jbboehr\Yumemi\Parser;
 
 use Doctrine\Common\Lexer\AbstractLexer;
 

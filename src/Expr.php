@@ -1,6 +1,6 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum;
+namespace jbboehr\Yumemi;
 
 interface Expr
 {

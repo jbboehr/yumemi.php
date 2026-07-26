@@ -1,13 +1,13 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests\Analyzer;
+namespace jbboehr\Yumemi\Tests\Analyzer;
 
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\AstConverter;
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitResolver;
-use jbboehr\IudexMensurarumMysteriorum\Exception\UnsupportedSyntaxException;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
-use jbboehr\IudexMensurarumMysteriorum\Parser\Parser;
-use jbboehr\IudexMensurarumMysteriorum\Registry\UnitRegistry;
+use jbboehr\Yumemi\Analyzer\AstConverter;
+use jbboehr\Yumemi\Analyzer\UnitResolver;
+use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
+use jbboehr\Yumemi\Expr\Unit;
+use jbboehr\Yumemi\Parser\Parser;
+use jbboehr\Yumemi\Registry\UnitRegistry;
 use PHPUnit\Framework\TestCase;
 
 final class AstConverterTest extends TestCase

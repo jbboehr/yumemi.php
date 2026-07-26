@@ -1,14 +1,14 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Formatter;
+namespace jbboehr\Yumemi\Formatter;
 
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\ExprReducer;
-use jbboehr\IudexMensurarumMysteriorum\Expr;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Compound;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Constant;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Term;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
-use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
+use jbboehr\Yumemi\Analyzer\ExprReducer;
+use jbboehr\Yumemi\Expr;
+use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Expr\Constant;
+use jbboehr\Yumemi\Expr\Term;
+use jbboehr\Yumemi\Expr\Unit;
+use jbboehr\Yumemi\Number\Rational;
 
 /**
  * User-facing rendering of unit expressions.

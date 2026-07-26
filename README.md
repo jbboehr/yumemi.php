@@ -32,7 +32,7 @@ The PHP examples in this section are executed by the test suite.
 
 require 'vendor/autoload.php';
 
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\Units;
 
 $units = Units::default();
 
@@ -49,7 +49,7 @@ Multiplication and division reduce chosen unit syntax, but do not substitute com
 
 require 'vendor/autoload.php';
 
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\Units;
 
 $units = Units::default();
 
@@ -67,7 +67,7 @@ what you want.
 
 require 'vendor/autoload.php';
 
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\Units;
 
 $units = Units::default();
 
@@ -86,8 +86,8 @@ Without that explicit conversion, addition and subtraction require the same redu
 
 require 'vendor/autoload.php';
 
-use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleUnitException;
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\Exception\IncompatibleUnitException;
+use jbboehr\Yumemi\Units;
 
 $units = Units::default();
 
@@ -105,7 +105,7 @@ You can still ask for converted values from a composed quantity when you need th
 
 require 'vendor/autoload.php';
 
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\Units;
 
 $units = Units::default();
 
@@ -122,7 +122,7 @@ Use `normalize()` when you want to substitute unit definitions without changing 
 
 require 'vendor/autoload.php';
 
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\Units;
 
 $units = Units::default();
 
@@ -141,7 +141,7 @@ Use `simplify()` when you want to substitute unit definitions and fold the unit 
 
 require 'vendor/autoload.php';
 
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\Units;
 
 $units = Units::default();
 

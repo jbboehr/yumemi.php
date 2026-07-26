@@ -1,12 +1,12 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Analyzer;
+namespace jbboehr\Yumemi\Analyzer;
 
-use jbboehr\IudexMensurarumMysteriorum\Expr;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Compound;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Constant;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Term;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
+use jbboehr\Yumemi\Expr;
+use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Expr\Constant;
+use jbboehr\Yumemi\Expr\Term;
+use jbboehr\Yumemi\Expr\Unit;
 
 final class ExprReducer
 {

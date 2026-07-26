@@ -1,8 +1,8 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\PHPStan;
+namespace jbboehr\Yumemi\PHPStan;
 
-use jbboehr\IudexMensurarumMysteriorum\Quantity;
+use jbboehr\Yumemi\Quantity;
 use PHPStan\Type\AcceptsResult;
 use PHPStan\Type\IsSuperTypeOfResult;
 use PHPStan\Type\ObjectType;

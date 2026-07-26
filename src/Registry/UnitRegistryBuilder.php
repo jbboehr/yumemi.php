@@ -1,8 +1,8 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Registry;
+namespace jbboehr\Yumemi\Registry;
 
-use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
+use jbboehr\Yumemi\Expr\Unit;
 
 /**
  * Mutable construction of an immutable {@see UnitRegistry}.
@@ -22,7 +22,7 @@ use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
  * Start from {@see self::empty()} for a blank registry, or {@see self::default()} for UDUNITS2.
  *
  * String definitions are stored as catalog records and parsed by
- * {@see \jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitResolver} on first use
+ * {@see \jbboehr\Yumemi\Analyzer\UnitResolver} on first use
  * (same path as UDUNITS2 derived units).
  *
  * @phpstan-import-type CatalogRecord from UnitRegistry

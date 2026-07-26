@@ -1,15 +1,15 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Expr;
+namespace jbboehr\Yumemi\Expr;
 
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\DimensionResolver;
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\ExprReducer;
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitNormalizer;
-use jbboehr\IudexMensurarumMysteriorum\Dimension;
-use jbboehr\IudexMensurarumMysteriorum\Exception\UnsupportedUnitDimensionException;
-use jbboehr\IudexMensurarumMysteriorum\Expr;
-use jbboehr\IudexMensurarumMysteriorum\Units;
-use jbboehr\IudexMensurarumMysteriorum\Util\MathTrait;
+use jbboehr\Yumemi\Analyzer\DimensionResolver;
+use jbboehr\Yumemi\Analyzer\ExprReducer;
+use jbboehr\Yumemi\Analyzer\UnitNormalizer;
+use jbboehr\Yumemi\Dimension;
+use jbboehr\Yumemi\Exception\UnsupportedUnitDimensionException;
+use jbboehr\Yumemi\Expr;
+use jbboehr\Yumemi\Units;
+use jbboehr\Yumemi\Util\MathTrait;
 
 /**
  * A named unit leaf in an expression tree.

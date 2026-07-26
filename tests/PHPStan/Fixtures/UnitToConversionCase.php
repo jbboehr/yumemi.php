@@ -1,9 +1,9 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests\PHPStan\Fixtures;
+namespace jbboehr\Yumemi\Tests\PHPStan\Fixtures;
 
-use function jbboehr\IudexMensurarumMysteriorum\unit;
-use function jbboehr\IudexMensurarumMysteriorum\unit_to;
+use function jbboehr\Yumemi\unit;
+use function jbboehr\Yumemi\unit_to;
 
 /**
  * RuleTestCase fixture: unit_to() produces unit_float<'meter'> for foot→meter.

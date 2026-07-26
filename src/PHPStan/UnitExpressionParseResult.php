@@ -1,6 +1,6 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\PHPStan;
+namespace jbboehr\Yumemi\PHPStan;
 
 /**
  * Result of parsing a unit string for static analysis.

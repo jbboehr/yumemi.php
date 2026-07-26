@@ -1,9 +1,9 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests\Parser;
+namespace jbboehr\Yumemi\Tests\Parser;
 
-use jbboehr\IudexMensurarumMysteriorum\Parser\Ast;
-use jbboehr\IudexMensurarumMysteriorum\Parser\Parser;
+use jbboehr\Yumemi\Parser\Ast;
+use jbboehr\Yumemi\Parser\Parser;
 use PHPUnit\Framework\TestCase;
 
 final class ParserTest extends TestCase

@@ -1,6 +1,6 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\PHPStan;
+namespace jbboehr\Yumemi\PHPStan;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr\FuncCall;
@@ -22,8 +22,8 @@ use PHPStan\Type\ErrorType;
  */
 final class InvalidUnitCallRule implements Rule
 {
-    private const UNIT = 'jbboehr\\IudexMensurarumMysteriorum\\unit';
-    private const UNIT_TO = 'jbboehr\\IudexMensurarumMysteriorum\\unit_to';
+    private const UNIT = 'jbboehr\\Yumemi\\unit';
+    private const UNIT_TO = 'jbboehr\\Yumemi\\unit_to';
 
     public function __construct(
         private readonly UnitFunctionDynamicReturnTypeExtension $unitExtension,

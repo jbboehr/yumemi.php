@@ -1,8 +1,8 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Exception;
+namespace jbboehr\Yumemi\Exception;
 
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\Units;
 
 final class IncompatibleQuantityContextException extends \RuntimeException
 {

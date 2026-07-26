@@ -1,9 +1,9 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests\Parser;
+namespace jbboehr\Yumemi\Tests\Parser;
 
-use jbboehr\IudexMensurarumMysteriorum\Formatter\ExprFormatter;
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\Formatter\ExprFormatter;
+use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\TestCase;
 
 final class ParserFormatterRoundTripTest extends TestCase

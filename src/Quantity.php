@@ -1,18 +1,18 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum;
+namespace jbboehr\Yumemi;
 
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\AstConverter;
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\ExprComparer;
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\ExprReducer;
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\NormalizedExpr;
-use jbboehr\IudexMensurarumMysteriorum\Dimension;
-use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleQuantityContextException;
-use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleUnitException;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Constant;
-use jbboehr\IudexMensurarumMysteriorum\Formatter\ExprFormatter;
-use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
-use jbboehr\IudexMensurarumMysteriorum\Parser\Parser;
+use jbboehr\Yumemi\Analyzer\AstConverter;
+use jbboehr\Yumemi\Analyzer\ExprComparer;
+use jbboehr\Yumemi\Analyzer\ExprReducer;
+use jbboehr\Yumemi\Analyzer\NormalizedExpr;
+use jbboehr\Yumemi\Dimension;
+use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
+use jbboehr\Yumemi\Exception\IncompatibleUnitException;
+use jbboehr\Yumemi\Expr\Constant;
+use jbboehr\Yumemi\Formatter\ExprFormatter;
+use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\Parser\Parser;
 
 final class Quantity
 {

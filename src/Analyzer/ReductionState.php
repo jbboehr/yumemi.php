@@ -1,14 +1,14 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Analyzer;
+namespace jbboehr\Yumemi\Analyzer;
 
-use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
+use jbboehr\Yumemi\Number\Rational;
 
 final class ReductionState
 {
     public Rational $constant;
 
-    /** @var array<string, array{unit: \jbboehr\IudexMensurarumMysteriorum\Expr\Unit, power: int}> */
+    /** @var array<string, array{unit: \jbboehr\Yumemi\Expr\Unit, power: int}> */
     public array $units = [];
 
     public function __construct()

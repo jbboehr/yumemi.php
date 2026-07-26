@@ -1,13 +1,13 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\PHPStan;
+namespace jbboehr\Yumemi\PHPStan;
 
-use jbboehr\IudexMensurarumMysteriorum\Exception\UnitNotFoundException;
-use jbboehr\IudexMensurarumMysteriorum\Exception\UnsupportedSyntaxException;
-use jbboehr\IudexMensurarumMysteriorum\Exception\UnsupportedUnitDimensionException;
-use jbboehr\IudexMensurarumMysteriorum\Formatter\ExprFormatter;
-use jbboehr\IudexMensurarumMysteriorum\Parser\ParseException;
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\Exception\UnitNotFoundException;
+use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitDimensionException;
+use jbboehr\Yumemi\Formatter\ExprFormatter;
+use jbboehr\Yumemi\Parser\ParseException;
+use jbboehr\Yumemi\Units;
 
 /**
  * Parses unit expression strings through the IMM runtime for PHPStan.

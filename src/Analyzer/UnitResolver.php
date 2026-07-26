@@ -1,14 +1,14 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Analyzer;
+namespace jbboehr\Yumemi\Analyzer;
 
-use jbboehr\IudexMensurarumMysteriorum\Exception\UnitNotFoundException;
-use jbboehr\IudexMensurarumMysteriorum\Expr;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Compound;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Constant;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
-use jbboehr\IudexMensurarumMysteriorum\Parser\Parser;
-use jbboehr\IudexMensurarumMysteriorum\Registry\UnitRegistry;
+use jbboehr\Yumemi\Exception\UnitNotFoundException;
+use jbboehr\Yumemi\Expr;
+use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Expr\Constant;
+use jbboehr\Yumemi\Expr\Unit;
+use jbboehr\Yumemi\Parser\Parser;
+use jbboehr\Yumemi\Registry\UnitRegistry;
 
 /**
  * Resolves unit identifiers against a registry.

@@ -1,9 +1,9 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Command;
+namespace jbboehr\Yumemi\Command;
 
-use jbboehr\IudexMensurarumMysteriorum\Catalog\PhpCatalogExporter;
-use jbboehr\IudexMensurarumMysteriorum\Catalog\Udunits2CatalogImporter;
+use jbboehr\Yumemi\Catalog\PhpCatalogExporter;
+use jbboehr\Yumemi\Catalog\Udunits2CatalogImporter;
 
 final class GenerateUdunits2CatalogCommand
 {

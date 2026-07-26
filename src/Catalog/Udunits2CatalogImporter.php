@@ -1,13 +1,13 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Catalog;
+namespace jbboehr\Yumemi\Catalog;
 
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
 
 /**
- * @phpstan-import-type Udunits2Catalog from \jbboehr\IudexMensurarumMysteriorum\Registry\Udunits2UnitRegistry
+ * @phpstan-import-type Udunits2Catalog from \jbboehr\Yumemi\Registry\Udunits2UnitRegistry
  * @phpstan-type MutableUdunits2Catalog array{
  *     units: array<string, array<string, mixed>>,
  *     base: list<string>,

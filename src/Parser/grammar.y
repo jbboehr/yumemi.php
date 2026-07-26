@@ -1,5 +1,5 @@
 %define api.parser.class {Parser}
-%define api.namespace {jbboehr\IudexMensurarumMysteriorum\Parser}
+%define api.namespace {jbboehr\Yumemi\Parser}
 
 %define api.position.type {int}
 %define api.location.type {Location}

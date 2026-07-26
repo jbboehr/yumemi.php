@@ -1,9 +1,9 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests\PHPStan\Fixtures;
+namespace jbboehr\Yumemi\Tests\PHPStan\Fixtures;
 
-use jbboehr\IudexMensurarumMysteriorum\Quantity;
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\Quantity;
+use jbboehr\Yumemi\Units;
 
 final class QuantityUnitMismatch
 {

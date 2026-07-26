@@ -36,7 +36,7 @@ Operators are sugar. They should not be required for correctness, static analysi
 Define an internal hook base class:
 
 ```php
-namespace jbboehr\IudexMensurarumMysteriorum;
+namespace jbboehr\Yumemi;
 
 /** @internal */
 abstract class InternalQuantity
@@ -52,7 +52,7 @@ object handlers. The fallback file is never autoloaded because the class already
 The real runtime class remains pure PHP:
 
 ```php
-namespace jbboehr\IudexMensurarumMysteriorum;
+namespace jbboehr\Yumemi;
 
 final class Quantity extends InternalQuantity
 {
@@ -96,7 +96,7 @@ supported PHP versions.
 
 The extension should do as little as possible:
 
-- Register `jbboehr\IudexMensurarumMysteriorum\InternalQuantity`.
+- Register `jbboehr\Yumemi\InternalQuantity`.
 - Install a custom object handlers table for that class.
 - Implement `do_operation`.
 - Optionally implement `compare` later.
@@ -156,7 +156,7 @@ Recommended first semantic policy:
 The PHP fallback class should be intentionally empty:
 
 ```php
-namespace jbboehr\IudexMensurarumMysteriorum;
+namespace jbboehr\Yumemi;
 
 /** @internal */
 abstract class InternalQuantity

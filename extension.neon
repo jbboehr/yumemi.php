@@ -9,36 +9,36 @@
 
 services:
     -
-        class: jbboehr\IudexMensurarumMysteriorum\PHPStan\UnitExpressionParser
+        class: jbboehr\Yumemi\PHPStan\UnitExpressionParser
     -
-        class: jbboehr\IudexMensurarumMysteriorum\PHPStan\UnitTypeNodeResolverExtension
+        class: jbboehr\Yumemi\PHPStan\UnitTypeNodeResolverExtension
         tags:
             - phpstan.phpDoc.typeNodeResolverExtension
     -
-        class: jbboehr\IudexMensurarumMysteriorum\PHPStan\UnitOperatorTypeSpecifyingExtension
+        class: jbboehr\Yumemi\PHPStan\UnitOperatorTypeSpecifyingExtension
         tags:
             - phpstan.broker.operatorTypeSpecifyingExtension
     -
-        class: jbboehr\IudexMensurarumMysteriorum\PHPStan\UnitUnaryOperatorTypeSpecifyingExtension
+        class: jbboehr\Yumemi\PHPStan\UnitUnaryOperatorTypeSpecifyingExtension
         tags:
             - phpstan.broker.unaryOperatorTypeSpecifyingExtension
     -
-        class: jbboehr\IudexMensurarumMysteriorum\PHPStan\UnitFunctionDynamicReturnTypeExtension
+        class: jbboehr\Yumemi\PHPStan\UnitFunctionDynamicReturnTypeExtension
         tags:
             - phpstan.broker.dynamicFunctionReturnTypeExtension
     -
-        class: jbboehr\IudexMensurarumMysteriorum\PHPStan\UnitToFunctionDynamicReturnTypeExtension
+        class: jbboehr\Yumemi\PHPStan\UnitToFunctionDynamicReturnTypeExtension
         tags:
             - phpstan.broker.dynamicFunctionReturnTypeExtension
     -
-        class: jbboehr\IudexMensurarumMysteriorum\PHPStan\InvalidUnitCallRule
+        class: jbboehr\Yumemi\PHPStan\InvalidUnitCallRule
         tags:
             - phpstan.rules.rule
     -
-        class: jbboehr\IudexMensurarumMysteriorum\PHPStan\UnitsQuantityReturnTypeExtension
+        class: jbboehr\Yumemi\PHPStan\UnitsQuantityReturnTypeExtension
         tags:
             - phpstan.broker.dynamicMethodReturnTypeExtension
     -
-        class: jbboehr\IudexMensurarumMysteriorum\PHPStan\QuantityMethodReturnTypeExtension
+        class: jbboehr\Yumemi\PHPStan\QuantityMethodReturnTypeExtension
         tags:
             - phpstan.broker.dynamicMethodReturnTypeExtension

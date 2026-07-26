@@ -1,13 +1,13 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Expr;
+namespace jbboehr\Yumemi\Expr;
 
 use GMP;
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\ExprReducer;
-use jbboehr\IudexMensurarumMysteriorum\Dimension;
-use jbboehr\IudexMensurarumMysteriorum\Expr;
-use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
-use jbboehr\IudexMensurarumMysteriorum\Util\MathTrait;
+use jbboehr\Yumemi\Analyzer\ExprReducer;
+use jbboehr\Yumemi\Dimension;
+use jbboehr\Yumemi\Expr;
+use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\Util\MathTrait;
 
 final class Constant implements Expr
 {

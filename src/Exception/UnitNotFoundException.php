@@ -1,6 +1,6 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Exception;
+namespace jbboehr\Yumemi\Exception;
 
 final class UnitNotFoundException extends \RuntimeException
 {

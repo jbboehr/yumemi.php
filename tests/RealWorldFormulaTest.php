@@ -1,9 +1,9 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests;
+namespace jbboehr\Yumemi\Tests;
 
-use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\TestCase;
 
 final class RealWorldFormulaTest extends TestCase

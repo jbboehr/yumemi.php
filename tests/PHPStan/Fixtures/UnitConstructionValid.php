@@ -1,8 +1,8 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests\PHPStan\Fixtures;
+namespace jbboehr\Yumemi\Tests\PHPStan\Fixtures;
 
-use function jbboehr\IudexMensurarumMysteriorum\unit;
+use function jbboehr\Yumemi\unit;
 
 final class UnitConstructionValid
 {

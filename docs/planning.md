@@ -4,7 +4,7 @@ Working title:
 
 - Full name: `Iudex Mensurarum Mysteriorum`
 - Package/repo: `jbboehr/imm`
-- PHP namespace: `jbboehr\IudexMensurarumMysteriorum\`
+- PHP namespace: `jbboehr\Yumemi\`
 - Meaning: roughly "Judge of the Mysteries of Measures"
 
 The name is intentionally overdramatic, Latin, and chuuni-adjacent. The acronym `imm` keeps day-to-day package use

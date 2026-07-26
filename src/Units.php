@@ -1,20 +1,20 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum;
+namespace jbboehr\Yumemi;
 
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\AstConverter;
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\ConversionFactorResolver;
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\DimensionResolver;
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\ExprReducer;
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitNormalizer;
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitResolver;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Compound;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Term;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
-use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
-use jbboehr\IudexMensurarumMysteriorum\Parser\Parser;
-use jbboehr\IudexMensurarumMysteriorum\Registry\UnitRegistry;
-use jbboehr\IudexMensurarumMysteriorum\Registry\Udunits2UnitRegistry;
+use jbboehr\Yumemi\Analyzer\AstConverter;
+use jbboehr\Yumemi\Analyzer\ConversionFactorResolver;
+use jbboehr\Yumemi\Analyzer\DimensionResolver;
+use jbboehr\Yumemi\Analyzer\ExprReducer;
+use jbboehr\Yumemi\Analyzer\UnitNormalizer;
+use jbboehr\Yumemi\Analyzer\UnitResolver;
+use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Expr\Term;
+use jbboehr\Yumemi\Expr\Unit;
+use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\Parser\Parser;
+use jbboehr\Yumemi\Registry\UnitRegistry;
+use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
 
 final class Units
 {

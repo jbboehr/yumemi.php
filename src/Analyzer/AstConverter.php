@@ -1,24 +1,24 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Analyzer;
+namespace jbboehr\Yumemi\Analyzer;
 
-use jbboehr\IudexMensurarumMysteriorum\Exception\UnsupportedSyntaxException;
-use jbboehr\IudexMensurarumMysteriorum\Expr;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Compound;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Constant;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Term;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
-use jbboehr\IudexMensurarumMysteriorum\Number\Rational;
-use jbboehr\IudexMensurarumMysteriorum\Parser\Ast;
-use jbboehr\IudexMensurarumMysteriorum\Parser\Ast\Add;
-use jbboehr\IudexMensurarumMysteriorum\Parser\Ast\At;
-use jbboehr\IudexMensurarumMysteriorum\Parser\Ast\Div;
-use jbboehr\IudexMensurarumMysteriorum\Parser\Ast\Float_;
-use jbboehr\IudexMensurarumMysteriorum\Parser\Ast\Identifier;
-use jbboehr\IudexMensurarumMysteriorum\Parser\Ast\Integer_;
-use jbboehr\IudexMensurarumMysteriorum\Parser\Ast\Mul;
-use jbboehr\IudexMensurarumMysteriorum\Parser\Ast\Pow;
-use jbboehr\IudexMensurarumMysteriorum\Parser\Ast\Sub;
+use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
+use jbboehr\Yumemi\Expr;
+use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Expr\Constant;
+use jbboehr\Yumemi\Expr\Term;
+use jbboehr\Yumemi\Expr\Unit;
+use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\Parser\Ast;
+use jbboehr\Yumemi\Parser\Ast\Add;
+use jbboehr\Yumemi\Parser\Ast\At;
+use jbboehr\Yumemi\Parser\Ast\Div;
+use jbboehr\Yumemi\Parser\Ast\Float_;
+use jbboehr\Yumemi\Parser\Ast\Identifier;
+use jbboehr\Yumemi\Parser\Ast\Integer_;
+use jbboehr\Yumemi\Parser\Ast\Mul;
+use jbboehr\Yumemi\Parser\Ast\Pow;
+use jbboehr\Yumemi\Parser\Ast\Sub;
 
 /**
  * Converts parser AST nodes into expression trees.

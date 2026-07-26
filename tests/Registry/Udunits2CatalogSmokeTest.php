@@ -1,16 +1,16 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests\Registry;
+namespace jbboehr\Yumemi\Tests\Registry;
 
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitResolver;
-use jbboehr\IudexMensurarumMysteriorum\Exception\UnsupportedSyntaxException;
-use jbboehr\IudexMensurarumMysteriorum\Registry\Udunits2UnitRegistry;
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\Analyzer\UnitResolver;
+use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
+use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
+use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\TestCase;
 use Throwable;
 
 /**
- * @phpstan-import-type Udunits2Catalog from \jbboehr\IudexMensurarumMysteriorum\Registry\Udunits2UnitRegistry
+ * @phpstan-import-type Udunits2Catalog from \jbboehr\Yumemi\Registry\Udunits2UnitRegistry
  */
 final class Udunits2CatalogSmokeTest extends TestCase
 {

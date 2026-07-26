@@ -1,8 +1,8 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\PHPStan;
+namespace jbboehr\Yumemi\PHPStan;
 
-use jbboehr\IudexMensurarumMysteriorum\Formatter\ExprFormatter;
+use jbboehr\Yumemi\Formatter\ExprFormatter;
 
 /**
  * Unit algebra on {@see UnitExpression} for the static layer.

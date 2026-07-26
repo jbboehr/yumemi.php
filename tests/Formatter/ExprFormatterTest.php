@@ -1,14 +1,14 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests\Formatter;
+namespace jbboehr\Yumemi\Tests\Formatter;
 
-use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleUnitException;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Compound;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Constant;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Term;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
-use jbboehr\IudexMensurarumMysteriorum\Formatter\ExprFormatter;
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\Exception\IncompatibleUnitException;
+use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Expr\Constant;
+use jbboehr\Yumemi\Expr\Term;
+use jbboehr\Yumemi\Expr\Unit;
+use jbboehr\Yumemi\Formatter\ExprFormatter;
+use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\TestCase;
 
 final class ExprFormatterTest extends TestCase

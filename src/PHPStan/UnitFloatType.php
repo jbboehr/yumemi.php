@@ -1,6 +1,6 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\PHPStan;
+namespace jbboehr\Yumemi\PHPStan;
 
 use PHPStan\TrinaryLogic;
 use PHPStan\Type\AcceptsResult;

@@ -1,6 +1,6 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\PHPStan;
+namespace jbboehr\Yumemi\PHPStan;
 
 use PhpParser\Node\Expr\FuncCall;
 use PHPStan\Analyser\Scope;
@@ -14,7 +14,7 @@ use PHPStan\Type\Type;
  */
 final class UnitFunctionDynamicReturnTypeExtension implements DynamicFunctionReturnTypeExtension
 {
-    private const FUNCTION_NAME = 'jbboehr\\IudexMensurarumMysteriorum\\unit';
+    private const FUNCTION_NAME = 'jbboehr\\Yumemi\\unit';
 
     public function __construct(
         private readonly UnitExpressionParser $parser,

@@ -35,7 +35,7 @@
    especially those whose name start with YY_ or yy_.  They are
    private implementation details that can be changed or removed.  */
 
-namespace jbboehr\IudexMensurarumMysteriorum\Parser;
+namespace jbboehr\Yumemi\Parser;
 
 
 

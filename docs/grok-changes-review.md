@@ -21,7 +21,7 @@ _Original finding below._
 
 ```text
 tests/UnitFunctionTest.php:107: Parameter #1 $value of function
-jbboehr\IudexMensurarumMysteriorum\unit_to expects float|int, mixed given.
+jbboehr\Yumemi\unit_to expects float|int, mixed given.
 tests/UnitFunctionTest.php:153: Casting to float something that's already float.
 ```
 

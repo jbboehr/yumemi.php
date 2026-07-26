@@ -1,8 +1,8 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum;
+namespace jbboehr\Yumemi;
 
-use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleUnitException;
+use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 
 /**
  * Brand a native int/float with a unit for static analysis (and light runtime checks).

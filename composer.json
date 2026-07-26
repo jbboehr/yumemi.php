@@ -1,8 +1,13 @@
 {
-    "name": "jbboehr/imm",
+    "name": "jbboehr/yumemi",
     "description": "Runtime unit conversion and dimensional analysis for PHP (PHPStan extension planned).",
     "type": "library",
     "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/jbboehr/yumemi.php",
+    "support": {
+        "issues": "https://github.com/jbboehr/yumemi.php/issues",
+        "source": "https://github.com/jbboehr/yumemi.php"
+    },
     "authors": [
         {
             "name": "John Boehr",
@@ -23,7 +28,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "jbboehr\\IudexMensurarumMysteriorum\\": "src"
+            "jbboehr\\Yumemi\\": "src"
         },
         "classmap": [
             "src/Parser/Parser.php"
@@ -45,8 +50,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "jbboehr\\IudexMensurarumMysteriorum\\Scripts\\": "scripts",
-            "jbboehr\\IudexMensurarumMysteriorum\\Tests\\": "tests"
+            "jbboehr\\Yumemi\\Scripts\\": "scripts",
+            "jbboehr\\Yumemi\\Tests\\": "tests"
         }
     },
     "scripts": {

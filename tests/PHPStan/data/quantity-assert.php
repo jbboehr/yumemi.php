@@ -6,7 +6,7 @@
  * Slice 1: Units::quantity() construction inference and Quantity<'...'> PHPDoc resolution.
  */
 
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\Units;
 use function PHPStan\Testing\assertType;
 
 $units = Units::default();
@@ -19,17 +19,17 @@ assertType("Quantity<'newton'>", $units->quantity(2, 'newton'));
 
 // Unknown-in-default-catalog unit → fail open to native Quantity (the instance may hold a
 // custom registry where this unit is valid), never a poisoning error.
-assertType('jbboehr\\IudexMensurarumMysteriorum\\Quantity', $units->quantity(1, 'not_a_real_unit_xyz'));
+assertType('jbboehr\\Yumemi\\Quantity', $units->quantity(1, 'not_a_real_unit_xyz'));
 
 // non-constant unit string → native Quantity fallback (not branded)
 function dynamicQuantity(Units $units, string $u): void
 {
-    assertType('jbboehr\\IudexMensurarumMysteriorum\\Quantity', $units->quantity(1, $u));
+    assertType('jbboehr\\Yumemi\\Quantity', $units->quantity(1, $u));
 }
 
 // --- Quantity<'...'> PHPDoc resolution ---
 
-/** @var \jbboehr\IudexMensurarumMysteriorum\Quantity<'meter / second'> $speed */
+/** @var \jbboehr\Yumemi\Quantity<'meter / second'> $speed */
 $speed = $units->quantity(1, 'meter / second');
 assertType("Quantity<'meter / second'>", $speed);
 
@@ -66,8 +66,8 @@ assertType("Quantity<'1000 * meter'>", $km->normalize());
 assertType("Quantity<'meter / second'>", $m->div($s)->mul($s)->div($s));
 
 // unbranded-quantity operand → native fallback (cannot compute unit)
-function combineDynamic(\jbboehr\IudexMensurarumMysteriorum\Quantity $q, \jbboehr\IudexMensurarumMysteriorum\Units $units): void
+function combineDynamic(\jbboehr\Yumemi\Quantity $q, \jbboehr\Yumemi\Units $units): void
 {
     $m = $units->quantity(1, 'meter');
-    assertType('jbboehr\\IudexMensurarumMysteriorum\\Quantity', $m->mul($q));
+    assertType('jbboehr\\Yumemi\\Quantity', $m->mul($q));
 }

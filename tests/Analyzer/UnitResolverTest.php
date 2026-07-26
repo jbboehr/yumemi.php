@@ -1,11 +1,11 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests\Analyzer;
+namespace jbboehr\Yumemi\Tests\Analyzer;
 
-use jbboehr\IudexMensurarumMysteriorum\Analyzer\UnitResolver;
-use jbboehr\IudexMensurarumMysteriorum\Exception\UnitNotFoundException;
-use jbboehr\IudexMensurarumMysteriorum\Registry\Udunits2UnitRegistry;
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\Analyzer\UnitResolver;
+use jbboehr\Yumemi\Exception\UnitNotFoundException;
+use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
+use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

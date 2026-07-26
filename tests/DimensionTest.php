@@ -1,8 +1,8 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests;
+namespace jbboehr\Yumemi\Tests;
 
-use jbboehr\IudexMensurarumMysteriorum\Dimension;
+use jbboehr\Yumemi\Dimension;
 use PHPUnit\Framework\TestCase;
 
 final class DimensionTest extends TestCase

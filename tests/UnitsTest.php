@@ -1,13 +1,13 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests;
+namespace jbboehr\Yumemi\Tests;
 
-use jbboehr\IudexMensurarumMysteriorum\Exception\IncompatibleUnitException;
-use jbboehr\IudexMensurarumMysteriorum\Exception\UnsupportedSyntaxException;
-use jbboehr\IudexMensurarumMysteriorum\Exception\UnitNotFoundException;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Compound;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Term;
-use jbboehr\IudexMensurarumMysteriorum\Units;
+use jbboehr\Yumemi\Exception\IncompatibleUnitException;
+use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
+use jbboehr\Yumemi\Exception\UnitNotFoundException;
+use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Expr\Term;
+use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\TestCase;
 
 final class UnitsTest extends TestCase

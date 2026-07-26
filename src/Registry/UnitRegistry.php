@@ -1,11 +1,11 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Registry;
+namespace jbboehr\Yumemi\Registry;
 
-use jbboehr\IudexMensurarumMysteriorum\Exception\UnitNotFoundException;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Compound;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Constant;
-use jbboehr\IudexMensurarumMysteriorum\Expr\Unit;
+use jbboehr\Yumemi\Exception\UnitNotFoundException;
+use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Expr\Constant;
+use jbboehr\Yumemi\Expr\Unit;
 
 /**
  * Immutable unit name table / catalog data source.
@@ -90,7 +90,7 @@ class UnitRegistry
 
     /**
      * Tiny hand-built registry for tests and examples (not UDUNITS2).
-     * Prefer {@see \jbboehr\IudexMensurarumMysteriorum\Units::default()} for application code.
+     * Prefer {@see \jbboehr\Yumemi\Units::default()} for application code.
      *
      * @internal
      */

@@ -1,10 +1,10 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Exception;
+namespace jbboehr\Yumemi\Exception;
 
-use jbboehr\IudexMensurarumMysteriorum\Dimension;
-use jbboehr\IudexMensurarumMysteriorum\Expr;
-use jbboehr\IudexMensurarumMysteriorum\Formatter\ExprFormatter;
+use jbboehr\Yumemi\Dimension;
+use jbboehr\Yumemi\Expr;
+use jbboehr\Yumemi\Formatter\ExprFormatter;
 
 final class IncompatibleUnitException extends \RuntimeException
 {

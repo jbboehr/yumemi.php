@@ -1,6 +1,6 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests\PHPStan\Fixtures;
+namespace jbboehr\Yumemi\Tests\PHPStan\Fixtures;
 
 /**
  * RuleTestCase fixture: foot is not assignable to a meter parameter.

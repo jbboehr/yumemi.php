@@ -1,6 +1,6 @@
 <?php
 
-namespace jbboehr\IudexMensurarumMysteriorum\Tests\PHPStan;
+namespace jbboehr\Yumemi\Tests\PHPStan;
 
 use PHPStan\Rules\Methods\CallMethodsRule;
 use PHPStan\Rules\Rule;
@@ -32,7 +32,7 @@ final class UnitArgumentTypeRuleTest extends RuleTestCase
     {
         $this->analyse([__DIR__ . '/Fixtures/UnitFootNotMeterCase.php'], [
             [
-                'Parameter #1 $length of method jbboehr\IudexMensurarumMysteriorum\Tests\PHPStan\Fixtures\UnitFootNotMeterCase::expectMetersOnly() expects unit_float<\'meter\'>, unit_float<\'international_foot\'> given.',
+                'Parameter #1 $length of method jbboehr\Yumemi\Tests\PHPStan\Fixtures\UnitFootNotMeterCase::expectMetersOnly() expects unit_float<\'meter\'>, unit_float<\'international_foot\'> given.',
                 23,
                 'Unit unit_float<\'international_foot\'> is not assignable to unit_float<\'meter\'> (normalized forms differ).',
             ],
