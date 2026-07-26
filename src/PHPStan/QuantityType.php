@@ -51,7 +51,7 @@ final class QuantityType extends ObjectType
 
             return AcceptsResult::createNo([
                 sprintf(
-                    'Unit %s is not assignable to Quantity<%s> (normalized forms differ).',
+                    "Unit %s is not assignable to Quantity<'%s'> (normalized forms differ).",
                     $type->describe(VerbosityLevel::typeOnly()),
                     $this->unit->displayString,
                 ),

@@ -48,7 +48,7 @@ final class UnitFloatType extends FloatType
 
             return AcceptsResult::createNo([
                 sprintf(
-                    'Unit %s is not assignable to unit_float<%s> (normalized forms differ).',
+                    "Unit %s is not assignable to unit_float<'%s'> (normalized forms differ).",
                     $type->describe(VerbosityLevel::typeOnly()),
                     $this->unit->displayString,
                 ),
@@ -58,7 +58,7 @@ final class UnitFloatType extends FloatType
         if ($type->isFloat()->yes() || $type->isInteger()->yes()) {
             return AcceptsResult::createNo([
                 sprintf(
-                    'Bare numeric value is not assignable to unit_float<%s>; keep the unit annotation.',
+                    "Bare numeric value is not assignable to unit_float<'%s'>; keep the unit annotation.",
                     $this->unit->displayString,
                 ),
             ]);

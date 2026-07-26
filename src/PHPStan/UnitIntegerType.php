@@ -47,7 +47,7 @@ final class UnitIntegerType extends IntegerType
 
             return AcceptsResult::createNo([
                 sprintf(
-                    'Unit %s is not assignable to unit_int<%s> (normalized forms differ).',
+                    "Unit %s is not assignable to unit_int<'%s'> (normalized forms differ).",
                     $type->describe(VerbosityLevel::typeOnly()),
                     $this->unit->displayString,
                 ),
@@ -57,7 +57,7 @@ final class UnitIntegerType extends IntegerType
         if ($type->isInteger()->yes()) {
             return AcceptsResult::createNo([
                 sprintf(
-                    'Bare int is not assignable to unit_int<%s>; keep the unit annotation.',
+                    "Bare int is not assignable to unit_int<'%s'>; keep the unit annotation.",
                     $this->unit->displayString,
                 ),
             ]);

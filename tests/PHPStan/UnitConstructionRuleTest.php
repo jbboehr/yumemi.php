@@ -37,7 +37,7 @@ final class UnitConstructionRuleTest extends RuleTestCase
             [
                 'Parameter #1 $length of method jbboehr\IudexMensurarumMysteriorum\Tests\PHPStan\Fixtures\UnitConstructionScaleMismatch::expectMeters() expects unit_float<\'meter\'>, unit_float<\'international_foot\'> given.',
                 19,
-                'Unit unit_float<\'international_foot\'> is not assignable to unit_float<meter> (normalized forms differ).',
+                'Unit unit_float<\'international_foot\'> is not assignable to unit_float<\'meter\'> (normalized forms differ).',
             ],
         ]);
     }
