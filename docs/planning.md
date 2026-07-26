@@ -1,19 +1,23 @@
-# Iudex Mensurarum Mysteriorum Planning
+# Iudex Mensurarum Mysticarum『夢見』〜Yumemi〜 Planning
 
-Working title:
+Naming:
 
-- Full name: `Iudex Mensurarum Mysteriorum`
-- Package/repo: `jbboehr/imm`
+- Full name: `Iudex Mensurarum Mysticarum『夢見』〜ＹＵＭＥＭＩ〜`
+- Short name: **Yumemi** (夢見, "dreaming")
+- Package/repo: `jbboehr/yumemi` — <https://github.com/jbboehr/yumemi.php>
 - PHP namespace: `jbboehr\Yumemi\`
-- Meaning: roughly "Judge of the Mysteries of Measures"
+- Meaning: roughly "Judge of the Mystical Measures"
 
-The name is intentionally overdramatic, Latin, and chuuni-adjacent. The acronym `imm` keeps day-to-day package use
-practical while the namespace and README preserve the full title. `Iudex Mensurarum Mysteriorum` was chosen partly
-because its cadence is close to `Index Librorum Prohibitorum`.
+The name is intentionally overdramatic, Latin, and chuuni-adjacent. The full Latin title _Iudex Mensurarum Mysticarum_
+lives in the README and the per-file header; the short name **Yumemi** — folded from the initials Iu·Me·My of _Iudex
+Mensurarum Mysticarum_ (IuMeMy → Yumemi) and read as 夢見, "dreaming" — keeps day-to-day package, namespace, and
+conversation use practical. The Latin was chosen partly because its cadence echoes `Index Librorum Prohibitorum`, and
+`Mysticarum` (an adjective agreeing with `mensurarum`) binds as one phrase — "of the mystical measures" — rather than
+stacking two genitives the way the earlier `Mysteriorum` did.
 
 ## Project Goal
 
-IMM should be both:
+Yumemi should be both:
 
 - A runtime unit expression, dimensional compatibility, and conversion library.
 - A PHPStan extension for static dimensional analysis.
@@ -311,12 +315,12 @@ mostly catalog semantics, API polish, and edge-case formatting.
 Suggested next slices (detail in [phpstan-extension.md](phpstan-extension.md)):
 
 1. Add PHPStan type parsing. **Done for the native path:** `unit_int<'…'>` / `unit_float<'…'>`
-   resolve via `UnitTypeNodeResolverExtension`, parsing the string through IMM's runtime parser and
+   resolve via `UnitTypeNodeResolverExtension`, parsing the string through Yumemi's runtime parser and
    storing the reduced expression on `UnitIntegerType` / `UnitFloatType`. **Remaining:** the
    `Quantity<'meter / second'>` object generic (sugar for `Quantity<Rational, '…'>`).
 
 2. Add PHPStan diagnostics for invalid unit strings. **Done:** invalid units become `ErrorType`
-   with IMM messages in PHPDoc and constant args, and `InvalidUnitCallRule` now emits standalone
+   with Yumemi messages in PHPDoc and constant args, and `InvalidUnitCallRule` now emits standalone
    `imm.invalidUnitCall` diagnostics for invalid `unit()` / `unit_to()` calls.
 
 3. Add PHPStan return-type inference. **Done for the native path:** operator inference for

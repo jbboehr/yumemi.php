@@ -2,8 +2,8 @@
 
 Snapshot date: 2026-07-24
 
-This document compares IMM's current direction with Pint, the mature Python unit/quantity library. It is not a
-commitment to clone Pint. Pint is useful as a feature checklist and as prior art for user expectations, but IMM's
+This document compares Yumemi's current direction with Pint, the mature Python unit/quantity library. It is not a
+commitment to clone Pint. Pint is useful as a feature checklist and as prior art for user expectations, but Yumemi's
 distinctive goal is runtime unit handling plus PHPStan-backed static dimensional analysis for PHP.
 
 Relevant Pint documentation:
@@ -24,9 +24,9 @@ Relevant Pint documentation:
 
 ## Rating Scale
 
-Importance is rated for IMM, not for Pint:
+Importance is rated for Yumemi, not for Pint:
 
-- P0: Required for IMM to be credible at its own stated goal.
+- P0: Required for Yumemi to be credible at its own stated goal.
 - P1: Important for a useful first public release.
 - P2: Valuable, but can wait until the core is stable.
 - P3: Optional, niche, or probably better as a separate package.
@@ -47,7 +47,7 @@ Status labels:
 
 ## Executive Summary
 
-IMM has the hard center of a scalar, multiplicative unit runtime:
+Yumemi has the hard center of a scalar, multiplicative unit runtime:
 
 - exact rational arithmetic
 - a unit expression AST
@@ -61,12 +61,12 @@ IMM has the hard center of a scalar, multiplicative unit runtime:
 
 That is enough foundation to continue. Starting over would mostly repeat solved work.
 
-IMM is not close to full Pint parity. Pint is a mature runtime library with extensive ergonomics, contexts, systems,
+Yumemi is not close to full Pint parity. Pint is a mature runtime library with extensive ergonomics, contexts, systems,
 formatters, nonmultiplicative units, NumPy integration, measurements, function wrappers, and more. A fair estimate is:
 
 - Scalar multiplicative runtime parity: about 50-65%.
 - Full Pint runtime parity: about 15-25%.
-- IMM's intended static-analysis feature set: about 0-5%.
+- Yumemi's intended static-analysis feature set: about 0-5%.
 
 The right strategy is not "be Pint in PHP." The right strategy is:
 
@@ -82,7 +82,7 @@ The most important missing feature is not an exotic unit feature. It is the PHPS
 > and `unit()` / `unit_to()` helpers — so the intended static feature set is meaningfully underway.
 > The `Quantity<'…'>` object path is the main piece still missing (see §21).
 
-## Current IMM Foundation
+## Current Yumemi Foundation
 
 Current codebase facts:
 
@@ -126,7 +126,7 @@ Status: Partial
 Importance: P0
 Difficulty to finish: M
 
-IMM has the core expression representation and deterministic reduction:
+Yumemi has the core expression representation and deterministic reduction:
 
 - constants combine
 - compound expressions flatten
@@ -151,7 +151,7 @@ Status: Partial
 Importance: P0
 Difficulty to finish: M
 
-IMM already parses a useful unit expression language:
+Yumemi already parses a useful unit expression language:
 
 - identifiers
 - integer constants
@@ -182,7 +182,7 @@ Status: Partial
 Importance: P0
 Difficulty to finish: M
 
-IMM uses generated UDUNITS2 catalog data and resolves aliases and prefixes. This is the right foundation. It avoids
+Yumemi uses generated UDUNITS2 catalog data and resolves aliases and prefixes. This is the right foundation. It avoids
 inventing definitions and gives immediate coverage across SI, common derived units, US/imperial units, astronomical
 units, and assorted constants.
 
@@ -204,7 +204,7 @@ Status: Absent
 Importance: P0/P1
 Difficulty to finish: M/L
 
-Pint lets users define units in text files and programmatically. IMM can currently construct a `UnitRegistry`, but the
+Pint lets users define units in text files and programmatically. Yumemi can currently construct a `UnitRegistry`, but the
 ergonomics are too low-level for application use.
 
 Current API (immutable build):
@@ -248,7 +248,7 @@ $distance = $units->quantity(12, 'foot');
 ```
 
 This is clear and PHP-appropriate. Pint's Python syntax can use `12 * ureg.foot`, but PHP operator overloading does not
-exist, so IMM should not try to mimic that directly.
+exist, so Yumemi should not try to mimic that directly.
 
 Remaining work:
 
@@ -265,7 +265,7 @@ Status: Partial
 Importance: P0
 Difficulty to finish: M
 
-IMM supports:
+Yumemi supports:
 
 - addition/subtraction with matching reduced symbolic units
 - multiplication/division by quantities
@@ -277,7 +277,7 @@ Current behavior intentionally does not auto-convert compatible units during `ad
 `meter + centimeter` fails unless the caller explicitly converts one side first.
 
 Pint is more permissive at runtime and often converts compatible units automatically, usually preserving the left-hand
-unit. IMM's stricter behavior is defensible, but it should be documented as a deliberate difference.
+unit. Yumemi's stricter behavior is defensible, but it should be documented as a deliberate difference.
 
 Remaining work:
 
@@ -296,7 +296,7 @@ Status: Partial
 Importance: P0
 Difficulty to finish: M
 
-IMM can compute conversion factors, convert values, check compatibility, and convert `Quantity` instances to a target
+Yumemi can compute conversion factors, convert values, check compatibility, and convert `Quantity` instances to a target
 unit. This is the minimum viable runtime.
 
 Remaining work:
@@ -315,7 +315,7 @@ Status: Partial
 Importance: P1
 Difficulty to finish: M/L
 
-IMM currently has:
+Yumemi currently has:
 
 - `normalize()`: substitute unit definitions without changing the stored quantity value.
 - `simplify()`: substitute unit definitions and fold unit scale into the stored quantity value.
@@ -328,7 +328,7 @@ Pint has several related operations:
 - `to_preferred()`
 - `to_compact()`
 
-IMM's `simplify()` is closest to a root/base-unit conversion. It does not yet support preferred units, compact display,
+Yumemi's `simplify()` is closest to a root/base-unit conversion. It does not yet support preferred units, compact display,
 or named derived-unit output.
 
 Remaining work:
@@ -347,7 +347,7 @@ Status: Partial/internal
 Importance: P0/P1
 Difficulty to finish: M
 
-IMM can determine compatibility internally by normalizing units and comparing dimension expressions. It does not yet
+Yumemi can determine compatibility internally by normalizing units and comparing dimension expressions. It does not yet
 expose a clean public dimensionality object.
 
 Useful public API:
@@ -372,7 +372,7 @@ Status: Partial
 Importance: P1
 Difficulty to finish: M
 
-IMM currently uses exact rational values, which is a strong choice for conversion correctness and deterministic tests.
+Yumemi currently uses exact rational values, which is a strong choice for conversion correctness and deterministic tests.
 It avoids hidden float rounding in core logic.
 
 What exists:
@@ -407,10 +407,10 @@ Status: Partial
 Importance: P1
 Difficulty to finish: M/L
 
-IMM has a basic expression formatter and string methods. Pint has extensive formatting: plain, abbreviated, pretty,
+Yumemi has a basic expression formatter and string methods. Pint has extensive formatting: plain, abbreviated, pretty,
 HTML, LaTeX, siunitx, localized output, and custom magnitude formatting.
 
-IMM does not need all of that immediately, but it does need a deliberate display model.
+Yumemi does not need all of that immediately, but it does need a deliberate display model.
 
 Likely near-term API:
 
@@ -437,7 +437,7 @@ Status: Partial
 Importance: P1
 Difficulty to finish: M
 
-IMM currently resolves generated aliases and prefixes, and uses simple plural stripping. That is enough for common
+Yumemi currently resolves generated aliases and prefixes, and uses simple plural stripping. That is enough for common
 examples, but it will surprise users on edge cases.
 
 Remaining work:
@@ -483,7 +483,7 @@ Status: Absent/skipped by importer
 Importance: P2/P3
 Difficulty: XL
 
-Pint supports logarithmic units such as decibels, though its own docs present the feature carefully. IMM currently skips
+Pint supports logarithmic units such as decibels, though its own docs present the feature carefully. Yumemi currently skips
 logarithmic definitions during UDUNITS2 import.
 
 Why it is hard:
@@ -504,7 +504,7 @@ Difficulty: XL
 Pint contexts allow conversions that are dimensionally invalid under normal rules, such as wavelength to frequency via
 the speed of light. They can also be parameterized and scoped.
 
-This is powerful, but it cuts across IMM's static-analysis goal:
+This is powerful, but it cuts across Yumemi's static-analysis goal:
 
 - Runtime contexts can use arbitrary value transformations.
 - Static analysis can represent some context conversions by dimension graph edges.
@@ -529,7 +529,7 @@ Difficulty: L
 Pint has systems such as MKS, CGS, SI, US, and imperial. A system changes what "base units" or preferred reductions
 mean.
 
-IMM has the unit data to convert many of these units, but not the metadata to choose system-specific base/preferred
+Yumemi has the unit data to convert many of these units, but not the metadata to choose system-specific base/preferred
 units.
 
 Remaining work:
@@ -547,7 +547,7 @@ Status: Absent
 Importance: P2
 Difficulty: M/L
 
-Pint can choose more readable units, such as turning a very large hertz value into terahertz. IMM does not currently do
+Pint can choose more readable units, such as turning a very large hertz value into terahertz. Yumemi does not currently do
 this.
 
 Needed pieces:
@@ -565,8 +565,8 @@ Status: Partial
 Importance: P2
 Difficulty: M
 
-UDUNITS2 includes constants such as `pi`, `gravity`, and `avogadro_constant`. IMM imports many of them as units or
-dimensionless units with decimal definitions. Because IMM parses decimal definitions into rationals, constants become
+UDUNITS2 includes constants such as `pi`, `gravity`, and `avogadro_constant`. Yumemi imports many of them as units or
+dimensionless units with decimal definitions. Because Yumemi parses decimal definitions into rationals, constants become
 exact rational approximations of the catalog values.
 
 This is good for reproducibility, but users need to understand that `pi` is not symbolic or irrational. It is the exact
@@ -588,7 +588,7 @@ Status: Absent/partial
 Importance: P1
 Difficulty: M
 
-Pint quantities can participate in many mathematical and comparison operations. PHP cannot overload operators, but IMM
+Pint quantities can participate in many mathematical and comparison operations. PHP cannot overload operators, but Yumemi
 can still provide explicit methods.
 
 Useful API:
@@ -643,8 +643,8 @@ Difficulty: XL
 > `Quantity<'…'>` object generic and its method inference, plus the exact-vs-dimension config mode.
 > See [phpstan-extension.md](phpstan-extension.md).
 
-This is IMM's main differentiator. Pint has Python typing for magnitude types, but it is not primarily a static
-dimensional analyzer. IMM should aim to make PHPDoc unit strings meaningful to PHPStan.
+This is Yumemi's main differentiator. Pint has Python typing for magnitude types, but it is not primarily a static
+dimensional analyzer. Yumemi should aim to make PHPDoc unit strings meaningful to PHPStan.
 
 MVP target:
 
@@ -766,7 +766,7 @@ Status: Absent
 Importance: P3
 Difficulty: M/L
 
-Pint supports measurements with uncertainty. IMM does not.
+Pint supports measurements with uncertainty. Yumemi does not.
 
 This can probably be a separate package or later layer:
 
@@ -785,7 +785,7 @@ Difficulty: M/L
 Pint includes Buckingham Pi theorem helpers for dimensional analysis. This is mathematically related but not central to
 runtime conversion or PHPStan diagnostics.
 
-Recommendation: Defer indefinitely unless IMM grows a scientific-computing audience.
+Recommendation: Defer indefinitely unless Yumemi grows a scientific-computing audience.
 
 ### 27. Currency
 
@@ -793,7 +793,7 @@ Status: Absent
 Importance: P3
 Difficulty: L
 
-Pint documents currency conversion as an advanced topic. IMM should avoid this in core because exchange rates are
+Pint documents currency conversion as an advanced topic. Yumemi should avoid this in core because exchange rates are
 time-varying, jurisdictional, and application-specific.
 
 Recommendation: Keep currency out of core. A custom registry can support fixed contractual conversions if the user
@@ -806,7 +806,7 @@ Importance: P3
 Difficulty: M/L
 
 Pint can localize formatted unit names with Babel. PHP has internationalization tooling, but this is not central to
-IMM's static-analysis goal.
+Yumemi's static-analysis goal.
 
 Recommendation: Defer. Make formatter internals extensible enough that localization can be added later.
 
@@ -889,7 +889,7 @@ Recommendation: Keep the current setup. Do not spend more time here until featur
 
 ## Parity Matrix
 
-| Feature                        | IMM status       | Importance | Difficulty | Priority          |
+| Feature                        | Yumemi status    | Importance | Difficulty | Priority          |
 | ------------------------------ | ---------------- | ---------- | ---------- | ----------------- |
 | Expression model and reduction | Partial          | P0         | M          | Now               |
 | Parser                         | Partial          | P0         | M          | Now               |
@@ -1010,11 +1010,11 @@ Do not restart from scratch. The current code has the right core shape:
 
 The parts to change are mostly API boundaries and missing layers, not the underlying strategy.
 
-Do not chase full Pint parity as the product goal. Pint parity is too broad and too Python-specific. IMM should instead
+Do not chase full Pint parity as the product goal. Pint parity is too broad and too Python-specific. Yumemi should instead
 target:
 
 1. A reliable scalar multiplicative runtime.
 2. Strong PHPStan diagnostics and inference.
 3. Enough runtime ergonomics that users can adopt the static analysis without resenting the companion API.
 
-If IMM gets those right, it can be meaningfully useful long before it supports every advanced Pint feature.
+If Yumemi gets those right, it can be meaningfully useful long before it supports every advanced Pint feature.

@@ -6,7 +6,7 @@ PHP does not expose operator overloading to userland classes, but internal class
 through Zend object handlers. In particular, `zend_object_handlers` has a `do_operation` slot that an extension can
 implement for object arithmetic.
 
-IMM can use this as an optional extension layer while keeping the main runtime library pure PHP.
+Yumemi can use this as an optional extension layer while keeping the main runtime library pure PHP.
 
 ## Goal
 
@@ -204,7 +204,7 @@ Potential Composer suggestion:
 ```json
 {
   "suggest": {
-    "ext-imm": "Enables optional operator overloading for Quantity objects."
+    "ext-yumemi": "Enables optional operator overloading for Quantity objects."
   }
 }
 ```
@@ -258,13 +258,13 @@ Only after this spike passes should we decide package shape.
 Main package:
 
 ```text
-jbboehr/imm
+jbboehr/yumemi
 ```
 
 Optional extension package:
 
 ```text
-ext-imm
+ext-yumemi
 ```
 
 Possible source layout if kept in one repository:
@@ -275,16 +275,16 @@ src/
   Quantity.php
 ext/
   config.m4
-  php_imm.h
-  imm.c
-  imm_quantity.c
+  php_yumemi.h
+  yumemi.c
+  yumemi_quantity.c
   tests/
 ```
 
 Possible separate repository:
 
 ```text
-jbboehr/imm-ext
+jbboehr/yumemi-ext
 ```
 
 Recommendation: start in a separate spike directory or separate repository. Merge into the main repository only after

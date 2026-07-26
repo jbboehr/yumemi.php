@@ -1,6 +1,6 @@
 # PHPStan Extension Plan
 
-Snapshot of design discussion for static dimensional analysis in IMM (2026-07-24).
+Snapshot of design discussion for static dimensional analysis in Yumemi (2026-07-24).
 
 Related: [planning.md](planning.md), [grok-review.md](grok-review.md), [pint-parity.md](pint-parity.md).
 
@@ -16,22 +16,22 @@ Ship a PHPStan extension that catches unit mistakes at analysis time:
 
 These are related but not the same product surface:
 
-| Layer                  | Magnitude model                                     | Primary audience                         |
-| ---------------------- | --------------------------------------------------- | ---------------------------------------- |
-| **Runtime `Quantity`** | **`Rational` only** (exact conversion)              | Code that opts into the IMM value object |
-| **PHPStan unit types** | **Native magnitudes** (`int`, `float`, …) plus unit | App code that stays on native PHP types  |
+| Layer                  | Magnitude model                                     | Primary audience                            |
+| ---------------------- | --------------------------------------------------- | ------------------------------------------- |
+| **Runtime `Quantity`** | **`Rational` only** (exact conversion)              | Code that opts into the Yumemi value object |
+| **PHPStan unit types** | **Native magnitudes** (`int`, `float`, …) plus unit | App code that stays on native PHP types     |
 
 It is fine — and intentional — that runtime storage stays Rational-only while static analysis
 tracks `int` / `float` (and later other natives) with units. Most PHPStan users will annotate
 and check **native-typed** variables and parameters; they may never construct a runtime
 `Quantity`.
 
-IMM runtime still supplies the **unit engine** (parse, resolve, reduce, dimension, convert
+Yumemi runtime still supplies the **unit engine** (parse, resolve, reduce, dimension, convert
 factors). PHPStan attaches that engine to native types and optional `Quantity` types.
 
 ## Guiding Principle
 
-> PHPStan reuses IMM’s unit engine; it does not require every analysed value to be a runtime
+> PHPStan reuses Yumemi’s unit engine; it does not require every analysed value to be a runtime
 > `Quantity`.
 
 Use the same:
@@ -47,7 +47,7 @@ Do **not** reimplement unit parsing, reduction, or catalogs inside PHPStan types
 ```text
 PHPDoc / call site (often native int|float + unit)
     → constant unit string or type args
-    → IMM parse / resolve / reduce / compare
+    → Yumemi parse / resolve / reduce / compare
     → PHPStan Type + rule identifiers
 ```
 
@@ -103,7 +103,7 @@ native-type analysis path.
 | -------------------------------------------------------- | ---------------------------------------------------------------- |
 | Exact library math / conversion                          | Runtime `Quantity` + `Rational`                                  |
 | Analyse ordinary PHP (`int`/`float` APIs, loops, arrays) | Static `unit_int` / `unit_float` (or `UnitValue<int\|float, U>`) |
-| Unit algebra (mul/div/add checks)                        | Shared IMM `Expr` + dimension engine                             |
+| Unit algebra (mul/div/add checks)                        | Shared Yumemi `Expr` + dimension engine                          |
 
 Codex-style pushback on **`intWithUnit` as a second runtime world** still applies: do not invent
 a parallel library of instrumented ints. Do use **PHPStan types** that behave like `int`/`float`
@@ -132,7 +132,7 @@ QuantityType         // optional object path
   - unitExpr: Expr | null
 ```
 
-Avoid one PHP class per unit. Unit identity is always IMM `Expr` from unit strings.
+Avoid one PHP class per unit. Unit identity is always Yumemi `Expr` from unit strings.
 
 **Unknown unit** (non-constant string):
 
@@ -156,7 +156,7 @@ PHPStan audience. Runtime `Quantity` support can follow or trail slightly.
 
 **Tests:** fixture files + type inference / rule tests.
 
-This proves “IMM engine behind native static types.”
+This proves “Yumemi engine behind native static types.”
 
 ### Slice 2 — Arithmetic on native unit types
 
@@ -184,7 +184,7 @@ Use PHPStan operator type extensions where possible.
 
 ```neon
 parameters:
-    imm:
+    yumemi:
         # catalog: default UDUNITS2, or builder recipe / defines later
         arithmetic: exact   # or dimension
         # bare_numeric: allow | dimensionless | forbid
@@ -263,7 +263,7 @@ Optional polish (not blockers):
 
 ### Piece 1 — unit expression bridge (done)
 
-- `PHPStan\UnitExpressionParser` parses unit strings via IMM `Units`
+- `PHPStan\UnitExpressionParser` parses unit strings via Yumemi `Units`
 - `UnitExpression` / `UnitExpressionParseResult` carry reduced expr, display string, dimension
 - `extension.neon` registers the parser service
 - Covered by `tests/PHPStan/UnitExpressionParserTest`
@@ -272,7 +272,7 @@ Optional polish (not blockers):
 
 - `UnitIntegerType` / `UnitFloatType` extend PHPStan int/float with unit identity
 - `UnitTypeNodeResolverExtension` resolves `unit_int<'…'>` and `unit_float<'…'>`
-- Invalid units become `ErrorType` with IMM error messages (e.g. unknown `mass`)
+- Invalid units become `ErrorType` with Yumemi error messages (e.g. unknown `mass`)
 - Covered by type unit tests + PHPStan CLI integration fixtures
 
 ### Piece 3 — arithmetic operator inference (done)
@@ -280,7 +280,7 @@ Optional polish (not blockers):
 - `UnitOperatorTypeSpecifyingExtension` infers `+ - * / ** %` when at least one operand is a
   unit type; `UnitUnaryOperatorTypeSpecifyingExtension` handles unary `+` / `-`
 - `+` / `-` require normalized-equivalent units (exact scale, not merely same dimension);
-  `*` / `/` combine unit exprs via the IMM `Expr` algebra; `**` requires a constant integer
+  `*` / `/` combine unit exprs via the Yumemi `Expr` algebra; `**` requires a constant integer
   exponent; `%` is restricted to `unit_int` operands with equivalent units (PHP integer modulo)
 - `int` × `float` promotion and `/`-always-float follow native PHP rules
 - Covered by `UnitOperatorTypeSpecifyingExtensionTest`, `UnitUnaryOperatorTypeSpecifyingExtensionTest`,
@@ -317,7 +317,7 @@ Optional polish (not blockers):
    and infer `to()` / `mul()` / `div()` / `normalize()` / `simplify()` plus `add()` / `sub()`
    checks. This is the original headline goal and the largest remaining gap.
 2. **Exact vs dimension arithmetic mode + neon config** — only exact-unit is implemented today;
-   add the relaxed dimension mode and a `parameters.imm` config shape (arithmetic mode, catalog,
+   add the relaxed dimension mode and a `parameters.yumemi` config shape (arithmetic mode, catalog,
    bare-numeric policy).
 3. **Richer identifiers / messages** — stable per-cause error identifiers beyond the current
    `imm.invalidUnitCall`.
@@ -345,7 +345,7 @@ real type. **(met)**
 
 ## Summary Slogans
 
-- **One unit engine (IMM). Two presentation layers (Rational `Quantity` vs native static types).**
+- **One unit engine (Yumemi). Two presentation layers (Rational `Quantity` vs native static types).**
 - **Runtime stays exact (`Rational`). PHPStan tracks real PHP numbers with units.**
 - **Static unit types are `(native number kind × unit expression)`.**
-- **PHPStan reuses IMM; it does not reimplement units or replace the runtime.**
+- **PHPStan reuses Yumemi; it does not reimplement units or replace the runtime.**

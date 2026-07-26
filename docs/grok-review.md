@@ -2,7 +2,7 @@
 
 Date: 2026-07-24
 
-Full-repository review of `jbboehr/imm` (Iudex Mensurarum Mysteriorum): code quality, elegance,
+Full-repository review of `jbboehr/yumemi` (Iudex Mensurarum Mysticarum): code quality, elegance,
 potential issues, and readiness for the planned PHPStan dimensional analysis layer.
 
 **Scope:** `src/`, `tests/`, and project config. Not a line-by-line pass over generated
@@ -41,7 +41,7 @@ were not yet trustworthy because the resolver was too greedy (see issue #1).
 
 ## Project State (Context)
 
-IMM aims to be both:
+Yumemi aims to be both:
 
 1. A runtime unit expression, dimensional compatibility, and conversion library.
 2. A PHPStan extension for static dimensional analysis.

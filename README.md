@@ -1,6 +1,6 @@
-# Iudex Mensurarum Mysteriorum
+# Iudex Mensurarum Mysticarum『夢見』〜ＹＵＭＥＭＩ〜
 
-Runtime unit conversion and dimensional analysis for PHP.
+Runtime unit conversion and dimensional analysis for PHP. Short name: **Yumemi** (夢見, "dreaming").
 
 **Status**
 
