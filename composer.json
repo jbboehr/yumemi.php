@@ -50,7 +50,6 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "jbboehr\\Yumemi\\Scripts\\": "scripts",
             "jbboehr\\Yumemi\\Tests\\": "tests"
         }
     },
