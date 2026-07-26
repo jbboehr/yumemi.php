@@ -36,6 +36,10 @@ $finder = PhpCsFixer\Finder::create()
         // numbers stable for RuleTestCase assertions (no license header shifting them).
         'PHPStan/data',
         'PHPStan/Fixtures',
+    ])
+    // Extensionless CLI entrypoint: not matched by name('*.php'), so add it explicitly.
+    ->append([
+        __DIR__ . '/bin/generate-udunits2-catalog',
     ]);
 
 return (new PhpCsFixer\Config())
