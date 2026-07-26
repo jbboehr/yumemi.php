@@ -31,6 +31,18 @@ final class UnitFunctionDynamicReturnTypeExtension implements DynamicFunctionRet
         FuncCall $functionCall,
         Scope $scope,
     ): ?Type {
+        return $this->inferType($functionCall, $scope);
+    }
+
+    /**
+     * Shared inference used by both the return-type extension and {@see InvalidUnitCallRule}.
+     *
+     * Returns null when the call is not statically analysable (non-constant unit string,
+     * too few arguments), an {@see ErrorType} carrying a reason for an invalid unit string,
+     * or the branded unit type otherwise.
+     */
+    public function inferType(FuncCall $functionCall, Scope $scope): ?Type
+    {
         $args = $functionCall->getArgs();
         if (count($args) < 2) {
             return null;

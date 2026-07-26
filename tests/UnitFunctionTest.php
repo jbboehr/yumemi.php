@@ -23,7 +23,7 @@ final class UnitFunctionTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Invalid unit expression');
 
-        unit(1.0, 'not_a_real_unit_xyz');
+        unit(1.0, 'not_a_real_unit_xyz'); // @phpstan-ignore imm.invalidUnitCall (intentional: exercises the runtime rejection path)
     }
 
     /**

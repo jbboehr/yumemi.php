@@ -4,6 +4,7 @@
 # Piece 3: arithmetic operator type inference (+ - * / ** % and unary +/-)
 # Piece 4: unit() construction helper (dynamic return type)
 # Piece 5: unit_to() conversion helper (dynamic return type)
+# Piece 6: invalid unit() / unit_to() call diagnostics (rule)
 
 services:
     -
@@ -28,3 +29,7 @@ services:
         class: jbboehr\IudexMensurarumMysteriorum\PHPStan\UnitToFunctionDynamicReturnTypeExtension
         tags:
             - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: jbboehr\IudexMensurarumMysteriorum\PHPStan\InvalidUnitCallRule
+        tags:
+            - phpstan.rules.rule
