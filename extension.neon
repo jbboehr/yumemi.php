@@ -49,3 +49,7 @@ services:
         class: jbboehr\Yumemi\PHPStan\YumemiReturnTagFunctionReturnTypeExtension
         tags:
             - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: jbboehr\Yumemi\PHPStan\YumemiParamTagRule
+        tags:
+            - phpstan.rules.rule

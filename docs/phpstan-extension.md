@@ -394,9 +394,28 @@ branded unit type.
 - Covered by `YumemiReturnTagExtensionTest` — a CLI integration test (assertType fixtures run through the real PHPStan
   binary, since `TypeInferenceTestCase` does not index file-local function declarations), including an enforcement
   fixture proving the brand flows into core `argument.type` checking, not just `assertType`
-- **Deferred:** `@yumemi-param` argument checking (a rule, covering functions and methods uniformly); `@yumemi-return`
-  on object methods (blocked by PHPStan's per-class `getClass()` dynamic-return hook); `@yumemi-var`; a validation rule
-  surfacing invalid-unit tag payloads (currently silently ignored); bundled stub files for third-party libraries
+- **Deferred:** `@yumemi-return` on object methods (blocked by PHPStan's per-class `getClass()` dynamic-return hook);
+  `@yumemi-var`; a validation rule surfacing invalid-unit tag payloads (currently silently ignored); bundled stub files
+  for third-party libraries
+
+### Piece 9 — extension-optional `@yumemi-param` argument checking (done)
+
+The caller side of graceful degradation. A function/method keeps a native parameter type and declares the intended unit
+with `@yumemi-param unit_int<'meter'> $length`; branded arguments carrying the wrong unit are reported at the call site.
+
+- `YumemiDocTagReader::paramTypes()` parses the `<type> $name` payloads (reusing the same `TypeStringResolver` route),
+  keyed by parameter name; only branded unit payloads are kept
+- `YumemiParamTagRule` is registered on `PhpParser\Node\Expr\CallLike`, so one rule covers function and method calls
+  (PHPStan's `LazyRegistry` dispatches a node to rules registered on any of its parent classes). It resolves the callee
+  reflection, maps positional and named arguments to parameter names via `ParametersAcceptorSelector`, and checks each
+  branded argument with the expected type's `accepts()`
+- **Only branded arguments are checked**: a bare native value is the graceful escape hatch and passes silently; a
+  branded value with an incompatible unit yields a `yumemi.paramType` error carrying the `accepts()` reason as the tip
+- Covered by `YumemiParamTagRuleTest` (a `RuleTestCase` asserting exact message + line + tip for function and method
+  calls, positional and named args; the annotated function is `require`d into the process, the class is PSR-4
+  autoloaded)
+- **Deferred:** static calls and `new` (the rule already dispatches on `CallLike`; only the per-subtype reflection
+  branch is missing); a stricter opt-in mode that also rejects bare-native arguments at `@yumemi-param` positions
 
 ### Next pieces
 

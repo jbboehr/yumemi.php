@@ -70,6 +70,47 @@ final class YumemiDocTagReader
     }
 
     /**
+     * The unit types declared by @yumemi-param tags, keyed by parameter name (without the `$`).
+     *
+     * Payload shape is `<type> $name` (e.g. `unit_int<'foot'> $length`); trailing prose is ignored.
+     * Only branded unit payloads are kept; the first honourable occurrence of a name wins.
+     *
+     * @return array<string, Type>
+     */
+    public function paramTypes(ResolvedPhpDocBlock $phpDoc): array
+    {
+        $result = [];
+
+        foreach ($this->genericTagValues($phpDoc, self::PARAM_TAG) as $text) {
+            if (preg_match('/^\s*(?<type>.+?)\s*\$(?<name>\w+)/s', $text, $m) !== 1) {
+                continue;
+            }
+
+            $name = $m['name'];
+            if (isset($result[$name])) {
+                continue;
+            }
+
+            $type = $this->resolveUnitType($m['type']);
+            if ($type !== null) {
+                $result[$name] = $type;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Whether a type is one of our branded unit types (the only types the tags honour).
+     */
+    public function isUnitType(Type $type): bool
+    {
+        return $type instanceof UnitIntegerType
+            || $type instanceof UnitFloatType
+            || $type instanceof QuantityType;
+    }
+
+    /**
      * Raw text payloads of every occurrence of $tagName in the block.
      *
      * @return iterable<string>
@@ -103,13 +144,6 @@ final class YumemiDocTagReader
             return null;
         }
 
-        return $this->isBrandedUnitType($type) ? $type : null;
-    }
-
-    private function isBrandedUnitType(Type $type): bool
-    {
-        return $type instanceof UnitIntegerType
-            || $type instanceof UnitFloatType
-            || $type instanceof QuantityType;
+        return $this->isUnitType($type) ? $type : null;
     }
 }
