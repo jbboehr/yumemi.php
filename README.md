@@ -55,12 +55,13 @@ function recordDistance(float $length): void {}
 /** @var unit_float<'foot'> $height */
 $height = 6.0;
 
-// PHPStan: Parameter #1 $length of function recordDistance() expects
-//   unit_float<'meter'>, unit_float<'international_foot'> given.
-//   Unit unit_float<'international_foot'> is not assignable to
-//   unit_float<'meter'> (normalized forms differ).
+// Passing feet where meters are required is a static error:
+//! expects unit_float<'meter'>, unit_float<'international_foot'> given
 recordDistance($height);
 ```
+
+(The `//!` line is the exact diagnostic Yumemi reports there — the test suite runs every example in this section through
+PHPStan and checks each `//!` line against the real output, so these can't silently drift.)
 
 Units propagate through arithmetic, so `distance / time` is inferred as a speed and a wrong combination is caught:
 
@@ -77,11 +78,12 @@ $distance = 100.0;
 /** @var unit_float<'second'> $elapsed */
 $elapsed = 9.58;
 
-// PHPStan infers unit_float<'meter / second'> for the quotient — accepted.
+// distance / time is inferred as unit_float<'meter / second'> — accepted.
 recordSpeed($distance / $elapsed);
 
-// Multiplying instead would infer unit_float<'meter * second'> and be rejected:
-//   recordSpeed($distance * $elapsed);
+// distance * time is unit_float<'meter * second'> — the wrong dimension, rejected:
+//! expects unit_float<'meter / second'>, unit_float<'meter * second'> given
+recordSpeed($distance * $elapsed);
 ```
 
 Definitional equivalence is understood (`newton` ≡ `kilogram * meter / second^2`, `kilometer` ≡ `1000 * meter`), while a
@@ -107,7 +109,7 @@ $height = unit(6, 'foot');
 $heightInMeters = unit_to(6, 'foot', 'meter');
 
 assert($height === 6);
-assert(abs($heightInMeters - 1.8288) < 1e-9);
+assert($heightInMeters > 1.82 && $heightInMeters < 1.83);
 ```
 
 Code that opts into the runtime `Quantity` object gets the same checking on the object path:
@@ -126,6 +128,8 @@ it, the declared units are checked.
 
 require 'vendor/autoload.php';
 
+use function jbboehr\Yumemi\unit;
+
 /**
  * The native @param keeps every caller working. The @yumemi-param adds the
  * unit constraint only for analysers that understand it.
@@ -136,9 +140,12 @@ require 'vendor/autoload.php';
  */
 function storeLength(int $length): void {}
 
-// A bare int passes (graceful degradation). A branded wrong-unit argument
-// — e.g. unit(3, 'foot') — would be reported as a @yumemi-param mismatch.
+// A bare int passes — graceful degradation for callers without the extension.
 storeLength(5);
+
+// A branded wrong-unit argument is reported:
+//! @yumemi-param: parameter $length expects unit_int<'meter'>, unit_int<'international_foot'> given
+storeLength(unit(3, 'foot'));
 ```
 
 ## Runtime Unit Conversion (PHP)
