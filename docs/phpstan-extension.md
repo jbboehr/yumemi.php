@@ -378,6 +378,26 @@ Optional polish (not blockers):
 - Note: binary-operator misuse (e.g. `meter + second`) is already diagnosed by PHPStan core's
   `InvalidBinaryOperationRule` (`binaryOp.invalid`), so no sibling operator rule was added
 
+### Piece 8 — extension-optional `@yumemi-return` for functions (done)
+
+First slice of the extension-optional annotation surface (see "Annotation Surface"). A function keeps a native return
+type in its signature and adds `@yumemi-return unit_int<'foot'>`; when the extension is loaded, call sites see the
+branded unit type.
+
+- `YumemiDocTagReader` reads the vendor-prefixed tags (`@yumemi-return` today; `@yumemi-param` / `@yumemi-var` reserved)
+  from a `ResolvedPhpDocBlock`. Unknown tags survive as `GenericTagValueNode`; the type payload is re-parsed through
+  PHPStan's `TypeStringResolver` so it reaches `UnitTypeNodeResolverExtension` — one parser, one meaning
+- Only branded unit types are honoured; a native type or an invalid-unit `ErrorType` is treated as absent, so a tag
+  never poisons unrelated analysis (fail-open, matching `UnitsQuantityReturnTypeExtension`)
+- `YumemiReturnTagFunctionReturnTypeExtension` (a `DynamicFunctionReturnTypeExtension`, covering every function via
+  `isFunctionSupported`) resolves the callee's doc comment via `FileTypeMapper` and brands the return
+- Covered by `YumemiReturnTagExtensionTest` — a CLI integration test (assertType fixtures run through the real PHPStan
+  binary, since `TypeInferenceTestCase` does not index file-local function declarations), including an enforcement
+  fixture proving the brand flows into core `argument.type` checking, not just `assertType`
+- **Deferred:** `@yumemi-param` argument checking (a rule, covering functions and methods uniformly); `@yumemi-return`
+  on object methods (blocked by PHPStan's per-class `getClass()` dynamic-return hook); `@yumemi-var`; a validation rule
+  surfacing invalid-unit tag payloads (currently silently ignored); bundled stub files for third-party libraries
+
 ### Next pieces
 
 1. **Runtime `Quantity` PHPDoc + method inference** — the object path is still untouched. Resolve

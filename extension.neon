@@ -6,6 +6,7 @@
 # Piece 5: unit_to() conversion helper (dynamic return type)
 # Piece 6: invalid unit() / unit_to() call diagnostics (rule)
 # Piece 7: Quantity<'...'> object type + Units::quantity() return type
+# Piece 8: extension-optional @yumemi-* annotations (graceful degradation)
 
 services:
     -
@@ -42,3 +43,9 @@ services:
         class: jbboehr\Yumemi\PHPStan\QuantityMethodReturnTypeExtension
         tags:
             - phpstan.broker.dynamicMethodReturnTypeExtension
+    -
+        class: jbboehr\Yumemi\PHPStan\YumemiDocTagReader
+    -
+        class: jbboehr\Yumemi\PHPStan\YumemiReturnTagFunctionReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
