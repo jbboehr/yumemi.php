@@ -32,3 +32,42 @@ function dynamicQuantity(Units $units, string $u): void
 /** @var \jbboehr\IudexMensurarumMysteriorum\Quantity<'meter / second'> $speed */
 $speed = $units->quantity(1, 'meter / second');
 assertType("Quantity<'meter / second'>", $speed);
+
+// --- Slice 2: fluent method inference ---
+
+$m = $units->quantity(1, 'meter');
+$s = $units->quantity(1, 'second');
+$km = $units->quantity(1, 'kilometer');
+
+// mul / div combine units
+assertType("Quantity<'meter * second'>", $m->mul($s));
+assertType("Quantity<'meter / second'>", $m->div($s));
+
+// scalar operand preserves the unit
+assertType("Quantity<'meter'>", $m->mul(2));
+assertType("Quantity<'meter'>", $m->div(2));
+
+// pow raises by a constant integer
+assertType("Quantity<'meter ^ 2'>", $m->pow(2));
+assertType("Quantity<'1 / meter'>", $m->pow(-1));
+
+// neg / add / sub keep the left unit
+assertType("Quantity<'meter'>", $m->neg());
+assertType("Quantity<'meter'>", $m->add($m));
+assertType("Quantity<'meter'>", $m->sub($m));
+
+// to() rebrands to the target unit (catalog spelling)
+assertType("Quantity<'international_foot'>", $m->to('foot'));
+
+// normalize() rebrands to the catalog-normalized form
+assertType("Quantity<'1000 * meter'>", $km->normalize());
+
+// chains compose
+assertType("Quantity<'meter / second'>", $m->div($s)->mul($s)->div($s));
+
+// unbranded-quantity operand → native fallback (cannot compute unit)
+function combineDynamic(\jbboehr\IudexMensurarumMysteriorum\Quantity $q, \jbboehr\IudexMensurarumMysteriorum\Units $units): void
+{
+    $m = $units->quantity(1, 'meter');
+    assertType('jbboehr\\IudexMensurarumMysteriorum\\Quantity', $m->mul($q));
+}

@@ -38,3 +38,7 @@ services:
         class: jbboehr\IudexMensurarumMysteriorum\PHPStan\UnitsQuantityReturnTypeExtension
         tags:
             - phpstan.broker.dynamicMethodReturnTypeExtension
+    -
+        class: jbboehr\IudexMensurarumMysteriorum\PHPStan\QuantityMethodReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicMethodReturnTypeExtension
