@@ -32,7 +32,7 @@ use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Units;
 
 /**
- * Parses unit expression strings through the IMM runtime for PHPStan.
+ * Parses unit expression strings through the Yumemi runtime for PHPStan.
  *
  * This is the bridge from static analysis to the shared unit engine. Later pieces
  * (custom types, PHPDoc resolvers) should call this instead of reimplementing parsing.

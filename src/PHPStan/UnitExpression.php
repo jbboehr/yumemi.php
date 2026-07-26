@@ -31,7 +31,7 @@ use jbboehr\Yumemi\Expr;
 /**
  * A successfully parsed unit expression for PHPStan types.
  *
- * Holds the reduced IMM expression plus display helpers. Number kind (int/float)
+ * Holds the reduced Yumemi expression plus display helpers. Number kind (int/float)
  * is tracked separately by PHPStan types that wrap this value.
  *
  * {@see equals()} is structural (same reduced symbols). {@see equivalent()} compares

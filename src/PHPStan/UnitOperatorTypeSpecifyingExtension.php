@@ -34,7 +34,7 @@ use PHPStan\Type\Type;
  *
  * Rules (exact unit mode):
  * - + / -: both sides must be unit types with equivalent normalized units
- * - * /: combine unit expressions (IMM Expr algebra)
+ * - * /: combine unit expressions (Yumemi Expr algebra)
  * - **: left unit raised to a constant integer exponent
  * - %: both sides must be unit_int values with equivalent normalized units
  * - unit op bare numeric: treat bare value as dimensionless (* / only)

@@ -32,7 +32,7 @@ use PHPStan\Type\Type;
 use PHPStan\Type\VerbosityLevel;
 
 /**
- * PHPStan float-like type carrying an IMM unit expression.
+ * PHPStan float-like type carrying a Yumemi unit expression.
  *
  * Runtime value remains a plain float; the unit is static-analysis only.
  */

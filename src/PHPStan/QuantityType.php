@@ -32,7 +32,7 @@ use PHPStan\Type\Type;
 use PHPStan\Type\VerbosityLevel;
 
 /**
- * PHPStan object type for a runtime {@see Quantity} carrying an IMM unit expression.
+ * PHPStan object type for a runtime {@see Quantity} carrying a Yumemi unit expression.
  *
  * The runtime value is a real {@see Quantity}; the unit is tracked statically so it can propagate
  * through the fluent method chain and be checked at assignment/parameter boundaries. This is the

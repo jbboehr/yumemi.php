@@ -27,7 +27,7 @@ namespace jbboehr\Yumemi\Tests\PHPStan;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Integration: run PHPStan on fixture files with the IMM extension loaded.
+ * Integration: run PHPStan on fixture files with the Yumemi extension loaded.
  */
 final class UnitTypeNodeResolverIntegrationTest extends TestCase
 {

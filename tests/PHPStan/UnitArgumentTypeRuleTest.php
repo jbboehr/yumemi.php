@@ -29,7 +29,7 @@ use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;
 
 /**
- * PHPStan RuleTestCase-style check: core method call argument rule + IMM unit accepts().
+ * PHPStan RuleTestCase-style check: core method call argument rule + Yumemi unit accepts().
  *
  * Kept separate from the CLI integration smoke tests; this asserts exact message + line.
  *
