@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
+use jbboehr\Yumemi\Tests\PHPStan\Fixtures\ConfiguredUnitRegistryFactory;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -98,7 +99,22 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $this->assertStringContainsString('Found 1 error', $output, $output);
     }
 
-    private function analyse(string $fixture): string
+    public function testConfiguredRegistryIsUsedAcrossPhpStanIntegrations(): void
+    {
+        $output = $this->analyse('configured-unit-registry.php', ConfiguredUnitRegistryFactory::class);
+
+        $this->assertStringContainsString('[OK] No errors', $output, $output);
+    }
+
+    public function testInvalidConfiguredRegistryFactoryFailsAtStartup(): void
+    {
+        $output = $this->analyse('unit-phpdoc-valid.php', \stdClass::class);
+
+        $this->assertStringContainsString('parameters.yumemi.registryFactory', $output, $output);
+        $this->assertStringContainsString('must name a class implementing', $output, $output);
+    }
+
+    private function analyse(string $fixture, ?string $registryFactory = null): string
     {
         $fixturePath = __DIR__ . '/data/' . $fixture;
         $this->assertFileExists($fixturePath);
@@ -106,6 +122,11 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $config = sys_get_temp_dir() . '/yumemi-phpstan-' . md5($fixture) . '.neon';
         $extension = realpath(__DIR__ . '/../../extension.neon');
         $this->assertNotFalse($extension);
+
+        $yumemi = $registryFactory === null ? '' : <<<NEON
+    yumemi:
+        registryFactory: {$registryFactory}
+NEON;
 
         $neon = <<<NEON
 includes:
@@ -115,6 +136,7 @@ parameters:
     paths:
         - {$fixturePath}
     reportUnmatchedIgnoredErrors: false
+{$yumemi}
 NEON;
         file_put_contents($config, $neon);
 

@@ -111,7 +111,7 @@ instrumented ints. Do use **PHPStan types** that behave like `int`/`float` with 
 | ---------------------------------------------- | -------------------------------------------------------------------------- |
 | Brands strip on cast / `(int)` / some builtins | Rules for common safe ops; error or wipe unit on unsafe casts              |
 | `+` / `*` on two unit values                   | Operator type extensions: same unit for `+`/`-`; combine units for `*`/`/` |
-| Mixing unit and bare `int`                     | Configurable: error, or treat bare as dimensionless                        |
+| Mixing unit and bare `int`                     | Scalar for `*` / `/`; reject unit-bearing `+` / `-`                        |
 | No runtime enforcement                         | Document: static-only unless user also uses `Quantity`                     |
 
 This is harder than “only analyse `Quantity` methods,” but it matches the intended PHPStan use.
@@ -263,7 +263,7 @@ This proves “Yumemi engine behind native static types.”
 
 | Op                                     | Rule (sketch)                                                     |
 | -------------------------------------- | ----------------------------------------------------------------- |
-| `+` / `-` on native unit types         | Same unit (exact) or same dimension (config); result keeps unit   |
+| `+` / `-` on native unit types         | Same normalized unit; result keeps the left unit                  |
 | `*` / `/`                              | Combine unit exprs; promote `int`×`float` → `float` per PHP rules |
 | `*` / `/` by bare dimensionless number | Preserve unit                                                     |
 | Unsafe cast to bare `int`/`float`      | Drop unit or error (config)                                       |
@@ -276,26 +276,25 @@ Use PHPStan operator type extensions where possible.
 - `Units::quantity(1, 'meter')` return type
 - `value()` / `intValueIn` / `to` bridging native unit types ↔ `Quantity` if desired
 
-### Slice 4 — `add` / `sub` policy config
+### Slice 4 — `add` / `sub` policy
 
-1. **Exact** (default): same normalized unit, including scale
-2. **Dimension**: same `Dimension` (static checking only; native values cannot be converted automatically)
-
-Runtime `Quantity` methods are not governed by this native-operator setting: `add()` / `sub()` perform exact runtime
-conversion between compatible dimensions, while `addWithSameUnit()` / `subWithSameUnit()` require exact-unit equivalence
-and perform no conversion.
+Native `unit_int` / `unit_float` addition and subtraction require the same normalized unit, including scale. Merely
+compatible dimensions are insufficient: PHPStan cannot insert the magnitude conversion needed to make raw `meter + foot`
+arithmetic correct. Runtime `Quantity::add()` / `sub()` can accept compatible dimensions because those methods perform
+the exact conversion; `addWithSameUnit()` / `subWithSameUnit()` remain the no-conversion variants.
 
 ### Slice 5 — Extension config
 
 ```neon
 parameters:
     yumemi:
-        # catalog: default UDUNITS2, or builder recipe / defines later
-        arithmetic: exact   # or dimension
-        # bare_numeric: allow | dimensionless | forbid
+        registryFactory: App\PHPStan\YumemiRegistryFactory
 ```
 
-Custom units should reuse `UnitRegistryBuilder::default()->define(...)->build()`.
+The configured class implements `UnitRegistryFactory` and returns the complete `UnitRegistry`. It can reuse
+`UnitRegistryBuilder::default()->define(...)->build()` to extend UDUNITS2 or start from `empty()` for an isolated
+catalog. The registry is constructed once, shared across extension services, and fingerprinted through PHPStan's result
+cache metadata API.
 
 ## Package Layout
 
@@ -475,40 +474,43 @@ parser-promotion implementation below replaces all of those components and seman
   PHPStan-tag priority, ref/variadic mismatches, method returns, locals, bare-native enforcement, base-only/default-off
   behavior, dependency reflection, and stub parsing.
 
+### Piece 12 — configured PHPStan registries (done)
+
+- `parameters.yumemi.registryFactory` accepts a class implementing `UnitRegistryFactory`; `null` retains UDUNITS2.
+- The factory returns the complete registry and is invoked once. A shared `Units` context feeds PHPDoc resolution,
+  helpers, native operators, `Quantity` inference, and optional Yumemi-tag promotion.
+- Registry names, records, prebuilt units, and prefixes are fingerprinted through PHPStan's result-cache metadata API,
+  so external catalog changes invalidate cached analysis.
+- Missing or invalid factory classes and construction failures stop analysis with configuration-specific messages.
+
 ### Next pieces
 
-1. **Exact vs dimension native-arithmetic mode + neon config** — native `+` / `-` remain exact-unit today; add the
-   relaxed dimension mode and a `parameters.yumemi` config shape (arithmetic mode, catalog, bare-numeric policy). This
-   is now the largest remaining PHPStan item. Runtime `Quantity` method semantics remain fixed as described in Piece 10.
-2. **Bundled stubs for selected third-party libraries** — these should normally use standard PHPStan tags containing
+1. **Bundled stubs for selected third-party libraries** — these should normally use standard PHPStan tags containing
    Yumemi types and therefore need no parser promotion. What remains is deciding which integrations merit bundled stubs
    and registering those files through a `StubFilesExtension`.
+2. **Bridges between native unit types and `Quantity`** — decide which runtime accessors should carry native brands and
+   where conversion must remain explicit.
 3. **Richer identifiers / messages elsewhere** — Piece 11 has stable per-cause identifiers for promotion failures; other
    extension diagnostics can be split further where callers need more precise suppression.
 
 **Success criterion (piece 2):** `unit_int<'mass'>` errors; `unit_int<'meter / second'>` is a real type. **(met)**
 
-> **Update 2026-07-25:** Pieces 3–6 are complete (commits `343027f`, `185d01f`, `515e722`, `a2180ed`, and the
-> invalid-call rule). The native `unit_int` / `unit_float` path — PHPDoc resolution, validation, operator inference,
-> `unit()` / `unit_to()` helpers, assignment checks via the branded types' `accepts()`, and standalone invalid-call
-> diagnostics — is now in place. What remains is the runtime `Quantity` object path and the exact-vs-dimension config
-> work.
-
 > **Update 2026-07-26:** Piece 7 (the runtime `Quantity<'…'>` object path — `Quantity<'…'>` PHPDoc resolution,
 > `Units::quantity()` inference, and fluent-method inference through `mul` / `div` / `pow` / `neg` / `add` / `sub` /
-> `to` / `normalize`) landed in commits `7b8b759` and `64786af` and is now documented above. The open-item lists ("Next
-> pieces", "Later Milestones") were corrected accordingly — the largest remaining PHPStan item is now the
-> exact-vs-dimension arithmetic mode plus `parameters.yumemi` config. `simplify()` inference has since completed the
-> current unit-bearing fluent-method surface.
+> `to` / `normalize`) landed in commits `7b8b759` and `64786af`; `simplify()` inference has since completed the current
+> unit-bearing fluent-method surface.
+
+> **Update 2026-07-27:** Piece 12 adds typed custom-registry configuration and cache invalidation. The proposed native
+> dimension-only addition mode was dropped because it cannot convert ordinary PHP numeric magnitudes and would therefore
+> be unsound.
 
 ## Later Milestones
 
 1. ~~Operator inference for `+` `-` `*` `/` on native unit types~~ **(done — Piece 3)**
-2. Exact vs dimension arithmetic mode
-3. ~~Runtime `Quantity` PHPDoc + method inference (Rational × unit)~~ **(done — Piece 7)**
-4. Bridges between native unit types and `Quantity`
-5. Neon config for catalog and policies
-6. Richer messages / structured identifiers
+2. ~~Runtime `Quantity` PHPDoc + method inference (Rational × unit)~~ **(done — Piece 7)**
+3. Bridges between native unit types and `Quantity`
+4. ~~Neon config for custom catalogs~~ **(done — Piece 12)**
+5. Richer messages / structured identifiers
 
 > **Update 2026-07-25:** Milestone 1 is done. Milestones 2–6 remain; see the reduced "Next pieces" list above, which is
 > now the authoritative near-term plan.

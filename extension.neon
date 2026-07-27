@@ -8,9 +8,40 @@
 # Piece 7: Quantity<'...'> object type + Units::quantity() return type
 # Optional @yumemi-* tag promotion is registered separately by yumemi-tags.neon.
 
+parameters:
+    yumemi:
+        registryFactory: null
+
+parametersSchema:
+    yumemi: structure([
+        registryFactory: schema(string(), nullable()),
+    ])
+
 services:
+    yumemiConfiguredUnitRegistryProvider:
+        class: jbboehr\Yumemi\PHPStan\ConfiguredUnitRegistryProvider
+        arguments:
+            factoryClass: %yumemi.registryFactory%
+        autowired: false
+    yumemiUnitRegistry:
+        class: jbboehr\Yumemi\Registry\UnitRegistry
+        factory: @yumemiConfiguredUnitRegistryProvider::getRegistry()
+        autowired: false
+    yumemiUnits:
+        class: jbboehr\Yumemi\Units
+        arguments:
+            unitRegistry: @yumemiUnitRegistry
+        autowired: false
     -
         class: jbboehr\Yumemi\PHPStan\UnitExpressionParser
+        arguments:
+            units: @yumemiUnits
+    -
+        class: jbboehr\Yumemi\PHPStan\UnitRegistryResultCacheMetaExtension
+        arguments:
+            registry: @yumemiUnitRegistry
+        tags:
+            - phpstan.resultCacheMetaExtension
     -
         class: jbboehr\Yumemi\PHPStan\UnitTypeNodeResolverExtension
         tags:

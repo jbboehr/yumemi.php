@@ -257,17 +257,10 @@ Dimensional compatibility and conversion are related but distinct:
 - Converting between them requires a scale factor.
 - `meter` and `second` are incompatible.
 
-Eventually support two compatibility modes:
-
-- `dimension`: allow compatible dimensions such as `meter + foot`
-- `exact`: require identical units unless an explicit conversion is used
-
-Default should probably be `dimension`, because dimensional analysis primarily cares that dimensions match. Exact unit
-checking can be a stricter project/PHPStan option.
-
 Runtime `Quantity::add()` and `Quantity::sub()` use dimension compatibility because the object can perform the required
 exact conversion. `addWithSameUnit()` and `subWithSameUnit()` expose the exact-unit policy. Native PHPStan unit types
-remain exact-unit-only for `+` / `-`, because ordinary PHP numbers cannot perform an implicit magnitude conversion.
+remain exact-unit-only for `+` / `-`: ordinary PHP numbers cannot perform the magnitude conversion required by an
+operation such as `meter + foot`, so accepting merely compatible dimensions would be unsound.
 
 ## Formula Interpolation Idea
 
@@ -308,7 +301,6 @@ mostly catalog semantics, API polish, and edge-case formatting.
 - Offset and affine units, especially temperature
 - Logarithmic units
 - Better numeric output policies for decimal/float conversion
-- PHPStan configuration for native exact-unit versus dimension-only checking
 - PHPStan static analysis extension — see [phpstan-extension.md](phpstan-extension.md)
 - Scalar-specific PHPDoc types such as `unit_int` or `unit_float` (optional edge types; not the core model)
 - Public documentation for generated catalog regeneration
@@ -335,25 +327,25 @@ Suggested next slices (detail in [phpstan-extension.md](phpstan-extension.md)):
 
 4. Add PHPStan checks for `add()` and `sub()`. **Done:** native `+` / `-` require normalized-equivalent units;
    `Quantity::add()` / `sub()` require compatible dimensions; and `Quantity::addWithSameUnit()` / `subWithSameUnit()`
-   require normalized-equivalent units. **Remaining:** the optional native dimensional mode via config.
+   require normalized-equivalent units. Native dimension-only addition is intentionally not supported because PHP cannot
+   convert the right operand's magnitude.
 
-5. Harden registry extensibility. **Started:** immutable `UnitRegistry` + `UnitRegistryBuilder` (`empty()` / `default()`
-   with UDUNITS2, `define('name = expr')`, `add()`, `alias()`, `CompositeUnitRegistry`). Remaining: user-defined base
+5. Harden registry extensibility. **Mostly done:** immutable `UnitRegistry` + `UnitRegistryBuilder` (`empty()` /
+   `default()` with UDUNITS2, `define('name = expr')`, `add()`, `alias()`, `CompositeUnitRegistry`), plus PHPStan's
+   `parameters.yumemi.registryFactory` hook and automatic result-cache fingerprinting. Remaining: user-defined base
    dimensions.
 
 6. Improve catalog semantics. Replace simple plural stripping with catalog plural aliases where possible, and design
    explicit behavior for affine and logarithmic definitions.
 
-> **Update 2026-07-25:** Slices 1–4 are done for the **native `unit_int` / `unit_float`** static path (PHPDoc types,
-> invalid-string and invalid-call diagnostics, operator/`unit()`/`unit_to()` inference, exact-unit `+` / `-`). The
-> runtime **`Quantity<…>` object path** (generic + method inference) and the exact-vs-dimension config mode are the main
-> PHPStan items still open. See [phpstan-extension.md](phpstan-extension.md) "Next pieces".
-
 > **Update 2026-07-26:** The runtime **`Quantity<…>` object path** is now done (Piece 7 — commits `7b8b759`, `64786af`):
 > `Quantity<'…'>` PHPDoc resolution, `Units::quantity()` inference, and fluent-method inference through `mul` / `div` /
-> `pow` / `neg` / `add` / `sub` / `to` / `normalize`. The **exact-vs-dimension config mode** is now the main PHPStan
-> item still open. `simplify()` inference and object-path `Quantity` addition/subtraction checks are now complete. See
-> [phpstan-extension.md](phpstan-extension.md) "Next pieces".
+> `pow` / `neg` / `add` / `sub` / `to` / `normalize`. `simplify()` inference and object-path `Quantity`
+> addition/subtraction checks are also complete.
+
+> **Update 2026-07-27:** PHPStan custom catalogs are now supplied by a typed `UnitRegistryFactory`, shared by every
+> extension path and fingerprinted for result-cache invalidation. Native `+` / `-` deliberately remain exact-unit-only;
+> a dimension-only mode would accept arithmetic whose raw PHP magnitudes have not been converted.
 
 ## Current Architecture Sketch
 

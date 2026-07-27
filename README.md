@@ -126,6 +126,43 @@ Code that opts into the runtime `Quantity` object gets the same checking on the 
 `Quantity<'meter / second'>` is a real PHPDoc type, and the fluent methods (`mul`, `div`, `pow`, `to`, `normalize`,
 `simplify`, …) carry the unit through — e.g. `$meters->div($seconds)` is inferred as `Quantity<'meter / second'>`.
 
+### Custom PHPStan registries
+
+PHPStan uses the default UDUNITS2 catalog unless `parameters.yumemi.registryFactory` names a class implementing
+`UnitRegistryFactory`. The factory returns the complete registry used by every Yumemi PHPStan integration:
+
+```php
+<?php
+
+namespace App\PHPStan;
+
+use jbboehr\Yumemi\PHPStan\UnitRegistryFactory;
+use jbboehr\Yumemi\Registry\UnitRegistry;
+use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
+
+final class YumemiRegistryFactory implements UnitRegistryFactory
+{
+    public static function create(): UnitRegistry
+    {
+        return UnitRegistryBuilder::default()
+            ->define('widget = 12 * meter')
+            ->alias('widgets', 'widget')
+            ->build();
+    }
+}
+```
+
+```neon
+parameters:
+    yumemi:
+        registryFactory: App\PHPStan\YumemiRegistryFactory
+```
+
+Use `UnitRegistryBuilder::default()` to extend or override UDUNITS2, or `UnitRegistryBuilder::empty()` for an isolated
+catalog. PHPStan's result cache is invalidated automatically when the returned registry contents change. This setting
+controls static analysis only; application code should construct its runtime `Units` context from the same registry
+factory when it uses those custom units at runtime.
+
 ### Extension-optional annotations
 
 If you can't (or don't want to) put a Yumemi type in a native PHPDoc position — say, in a library whose consumers may
