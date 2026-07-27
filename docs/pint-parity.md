@@ -901,8 +901,9 @@ Work:
 
 - ~~Parse PHPDoc unit generics.~~ **Done for native `unit_int` / `unit_float` and `Quantity<…>`.**
 - ~~Diagnose invalid unit strings and unknown units.~~ **Done** (incl. standalone invalid-call diagnostics).
-- ~~Infer `Units::quantity()`.~~ **Done.**
-- ~~Infer `Quantity::to()`, `mul()`, `div()`, `normalize()`, and `simplify()`.~~ **Done.**
+- ~~Infer `Units::quantity()`.~~ **Done, including finite literal target unions.**
+- ~~Infer `Quantity::to()`, `mul()`, `div()`, `normalize()`, and `simplify()`.~~ **Done; explicit finite targets also
+  brand results from otherwise unbranded quantities.**
 - ~~Check `add()` and `sub()`.~~ **Done for native types and the `Quantity` object path.**
 - Decide strict exact-unit vs dimension-compatible modes. **Exact done; dimension mode + config pending.**
 

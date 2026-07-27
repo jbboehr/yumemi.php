@@ -26,9 +26,8 @@ assertType('*ERROR*', $units->quantity($nativeFeet, 'meter'));
 $nativeKilometers = unit(2, 'kilometer');
 assertType("Quantity<'1000 * meter'>", $units->quantity($nativeKilometers, '1000 * meter'));
 
-// Unknown-in-default-catalog unit → fail open to native Quantity (the instance may hold a
-// custom registry where this unit is valid), never a poisoning error.
-assertType('jbboehr\\Yumemi\\Quantity', $units->quantity(1, 'not_a_real_unit_xyz'));
+// The configured PHPStan registry is authoritative for statically known unit strings.
+assertType('*ERROR*', $units->quantity(1, 'not_a_real_unit_xyz'));
 
 // non-constant unit string → native Quantity fallback (not branded)
 function dynamicQuantity(Units $units, string $u): void
@@ -39,6 +38,19 @@ function dynamicQuantity(Units $units, string $u): void
 function dynamicBrandedQuantity(Units $units, string $u): void
 {
     assertType('jbboehr\\Yumemi\\Quantity', $units->quantity(unit(1, 'meter'), $u));
+}
+
+/** @param 'meter'|'foot' $unit */
+function finiteQuantityTargets(Units $units, string $unit): void
+{
+    assertType("Quantity<'international_foot'>|Quantity<'meter'>", $units->quantity(1, $unit));
+    assertType('*ERROR*', $units->quantity(unit(1, 'meter'), $unit));
+}
+
+/** @param 'foot'|'international_foot' $unit */
+function equivalentQuantityTargets(Units $units, string $unit): void
+{
+    assertType("Quantity<'international_foot'>", $units->quantity(unit(1, 'foot'), $unit));
 }
 
 // --- Quantity<'...'> PHPDoc resolution ---
@@ -91,11 +103,31 @@ assertType('*ERROR*', $m->valueIn('second'));
 assertType('*ERROR*', $m->intValueIn('second'));
 assertType('*ERROR*', $m->exactIntValueIn('second'));
 
-// Unknown targets may belong to the runtime instance's custom registry, so they fail open.
-assertType('jbboehr\\Yumemi\\Quantity', $m->to('not_a_real_unit_xyz'));
-assertType('jbboehr\\Yumemi\\Number\\Rational', $m->valueIn('not_a_real_unit_xyz'));
-assertType('int', $m->intValueIn('not_a_real_unit_xyz'));
-assertType('int', $m->exactIntValueIn('not_a_real_unit_xyz'));
+// Unknown constant targets are invalid in the authoritative PHPStan registry.
+assertType('*ERROR*', $m->to('not_a_real_unit_xyz'));
+assertType('*ERROR*', $m->valueIn('not_a_real_unit_xyz'));
+assertType('*ERROR*', $m->intValueIn('not_a_real_unit_xyz'));
+assertType('*ERROR*', $m->exactIntValueIn('not_a_real_unit_xyz'));
+
+/** @param 'meter'|'foot' $unit */
+function finiteConversionTargets(Units $units, string $unit): void
+{
+    $meters = $units->quantity(1, 'meter');
+    assertType("Quantity<'international_foot'>|Quantity<'meter'>", $meters->to($unit));
+    assertType("unit_int<'international_foot'>|unit_int<'meter'>", $meters->intValueIn($unit));
+    assertType("unit_int<'international_foot'>|unit_int<'meter'>", $meters->exactIntValueIn($unit));
+    assertType('jbboehr\\Yumemi\\Number\\Rational', $meters->valueIn($unit));
+}
+
+/** @param 'meter'|'second' $unit */
+function partlyIncompatibleConversionTargets(Units $units, string $unit): void
+{
+    $meters = $units->quantity(1, 'meter');
+    assertType('*ERROR*', $meters->to($unit));
+    assertType('*ERROR*', $meters->valueIn($unit));
+    assertType('*ERROR*', $meters->intValueIn($unit));
+    assertType('*ERROR*', $meters->exactIntValueIn($unit));
+}
 
 // normalize() rebrands to the catalog-normalized form
 assertType("Quantity<'1000 * meter'>", $km->normalize());
@@ -121,6 +153,23 @@ function extractDynamic(\jbboehr\Yumemi\Quantity $q, string $unit): void
 {
     assertType('int', $q->intValueIn($unit));
     assertType('int', $q->exactIntValueIn($unit));
+    assertType('jbboehr\\Yumemi\\Number\\Rational', $q->valueIn($unit));
+}
+
+function extractKnownFromUnbranded(\jbboehr\Yumemi\Quantity $q): void
+{
+    assertType("Quantity<'international_foot'>", $q->to('foot'));
+    assertType("unit_int<'international_foot'>", $q->intValueIn('foot'));
+    assertType("unit_int<'meter'>", $q->exactIntValueIn('meter'));
+    assertType('jbboehr\\Yumemi\\Number\\Rational', $q->valueIn('foot'));
+}
+
+/** @param 'meter'|'foot' $unit */
+function extractFiniteFromUnbranded(\jbboehr\Yumemi\Quantity $q, string $unit): void
+{
+    assertType("Quantity<'international_foot'>|Quantity<'meter'>", $q->to($unit));
+    assertType("unit_int<'international_foot'>|unit_int<'meter'>", $q->intValueIn($unit));
+    assertType("unit_int<'international_foot'>|unit_int<'meter'>", $q->exactIntValueIn($unit));
     assertType('jbboehr\\Yumemi\\Number\\Rational', $q->valueIn($unit));
 }
 

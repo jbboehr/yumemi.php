@@ -31,3 +31,19 @@ assertType("Quantity<'widget'>", $quantityFromBrandedValue);
 assertType("Quantity<'meter'>", $quantity->to('meter'));
 assertType("unit_int<'meter'>", $quantity->intValueIn('meter'));
 assertType("unit_int<'widget'>", $quantity->exactIntValueIn('widgets'));
+
+/** @param 'widget'|'meter' $unit */
+function configuredFiniteTargets(Units $units, string $unit): void
+{
+    assertType("Quantity<'meter'>|Quantity<'widget'>", $units->quantity(1, $unit));
+
+    $quantity = $units->quantity(1, 'widget');
+    assertType("Quantity<'meter'>|Quantity<'widget'>", $quantity->to($unit));
+    assertType("unit_int<'meter'>|unit_int<'widget'>", $quantity->intValueIn($unit));
+}
+
+/** @param 'widget'|'widgets' $unit */
+function configuredEquivalentTargets(Units $units, string $unit): void
+{
+    assertType("Quantity<'widget'>", $units->quantity(unit(1, 'widget'), $unit));
+}

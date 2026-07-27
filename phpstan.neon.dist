@@ -6,6 +6,8 @@ includes:
     - vendor/phpstan/phpstan-strict-rules/rules.neon
 parameters:
     level: max
+    yumemi:
+        registryFactory: jbboehr\Yumemi\Tests\PHPStan\Fixtures\ConfiguredUnitRegistryFactory
     paths:
         - src
         - tests

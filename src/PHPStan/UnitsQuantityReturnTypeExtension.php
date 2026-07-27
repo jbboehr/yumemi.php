@@ -43,16 +43,15 @@ use PHPStan\Reflection\MethodReflection;
 use PHPStan\Type\DynamicMethodReturnTypeExtension;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\Type;
+use PHPStan\Type\TypeCombinator;
 
 /**
- * Infers Quantity<'meter'> from Units::quantity($value, 'meter') when the unit string is constant.
+ * Infers Quantity<'meter'> from Units::quantity($value, 'meter') when the unit type is a finite
+ * set of constant strings.
  *
- * Object-path analogue of {@see UnitFunctionDynamicReturnTypeExtension}, but instance-scoped and
- * therefore fail-open: `Units::quantity()` may be called on a custom registry whose units are
- * unknown to the configured catalog the static layer parses against. A constant string that parses
- * successfully is branded as a {@see QuantityType}; anything else (non-constant, or unknown in the
- * configured catalog) returns null, falling back to the native `Quantity` return rather than poisoning
- * legitimate custom-registry code with an error.
+ * The PHPStan-configured registry is authoritative: every statically known target must parse, while
+ * a genuinely dynamic string falls back to the native `Quantity` return. A branded integer input
+ * must already be expressed in every possible target unit because this method does not convert it.
  */
 final class UnitsQuantityReturnTypeExtension implements DynamicMethodReturnTypeExtension
 {
@@ -90,30 +89,38 @@ final class UnitsQuantityReturnTypeExtension implements DynamicMethodReturnTypeE
         }
 
         $constantStrings = $scope->getType($args[1]->value)->getConstantStrings();
-        if (count($constantStrings) !== 1) {
+        if ($constantStrings === []) {
             return null;
         }
 
-        $parsed = $this->parser->parse($constantStrings[0]->getValue());
-        if (!$parsed->isOk()) {
-            // Fail open: the unit may be valid in this instance's (possibly custom) registry.
-            return null;
+        $targetUnits = [];
+        foreach ($constantStrings as $constantString) {
+            $parsed = $this->parser->parse($constantString->getValue());
+            if (!$parsed->isOk()) {
+                return new ErrorType($parsed->errorMessage() ?? 'Invalid unit expression.');
+            }
+
+            $targetUnits[] = $parsed->expression();
         }
 
-        $targetUnit = $parsed->expression();
         $valueType = $scope->getType($args[0]->value);
 
         if ($valueType instanceof UnitIntegerType) {
             $valueUnit = $valueType->getUnitExpression();
-            if (!$valueUnit->equivalent($targetUnit)) {
-                return new ErrorType(sprintf(
-                    'Units::quantity() value unit %s does not match target unit %s (normalized forms differ).',
-                    $valueUnit->displayString,
-                    $targetUnit->displayString,
-                ));
+            foreach ($targetUnits as $targetUnit) {
+                if (!$valueUnit->equivalent($targetUnit)) {
+                    return new ErrorType(sprintf(
+                        'Units::quantity() value unit %s does not match target unit %s (normalized forms differ).',
+                        $valueUnit->displayString,
+                        $targetUnit->displayString,
+                    ));
+                }
             }
         }
 
-        return new QuantityType($targetUnit);
+        return TypeCombinator::union(...array_map(
+            static fn (UnitExpression $targetUnit): QuantityType => new QuantityType($targetUnit),
+            $targetUnits,
+        ));
     }
 }

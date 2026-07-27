@@ -11,6 +11,16 @@ $meters->to('second');
 $meters->valueIn('second');
 $meters->intValueIn('second');
 $meters->exactIntValueIn('second');
+$meters->to('not_a_real_unit_xyz');
+
+/**
+ * @param Quantity<'meter'> $meters
+ * @param 'meter'|'second'  $unit
+ */
+function convertToPossibleDimension(Quantity $meters, string $unit): void
+{
+    $meters->to($unit);
+}
 
 // Valid: compatible conversion/extraction targets.
 $meters->to('foot');
@@ -18,7 +28,7 @@ $meters->valueIn('foot');
 $meters->intValueIn('foot');
 $meters->exactIntValueIn('foot');
 
-// Unknown receiver/target units fail open.
+// Genuinely dynamic targets fail open, including on an unbranded receiver.
 function convertUnknown(Quantity $quantity, string $unit): void
 {
     $quantity->to($unit);

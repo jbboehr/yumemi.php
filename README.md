@@ -128,7 +128,10 @@ Code that opts into the runtime `Quantity` object gets the same checking on the 
 Conversion methods also check their target dimension. `intValueIn('foot')` and `exactIntValueIn('foot')` return
 `unit_int<'foot'>`, bridging an exact runtime quantity back to a statically branded native integer. In the other
 direction, passing a `unit_int<'foot'>` magnitude to `Units::quantity(..., 'meter')` is rejected: `quantity()` labels an
-existing magnitude and does not implicitly convert it.
+existing magnitude and does not implicitly convert it. Finite literal-string target unions are preserved, so a target
+typed as `'meter'|'foot'` produces the corresponding union of branded results. An explicit known target also brands
+`to()` and integer-extraction results from a plain, unbranded `Quantity`; PHPStan cannot check the source dimension in
+that case, but it can still represent the requested result unit.
 
 ### Custom PHPStan registries
 
@@ -165,7 +168,10 @@ parameters:
 Use `UnitRegistryBuilder::default()` to extend or override UDUNITS2, or `UnitRegistryBuilder::empty()` for an isolated
 catalog. PHPStan's result cache is invalidated automatically when the returned registry contents change. This setting
 controls static analysis only; application code should construct its runtime `Units` context from the same registry
-factory when it uses those custom units at runtime.
+factory when it uses those custom units at runtime. The configured registry is authoritative for a PHPStan run: unknown
+constant unit strings are errors, while genuinely dynamic strings fall back to the native return type. If an application
+deliberately uses multiple incompatible runtime registries, PHPStan cannot associate each `Units` or `Quantity` instance
+with a separate catalog; use one shared catalog for statically checked code.
 
 ### Extension-optional annotations
 

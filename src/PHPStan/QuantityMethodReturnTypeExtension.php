@@ -47,6 +47,7 @@ use PHPStan\Type\DynamicMethodReturnTypeExtension;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
+use PHPStan\Type\TypeCombinator;
 
 /**
  * Propagates the unit through the fluent {@see Quantity} method chain.
@@ -56,14 +57,14 @@ use PHPStan\Type\Type;
  * `mul`/`div` combine units via {@see UnitExpressionAlgebra}; `pow` raises by a constant integer;
  * `neg` keeps the left unit; `add`/`sub` accept dimensionally compatible units and keep the left
  * unit; `addWithSameUnit`/`subWithSameUnit` additionally require normalized-equivalent units; `to`
- * rebrands to the (constant, statically parseable) target unit; `normalize` rebrands to the
- * catalog-normalized form; and `simplify` moves the normalized scale into the magnitude, leaving
- * the normalized unit factors on the type.
+ * rebrands to each possible statically known target unit; `normalize` rebrands to the catalog-normalized
+ * form; and `simplify` moves the normalized scale into the magnitude, leaving the normalized unit factors
+ * on the type.
  *
- * Fails open like {@see UnitsQuantityReturnTypeExtension}: unit-combining operations with an
- * unbranded {@see Quantity}, non-constant exponents/targets, and targets unknown to the default
- * catalog fall back to the native return. Left-unit-preserving operations retain the receiver's
- * brand but skip compatibility diagnostics when the other unit is unknown.
+ * An explicit finite target also brands results from an unbranded {@see Quantity}; without a source
+ * brand, only the target can be inferred and source compatibility cannot be checked. The configured
+ * registry is authoritative for constant targets. Genuinely dynamic targets and unit-combining
+ * operations whose units cannot be determined fall back to the native return.
  */
 final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnTypeExtension
 {
@@ -100,12 +101,26 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
     public function inferType(string $methodName, MethodCall $methodCall, Scope $scope): ?Type
     {
         $receiver = $scope->getType($methodCall->var);
+        $args = $methodCall->getArgs();
+
+        if (in_array($methodName, ['to', 'valueIn', 'intValueIn', 'exactIntValueIn'], true)) {
+            if (!$receiver instanceof QuantityType && !$this->isUnbrandedQuantity($receiver)) {
+                return null;
+            }
+
+            return $this->convert(
+                $receiver instanceof QuantityType ? $receiver : null,
+                $args,
+                $scope,
+                $methodName,
+            );
+        }
+
         if (!$receiver instanceof QuantityType) {
             return null;
         }
 
         $unit = $receiver->getUnitExpression();
-        $args = $methodCall->getArgs();
 
         return match ($methodName) {
             'neg' => $receiver,
@@ -114,12 +129,6 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
             'mul' => $this->combine($unit, $args, $scope, true),
             'div' => $this->combine($unit, $args, $scope, false),
             'pow' => $this->power($unit, $args, $scope),
-            'to', 'valueIn', 'intValueIn', 'exactIntValueIn' => $this->convert(
-                $receiver,
-                $args,
-                $scope,
-                $methodName,
-            ),
             'normalize' => $this->normalize($unit),
             'simplify' => $this->simplify($unit),
             default => null,
@@ -226,7 +235,7 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
      * @param array<\PhpParser\Node\Arg> $args
      */
     private function convert(
-        QuantityType $receiver,
+        ?QuantityType $receiver,
         array $args,
         Scope $scope,
         string $methodName,
@@ -236,33 +245,47 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
         }
 
         $constantStrings = $scope->getType($args[0]->value)->getConstantStrings();
-        if (count($constantStrings) !== 1) {
+        if ($constantStrings === []) {
             return null;
         }
 
-        $parsed = $this->parser->parse($constantStrings[0]->getValue());
-        if (!$parsed->isOk()) {
-            // Fail open: conversion runs through the instance's (possibly custom) registry.
-            return null;
+        $targetUnits = [];
+        foreach ($constantStrings as $constantString) {
+            $parsed = $this->parser->parse($constantString->getValue());
+            if (!$parsed->isOk()) {
+                return new ErrorType($parsed->errorMessage() ?? 'Invalid unit expression.');
+            }
+
+            $targetUnits[] = $parsed->expression();
         }
 
-        $sourceUnit = $receiver->getUnitExpression();
-        $targetUnit = $parsed->expression();
+        if ($receiver instanceof QuantityType) {
+            $sourceUnit = $receiver->getUnitExpression();
+            foreach ($targetUnits as $targetUnit) {
+                if ($sourceUnit->sameDimension($targetUnit)) {
+                    continue;
+                }
 
-        if (!$sourceUnit->sameDimension($targetUnit)) {
-            return new ErrorType(sprintf(
-                'Cannot call Quantity::%s() with dimensionally incompatible units %s (%s) and %s (%s).',
-                $methodName,
-                $sourceUnit->displayString,
-                $sourceUnit->dimension->toString(),
-                $targetUnit->displayString,
-                $targetUnit->dimension->toString(),
-            ));
+                return new ErrorType(sprintf(
+                    'Cannot call Quantity::%s() with dimensionally incompatible units %s (%s) and %s (%s).',
+                    $methodName,
+                    $sourceUnit->displayString,
+                    $sourceUnit->dimension->toString(),
+                    $targetUnit->displayString,
+                    $targetUnit->dimension->toString(),
+                ));
+            }
         }
 
         return match ($methodName) {
-            'to' => new QuantityType($targetUnit),
-            'intValueIn', 'exactIntValueIn' => new UnitIntegerType($targetUnit),
+            'to' => TypeCombinator::union(...array_map(
+                static fn (UnitExpression $targetUnit): QuantityType => new QuantityType($targetUnit),
+                $targetUnits,
+            )),
+            'intValueIn', 'exactIntValueIn' => TypeCombinator::union(...array_map(
+                static fn (UnitExpression $targetUnit): UnitIntegerType => new UnitIntegerType($targetUnit),
+                $targetUnits,
+            )),
             // valueIn() retains its native Rational return after validation.
             default => null,
         };

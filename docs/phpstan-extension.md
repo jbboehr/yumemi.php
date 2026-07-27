@@ -433,9 +433,8 @@ dimensional checking as the native `unit_int` / `unit_float` path.
   catalog-normalized form, with `simplify` removing the scale constant that the runtime method folds into the magnitude
 - **No dedicated assignment/argument rule is needed:** `QuantityType::accepts()` plus PHPStan core's `CallMethodsRule`
   already reject a `Quantity<'foot'>` passed where `Quantity<'meter'>` is expected
-- **Fails open** like the native helpers: a non-constant exponent/target, an unbranded `Quantity` operand, or a unit
-  unknown to the statically configured catalog falls back to the native `Quantity` return (instance methods may run
-  against a different runtime registry), so a `Quantity` value never poisons unrelated analysis
+- Genuinely dynamic targets and unbranded unit-combining operands fail open to native returns; constant targets are
+  validated against the authoritative configured registry
 - Covered by `QuantityReturnTypeExtensionTest`, `QuantityArgumentTypeRuleTest`, and the `quantity-assert.php` fixture
 - Every current unit-bearing fluent method is now branded, including `simplify()`.
 
@@ -492,7 +491,23 @@ parser-promotion implementation below replaces all of those components and seman
   `Rational` rather than introducing a separate `unit_rational` type.
 - `InvalidQuantityConstructionRule` and `InvalidQuantityConversionRule` report unused invalid calls with
   `yumemi.invalidQuantityConstruction` and `yumemi.invalidQuantityConversion`.
-- Dynamic targets, unknown instance-specific units, and unbranded quantities continue to fail open.
+- Dynamic targets and unit-combining operations with unknown units continue to fail open.
+
+### Piece 14 — finite `Quantity` targets and an authoritative registry (done)
+
+- A finite union of constant strings is analysed one alternative at a time by `Units::quantity()` and by
+  `Quantity::to()`, `valueIn()`, `intValueIn()`, and `exactIntValueIn()`.
+- Result-bearing methods return a union of branded target types. Every possible target must be valid, every conversion
+  from a branded receiver must be dimensionally compatible, and a branded integer passed to `Units::quantity()` must be
+  normalized-equivalent to every possible target.
+- An unbranded `Quantity` with an explicit known target now produces a branded `to()` or integer-extraction result. Its
+  source compatibility cannot be checked because the receiver carries no static source unit.
+- The configured PHPStan registry is authoritative. Unknown constant targets are diagnostics; only genuinely dynamic
+  strings fall back to native return types. Runtime code should use the same catalog. Distinguishing several runtime
+  registry identities would require carrying a registry identity on every branded type and is deliberately deferred.
+- Literal-union support remains limited to the `Quantity` boundary APIs. Extending `unit()` is straightforward, but
+  `unit_to()` has independent source and target unions: blindly forming their Cartesian product loses value correlation
+  and makes it unclear whether validation should require every pair or merely one pair.
 
 ### Next pieces
 

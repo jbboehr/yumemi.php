@@ -68,6 +68,14 @@ final class InvalidQuantityConstructionRuleTest extends RuleTestCase
                 'Units::quantity() value unit second does not match target unit meter (normalized forms differ).',
                 15,
             ],
+            [
+                'Unit not found: not_a_real_unit_xyz.',
+                16,
+            ],
+            [
+                'Units::quantity() value unit meter does not match target unit international_foot (normalized forms differ).',
+                21,
+            ],
         ]);
     }
 }
