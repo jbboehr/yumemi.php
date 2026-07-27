@@ -70,7 +70,29 @@ final class Quantity
         $this->resolvedUnit = ExprReducer::reduce($resolvedUnit ?? $this->resolvedExprFrom($unit));
     }
 
+    /**
+     * Add a dimensionally compatible quantity, converting its magnitude to this quantity's unit.
+     *
+     * The result preserves this quantity's symbolic unit.
+     */
     public function add(self $other): self
+    {
+        $this->assertSameContext($other);
+
+        return new self(
+            $this->value->add($other->valueIn($this->resolvedUnit)),
+            $this->unit,
+            $this->units,
+            $this->resolvedUnit,
+        );
+    }
+
+    /**
+     * Add without converting either magnitude.
+     *
+     * The units must be definitionally equivalent after normalization, including scale.
+     */
+    public function addWithSameUnit(self $other): self
     {
         $this->assertSameContext($other);
         $this->assertSameUnit($other);
@@ -197,7 +219,29 @@ final class Quantity
         );
     }
 
+    /**
+     * Subtract a dimensionally compatible quantity, converting its magnitude to this quantity's unit.
+     *
+     * The result preserves this quantity's symbolic unit.
+     */
     public function sub(self $other): self
+    {
+        $this->assertSameContext($other);
+
+        return new self(
+            $this->value->sub($other->valueIn($this->resolvedUnit)),
+            $this->unit,
+            $this->units,
+            $this->resolvedUnit,
+        );
+    }
+
+    /**
+     * Subtract without converting either magnitude.
+     *
+     * The units must be definitionally equivalent after normalization, including scale.
+     */
+    public function subWithSameUnit(self $other): self
     {
         $this->assertSameContext($other);
         $this->assertSameUnit($other);

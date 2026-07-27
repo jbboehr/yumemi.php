@@ -109,56 +109,63 @@ final class QuantityTest extends TestCase
         $this->assertTrue($left->unit()->equals($right->unit()));
     }
 
-    public function testAddsExactScaleAliasUnitsWithoutConversion(): void
+    public function testAddsExactScaleAliasUnitsWithSameUnitMethod(): void
     {
         $units = Units::default();
 
         // kilometer and 1000 * meter are definitionally equivalent (exact-scale
         // aliases), so no value conversion is needed and raw magnitudes add.
-        $quantity = $units->quantity(1, 'kilometer')->add($units->quantity(1, '1000 * meter'));
+        $quantity = $units->quantity(1, 'kilometer')->addWithSameUnit(
+            $units->quantity(1, '1000 * meter'),
+        );
 
         $this->assertSame('2', $quantity->valueToString());
         $this->assertSame('kilometer', $quantity->unitToString());
         $this->assertSame('2000', $quantity->valueIn('meter')->toString());
     }
 
-    public function testSubtractsExactScaleAliasUnitsWithoutConversion(): void
+    public function testSubtractsExactScaleAliasUnitsWithSameUnitMethod(): void
     {
         $units = Units::default();
 
-        $quantity = $units->quantity(3, 'kilometer')->sub($units->quantity(1, '1000 * meter'));
+        $quantity = $units->quantity(3, 'kilometer')->subWithSameUnit(
+            $units->quantity(1, '1000 * meter'),
+        );
 
         $this->assertSame('2', $quantity->valueToString());
         $this->assertSame('kilometer', $quantity->unitToString());
         $this->assertSame('2000', $quantity->valueIn('meter')->toString());
     }
 
-    public function testAdditionStillRejectsDifferentScaleUnitsOfSameDimension(): void
+    public function testAdditionConvertsDifferentScaleUnitsToTheLeftUnit(): void
     {
         $units = Units::default();
 
-        // 1 km + 1000 m is a genuine scale difference (factor 1000, not 1) and
-        // must stay an error: it needs an explicit value conversion first.
-        $this->expectException(IncompatibleUnitException::class);
+        $quantity = $units->quantity(1, 'kilometer')->add($units->quantity(1000, 'meter'));
 
-        $units->quantity(1, 'kilometer')->add($units->quantity(1000, 'meter'));
+        $this->assertSame('2', $quantity->valueToString());
+        $this->assertSame('kilometer', $quantity->unitToString());
+        $this->assertSame('2000', $quantity->valueIn('meter')->toString());
     }
 
-    public function testAdditionRejectsSameDimensionWithDifferentSymbolicUnits(): void
+    public function testAdditionConvertsCompatibleSymbolicUnitsToTheLeftUnit(): void
     {
         $units = Units::default();
 
-        try {
-            $units->quantity(1, 'meter')->add($units->quantity(1, 'foot'));
-            self::fail('Expected IncompatibleUnitException');
-        } catch (IncompatibleUnitException $exception) {
-            $this->assertStringContainsString('meter', $exception->getMessage());
-            $this->assertStringContainsString('foot', $exception->getMessage());
-            $this->assertStringContainsString('convert explicitly', $exception->getMessage());
-            $this->assertNotNull($exception->fromDimension);
-            $this->assertNotNull($exception->toDimension);
-            $this->assertTrue($exception->fromDimension->equals($exception->toDimension));
-        }
+        $quantity = $units->quantity(1, 'meter')->add($units->quantity(1, 'foot'));
+
+        $this->assertSame('1631/1250', $quantity->valueToString());
+        $this->assertSame('meter', $quantity->unitToString());
+    }
+
+    public function testAdditionConversionPreservesEitherLeftUnit(): void
+    {
+        $units = Units::default();
+
+        $quantity = $units->quantity(1, 'foot')->add($units->quantity(1, 'meter'));
+
+        $this->assertSame('1631/381', $quantity->valueToString());
+        $this->assertSame('foot', $quantity->unitToString());
     }
 
     public function testAddsExplicitlyConvertedQuantities(): void
@@ -182,13 +189,42 @@ final class QuantityTest extends TestCase
         $this->assertSame('75', $quantity->valueIn('centimeter')->toString());
     }
 
-    public function testAdditionDoesNotImplicitlyConvertUnits(): void
+    public function testAdditionConvertsCompatibleUnits(): void
+    {
+        $units = Units::default();
+
+        $quantity = $units->quantity(1, 'meter')->add($units->quantity(100, 'centimeter'));
+
+        $this->assertSame('2', $quantity->valueToString());
+        $this->assertSame('meter', $quantity->unitToString());
+    }
+
+    public function testSubtractionConvertsCompatibleUnits(): void
+    {
+        $units = Units::default();
+
+        $quantity = $units->quantity(1, 'meter')->sub($units->quantity(1, 'foot'));
+
+        $this->assertSame('869/1250', $quantity->valueToString());
+        $this->assertSame('meter', $quantity->unitToString());
+    }
+
+    public function testSameUnitAdditionRejectsUnitsThatRequireConversion(): void
     {
         $units = Units::default();
 
         $this->expectException(IncompatibleUnitException::class);
 
-        $units->quantity(1, 'meter')->add($units->quantity(100, 'centimeter'));
+        $units->quantity(1, 'meter')->addWithSameUnit(self::unbrandedQuantity($units, 1, 'foot'));
+    }
+
+    public function testSameUnitSubtractionRejectsUnitsThatRequireConversion(): void
+    {
+        $units = Units::default();
+
+        $this->expectException(IncompatibleUnitException::class);
+
+        $units->quantity(1, 'meter')->subWithSameUnit(self::unbrandedQuantity($units, 1, 'foot'));
     }
 
     public function testRejectsIncompatibleAddition(): void
@@ -197,7 +233,16 @@ final class QuantityTest extends TestCase
 
         $this->expectException(IncompatibleUnitException::class);
 
-        $units->quantity(1, 'meter')->add($units->quantity(1, 'second'));
+        $units->quantity(1, 'meter')->add(self::unbrandedQuantity($units, 1, 'second'));
+    }
+
+    public function testRejectsIncompatibleSubtraction(): void
+    {
+        $units = Units::default();
+
+        $this->expectException(IncompatibleUnitException::class);
+
+        $units->quantity(1, 'meter')->sub(self::unbrandedQuantity($units, 1, 'second'));
     }
 
     public function testDefaultUnitsInstanceIsShared(): void
@@ -434,5 +479,14 @@ final class QuantityTest extends TestCase
         $this->assertFalse($parameter->isOptional());
         $this->assertInstanceOf(\ReflectionNamedType::class, $type);
         $this->assertSame(Units::class, $type->getName());
+    }
+
+    /**
+     * Keep intentionally invalid runtime calls unbranded so the repository-level PHPStan run does
+     * not report the diagnostics covered separately by InvalidQuantityArithmeticRuleTest.
+     */
+    private static function unbrandedQuantity(Units $units, int $value, string $unit): Quantity
+    {
+        return $units->quantity($value, $unit);
     }
 }

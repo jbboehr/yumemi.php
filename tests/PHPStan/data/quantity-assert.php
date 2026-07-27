@@ -51,10 +51,16 @@ assertType("Quantity<'meter'>", $m->div(2));
 assertType("Quantity<'meter ^ 2'>", $m->pow(2));
 assertType("Quantity<'1 / meter'>", $m->pow(-1));
 
-// neg / add / sub keep the left unit
+// neg keeps the unit; add / sub convert compatible operands and keep the left unit
 assertType("Quantity<'meter'>", $m->neg());
 assertType("Quantity<'meter'>", $m->add($m));
 assertType("Quantity<'meter'>", $m->sub($m));
+assertType("Quantity<'meter'>", $m->add($units->quantity(1, 'foot')));
+assertType("Quantity<'meter'>", $m->sub($units->quantity(1, 'foot')));
+
+// same-unit variants keep the left unit without conversion
+assertType("Quantity<'meter'>", $m->addWithSameUnit($m));
+assertType("Quantity<'meter'>", $m->subWithSameUnit($m));
 
 // to() rebrands to the target unit (catalog spelling)
 assertType("Quantity<'international_foot'>", $m->to('foot'));

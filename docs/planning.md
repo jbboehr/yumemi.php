@@ -120,7 +120,8 @@ Already implemented:
   - symbolic unit storage for display/chosen syntax
   - resolved unit storage for catalog-aware conversion
   - `to()` and `valueIn()` explicit conversion
-  - `add()` and `sub()` for matching reduced unit syntax
+  - `add()` and `sub()` with exact conversion of compatible right operands into the left unit
+  - `addWithSameUnit()` and `subWithSameUnit()` for normalized-equivalent units without conversion
   - `mul()` and `div()` for unit arithmetic
   - `normalize()` for unit-definition substitution without changing stored value
   - `simplify()` for unit-definition substitution with scale folded into the stored value
@@ -171,6 +172,8 @@ Current `Quantity` methods:
 - `exactIntValueIn(Expr|string $unit): int`
 - `add(self $other): self`
 - `sub(self $other): self`
+- `addWithSameUnit(self $other): self`
+- `subWithSameUnit(self $other): self`
 - `mul(self|int|Rational $other): self`
 - `div(self|int|Rational $other): self`
 - `normalize(): self`
@@ -181,7 +184,8 @@ Current `Quantity` methods:
 
 Important runtime rule:
 
-> Quantity arithmetic does not implicitly convert compatible units.
+> Quantity addition and subtraction convert the right operand into the left operand's unit and preserve the left unit.
+> The explicit `*WithSameUnit()` variants reject operands that would require conversion.
 
 For example, `(meter / second) * second` reduces to `meter`, but `centimeter / second / foot` stays in chosen symbolic
 units until the caller explicitly asks for conversion or simplification.
@@ -261,9 +265,9 @@ Eventually support two compatibility modes:
 Default should probably be `dimension`, because dimensional analysis primarily cares that dimensions match. Exact unit
 checking can be a stricter project/PHPStan option.
 
-The current runtime `Quantity::add()` and `Quantity::sub()` are stricter than that future PHPStan default: they require
-the same reduced symbolic unit expression unless the caller explicitly converts one side first. That keeps runtime math
-predictable while leaving room for PHPStan configuration later.
+Runtime `Quantity::add()` and `Quantity::sub()` use dimension compatibility because the object can perform the required
+exact conversion. `addWithSameUnit()` and `subWithSameUnit()` expose the exact-unit policy. Native PHPStan unit types
+remain exact-unit-only for `+` / `-`, because ordinary PHP numbers cannot perform an implicit magnitude conversion.
 
 ## Formula Interpolation Idea
 
@@ -304,7 +308,7 @@ mostly catalog semantics, API polish, and edge-case formatting.
 - Offset and affine units, especially temperature
 - Logarithmic units
 - Better numeric output policies for decimal/float conversion
-- Exact-unit strictness mode
+- PHPStan configuration for native exact-unit versus dimension-only checking
 - PHPStan static analysis extension — see [phpstan-extension.md](phpstan-extension.md)
 - Scalar-specific PHPDoc types such as `unit_int` or `unit_float` (optional edge types; not the core model)
 - Public documentation for generated catalog regeneration
@@ -329,9 +333,9 @@ Suggested next slices (detail in [phpstan-extension.md](phpstan-extension.md)):
    `normalize()`. **Remaining:** `simplify()` is the one unit-bearing fluent method not yet inferred (same unit as
    `normalize()`, scale folded into the value).
 
-4. Add PHPStan checks for `add()` and `sub()`. **Done for the native path:** `+` / `-` require normalized-equivalent
-   units via the operator extension. **Remaining:** the optional dimensional mode via config, and the `Quantity::add()`
-   / `sub()` object-path checks.
+4. Add PHPStan checks for `add()` and `sub()`. **Done:** native `+` / `-` require normalized-equivalent units;
+   `Quantity::add()` / `sub()` require compatible dimensions; and `Quantity::addWithSameUnit()` / `subWithSameUnit()`
+   require normalized-equivalent units. **Remaining:** the optional native dimensional mode via config.
 
 5. Harden registry extensibility. **Started:** immutable `UnitRegistry` + `UnitRegistryBuilder` (`empty()` / `default()`
    with UDUNITS2, `define('name = expr')`, `add()`, `alias()`, `CompositeUnitRegistry`). Remaining: user-defined base
@@ -348,8 +352,8 @@ Suggested next slices (detail in [phpstan-extension.md](phpstan-extension.md)):
 > **Update 2026-07-26:** The runtime **`Quantity<…>` object path** is now done (Piece 7 — commits `7b8b759`, `64786af`):
 > `Quantity<'…'>` PHPDoc resolution, `Units::quantity()` inference, and fluent-method inference through `mul` / `div` /
 > `pow` / `neg` / `add` / `sub` / `to` / `normalize`. The **exact-vs-dimension config mode** is now the main PHPStan
-> item still open; the lone Piece 7 follow-up is `simplify()` inference. Object-path `Quantity::add()` / `sub()`
-> unit-compatibility checks (slice 4) also remain. See [phpstan-extension.md](phpstan-extension.md) "Next pieces".
+> item still open; the lone Piece 7 follow-up is `simplify()` inference. Object-path `Quantity` addition/subtraction
+> checks are now complete. See [phpstan-extension.md](phpstan-extension.md) "Next pieces".
 
 ## Current Architecture Sketch
 

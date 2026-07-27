@@ -255,28 +255,26 @@ Status: Partial Importance: P0 Difficulty to finish: M
 
 Yumemi supports:
 
-- addition/subtraction with matching reduced symbolic units
+- addition/subtraction with exact conversion of compatible right operands into the left unit
+- no-conversion addition/subtraction through `addWithSameUnit()` / `subWithSameUnit()`
 - multiplication/division by quantities
 - multiplication/division by integers and rationals
 - symbolic unit cancellation during multiplication/division
 - explicit context checks
 
-Current behavior intentionally does not auto-convert compatible units during `add()` and `sub()`. For example,
-`meter + centimeter` fails unless the caller explicitly converts one side first.
-
-Pint is more permissive at runtime and often converts compatible units automatically, usually preserving the left-hand
-unit. Yumemi's stricter behavior is defensible, but it should be documented as a deliberate difference.
+Like Pint, `add()` and `sub()` convert compatible operands and preserve the left-hand unit. Yumemi performs that
+conversion through its exact `Rational` engine. Callers that need to prohibit conversion can use the explicit same-unit
+variants.
 
 Remaining work:
 
-- Add explicit `addConverted()` or `plus()` policy if we want Pint-like arithmetic.
 - Add comparisons: `eq`, `lt`, `lte`, `gt`, `gte`, `compareTo`.
 - Add unary negation and absolute value.
 - Decide scalar behavior for dimensionless quantities.
 - Decide whether numeric methods should accept `numeric-string`.
 
-Recommendation: Keep strict `add()`/`sub()` for now. Consider adding an explicit converted-add operation later rather
-than silently changing current semantics.
+Recommendation: Keep converting `add()` / `sub()` as the ergonomic default and retain explicit same-unit operations for
+scale-sensitive workflows.
 
 ### 7. Explicit Conversion And Compatibility
 
@@ -591,7 +589,7 @@ Recommendation: Add integer `pow()` soon. Defer fractional powers and transcende
 
 ### 21. Static Analysis With PHPStan
 
-Status: Partial (native path shipped; `Quantity` object path pending) Importance: P0 Difficulty: XL
+Status: Partial (native and `Quantity` paths shipped; configuration remains) Importance: P0 Difficulty: XL
 
 > **Update 2026-07-25:** The **native `unit_int` / `unit_float`** static path is implemented: PHPDoc type resolution,
 > invalid-unit and standalone invalid-call diagnostics (`yumemi.invalidUnitCall`), operator inference (`+ - * / ** %`),
@@ -599,6 +597,11 @@ Status: Partial (native path shipped; `Quantity` object path pending) Importance
 > the must-have pieces below, everything is covered **for native types**; the outstanding work is the `Quantity<'…'>`
 > object generic and its method inference, plus the exact-vs-dimension config mode. See
 > [phpstan-extension.md](phpstan-extension.md).
+
+> **Update 2026-07-26:** The `Quantity<'…'>` object path is now implemented, including construction and fluent-method
+> inference. Addition/subtraction diagnostics mirror runtime behavior: `add()` / `sub()` accept compatible dimensions,
+> while `addWithSameUnit()` / `subWithSameUnit()` require normalized-equivalent units. `simplify()` inference and native
+> arithmetic configuration remain.
 
 This is Yumemi's main differentiator. Pint has Python typing for magnitude types, but it is not primarily a static
 dimensional analyzer. Yumemi should aim to make PHPDoc unit strings meaningful to PHPStan.
@@ -895,11 +898,11 @@ Goal: make `Quantity<'meter / second'>` meaningful.
 
 Work:
 
-- ~~Parse PHPDoc unit generics.~~ **Done for native `unit_int` / `unit_float`; `Quantity<…>` pending.**
+- ~~Parse PHPDoc unit generics.~~ **Done for native `unit_int` / `unit_float` and `Quantity<…>`.**
 - ~~Diagnose invalid unit strings and unknown units.~~ **Done** (incl. standalone invalid-call diagnostics).
-- Infer `Units::quantity()`. **Pending** (object path).
-- Infer `Quantity::to()`, `mul()`, `div()`, `normalize()`, and `simplify()`. **Pending** (object path).
-- ~~Check `add()` and `sub()`.~~ **Done for native types (exact unit); object-path checks pending.**
+- ~~Infer `Units::quantity()`.~~ **Done.**
+- Infer `Quantity::to()`, `mul()`, `div()`, `normalize()`, and `simplify()`. **Done except `simplify()`.**
+- ~~Check `add()` and `sub()`.~~ **Done for native types and the `Quantity` object path.**
 - Decide strict exact-unit vs dimension-compatible modes. **Exact done; dimension mode + config pending.**
 
 This is the project's main differentiator and should take priority over Pint-style convenience features.

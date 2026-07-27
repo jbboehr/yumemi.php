@@ -34,60 +34,48 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\Exception;
+namespace jbboehr\Yumemi\Tests\PHPStan;
 
-use jbboehr\Yumemi\Dimension;
-use jbboehr\Yumemi\Expr;
-use jbboehr\Yumemi\Formatter\ExprFormatter;
+use jbboehr\Yumemi\PHPStan\InvalidQuantityArithmeticRule;
+use PHPStan\Rules\Rule;
+use PHPStan\Testing\RuleTestCase;
 
-final class IncompatibleUnitException extends \RuntimeException
+/**
+ * @extends RuleTestCase<InvalidQuantityArithmeticRule>
+ */
+final class InvalidQuantityArithmeticRuleTest extends RuleTestCase
 {
-    public readonly Expr $from;
-    public readonly Expr $to;
-    public readonly ?Dimension $fromDimension;
-    public readonly ?Dimension $toDimension;
-
-    public function __construct(
-        string $message,
-        Expr $from,
-        Expr $to,
-        ?Dimension $fromDimension = null,
-        ?Dimension $toDimension = null,
-    ) {
-        parent::__construct($message);
-        $this->from = $from;
-        $this->to = $to;
-        $this->fromDimension = $fromDimension;
-        $this->toDimension = $toDimension;
+    protected function getRule(): Rule
+    {
+        return self::getContainer()->getByType(InvalidQuantityArithmeticRule::class);
     }
 
-    public static function create(
-        Expr $from,
-        Expr $to,
-        ?Dimension $fromDimension = null,
-        ?Dimension $toDimension = null,
-    ): self {
-        $message = sprintf(
-            'Incompatible unit expressions: %s and %s.',
-            ExprFormatter::format($from),
-            ExprFormatter::format($to),
-        );
+    public static function getAdditionalConfigFiles(): array
+    {
+        return [
+            __DIR__ . '/../../extension.neon',
+        ];
+    }
 
-        if ($fromDimension !== null && $toDimension !== null) {
-            if ($fromDimension->equals($toDimension)) {
-                $message .= sprintf(
-                    ' Both have dimension %s; use add()/sub() to convert, or convert explicitly.',
-                    $fromDimension->toString(),
-                );
-            } else {
-                $message .= sprintf(
-                    ' Dimensions: %s vs %s.',
-                    $fromDimension->toString(),
-                    $toDimension->toString(),
-                );
-            }
-        }
-
-        return new self($message, $from, $to, $fromDimension, $toDimension);
+    public function testInvalidQuantityArithmeticIsReported(): void
+    {
+        $this->analyse([__DIR__ . '/Fixtures/InvalidQuantityArithmeticCalls.php'], [
+            [
+                'Cannot call Quantity::add() with dimensionally incompatible units meter (length) and second (time).',
+                14,
+            ],
+            [
+                'Cannot call Quantity::sub() with dimensionally incompatible units meter (length) and second (time).',
+                15,
+            ],
+            [
+                'Cannot call Quantity::addWithSameUnit() with units meter and international_foot; the method requires normalized-equivalent units.',
+                18,
+            ],
+            [
+                'Cannot call Quantity::subWithSameUnit() with units meter and international_foot; the method requires normalized-equivalent units.',
+                19,
+            ],
+        ]);
     }
 }

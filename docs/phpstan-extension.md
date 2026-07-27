@@ -233,7 +233,7 @@ This proves “Yumemi engine behind native static types.”
 
 | Op                                     | Rule (sketch)                                                     |
 | -------------------------------------- | ----------------------------------------------------------------- |
-| `+` / `-`                              | Same unit (exact) or same dimension (config); result keeps unit   |
+| `+` / `-` on native unit types         | Same unit (exact) or same dimension (config); result keeps unit   |
 | `*` / `/`                              | Combine unit exprs; promote `int`×`float` → `float` per PHP rules |
 | `*` / `/` by bare dimensionless number | Preserve unit                                                     |
 | Unsafe cast to bare `int`/`float`      | Drop unit or error (config)                                       |
@@ -248,8 +248,12 @@ Use PHPStan operator type extensions where possible.
 
 ### Slice 4 — `add` / `sub` policy config
 
-1. **Exact** (default; align with runtime quantity arithmetic): same reduced symbolic unit
-2. **Dimension**: same `Dimension`
+1. **Exact** (default): same normalized unit, including scale
+2. **Dimension**: same `Dimension` (static checking only; native values cannot be converted automatically)
+
+Runtime `Quantity` methods are not governed by this native-operator setting: `add()` / `sub()` perform exact runtime
+conversion between compatible dimensions, while `addWithSameUnit()` / `subWithSameUnit()` require exact-unit equivalence
+and perform no conversion.
 
 ### Slice 5 — Extension config
 
@@ -391,9 +395,10 @@ dimensional checking as the native `unit_int` / `unit_float` path.
 - `UnitsQuantityReturnTypeExtension` (a `DynamicMethodReturnTypeExtension` on `Units::quantity()`) infers
   `Quantity<'meter'>` from `Units::quantity($value, 'meter')` when the unit string is constant
 - `QuantityMethodReturnTypeExtension` carries the unit through the fluent method chain on a branded receiver: `mul` /
-  `div` combine unit exprs via the shared `UnitExpressionAlgebra`; `pow` raises by a constant integer; `neg` / `add` /
-  `sub` keep the left operand's unit; `to` rebrands to the (constant, statically parseable) target; `normalize` rebrands
-  to the catalog-normalized form
+  `div` combine unit exprs via the shared `UnitExpressionAlgebra`; `pow` raises by a constant integer; `neg` keeps its
+  unit; converting `add` / `sub` require compatible dimensions; `addWithSameUnit` / `subWithSameUnit` require
+  normalized-equivalent units; all four binary methods keep the left unit; `to` rebrands to the constant target; and
+  `normalize` rebrands to the catalog-normalized form
 - **No dedicated assignment/argument rule is needed:** `QuantityType::accepts()` plus PHPStan core's `CallMethodsRule`
   already reject a `Quantity<'foot'>` passed where `Quantity<'meter'>` is expected
 - **Fails open** like the native helpers: a non-constant exponent/target, an unbranded `Quantity` operand, or a unit
@@ -453,6 +458,15 @@ with `@yumemi-param unit_int<'meter'> $length`; branded arguments carrying the w
   skips it)
 - **Deferred:** dynamic (`$class::m()`, `new $class()`) and anonymous-class targets are left unresolved; a stricter
   opt-in mode that also rejects bare-native arguments at `@yumemi-param` positions
+
+### Piece 10 — `Quantity` addition/subtraction policies and diagnostics (done)
+
+- Runtime `Quantity::add()` / `sub()` convert compatible right operands exactly into the left unit; `addWithSameUnit()`
+  / `subWithSameUnit()` retain the former no-conversion behavior
+- `QuantityMethodReturnTypeExtension` validates the corresponding dimension or exact-unit precondition and preserves the
+  receiver's brand
+- `InvalidQuantityArithmeticRule` surfaces invalid branded calls as `yumemi.invalidQuantityArithmetic`, including when
+  the result is unused; unbranded operands continue to fail open
 
 ### `@yumemi-var` — investigated, feasible, deferred (2026-07-26)
 
@@ -520,9 +534,9 @@ for a `final`-class fork or a check-only rule. (The `YumemiDocTagReader` already
 
 ### Next pieces
 
-1. **Exact vs dimension arithmetic mode + neon config** — only exact-unit is implemented today; add the relaxed
-   dimension mode and a `parameters.yumemi` config shape (arithmetic mode, catalog, bare-numeric policy). This is now
-   the largest remaining PHPStan item.
+1. **Exact vs dimension native-arithmetic mode + neon config** — native `+` / `-` remain exact-unit today; add the
+   relaxed dimension mode and a `parameters.yumemi` config shape (arithmetic mode, catalog, bare-numeric policy). This
+   is now the largest remaining PHPStan item. Runtime `Quantity` method semantics remain fixed as described in Piece 10.
 2. **Richer identifiers / messages** — stable per-cause error identifiers beyond the current `yumemi.invalidUnitCall`.
 3. **Stub files for third-party libraries** — the last remaining piece of the extension-optional surface. The
    `@yumemi-return` (Piece 8) and `@yumemi-param` (Piece 9) tags are done; `@yumemi-var` is feasible via an AST-rewrite

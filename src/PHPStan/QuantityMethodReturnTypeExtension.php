@@ -43,6 +43,7 @@ use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\MethodReflection;
 use PHPStan\Type\Constant\ConstantIntegerType;
 use PHPStan\Type\DynamicMethodReturnTypeExtension;
+use PHPStan\Type\ErrorType;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
 
@@ -52,12 +53,15 @@ use PHPStan\Type\Type;
  * When the receiver is a branded {@see QuantityType}, each unit-bearing method returns a new
  * QuantityType whose unit matches the runtime result (see the table in {@see Quantity}):
  * `mul`/`div` combine units via {@see UnitExpressionAlgebra}; `pow` raises by a constant integer;
- * `neg`/`add`/`sub` keep the left unit; `to` rebrands to the (constant, statically parseable) target
- * unit; `normalize` rebrands to the catalog-normalized form.
+ * `neg` keeps the left unit; `add`/`sub` accept dimensionally compatible units and keep the left
+ * unit; `addWithSameUnit`/`subWithSameUnit` additionally require normalized-equivalent units; `to`
+ * rebrands to the (constant, statically parseable) target unit; `normalize` rebrands to the
+ * catalog-normalized form.
  *
- * Fails open like {@see UnitsQuantityReturnTypeExtension}: anything not statically computable —
- * non-constant exponent/target, an unbranded {@see Quantity} operand, or a target unit unknown to
- * the default catalog — returns null, falling back to the native `Quantity` return.
+ * Fails open like {@see UnitsQuantityReturnTypeExtension}: unit-combining operations with an
+ * unbranded {@see Quantity}, non-constant exponents/targets, and targets unknown to the default
+ * catalog fall back to the native return. Left-unit-preserving operations retain the receiver's
+ * brand but skip compatibility diagnostics when the other unit is unknown.
  */
 final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnTypeExtension
 {
@@ -74,7 +78,7 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
     public function isMethodSupported(MethodReflection $methodReflection): bool
     {
         return in_array($methodReflection->getName(), [
-            'mul', 'div', 'pow', 'neg', 'add', 'sub', 'to', 'normalize',
+            'mul', 'div', 'pow', 'neg', 'add', 'sub', 'addWithSameUnit', 'subWithSameUnit', 'to', 'normalize',
         ], true);
     }
 
@@ -83,6 +87,15 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
         MethodCall $methodCall,
         Scope $scope,
     ): ?Type {
+        return $this->inferType($methodReflection->getName(), $methodCall, $scope);
+    }
+
+    /**
+     * Shared inference and validation entry point used by the dynamic return extension and its
+     * standalone diagnostic rule.
+     */
+    public function inferType(string $methodName, MethodCall $methodCall, Scope $scope): ?Type
+    {
         $receiver = $scope->getType($methodCall->var);
         if (!$receiver instanceof QuantityType) {
             return null;
@@ -91,9 +104,10 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
         $unit = $receiver->getUnitExpression();
         $args = $methodCall->getArgs();
 
-        return match ($methodReflection->getName()) {
-            // Unary / left-unit-preserving: neg keeps the unit, add/sub keep the left operand's.
-            'neg', 'add', 'sub' => $receiver,
+        return match ($methodName) {
+            'neg' => $receiver,
+            'add', 'sub' => $this->addSub($receiver, $args, $scope, false, $methodName),
+            'addWithSameUnit', 'subWithSameUnit' => $this->addSub($receiver, $args, $scope, true, $methodName),
             'mul' => $this->combine($unit, $args, $scope, true),
             'div' => $this->combine($unit, $args, $scope, false),
             'pow' => $this->power($unit, $args, $scope),
@@ -101,6 +115,56 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
             'normalize' => $this->normalize($unit),
             default => null,
         };
+    }
+
+    /**
+     * @param array<\PhpParser\Node\Arg> $args
+     */
+    private function addSub(
+        QuantityType $receiver,
+        array $args,
+        Scope $scope,
+        bool $requireSameUnit,
+        string $methodName,
+    ): ?Type {
+        if (count($args) < 1) {
+            return null;
+        }
+
+        $other = $scope->getType($args[0]->value);
+        if (!$other instanceof QuantityType) {
+            // The runtime result keeps the receiver's unit when the call succeeds, but an
+            // unbranded operand does not carry enough information for a compatibility check.
+            return $receiver;
+        }
+
+        $leftUnit = $receiver->getUnitExpression();
+        $rightUnit = $other->getUnitExpression();
+        $compatible = $requireSameUnit
+            ? $leftUnit->equivalent($rightUnit)
+            : $leftUnit->sameDimension($rightUnit);
+
+        if ($compatible) {
+            return $receiver;
+        }
+
+        if ($requireSameUnit) {
+            return new ErrorType(sprintf(
+                'Cannot call Quantity::%s() with units %s and %s; the method requires normalized-equivalent units.',
+                $methodName,
+                $leftUnit->displayString,
+                $rightUnit->displayString,
+            ));
+        }
+
+        return new ErrorType(sprintf(
+            'Cannot call Quantity::%s() with dimensionally incompatible units %s (%s) and %s (%s).',
+            $methodName,
+            $leftUnit->displayString,
+            $leftUnit->dimension->toString(),
+            $rightUnit->displayString,
+            $rightUnit->dimension->toString(),
+        ));
     }
 
     /**

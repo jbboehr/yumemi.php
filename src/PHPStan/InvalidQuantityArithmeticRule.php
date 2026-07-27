@@ -34,60 +34,63 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\Exception;
+namespace jbboehr\Yumemi\PHPStan;
 
-use jbboehr\Yumemi\Dimension;
-use jbboehr\Yumemi\Expr;
-use jbboehr\Yumemi\Formatter\ExprFormatter;
+use PhpParser\Node;
+use PhpParser\Node\Expr\MethodCall;
+use PhpParser\Node\Identifier;
+use PHPStan\Analyser\Scope;
+use PHPStan\Rules\Rule;
+use PHPStan\Rules\RuleErrorBuilder;
+use PHPStan\Type\ErrorType;
 
-final class IncompatibleUnitException extends \RuntimeException
+/**
+ * Emits standalone diagnostics for statically invalid Quantity addition and subtraction.
+ *
+ * @implements Rule<MethodCall>
+ */
+final class InvalidQuantityArithmeticRule implements Rule
 {
-    public readonly Expr $from;
-    public readonly Expr $to;
-    public readonly ?Dimension $fromDimension;
-    public readonly ?Dimension $toDimension;
+    private const SUPPORTED = ['add', 'sub', 'addWithSameUnit', 'subWithSameUnit'];
 
     public function __construct(
-        string $message,
-        Expr $from,
-        Expr $to,
-        ?Dimension $fromDimension = null,
-        ?Dimension $toDimension = null,
+        private readonly QuantityMethodReturnTypeExtension $extension,
     ) {
-        parent::__construct($message);
-        $this->from = $from;
-        $this->to = $to;
-        $this->fromDimension = $fromDimension;
-        $this->toDimension = $toDimension;
     }
 
-    public static function create(
-        Expr $from,
-        Expr $to,
-        ?Dimension $fromDimension = null,
-        ?Dimension $toDimension = null,
-    ): self {
-        $message = sprintf(
-            'Incompatible unit expressions: %s and %s.',
-            ExprFormatter::format($from),
-            ExprFormatter::format($to),
-        );
+    public function getNodeType(): string
+    {
+        return MethodCall::class;
+    }
 
-        if ($fromDimension !== null && $toDimension !== null) {
-            if ($fromDimension->equals($toDimension)) {
-                $message .= sprintf(
-                    ' Both have dimension %s; use add()/sub() to convert, or convert explicitly.',
-                    $fromDimension->toString(),
-                );
-            } else {
-                $message .= sprintf(
-                    ' Dimensions: %s vs %s.',
-                    $fromDimension->toString(),
-                    $toDimension->toString(),
-                );
-            }
+    /**
+     * @return list<\PHPStan\Rules\IdentifierRuleError>
+     */
+    public function processNode(Node $node, Scope $scope): array
+    {
+        if (!$node->name instanceof Identifier) {
+            return [];
         }
 
-        return new self($message, $from, $to, $fromDimension, $toDimension);
+        $methodName = $node->name->toString();
+        if (!in_array($methodName, self::SUPPORTED, true)) {
+            return [];
+        }
+
+        $type = $this->extension->inferType($methodName, $node, $scope);
+        if (!$type instanceof ErrorType) {
+            return [];
+        }
+
+        $reason = $type->getReason();
+        if ($reason === null) {
+            return [];
+        }
+
+        return [
+            RuleErrorBuilder::message($reason)
+                ->identifier('yumemi.invalidQuantityArithmetic')
+                ->build(),
+        ];
     }
 }

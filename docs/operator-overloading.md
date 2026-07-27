@@ -224,11 +224,10 @@ Operator support likely needs custom PHPStan rules or type inference around bina
 
 Static-analysis policy should mirror runtime behavior:
 
-- `+` and `-` use the same rules as `add()` and `sub()`.
+- `+` and `-` on `Quantity` use the same dimension-compatible, converting rules as `add()` and `sub()`.
 - `*` and `/` use the same rules as `mul()` and `div()`.
-- If runtime addition remains exact-unit-only, PHPStan operator checks should also be exact-unit-only unless configured.
-- If PHPStan later supports dimension-compatible addition as a relaxed mode, the method and operator forms should share
-  that mode.
+- Native `unit_int` / `unit_float` operators remain a separate static-only surface and cannot perform runtime
+  conversion; their `+` / `-` policy remains exact-unit unless deliberately configured otherwise.
 
 Operators should not be added to examples until PHPStan can check them. Otherwise users get nice syntax but lose the
 project's main value proposition.

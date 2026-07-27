@@ -129,6 +129,11 @@ factor 1000) still rejected.
 > unit with no leading constant) was discussed but deliberately left out of scope: it is an opt-in presentation concern,
 > not required for this semantic alignment.
 
+> **Later update (2026-07-26):** Runtime `Quantity::add()` / `sub()` now convert any dimensionally compatible right
+> operand exactly into the left unit. The no-conversion semantics described above remain available explicitly as
+> `addWithSameUnit()` / `subWithSameUnit()`. Native PHPStan operators remain exact-unit because native magnitudes cannot
+> perform runtime conversion; the `Quantity` PHPStan path checks each method against its corresponding runtime policy.
+
 _Original finding below._
 
 PHPStan now accepts definitionally equivalent units for assignment and `+` / `-`. For example, `kilometer` and

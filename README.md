@@ -198,8 +198,8 @@ assert($distance->toString() === '6 * meter');
 assert($distance->unitToString() === 'meter');
 ```
 
-Compatible dimensions are not implicitly converted during addition or subtraction. Convert explicitly when that is what
-you want.
+Addition and subtraction convert a compatible right operand into the left operand's unit. Conversion remains exact, and
+the result preserves the left operand's symbolic unit.
 
 ```php
 <?php
@@ -212,13 +212,14 @@ $units = Units::default();
 
 $total = $units
     ->quantity(1, 'meter')
-    ->add($units->quantity(100, 'centimeter')->to('meter'));
+    ->add($units->quantity(100, 'centimeter'));
 
 assert($total->toString() === '2 * meter');
 assert($total->valueIn('centimeter')->toString() === '200');
 ```
 
-Without that explicit conversion, addition and subtraction require the same reduced unit syntax.
+Use `addWithSameUnit()` / `subWithSameUnit()` when conversion should be rejected. These methods accept only
+definitionally equivalent units with the same normalized scale.
 
 ```php
 <?php
@@ -231,7 +232,7 @@ use jbboehr\Yumemi\Units;
 $units = Units::default();
 
 try {
-    $units->quantity(1, 'meter')->add($units->quantity(100, 'centimeter'));
+    $units->quantity(1, 'meter')->addWithSameUnit($units->quantity(100, 'centimeter'));
     assert(false);
 } catch (IncompatibleUnitException) {
 }

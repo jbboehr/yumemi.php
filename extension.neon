@@ -44,6 +44,10 @@ services:
         tags:
             - phpstan.broker.dynamicMethodReturnTypeExtension
     -
+        class: jbboehr\Yumemi\PHPStan\InvalidQuantityArithmeticRule
+        tags:
+            - phpstan.rules.rule
+    -
         class: jbboehr\Yumemi\PHPStan\YumemiDocTagReader
     -
         class: jbboehr\Yumemi\PHPStan\YumemiReturnTagFunctionReturnTypeExtension
