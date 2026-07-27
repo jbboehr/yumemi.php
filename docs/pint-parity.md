@@ -589,19 +589,20 @@ Recommendation: Add integer `pow()` soon. Defer fractional powers and transcende
 
 ### 21. Static Analysis With PHPStan
 
-Status: Partial (native and `Quantity` paths shipped; configuration remains) Importance: P0 Difficulty: XL
+Status: Implemented core; integration polish remains Importance: P0 Difficulty: XL
 
 > **Update 2026-07-25:** The **native `unit_int` / `unit_float`** static path is implemented: PHPDoc type resolution,
 > invalid-unit and standalone invalid-call diagnostics (`yumemi.invalidUnitCall`), operator inference (`+ - * / ** %`),
-> `unit()` / `unit_to()` dynamic return types, and assignment/parameter checks via the branded types' `accepts()`. Of
-> the must-have pieces below, everything is covered **for native types**; the outstanding work is the `Quantity<'…'>`
-> object generic and its method inference, plus the exact-vs-dimension config mode. See
-> [phpstan-extension.md](phpstan-extension.md).
+> `unit()` / `unit_to()` dynamic return types, and assignment/parameter checks via the branded types' `accepts()`.
 
 > **Update 2026-07-26:** The `Quantity<'…'>` object path is now implemented, including construction and fluent-method
 > inference. Addition/subtraction diagnostics mirror runtime behavior: `add()` / `sub()` accept compatible dimensions,
 > while `addWithSameUnit()` / `subWithSameUnit()` require normalized-equivalent units. `simplify()` inference is also
-> complete; native arithmetic configuration remains.
+> complete.
+
+> **Update 2026-07-27:** Custom PHPStan registries are configured through `UnitRegistryFactory` and participate in
+> result-cache invalidation. Native/`Quantity` bridges now validate branded construction and conversion targets, and
+> `intValueIn()` / `exactIntValueIn()` return target-branded `unit_int` values.
 
 This is Yumemi's main differentiator. Pint has Python typing for magnitude types, but it is not primarily a static
 dimensional analyzer. Yumemi should aim to make PHPDoc unit strings meaningful to PHPStan.

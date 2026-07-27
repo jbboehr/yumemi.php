@@ -343,7 +343,7 @@ PHPStan major version in use).
 | Non-goal                                    | Why                                              |
 | ------------------------------------------- | ------------------------------------------------ |
 | Changing runtime `Quantity` off Rational    | Exact library math stays Rational-only           |
-| Full flow-sensitive multi-registry tracking | Hard; start with default catalog                 |
+| Full flow-sensitive multi-registry tracking | Hard; use the one statically configured catalog  |
 | Perfect recovery through every PHP builtin  | Start with ops that matter; wipe unit on unknown |
 | Affine temperature / logarithmic units      | Unsupported in runtime semantics today           |
 | Perfect Pint parity                         | Different product                                |
@@ -428,14 +428,14 @@ dimensional checking as the native `unit_int` / `unit_float` path.
 - `QuantityMethodReturnTypeExtension` carries the unit through the fluent method chain on a branded receiver: `mul` /
   `div` combine unit exprs via the shared `UnitExpressionAlgebra`; `pow` raises by a constant integer; `neg` keeps its
   unit; converting `add` / `sub` require compatible dimensions; `addWithSameUnit` / `subWithSameUnit` require
-  normalized-equivalent units; all four binary methods keep the left unit; `to` rebrands to the constant target; and
-  `normalize` / `simplify` rebrand to the catalog-normalized form, with `simplify` removing the scale constant that the
-  runtime method folds into the magnitude
+  normalized-equivalent units; all four binary methods keep the left unit; `to` validates and rebrands to the constant
+  target; integer extraction methods return a target-branded `unit_int`; and `normalize` / `simplify` rebrand to the
+  catalog-normalized form, with `simplify` removing the scale constant that the runtime method folds into the magnitude
 - **No dedicated assignment/argument rule is needed:** `QuantityType::accepts()` plus PHPStan core's `CallMethodsRule`
   already reject a `Quantity<'foot'>` passed where `Quantity<'meter'>` is expected
 - **Fails open** like the native helpers: a non-constant exponent/target, an unbranded `Quantity` operand, or a unit
-  unknown to the default catalog falls back to the native `Quantity` return (since `to()` is instance-scoped and may run
-  against a custom registry), so a `Quantity` value never poisons unrelated analysis
+  unknown to the statically configured catalog falls back to the native `Quantity` return (instance methods may run
+  against a different runtime registry), so a `Quantity` value never poisons unrelated analysis
 - Covered by `QuantityReturnTypeExtensionTest`, `QuantityArgumentTypeRuleTest`, and the `quantity-assert.php` fixture
 - Every current unit-bearing fluent method is now branded, including `simplify()`.
 
@@ -483,15 +483,24 @@ parser-promotion implementation below replaces all of those components and seman
   so external catalog changes invalidate cached analysis.
 - Missing or invalid factory classes and construction failures stop analysis with configuration-specific messages.
 
+### Piece 13 — `Quantity` boundary soundness and native bridges (done)
+
+- `Units::quantity()` accepts a branded `unit_int` magnitude only when its unit is normalized-equivalent to the target;
+  the constructor labels an existing magnitude and does not convert it.
+- `Quantity::to()`, `valueIn()`, `intValueIn()`, and `exactIntValueIn()` reject statically known dimension mismatches.
+- `intValueIn()` and `exactIntValueIn()` infer `unit_int<'target'>`; Rational-returning accessors remain ordinary
+  `Rational` rather than introducing a separate `unit_rational` type.
+- `InvalidQuantityConstructionRule` and `InvalidQuantityConversionRule` report unused invalid calls with
+  `yumemi.invalidQuantityConstruction` and `yumemi.invalidQuantityConversion`.
+- Dynamic targets, unknown instance-specific units, and unbranded quantities continue to fail open.
+
 ### Next pieces
 
 1. **Bundled stubs for selected third-party libraries** — these should normally use standard PHPStan tags containing
    Yumemi types and therefore need no parser promotion. What remains is deciding which integrations merit bundled stubs
    and registering those files through a `StubFilesExtension`.
-2. **Bridges between native unit types and `Quantity`** — decide which runtime accessors should carry native brands and
-   where conversion must remain explicit.
-3. **Richer identifiers / messages elsewhere** — Piece 11 has stable per-cause identifiers for promotion failures; other
-   extension diagnostics can be split further where callers need more precise suppression.
+2. **Richer identifiers / messages elsewhere** — Pieces 11 and 13 have stable per-cause identifiers; other extension
+   diagnostics can be split further where callers need more precise suppression.
 
 **Success criterion (piece 2):** `unit_int<'mass'>` errors; `unit_int<'meter / second'>` is a real type. **(met)**
 
@@ -502,18 +511,19 @@ parser-promotion implementation below replaces all of those components and seman
 
 > **Update 2026-07-27:** Piece 12 adds typed custom-registry configuration and cache invalidation. The proposed native
 > dimension-only addition mode was dropped because it cannot convert ordinary PHP numeric magnitudes and would therefore
-> be unsound.
+> be unsound. Piece 13 closes the native/`Quantity` boundary by checking branded construction and conversion targets and
+> branding integer extraction results.
 
 ## Later Milestones
 
 1. ~~Operator inference for `+` `-` `*` `/` on native unit types~~ **(done — Piece 3)**
 2. ~~Runtime `Quantity` PHPDoc + method inference (Rational × unit)~~ **(done — Piece 7)**
-3. Bridges between native unit types and `Quantity`
+3. ~~Bridges between native unit types and `Quantity`~~ **(done — Piece 13)**
 4. ~~Neon config for custom catalogs~~ **(done — Piece 12)**
 5. Richer messages / structured identifiers
 
-> **Update 2026-07-25:** Milestone 1 is done. Milestones 2–6 remain; see the reduced "Next pieces" list above, which is
-> now the authoritative near-term plan.
+> **Update 2026-07-27:** The core native and `Quantity` paths, configured catalogs, and boundary bridges are complete;
+> see "Next pieces" for the remaining integration and diagnostic polish.
 
 ## Summary Slogans
 

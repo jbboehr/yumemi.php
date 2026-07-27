@@ -322,7 +322,8 @@ Suggested next slices (detail in [phpstan-extension.md](phpstan-extension.md)):
 3. Add PHPStan return-type inference. **Done for the native path:** operator inference for `+ - * / ** %`, plus `unit()`
    / `unit_to()` dynamic return types. **Also done (Piece 7):** the `Quantity` _method_ inference —
    `QuantityMethodReturnTypeExtension` brands `mul()` / `div()` / `pow()` / `neg()` / `add()` / `sub()` / `to()` /
-   `normalize()` / `simplify()`. The latter removes the normalized scale constant from the static unit because runtime
+   `normalize()` / `simplify()`, validates conversion/extraction targets, and brands `intValueIn()` /
+   `exactIntValueIn()` results. `simplify()` removes the normalized scale constant from the static unit because runtime
    folds it into the magnitude.
 
 4. Add PHPStan checks for `add()` and `sub()`. **Done:** native `+` / `-` require normalized-equivalent units;
@@ -345,7 +346,9 @@ Suggested next slices (detail in [phpstan-extension.md](phpstan-extension.md)):
 
 > **Update 2026-07-27:** PHPStan custom catalogs are now supplied by a typed `UnitRegistryFactory`, shared by every
 > extension path and fingerprinted for result-cache invalidation. Native `+` / `-` deliberately remain exact-unit-only;
-> a dimension-only mode would accept arithmetic whose raw PHP magnitudes have not been converted.
+> a dimension-only mode would accept arithmetic whose raw PHP magnitudes have not been converted. Native/`Quantity`
+> boundaries now reject mismatched branded construction and incompatible conversions, while integer extraction carries
+> the requested unit back to `unit_int`.
 
 ## Current Architecture Sketch
 

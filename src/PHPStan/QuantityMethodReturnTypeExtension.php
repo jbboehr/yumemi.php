@@ -80,7 +80,8 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
     public function isMethodSupported(MethodReflection $methodReflection): bool
     {
         return in_array($methodReflection->getName(), [
-            'mul', 'div', 'pow', 'neg', 'add', 'sub', 'addWithSameUnit', 'subWithSameUnit', 'to', 'normalize', 'simplify',
+            'mul', 'div', 'pow', 'neg', 'add', 'sub', 'addWithSameUnit', 'subWithSameUnit', 'to', 'valueIn',
+            'intValueIn', 'exactIntValueIn', 'normalize', 'simplify',
         ], true);
     }
 
@@ -113,7 +114,12 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
             'mul' => $this->combine($unit, $args, $scope, true),
             'div' => $this->combine($unit, $args, $scope, false),
             'pow' => $this->power($unit, $args, $scope),
-            'to' => $this->convert($args, $scope),
+            'to', 'valueIn', 'intValueIn', 'exactIntValueIn' => $this->convert(
+                $receiver,
+                $args,
+                $scope,
+                $methodName,
+            ),
             'normalize' => $this->normalize($unit),
             'simplify' => $this->simplify($unit),
             default => null,
@@ -219,8 +225,12 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
     /**
      * @param array<\PhpParser\Node\Arg> $args
      */
-    private function convert(array $args, Scope $scope): ?Type
-    {
+    private function convert(
+        QuantityType $receiver,
+        array $args,
+        Scope $scope,
+        string $methodName,
+    ): ?Type {
         if (count($args) < 1) {
             return null;
         }
@@ -232,11 +242,30 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
 
         $parsed = $this->parser->parse($constantStrings[0]->getValue());
         if (!$parsed->isOk()) {
-            // Fail open: to() converts through the instance's (possibly custom) registry.
+            // Fail open: conversion runs through the instance's (possibly custom) registry.
             return null;
         }
 
-        return new QuantityType($parsed->expression());
+        $sourceUnit = $receiver->getUnitExpression();
+        $targetUnit = $parsed->expression();
+
+        if (!$sourceUnit->sameDimension($targetUnit)) {
+            return new ErrorType(sprintf(
+                'Cannot call Quantity::%s() with dimensionally incompatible units %s (%s) and %s (%s).',
+                $methodName,
+                $sourceUnit->displayString,
+                $sourceUnit->dimension->toString(),
+                $targetUnit->displayString,
+                $targetUnit->dimension->toString(),
+            ));
+        }
+
+        return match ($methodName) {
+            'to' => new QuantityType($targetUnit),
+            'intValueIn', 'exactIntValueIn' => new UnitIntegerType($targetUnit),
+            // valueIn() retains its native Rational return after validation.
+            default => null,
+        };
     }
 
     private function normalize(UnitExpression $unit): QuantityType

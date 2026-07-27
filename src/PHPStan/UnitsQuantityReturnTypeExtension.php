@@ -41,6 +41,7 @@ use PhpParser\Node\Expr\MethodCall;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\MethodReflection;
 use PHPStan\Type\DynamicMethodReturnTypeExtension;
+use PHPStan\Type\ErrorType;
 use PHPStan\Type\Type;
 
 /**
@@ -48,9 +49,9 @@ use PHPStan\Type\Type;
  *
  * Object-path analogue of {@see UnitFunctionDynamicReturnTypeExtension}, but instance-scoped and
  * therefore fail-open: `Units::quantity()` may be called on a custom registry whose units are
- * unknown to the default catalog the static layer parses against. A constant string that parses
+ * unknown to the configured catalog the static layer parses against. A constant string that parses
  * successfully is branded as a {@see QuantityType}; anything else (non-constant, or unknown in the
- * default catalog) returns null, falling back to the native `Quantity` return rather than poisoning
+ * configured catalog) returns null, falling back to the native `Quantity` return rather than poisoning
  * legitimate custom-registry code with an error.
  */
 final class UnitsQuantityReturnTypeExtension implements DynamicMethodReturnTypeExtension
@@ -75,6 +76,14 @@ final class UnitsQuantityReturnTypeExtension implements DynamicMethodReturnTypeE
         MethodCall $methodCall,
         Scope $scope,
     ): ?Type {
+        return $this->inferType($methodCall, $scope);
+    }
+
+    /**
+     * Shared inference used by the return-type extension and construction diagnostic rule.
+     */
+    public function inferType(MethodCall $methodCall, Scope $scope): ?Type
+    {
         $args = $methodCall->getArgs();
         if (count($args) < 2) {
             return null;
@@ -91,6 +100,20 @@ final class UnitsQuantityReturnTypeExtension implements DynamicMethodReturnTypeE
             return null;
         }
 
-        return new QuantityType($parsed->expression());
+        $targetUnit = $parsed->expression();
+        $valueType = $scope->getType($args[0]->value);
+
+        if ($valueType instanceof UnitIntegerType) {
+            $valueUnit = $valueType->getUnitExpression();
+            if (!$valueUnit->equivalent($targetUnit)) {
+                return new ErrorType(sprintf(
+                    'Units::quantity() value unit %s does not match target unit %s (normalized forms differ).',
+                    $valueUnit->displayString,
+                    $targetUnit->displayString,
+                ));
+            }
+        }
+
+        return new QuantityType($targetUnit);
     }
 }

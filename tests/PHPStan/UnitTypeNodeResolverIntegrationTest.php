@@ -114,6 +114,15 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $this->assertStringContainsString('must name a class implementing', $output, $output);
     }
 
+    public function testQuantityBoundaryDiagnosticsHaveStableIdentifiers(): void
+    {
+        $output = $this->analyse('quantity-boundary-invalid.php');
+
+        $this->assertStringContainsString('yumemi.invalidQuantityConstruction', $output, $output);
+        $this->assertStringContainsString('yumemi.invalidQuantityConversion', $output, $output);
+        $this->assertStringContainsString('Found 2 errors', $output, $output);
+    }
+
     private function analyse(string $fixture, ?string $registryFactory = null): string
     {
         $fixturePath = __DIR__ . '/data/' . $fixture;

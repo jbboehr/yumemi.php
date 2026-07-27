@@ -6,6 +6,7 @@
 # Piece 5: unit_to() conversion helper (dynamic return type)
 # Piece 6: invalid unit() / unit_to() call diagnostics (rule)
 # Piece 7: Quantity<'...'> object type + Units::quantity() return type
+# Piece 13: Quantity construction/conversion validation + native integer extraction bridges
 # Optional @yumemi-* tag promotion is registered separately by yumemi-tags.neon.
 
 parameters:
@@ -76,5 +77,13 @@ services:
             - phpstan.broker.dynamicMethodReturnTypeExtension
     -
         class: jbboehr\Yumemi\PHPStan\InvalidQuantityArithmeticRule
+        tags:
+            - phpstan.rules.rule
+    -
+        class: jbboehr\Yumemi\PHPStan\InvalidQuantityConstructionRule
+        tags:
+            - phpstan.rules.rule
+    -
+        class: jbboehr\Yumemi\PHPStan\InvalidQuantityConversionRule
         tags:
             - phpstan.rules.rule

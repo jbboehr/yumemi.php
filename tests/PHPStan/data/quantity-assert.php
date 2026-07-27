@@ -7,6 +7,7 @@
  */
 
 use jbboehr\Yumemi\Units;
+use function jbboehr\Yumemi\unit;
 use function PHPStan\Testing\assertType;
 
 $units = Units::default();
@@ -17,6 +18,14 @@ assertType("Quantity<'meter'>", $units->quantity(1, 'meter'));
 assertType("Quantity<'meter / second'>", $units->quantity(1, 'meter / second'));
 assertType("Quantity<'newton'>", $units->quantity(2, 'newton'));
 
+// A branded native integer is already expressed in its branded unit: quantity() does not convert it.
+$nativeFeet = unit(3, 'foot');
+assertType("Quantity<'international_foot'>", $units->quantity($nativeFeet, 'foot'));
+assertType('*ERROR*', $units->quantity($nativeFeet, 'meter'));
+
+$nativeKilometers = unit(2, 'kilometer');
+assertType("Quantity<'1000 * meter'>", $units->quantity($nativeKilometers, '1000 * meter'));
+
 // Unknown-in-default-catalog unit → fail open to native Quantity (the instance may hold a
 // custom registry where this unit is valid), never a poisoning error.
 assertType('jbboehr\\Yumemi\\Quantity', $units->quantity(1, 'not_a_real_unit_xyz'));
@@ -25,6 +34,11 @@ assertType('jbboehr\\Yumemi\\Quantity', $units->quantity(1, 'not_a_real_unit_xyz
 function dynamicQuantity(Units $units, string $u): void
 {
     assertType('jbboehr\\Yumemi\\Quantity', $units->quantity(1, $u));
+}
+
+function dynamicBrandedQuantity(Units $units, string $u): void
+{
+    assertType('jbboehr\\Yumemi\\Quantity', $units->quantity(unit(1, 'meter'), $u));
 }
 
 // --- Quantity<'...'> PHPDoc resolution ---
@@ -68,6 +82,21 @@ assertType("Quantity<'meter'>", $m->subWithSameUnit($m));
 // to() rebrands to the target unit (catalog spelling)
 assertType("Quantity<'international_foot'>", $m->to('foot'));
 
+// Conversion targets must share the receiver's dimension. Integer extractions carry the target unit.
+assertType("unit_int<'international_foot'>", $m->intValueIn('foot'));
+assertType("unit_int<'meter'>", $m->exactIntValueIn('meter'));
+assertType('jbboehr\\Yumemi\\Number\\Rational', $m->valueIn('foot'));
+assertType('*ERROR*', $m->to('second'));
+assertType('*ERROR*', $m->valueIn('second'));
+assertType('*ERROR*', $m->intValueIn('second'));
+assertType('*ERROR*', $m->exactIntValueIn('second'));
+
+// Unknown targets may belong to the runtime instance's custom registry, so they fail open.
+assertType('jbboehr\\Yumemi\\Quantity', $m->to('not_a_real_unit_xyz'));
+assertType('jbboehr\\Yumemi\\Number\\Rational', $m->valueIn('not_a_real_unit_xyz'));
+assertType('int', $m->intValueIn('not_a_real_unit_xyz'));
+assertType('int', $m->exactIntValueIn('not_a_real_unit_xyz'));
+
 // normalize() rebrands to the catalog-normalized form
 assertType("Quantity<'1000 * meter'>", $km->normalize());
 
@@ -86,4 +115,20 @@ function combineDynamic(\jbboehr\Yumemi\Quantity $q, \jbboehr\Yumemi\Units $unit
 {
     $m = $units->quantity(1, 'meter');
     assertType('jbboehr\\Yumemi\\Quantity', $m->mul($q));
+}
+
+function extractDynamic(\jbboehr\Yumemi\Quantity $q, string $unit): void
+{
+    assertType('int', $q->intValueIn($unit));
+    assertType('int', $q->exactIntValueIn($unit));
+    assertType('jbboehr\\Yumemi\\Number\\Rational', $q->valueIn($unit));
+}
+
+function extractBrandedDynamic(\jbboehr\Yumemi\Units $units, string $unit): void
+{
+    $meters = $units->quantity(1, 'meter');
+    assertType('jbboehr\\Yumemi\\Quantity', $meters->to($unit));
+    assertType('int', $meters->intValueIn($unit));
+    assertType('int', $meters->exactIntValueIn($unit));
+    assertType('jbboehr\\Yumemi\\Number\\Rational', $meters->valueIn($unit));
 }

@@ -125,6 +125,10 @@ assert($heightInMeters > 1.82 && $heightInMeters < 1.83);
 Code that opts into the runtime `Quantity` object gets the same checking on the object path:
 `Quantity<'meter / second'>` is a real PHPDoc type, and the fluent methods (`mul`, `div`, `pow`, `to`, `normalize`,
 `simplify`, …) carry the unit through — e.g. `$meters->div($seconds)` is inferred as `Quantity<'meter / second'>`.
+Conversion methods also check their target dimension. `intValueIn('foot')` and `exactIntValueIn('foot')` return
+`unit_int<'foot'>`, bridging an exact runtime quantity back to a statically branded native integer. In the other
+direction, passing a `unit_int<'foot'>` magnitude to `Units::quantity(..., 'meter')` is rejected: `quantity()` labels an
+existing magnitude and does not implicitly convert it.
 
 ### Custom PHPStan registries
 

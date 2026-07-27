@@ -24,3 +24,10 @@ assertType("unit_int<'widget ^ 2'>", $area);
 
 $quantity = Units::default()->quantity(1, 'widget');
 assertType("Quantity<'widget'>", $quantity);
+
+$quantityFromBrandedValue = Units::default()->quantity($widget, 'widgets');
+assertType("Quantity<'widget'>", $quantityFromBrandedValue);
+
+assertType("Quantity<'meter'>", $quantity->to('meter'));
+assertType("unit_int<'meter'>", $quantity->intValueIn('meter'));
+assertType("unit_int<'widget'>", $quantity->exactIntValueIn('widgets'));
