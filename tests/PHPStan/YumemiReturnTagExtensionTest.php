@@ -52,6 +52,7 @@ final class YumemiReturnTagExtensionTest extends TypeInferenceTestCase
     {
         return [
             __DIR__ . '/../../extension.neon',
+            __DIR__ . '/../../yumemi-tags.neon',
         ];
     }
 
@@ -98,7 +99,7 @@ final class YumemiReturnTagExtensionTest extends TypeInferenceTestCase
         $this->assertStringContainsString("unit_int<'international_foot'>", $output, $output);
     }
 
-    public function testTagsRemainIgnoredWithoutTheExtension(): void
+    public function testTagsRemainIgnoredWithoutTheOptInConfig(): void
     {
         $output = $this->analyse('yumemi-tag-no-extension.php', false);
 
@@ -122,17 +123,26 @@ final class YumemiReturnTagExtensionTest extends TypeInferenceTestCase
         $this->assertStringContainsString("unit_int<'meter'>", $output, $output);
     }
 
-    private function analyse(string $fixture, bool $withExtension = true, ?string $stub = null): string
+    public function testStubTagsRemainIgnoredWithoutTheOptInConfig(): void
+    {
+        $output = $this->analyse('yumemi-tag-stub.php', false, 'yumemi-tag-stub.stub');
+
+        $this->assertStringContainsString('[OK] No errors', $output, $output);
+    }
+
+    private function analyse(string $fixture, bool $withTagPromotion = true, ?string $stub = null): string
     {
         $fixturePath = __DIR__ . '/data/' . $fixture;
         $this->assertFileExists($fixturePath);
 
         $config = sys_get_temp_dir() . '/yumemi-tag-' . md5($fixture) . '.neon';
-        $includes = '';
-        if ($withExtension) {
-            $extension = realpath(__DIR__ . '/../../extension.neon');
-            $this->assertNotFalse($extension);
-            $includes = "includes:\n    - {$extension}\n";
+        $extension = realpath(__DIR__ . '/../../extension.neon');
+        $this->assertNotFalse($extension);
+        $includes = "includes:\n    - {$extension}\n";
+        if ($withTagPromotion) {
+            $tagExtension = realpath(__DIR__ . '/../../yumemi-tags.neon');
+            $this->assertNotFalse($tagExtension);
+            $includes .= "    - {$tagExtension}\n";
         }
 
         $stubFiles = '';

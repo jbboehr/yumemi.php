@@ -6,7 +6,7 @@
 # Piece 5: unit_to() conversion helper (dynamic return type)
 # Piece 6: invalid unit() / unit_to() call diagnostics (rule)
 # Piece 7: Quantity<'...'> object type + Units::quantity() return type
-# Piece 8: extension-optional @yumemi-* annotations promoted into PHPStan's native tags
+# Optional @yumemi-* tag promotion is registered separately by yumemi-tags.neon.
 
 services:
     -
@@ -47,39 +47,3 @@ services:
         class: jbboehr\Yumemi\PHPStan\InvalidQuantityArithmeticRule
         tags:
             - phpstan.rules.rule
-    -
-        class: jbboehr\Yumemi\PHPStan\YumemiTypeNodeNormalizer
-    -
-        class: jbboehr\Yumemi\PHPStan\YumemiDocTagPromoter
-    -
-        class: jbboehr\Yumemi\PHPStan\YumemiTagPromotionRule
-        tags:
-            - phpstan.rules.rule
-
-    yumemiAnalysisParser:
-        class: jbboehr\Yumemi\PHPStan\YumemiTagPromotingParser
-        arguments:
-            wrappedParser: @pathRoutingParser
-        autowired: false
-
-    defaultAnalysisParser!:
-        class: PHPStan\Parser\CachedParser
-        arguments:
-            originalParser: @yumemiAnalysisParser
-            cachedNodesByStringCountMax: %cache.nodesByStringCountMax%
-            cachedSourceBytesMax: %cache.nodesByStringSourceBytesMax%
-        autowired: false
-
-    yumemiFreshStubParser:
-        class: jbboehr\Yumemi\PHPStan\YumemiTagPromotingParser
-        arguments:
-            wrappedParser: @freshStubParser
-        autowired: false
-
-    stubParser!:
-        class: PHPStan\Parser\CachedParser
-        arguments:
-            originalParser: @yumemiFreshStubParser
-            cachedNodesByStringCountMax: %cache.nodesByStringCountMax%
-            cachedSourceBytesMax: %cache.nodesByStringSourceBytesMax%
-        autowired: false

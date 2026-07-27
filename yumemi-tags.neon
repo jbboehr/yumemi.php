@@ -1,0 +1,40 @@
+# Opt-in promotion of extension-optional @yumemi-* annotations into PHPStan's native tags.
+# Load extension.neon first (automatically through phpstan/extension-installer, or manually).
+
+services:
+    -
+        class: jbboehr\Yumemi\PHPStan\YumemiTypeNodeNormalizer
+    -
+        class: jbboehr\Yumemi\PHPStan\YumemiDocTagPromoter
+    -
+        class: jbboehr\Yumemi\PHPStan\YumemiTagPromotionRule
+        tags:
+            - phpstan.rules.rule
+
+    yumemiAnalysisParser:
+        class: jbboehr\Yumemi\PHPStan\YumemiTagPromotingParser
+        arguments:
+            wrappedParser: @pathRoutingParser
+        autowired: false
+
+    defaultAnalysisParser!:
+        class: PHPStan\Parser\CachedParser
+        arguments:
+            originalParser: @yumemiAnalysisParser
+            cachedNodesByStringCountMax: %cache.nodesByStringCountMax%
+            cachedSourceBytesMax: %cache.nodesByStringSourceBytesMax%
+        autowired: false
+
+    yumemiFreshStubParser:
+        class: jbboehr\Yumemi\PHPStan\YumemiTagPromotingParser
+        arguments:
+            wrappedParser: @freshStubParser
+        autowired: false
+
+    stubParser!:
+        class: PHPStan\Parser\CachedParser
+        arguments:
+            originalParser: @yumemiFreshStubParser
+            cachedNodesByStringCountMax: %cache.nodesByStringCountMax%
+            cachedSourceBytesMax: %cache.nodesByStringSourceBytesMax%
+        autowired: false

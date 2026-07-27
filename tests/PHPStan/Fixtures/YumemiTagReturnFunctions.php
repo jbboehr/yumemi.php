@@ -11,7 +11,7 @@ use jbboehr\Yumemi\Units;
  * These are `require`d into the test process (not analysed as a data file) so that native function
  * reflection can see them: TypeInferenceTestCase does not index function declarations local to the
  * analysed fixture, but it does resolve functions that already exist in the process. Each keeps a
- * native return type in its signature; @yumemi-return brands the result only when the extension runs.
+ * native return type in its signature; @yumemi-return brands the result only when tag promotion is enabled.
  */
 
 /**

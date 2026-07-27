@@ -45,7 +45,7 @@ use PHPStan\Testing\RuleTestCase;
  *
  * Companion to {@see ReadmeExamplesTest}, which executes every block at runtime. Here each
  * PHPStan-relevant block (one that mentions a unit type or a `//!` marker) is analysed with the
- * real extension loaded, and the convention read straight from the block body:
+ * core extension and opt-in tag promotion loaded, and the convention read straight from the block body:
  *
  *   //! <substring>
  *   <the offending statement>
@@ -78,7 +78,10 @@ final class ReadmePhpStanExamplesTest extends RuleTestCase
 
     public static function getAdditionalConfigFiles(): array
     {
-        return [self::projectRoot() . '/extension.neon'];
+        return [
+            self::projectRoot() . '/extension.neon',
+            self::projectRoot() . '/yumemi-tags.neon',
+        ];
     }
 
     public function testPhpStanRelevantReadmeExamplesMatchDocumentedDiagnostics(): void

@@ -165,11 +165,24 @@ For public APIs that only _optionally_ support Yumemi, pair the ordinary native 
 function area(int $length): int { /* ... */ }
 ```
 
-Without Yumemi, PHPStan preserves these as unknown generic tags and uses the ordinary `@param` / `@return` / `@var` or
-native signature. With Yumemi, the parser promotes `@yumemi-param`, `@yumemi-return`, and `@yumemi-var` into the
-corresponding PHPStan type positions before reflection and analysis. From that point onward PHPStan owns propagation,
-inheritance, call checking, method returns, properties, locals, and ordinary diagnostics. This is deliberately true
-replacement: a bare `int` does not satisfy a promoted `unit_int<'meter'>` parameter.
+Promotion is a separate, opt-in integration. Load it after the main extension (which the extension installer may have
+already loaded):
+
+```neon
+includes:
+    - vendor/jbboehr/yumemi/yumemi-tags.neon
+```
+
+Without this config, PHPStan preserves the annotations as unknown generic tags and uses the ordinary `@param` /
+`@return` / `@var` or native signature. With it, the parser promotes `@yumemi-param`, `@yumemi-return`, and
+`@yumemi-var` into the corresponding PHPStan type positions before reflection and analysis. From that point onward
+PHPStan owns propagation, inheritance, call checking, method returns, properties, locals, and ordinary diagnostics. This
+is deliberately true replacement: a bare `int` does not satisfy a promoted `unit_int<'meter'>` parameter.
+
+The parser integration is off by default because it replaces internal PHPStan parser services and could conflict with
+another extension that replaces the same services. Its narrow intended use is a library embedding optional Yumemi
+annotations in source it controls. Application code should normally use Yumemi types directly in standard PHPDoc, and
+support for a third-party library should normally be supplied through standard PHPStan stubs.
 
 If a fallback tag exists, promotion is allowed only when the Yumemi type is its exact structural unit transform:
 
@@ -185,18 +198,23 @@ mismatch the fallback remains effective and `yumemi.docTagTransform` is reported
 promoted directly and PHPStan checks it against the native declaration. Malformed payloads, invalid units, unknown
 parameters, duplicates, unsupported targets, and ambiguous unnamed `@var` fallbacks receive their own diagnostics.
 
-| Environment                                  | Effective type                      |
-| -------------------------------------------- | ----------------------------------- |
-| Extension installed                          | promoted Yumemi unit type           |
-| No extension (PHPStan / IDE / phpDocumentor) | ordinary fallback/native type       |
-| Third-party consumer                         | no hard dependency on the extension |
+| Environment                                    | Effective type                      |
+| ---------------------------------------------- | ----------------------------------- |
+| Main extension + `yumemi-tags.neon`            | promoted Yumemi unit type           |
+| Main extension only (the default)              | ordinary fallback/native type       |
+| No extension (PHPStan / IDE / phpDocumentor)   | ordinary fallback/native type       |
+| Third-party consumer without the parser opt-in | no hard dependency on the extension |
 
 ### Third-party libraries you don't control
 
-Use normal PHPStan **stub files** rather than editing foreign source. Yumemi wraps PHPStan's stub parser as well as its
-analysis parser, so the same promotion and exact-transform rules apply to `.stub` PHPDoc. Stub declarations must match
-the real namespace/class/method/parameters; native types written only in the stub are ignored, so keep matching native
+Use normal PHPStan **stub files** rather than editing foreign source. Write `unit_int<'...'>`, `unit_float<'...'>`, or
+`Quantity<'...'>` directly in the stub's standard `@phpstan-param`, `@phpstan-return`, or `@phpstan-var` tags; only the
+main extension is needed to resolve those types, so parser promotion is unnecessary. Stub declarations must match the
+real namespace/class/method/parameters; native types written only in the stub are ignored, so keep matching native
 signatures for readability.
+
+If a stub deliberately contains `@yumemi-*` tags, the opt-in config also promotes those because it wraps the stub
+parser. This is supported for consistency but is usually needless indirection in a file that already requires Yumemi.
 
 ```neon
 parameters:
@@ -206,16 +224,19 @@ parameters:
 
 ### Implementation notes
 
-- `YumemiTagPromotingParser` decorates PHPStan's `pathRoutingParser` before the normal analysis cache, so it runs after
-  PHPStan chooses the rich parser for analyzed files or the simple parser for reflection-only dependencies. A second
-  instance decorates `freshStubParser` before the stub cache.
+- `extension.neon` does not replace any PHPStan parser services. The separate `yumemi-tags.neon` config registers the
+  promoter and its diagnostics, then replaces the analysis and stub parser cache services.
+- When opted in, `YumemiTagPromotingParser` decorates PHPStan's `pathRoutingParser` before the normal analysis cache, so
+  it runs after PHPStan chooses the rich parser for analyzed files or the simple parser for reflection-only
+  dependencies. A second instance decorates `freshStubParser` before the stub cache.
 - `YumemiDocTagPromoter` reparses the custom payload as the corresponding `@phpstan-*` tag using PHPStan's configured
   PHPDoc parser. This supports the full PHPDoc grammar instead of maintaining a second parser for unions, nullable
   types, generics, descriptions, references, or variadics.
 - Validity still flows through `TypeStringResolver`, and therefore through `UnitTypeNodeResolverExtension` and the one
   shared unit-expression parser.
 - The parser service names and `PhpDocStringResolver` call are internal PHPStan seams. That coupling is localized in the
-  wrapper/promoter and guarded by analyzed-source, dependency-reflection, and stub-parser integration tests.
+  optional wrapper/promoter and guarded by analyzed-source, dependency-reflection, stub-parser, and default-off
+  integration tests.
 
 References: PHPStan docs — Custom PHPDoc Types, Stub Files, Stub Files Extensions, Reflection.
 
@@ -285,13 +306,15 @@ src/PHPStan/
   UnitMagnitudeType.php   # native int|float × unit
   QuantityType.php        # optional object path
   ...
-extension.neon
+extension.neon             # automatically registered core extension
+yumemi-tags.neon           # opt-in @yumemi-* parser promotion
 ```
 
 Composer:
 
 - Autoload PHPStan classes with the library
 - `extra.phpstan.includes` → `extension.neon` when published
+- Do not automatically include `yumemi-tags.neon`; consumers opt in explicitly when they need parser promotion
 - Do **not** hard-require `phpstan/phpstan` at runtime for app code; only when the extension is loaded
 
 ## What To Reuse (Do Not Fork)
@@ -436,8 +459,9 @@ parser-promotion implementation below replaces all of those components and seman
 
 ### Piece 11 — parser-level promotion for the full `@yumemi-*` family (done)
 
-- `YumemiTagPromotingParser` wraps both analysis path routing and stub parsing before their caches. Promotion therefore
-  reaches rich-parsed project files, simple-parsed reflection dependencies, and configured `.stub` files.
+- The opt-in `yumemi-tags.neon` config makes `YumemiTagPromotingParser` wrap both analysis path routing and stub parsing
+  before their caches. Promotion therefore reaches rich-parsed project files, simple-parsed reflection dependencies, and
+  configured `.stub` files without making those parser replacements part of the default extension.
 - `YumemiDocTagPromoter` parses each custom payload through PHPStan's full PHPDoc parser. Valid tags either replace the
   matching fallback type node or become `@phpstan-param`, `@phpstan-return`, or `@phpstan-var` when no fallback exists.
 - Fallback matching recursively erases unit leaves and compares normalized PHPDoc structures. It supports complex
@@ -448,17 +472,17 @@ parser-promotion implementation below replaces all of those components and seman
 - `YumemiTagPromotionRule` reports cases where promotion safely declined, with stable identifiers for syntax, type,
   target, parameter, duplicate, and exact-transform errors. On failure, any existing fallback remains effective.
 - Covered by `YumemiTagPromotionRuleTest` and `YumemiReturnTagExtensionTest`, including composite exact transforms,
-  PHPStan-tag priority, ref/variadic mismatches, method returns, locals, bare-native enforcement, no-extension behavior,
-  dependency reflection, and stub parsing.
+  PHPStan-tag priority, ref/variadic mismatches, method returns, locals, bare-native enforcement, base-only/default-off
+  behavior, dependency reflection, and stub parsing.
 
 ### Next pieces
 
 1. **Exact vs dimension native-arithmetic mode + neon config** — native `+` / `-` remain exact-unit today; add the
    relaxed dimension mode and a `parameters.yumemi` config shape (arithmetic mode, catalog, bare-numeric policy). This
    is now the largest remaining PHPStan item. Runtime `Quantity` method semantics remain fixed as described in Piece 10.
-2. **Bundled stubs for selected third-party libraries** — configured `.stub` files already receive the same promotion as
-   source and dependency PHPDoc. What remains is deciding which integrations merit bundled stubs and registering those
-   files through a `StubFilesExtension`.
+2. **Bundled stubs for selected third-party libraries** — these should normally use standard PHPStan tags containing
+   Yumemi types and therefore need no parser promotion. What remains is deciding which integrations merit bundled stubs
+   and registering those files through a `StubFilesExtension`.
 3. **Richer identifiers / messages elsewhere** — Piece 11 has stable per-cause identifiers for promotion failures; other
    extension diagnostics can be split further where callers need more precise suppression.
 

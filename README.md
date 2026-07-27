@@ -14,7 +14,7 @@ meaning for `meter / second` whether PHPStan is reading it or your code is compu
 - **PHPStan extension** (the headline): usable, not yet a tagged stable release. Implemented — unit-branded native types
   (`unit_int<'…'>` / `unit_float<'…'>`), arithmetic operator inference (`+ - * / ** %`), `unit()` / `unit_to()` helpers,
   invalid-unit-string diagnostics, `Quantity<'…'>` object types with fluent-method inference, and extension-optional
-  `@yumemi-param` / `@yumemi-return` annotations.
+  `@yumemi-param` / `@yumemi-return` / `@yumemi-var` annotations through an opt-in parser integration.
 - **Runtime library:** usable — unit expressions, UDUNITS2 catalog, quantities, exact rational conversion, dimensional
   checks.
 
@@ -35,6 +35,16 @@ automatically. Otherwise include the bundled config from your `phpstan.neon`:
 includes:
     - vendor/jbboehr/yumemi/extension.neon
 ```
+
+Promotion of the extension-optional `@yumemi-*` tags is deliberately not registered automatically. If you need that
+feature, include its second config after the main extension (which may already be loaded by the extension installer):
+
+```neon
+includes:
+    - vendor/jbboehr/yumemi/yumemi-tags.neon
+```
+
+Without the extension installer, include both files in that order.
 
 ## Static Dimensional Analysis (PHPStan)
 
@@ -119,10 +129,20 @@ Code that opts into the runtime `Quantity` object gets the same checking on the 
 ### Extension-optional annotations
 
 If you can't (or don't want to) put a Yumemi type in a native PHPDoc position — say, in a library whose consumers may
-not have the extension installed — use `@yumemi-param`, `@yumemi-return`, or `@yumemi-var`. Without the extension they
-are unknown tags and the ordinary PHPDoc/native types remain in force. With the extension, each Yumemi tag is promoted
-to PHPStan's native PHPDoc surface, so parameters, function and method returns, properties, and local variables all use
-PHPStan's normal type propagation and diagnostics.
+not have the extension installed — use `@yumemi-param`, `@yumemi-return`, or `@yumemi-var`. Enable their parser
+integration explicitly:
+
+```neon
+includes:
+    - vendor/jbboehr/yumemi/yumemi-tags.neon
+```
+
+Without that opt-in config they are unknown tags and the ordinary PHPDoc/native types remain in force. With it, each
+Yumemi tag is promoted to PHPStan's native PHPDoc surface, so parameters, function and method returns, properties, and
+local variables all use PHPStan's normal type propagation and diagnostics. The feature is off by default because it
+replaces internal PHPStan parser services and can conflict with another extension doing the same thing. It is intended
+mainly for libraries that embed optional Yumemi support in their own source; application code should normally use Yumemi
+types directly, while integrations for libraries you do not control should normally use ordinary PHPStan stubs.
 
 When an ordinary `@param`, `@return`, or `@var` (or its `@phpstan-*` form) exists, the Yumemi type must be its exact
 structural transform: every `unit_int<'...'>` erases to `int`, every `unit_float<'...'>` to `float`, and every
@@ -138,7 +158,7 @@ require 'vendor/autoload.php';
 use function jbboehr\Yumemi\unit;
 
 /**
- * The ordinary @param is used without Yumemi. With Yumemi loaded, the
+ * The ordinary @param is used without tag promotion. With promotion enabled, the
  * exact-transform tag replaces its type while retaining this description.
  *
  * @param int $length
@@ -147,7 +167,7 @@ use function jbboehr\Yumemi\unit;
  */
 function storeLength(int $length): void {}
 
-// With the extension loaded, PHPStan's ordinary argument checking rejects a bare int:
+// With tag promotion enabled, PHPStan's ordinary argument checking rejects a bare int:
 //! expects unit_int<'meter'>, int given
 storeLength(5);
 
@@ -156,7 +176,8 @@ storeLength(5);
 storeLength(unit(3, 'foot'));
 ```
 
-Without the extension, both calls above are checked against the ordinary `int` fallback, and `storeLength(5)` is valid.
+Without `yumemi-tags.neon`, both calls above are checked against the ordinary `int` fallback, and `storeLength(5)` is
+valid.
 
 ## Runtime Unit Conversion (PHP)
 
