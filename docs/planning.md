@@ -316,16 +316,18 @@ Suggested next slices (detail in [phpstan-extension.md](phpstan-extension.md)):
 
 1. Add PHPStan type parsing. **Done for the native path:** `unit_int<'…'>` / `unit_float<'…'>` resolve via
    `UnitTypeNodeResolverExtension`, parsing the string through Yumemi's runtime parser and storing the reduced
-   expression on `UnitIntegerType` / `UnitFloatType`. **Remaining:** the `Quantity<'meter / second'>` object generic
-   (sugar for `Quantity<Rational, '…'>`).
+   expression on `UnitIntegerType` / `UnitFloatType`. **Also done (Piece 7):** the `Quantity<'meter / second'>` object
+   generic (sugar for `Quantity<Rational, '…'>`), resolved by the same `UnitTypeNodeResolverExtension`.
 
 2. Add PHPStan diagnostics for invalid unit strings. **Done:** invalid units become `ErrorType` with Yumemi messages in
    PHPDoc and constant args, and `InvalidUnitCallRule` now emits standalone `yumemi.invalidUnitCall` diagnostics for
    invalid `unit()` / `unit_to()` calls.
 
 3. Add PHPStan return-type inference. **Done for the native path:** operator inference for `+ - * / ** %`, plus `unit()`
-   / `unit_to()` dynamic return types. **Remaining:** the `Quantity` _method_ inference (`to()`, `normalize()`,
-   `simplify()`, `mul()`, `div()`).
+   / `unit_to()` dynamic return types. **Also done (Piece 7):** the `Quantity` _method_ inference —
+   `QuantityMethodReturnTypeExtension` brands `mul()` / `div()` / `pow()` / `neg()` / `add()` / `sub()` / `to()` /
+   `normalize()`. **Remaining:** `simplify()` is the one unit-bearing fluent method not yet inferred (same unit as
+   `normalize()`, scale folded into the value).
 
 4. Add PHPStan checks for `add()` and `sub()`. **Done for the native path:** `+` / `-` require normalized-equivalent
    units via the operator extension. **Remaining:** the optional dimensional mode via config, and the `Quantity::add()`
@@ -342,6 +344,12 @@ Suggested next slices (detail in [phpstan-extension.md](phpstan-extension.md)):
 > invalid-string and invalid-call diagnostics, operator/`unit()`/`unit_to()` inference, exact-unit `+` / `-`). The
 > runtime **`Quantity<…>` object path** (generic + method inference) and the exact-vs-dimension config mode are the main
 > PHPStan items still open. See [phpstan-extension.md](phpstan-extension.md) "Next pieces".
+
+> **Update 2026-07-26:** The runtime **`Quantity<…>` object path** is now done (Piece 7 — commits `7b8b759`, `64786af`):
+> `Quantity<'…'>` PHPDoc resolution, `Units::quantity()` inference, and fluent-method inference through `mul` / `div` /
+> `pow` / `neg` / `add` / `sub` / `to` / `normalize`. The **exact-vs-dimension config mode** is now the main PHPStan
+> item still open; the lone Piece 7 follow-up is `simplify()` inference. Object-path `Quantity::add()` / `sub()`
+> unit-compatibility checks (slice 4) also remain. See [phpstan-extension.md](phpstan-extension.md) "Next pieces".
 
 ## Current Architecture Sketch
 

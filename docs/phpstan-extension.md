@@ -380,6 +380,30 @@ Optional polish (not blockers):
 - Note: binary-operator misuse (e.g. `meter + second`) is already diagnosed by PHPStan core's
   `InvalidBinaryOperationRule` (`binaryOp.invalid`), so no sibling operator rule was added
 
+### Piece 7 — `Quantity<'…'>` object type + method inference (done)
+
+The runtime `Quantity` object path — the original headline goal. Code that opts into the value object gets the same
+dimensional checking as the native `unit_int` / `unit_float` path.
+
+- `QuantityType` is the branded object type. `Quantity<'meter / second'>` (sugar for `Quantity<Rational, '…'>`) is
+  resolved wherever PHPStan parses a type by the same `UnitTypeNodeResolverExtension` that handles the native types —
+  one parser, one meaning
+- `UnitsQuantityReturnTypeExtension` (a `DynamicMethodReturnTypeExtension` on `Units::quantity()`) infers
+  `Quantity<'meter'>` from `Units::quantity($value, 'meter')` when the unit string is constant
+- `QuantityMethodReturnTypeExtension` carries the unit through the fluent method chain on a branded receiver: `mul` /
+  `div` combine unit exprs via the shared `UnitExpressionAlgebra`; `pow` raises by a constant integer; `neg` / `add` /
+  `sub` keep the left operand's unit; `to` rebrands to the (constant, statically parseable) target; `normalize` rebrands
+  to the catalog-normalized form
+- **No dedicated assignment/argument rule is needed:** `QuantityType::accepts()` plus PHPStan core's `CallMethodsRule`
+  already reject a `Quantity<'foot'>` passed where `Quantity<'meter'>` is expected
+- **Fails open** like the native helpers: a non-constant exponent/target, an unbranded `Quantity` operand, or a unit
+  unknown to the default catalog falls back to the native `Quantity` return (since `to()` is instance-scoped and may run
+  against a custom registry), so a `Quantity` value never poisons unrelated analysis
+- Covered by `QuantityReturnTypeExtensionTest`, `QuantityArgumentTypeRuleTest`, and the `quantity-assert.php` fixture
+- **Not yet inferred:** `simplify()`. The other value-substituting method, `normalize()`, is wired up; `simplify()`
+  (same unit as `normalize()`, but with the scale factor folded into the value) is the one fluent method the extension
+  does not yet brand. See "Next pieces".
+
 ### Piece 8 — extension-optional `@yumemi-return` for functions (done)
 
 First slice of the extension-optional annotation surface (see "Annotation Surface"). A function keeps a native return
@@ -496,17 +520,17 @@ for a `final`-class fork or a check-only rule. (The `YumemiDocTagReader` already
 
 ### Next pieces
 
-1. **Runtime `Quantity` PHPDoc + method inference** — the object path is still untouched. Resolve
-   `Quantity<'meter / second'>` (sugar for `Quantity<Rational, '…'>`), infer `Units::quantity()`, and infer `to()` /
-   `mul()` / `div()` / `normalize()` / `simplify()` plus `add()` / `sub()` checks. This is the original headline goal
-   and the largest remaining gap.
-2. **Exact vs dimension arithmetic mode + neon config** — only exact-unit is implemented today; add the relaxed
-   dimension mode and a `parameters.yumemi` config shape (arithmetic mode, catalog, bare-numeric policy).
-3. **Richer identifiers / messages** — stable per-cause error identifiers beyond the current `yumemi.invalidUnitCall`.
-4. **Stub files for third-party libraries** — the last remaining piece of the extension-optional surface. The
+1. **Exact vs dimension arithmetic mode + neon config** — only exact-unit is implemented today; add the relaxed
+   dimension mode and a `parameters.yumemi` config shape (arithmetic mode, catalog, bare-numeric policy). This is now
+   the largest remaining PHPStan item.
+2. **Richer identifiers / messages** — stable per-cause error identifiers beyond the current `yumemi.invalidUnitCall`.
+3. **Stub files for third-party libraries** — the last remaining piece of the extension-optional surface. The
    `@yumemi-return` (Piece 8) and `@yumemi-param` (Piece 9) tags are done; `@yumemi-var` is feasible via an AST-rewrite
    pass but deferred (see above). What is left is bundling `.stub` files via a `StubFilesExtension` so `@yumemi-*` tags
    can enrich libraries you do not control (see "Annotation Surface").
+4. **`Quantity::simplify()` inference** — small follow-up to Piece 7. Every other unit-bearing fluent method is branded
+   by `QuantityMethodReturnTypeExtension`; `simplify()` (unit as in `normalize()`, scale folded into the value) is the
+   one method still returning the native `Quantity`.
 
 **Success criterion (piece 2):** `unit_int<'mass'>` errors; `unit_int<'meter / second'>` is a real type. **(met)**
 
@@ -516,11 +540,18 @@ for a `final`-class fork or a check-only rule. (The `YumemiDocTagReader` already
 > diagnostics — is now in place. What remains is the runtime `Quantity` object path and the exact-vs-dimension config
 > work.
 
+> **Update 2026-07-26:** Piece 7 (the runtime `Quantity<'…'>` object path — `Quantity<'…'>` PHPDoc resolution,
+> `Units::quantity()` inference, and fluent-method inference through `mul` / `div` / `pow` / `neg` / `add` / `sub` /
+> `to` / `normalize`) landed in commits `7b8b759` and `64786af` and is now documented above. The open-item lists ("Next
+> pieces", "Later Milestones") were corrected accordingly — the largest remaining PHPStan item is now the
+> exact-vs-dimension arithmetic mode plus `parameters.yumemi` config. The one Piece 7 follow-up is `simplify()`
+> inference (see "Next pieces").
+
 ## Later Milestones
 
 1. ~~Operator inference for `+` `-` `*` `/` on native unit types~~ **(done — Piece 3)**
 2. Exact vs dimension arithmetic mode
-3. Runtime `Quantity` PHPDoc + method inference (Rational × unit)
+3. ~~Runtime `Quantity` PHPDoc + method inference (Rational × unit)~~ **(done — Piece 7)**
 4. Bridges between native unit types and `Quantity`
 5. Neon config for catalog and policies
 6. Richer messages / structured identifiers
