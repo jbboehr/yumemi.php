@@ -330,8 +330,8 @@ Suggested next slices (detail in [phpstan-extension.md](phpstan-extension.md)):
 3. Add PHPStan return-type inference. **Done for the native path:** operator inference for `+ - * / ** %`, plus `unit()`
    / `unit_to()` dynamic return types. **Also done (Piece 7):** the `Quantity` _method_ inference —
    `QuantityMethodReturnTypeExtension` brands `mul()` / `div()` / `pow()` / `neg()` / `add()` / `sub()` / `to()` /
-   `normalize()`. **Remaining:** `simplify()` is the one unit-bearing fluent method not yet inferred (same unit as
-   `normalize()`, scale folded into the value).
+   `normalize()` / `simplify()`. The latter removes the normalized scale constant from the static unit because runtime
+   folds it into the magnitude.
 
 4. Add PHPStan checks for `add()` and `sub()`. **Done:** native `+` / `-` require normalized-equivalent units;
    `Quantity::add()` / `sub()` require compatible dimensions; and `Quantity::addWithSameUnit()` / `subWithSameUnit()`
@@ -352,8 +352,8 @@ Suggested next slices (detail in [phpstan-extension.md](phpstan-extension.md)):
 > **Update 2026-07-26:** The runtime **`Quantity<…>` object path** is now done (Piece 7 — commits `7b8b759`, `64786af`):
 > `Quantity<'…'>` PHPDoc resolution, `Units::quantity()` inference, and fluent-method inference through `mul` / `div` /
 > `pow` / `neg` / `add` / `sub` / `to` / `normalize`. The **exact-vs-dimension config mode** is now the main PHPStan
-> item still open; the lone Piece 7 follow-up is `simplify()` inference. Object-path `Quantity` addition/subtraction
-> checks are now complete. See [phpstan-extension.md](phpstan-extension.md) "Next pieces".
+> item still open. `simplify()` inference and object-path `Quantity` addition/subtraction checks are now complete. See
+> [phpstan-extension.md](phpstan-extension.md) "Next pieces".
 
 ## Current Architecture Sketch
 

@@ -38,6 +38,9 @@ assertType("Quantity<'meter / second'>", $speed);
 $m = $units->quantity(1, 'meter');
 $s = $units->quantity(1, 'second');
 $km = $units->quantity(1, 'kilometer');
+$centimetersPerSecond = $units->quantity(1, 'centimeter / second');
+$newtons = $units->quantity(1, 'newton');
+$percent = $units->quantity(1, 'percent');
 
 // mul / div combine units
 assertType("Quantity<'meter * second'>", $m->mul($s));
@@ -68,8 +71,15 @@ assertType("Quantity<'international_foot'>", $m->to('foot'));
 // normalize() rebrands to the catalog-normalized form
 assertType("Quantity<'1000 * meter'>", $km->normalize());
 
+// simplify() folds the normalized scale into the runtime magnitude and keeps only unit factors
+assertType("Quantity<'meter'>", $km->simplify());
+assertType("Quantity<'meter / second'>", $centimetersPerSecond->simplify());
+assertType("Quantity<'kilogram * meter / second ^ 2'>", $newtons->simplify());
+assertType("Quantity<'1'>", $percent->simplify());
+
 // chains compose
 assertType("Quantity<'meter / second'>", $m->div($s)->mul($s)->div($s));
+assertType("Quantity<'meter'>", $km->simplify()->add($m));
 
 // unbranded-quantity operand → native fallback (cannot compute unit)
 function combineDynamic(\jbboehr\Yumemi\Quantity $q, \jbboehr\Yumemi\Units $units): void

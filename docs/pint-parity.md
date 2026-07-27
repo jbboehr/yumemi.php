@@ -600,8 +600,8 @@ Status: Partial (native and `Quantity` paths shipped; configuration remains) Imp
 
 > **Update 2026-07-26:** The `Quantity<'…'>` object path is now implemented, including construction and fluent-method
 > inference. Addition/subtraction diagnostics mirror runtime behavior: `add()` / `sub()` accept compatible dimensions,
-> while `addWithSameUnit()` / `subWithSameUnit()` require normalized-equivalent units. `simplify()` inference and native
-> arithmetic configuration remain.
+> while `addWithSameUnit()` / `subWithSameUnit()` require normalized-equivalent units. `simplify()` inference is also
+> complete; native arithmetic configuration remains.
 
 This is Yumemi's main differentiator. Pint has Python typing for magnitude types, but it is not primarily a static
 dimensional analyzer. Yumemi should aim to make PHPDoc unit strings meaningful to PHPStan.
@@ -901,7 +901,7 @@ Work:
 - ~~Parse PHPDoc unit generics.~~ **Done for native `unit_int` / `unit_float` and `Quantity<…>`.**
 - ~~Diagnose invalid unit strings and unknown units.~~ **Done** (incl. standalone invalid-call diagnostics).
 - ~~Infer `Units::quantity()`.~~ **Done.**
-- Infer `Quantity::to()`, `mul()`, `div()`, `normalize()`, and `simplify()`. **Done except `simplify()`.**
+- ~~Infer `Quantity::to()`, `mul()`, `div()`, `normalize()`, and `simplify()`.~~ **Done.**
 - ~~Check `add()` and `sub()`.~~ **Done for native types and the `Quantity` object path.**
 - Decide strict exact-unit vs dimension-compatible modes. **Exact done; dimension mode + config pending.**
 

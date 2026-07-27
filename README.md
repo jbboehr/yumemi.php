@@ -113,8 +113,8 @@ assert($heightInMeters > 1.82 && $heightInMeters < 1.83);
 ```
 
 Code that opts into the runtime `Quantity` object gets the same checking on the object path:
-`Quantity<'meter / second'>` is a real PHPDoc type, and the fluent methods (`mul`, `div`, `pow`, `to`, `normalize`, …)
-carry the unit through — e.g. `$meters->div($seconds)` is inferred as `Quantity<'meter / second'>`.
+`Quantity<'meter / second'>` is a real PHPDoc type, and the fluent methods (`mul`, `div`, `pow`, `to`, `normalize`,
+`simplify`, …) carry the unit through — e.g. `$meters->div($seconds)` is inferred as `Quantity<'meter / second'>`.
 
 ### Extension-optional annotations
 

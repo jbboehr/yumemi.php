@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
+use jbboehr\Yumemi\Analyzer\NormalizedExpr;
 use jbboehr\Yumemi\Formatter\ExprFormatter;
 use jbboehr\Yumemi\Quantity;
 use PhpParser\Node\Expr\MethodCall;
@@ -56,7 +57,8 @@ use PHPStan\Type\Type;
  * `neg` keeps the left unit; `add`/`sub` accept dimensionally compatible units and keep the left
  * unit; `addWithSameUnit`/`subWithSameUnit` additionally require normalized-equivalent units; `to`
  * rebrands to the (constant, statically parseable) target unit; `normalize` rebrands to the
- * catalog-normalized form.
+ * catalog-normalized form; and `simplify` moves the normalized scale into the magnitude, leaving
+ * the normalized unit factors on the type.
  *
  * Fails open like {@see UnitsQuantityReturnTypeExtension}: unit-combining operations with an
  * unbranded {@see Quantity}, non-constant exponents/targets, and targets unknown to the default
@@ -78,7 +80,7 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
     public function isMethodSupported(MethodReflection $methodReflection): bool
     {
         return in_array($methodReflection->getName(), [
-            'mul', 'div', 'pow', 'neg', 'add', 'sub', 'addWithSameUnit', 'subWithSameUnit', 'to', 'normalize',
+            'mul', 'div', 'pow', 'neg', 'add', 'sub', 'addWithSameUnit', 'subWithSameUnit', 'to', 'normalize', 'simplify',
         ], true);
     }
 
@@ -113,6 +115,7 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
             'pow' => $this->power($unit, $args, $scope),
             'to' => $this->convert($args, $scope),
             'normalize' => $this->normalize($unit),
+            'simplify' => $this->simplify($unit),
             default => null,
         };
     }
@@ -247,6 +250,20 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
             ExprFormatter::format($normalized),
             $unit->dimension,
             $normalized,
+        ));
+    }
+
+    private function simplify(UnitExpression $unit): QuantityType
+    {
+        // Runtime Quantity::simplify() folds the normalized constant into the magnitude, so the
+        // static unit contains only the remaining normalized factors.
+        $simplified = NormalizedExpr::withoutConstant($unit->normalizedExpr);
+
+        return new QuantityType(new UnitExpression(
+            $simplified,
+            ExprFormatter::format($simplified),
+            $unit->dimension,
+            $simplified,
         ));
     }
 

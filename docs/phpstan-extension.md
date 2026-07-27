@@ -398,16 +398,15 @@ dimensional checking as the native `unit_int` / `unit_float` path.
   `div` combine unit exprs via the shared `UnitExpressionAlgebra`; `pow` raises by a constant integer; `neg` keeps its
   unit; converting `add` / `sub` require compatible dimensions; `addWithSameUnit` / `subWithSameUnit` require
   normalized-equivalent units; all four binary methods keep the left unit; `to` rebrands to the constant target; and
-  `normalize` rebrands to the catalog-normalized form
+  `normalize` / `simplify` rebrand to the catalog-normalized form, with `simplify` removing the scale constant that the
+  runtime method folds into the magnitude
 - **No dedicated assignment/argument rule is needed:** `QuantityType::accepts()` plus PHPStan core's `CallMethodsRule`
   already reject a `Quantity<'foot'>` passed where `Quantity<'meter'>` is expected
 - **Fails open** like the native helpers: a non-constant exponent/target, an unbranded `Quantity` operand, or a unit
   unknown to the default catalog falls back to the native `Quantity` return (since `to()` is instance-scoped and may run
   against a custom registry), so a `Quantity` value never poisons unrelated analysis
 - Covered by `QuantityReturnTypeExtensionTest`, `QuantityArgumentTypeRuleTest`, and the `quantity-assert.php` fixture
-- **Not yet inferred:** `simplify()`. The other value-substituting method, `normalize()`, is wired up; `simplify()`
-  (same unit as `normalize()`, but with the scale factor folded into the value) is the one fluent method the extension
-  does not yet brand. See "Next pieces".
+- Every current unit-bearing fluent method is now branded, including `simplify()`.
 
 ### Piece 8 — extension-optional `@yumemi-return` for functions (done)
 
@@ -542,9 +541,6 @@ for a `final`-class fork or a check-only rule. (The `YumemiDocTagReader` already
    `@yumemi-return` (Piece 8) and `@yumemi-param` (Piece 9) tags are done; `@yumemi-var` is feasible via an AST-rewrite
    pass but deferred (see above). What is left is bundling `.stub` files via a `StubFilesExtension` so `@yumemi-*` tags
    can enrich libraries you do not control (see "Annotation Surface").
-4. **`Quantity::simplify()` inference** — small follow-up to Piece 7. Every other unit-bearing fluent method is branded
-   by `QuantityMethodReturnTypeExtension`; `simplify()` (unit as in `normalize()`, scale folded into the value) is the
-   one method still returning the native `Quantity`.
 
 **Success criterion (piece 2):** `unit_int<'mass'>` errors; `unit_int<'meter / second'>` is a real type. **(met)**
 
@@ -558,8 +554,8 @@ for a `final`-class fork or a check-only rule. (The `YumemiDocTagReader` already
 > `Units::quantity()` inference, and fluent-method inference through `mul` / `div` / `pow` / `neg` / `add` / `sub` /
 > `to` / `normalize`) landed in commits `7b8b759` and `64786af` and is now documented above. The open-item lists ("Next
 > pieces", "Later Milestones") were corrected accordingly — the largest remaining PHPStan item is now the
-> exact-vs-dimension arithmetic mode plus `parameters.yumemi` config. The one Piece 7 follow-up is `simplify()`
-> inference (see "Next pieces").
+> exact-vs-dimension arithmetic mode plus `parameters.yumemi` config. `simplify()` inference has since completed the
+> current unit-bearing fluent-method surface.
 
 ## Later Milestones
 
