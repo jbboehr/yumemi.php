@@ -36,24 +36,31 @@
 
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
-use PHPStan\Testing\TypeInferenceTestCase;
-
 /**
- * Type-inference coverage for unit() via assertType() fixtures.
+ * Runs a `TypeInferenceTestCase` fixture from the test body so its analysis registers code coverage.
+ *
+ * `gatherAssertTypes()` runs the analyser — and with it the Yumemi PHPStan extensions — in-process, so it
+ * is what actually exercises the extension classes. The idiomatic `#[DataProvider]` that calls it runs
+ * during data collection, which PHPUnit excludes from code coverage; worse, that collection-phase run
+ * warms PHPStan's process-global parser and PHPDoc caches, so a later in-body call reuses them and the
+ * parse-/PHPDoc-time extensions (tag promotion, type-node resolution) never re-execute. Calling
+ * `gatherAssertTypes()` from the test body as the *first* analysis of the fixture keeps the caches cold
+ * and attributes the whole run — dynamic return types, type-node resolution, tag promotion — to a test,
+ * so all of it is recorded. Every assertType in the fixture is still validated via `assertFileAsserts()`.
+ *
+ * Mixed into `TypeInferenceTestCase` subclasses, where `gatherAssertTypes()` and `assertFileAsserts()`
+ * are available. The subclass must not also expose the fixture through a `#[DataProvider]`, or the
+ * provider's collection-phase run would warm the caches first.
  */
-final class UnitFunctionDynamicReturnTypeExtensionTest extends TypeInferenceTestCase
+trait AssertsFixtureUnderCoverage
 {
-    use AssertsFixtureUnderCoverage;
-
-    public static function getAdditionalConfigFiles(): array
+    private function assertFixtureUnderCoverage(string $file): void
     {
-        return [
-            __DIR__ . '/../../extension.neon',
-        ];
-    }
+        $asserts = self::gatherAssertTypes($file);
+        $this->assertNotEmpty($asserts);
 
-    public function testFileAsserts(): void
-    {
-        $this->assertFixtureUnderCoverage(__DIR__ . '/data/unit-construction-assert.php');
+        foreach ($asserts as $assert) {
+            $this->assertFileAsserts(...$assert);
+        }
     }
 }

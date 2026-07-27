@@ -37,7 +37,6 @@
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
 use PHPStan\Testing\TypeInferenceTestCase;
-use PHPUnit\Framework\Attributes\DataProvider;
 
 // The @yumemi-return functions must exist in the process for native function reflection to resolve
 // them: TypeInferenceTestCase does not index functions declared in the analysed data fixture.
@@ -48,6 +47,8 @@ require_once __DIR__ . '/Fixtures/YumemiTagReturnFunctions.php';
  */
 final class YumemiReturnTagExtensionTest extends TypeInferenceTestCase
 {
+    use AssertsFixtureUnderCoverage;
+
     public static function getAdditionalConfigFiles(): array
     {
         return [
@@ -56,21 +57,9 @@ final class YumemiReturnTagExtensionTest extends TypeInferenceTestCase
         ];
     }
 
-    /**
-     * @return iterable<mixed>
-     */
-    public static function dataFileAsserts(): iterable
+    public function testFileAsserts(): void
     {
-        yield from self::gatherAssertTypes(__DIR__ . '/data/yumemi-tag-return.php');
-    }
-
-    /**
-     * @param mixed ...$args
-     */
-    #[DataProvider('dataFileAsserts')]
-    public function testFileAsserts(string $assertType, string $file, ...$args): void
-    {
-        $this->assertFileAsserts($assertType, $file, ...$args);
+        $this->assertFixtureUnderCoverage(__DIR__ . '/data/yumemi-tag-return.php');
     }
 
     /**

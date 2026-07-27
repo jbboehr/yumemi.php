@@ -338,12 +338,17 @@ Composer:
 Follow PHPStan extension testing patterns (`TypeInferenceTestCase`, `RuleTestCase`, or current equivalents for the
 PHPStan major version in use).
 
-> **Coverage caveat:** `TypeInferenceTestCase` (`assertType`) fixtures and the `shell_exec`-based integration tests run
-> PHPStan **out-of-process**, so PCOV attributes no line coverage to the extension classes they exercise (e.g.
-> `QuantityMethodReturnTypeExtension`, `QuantityType`). Line coverage on `src/PHPStan/` therefore understates the real,
-> functionally strong coverage and must not be treated as a quality gate. Where a class has pure, container-free logic
-> (`UnitExpressionAlgebra`, the branded `QuantityType` / `UnitIntegerType` / `UnitFloatType` semantics), add an
-> in-process `TestCase` / `PHPStanTestCase` unit test as well so the behavior is both asserted and measured.
+> **Coverage caveat:** `TypeInferenceTestCase` runs the analyser (and the Yumemi extensions) **in-process**, but the
+> usual `#[DataProvider]` that calls `gatherAssertTypes()` runs during data collection — which PHPUnit excludes from
+> coverage — and its collection-phase run also warms PHPStan's process-global parser/PHPDoc caches, so a later in-body
+> call reuses them and the parse-/PHPDoc-time extensions never re-execute. The fix used here is the
+> `AssertsFixtureUnderCoverage` trait: each fixture is analysed once from the **test body** (no `#[DataProvider]`),
+> keeping the caches cold so dynamic return types, type-node resolution, and tag promotion are all recorded while every
+> `assertType` is still validated. The `shell_exec`-based integration tests (`UnitTypeNodeResolverIntegrationTest`, and
+> the enforcement tests in `YumemiReturnTagExtensionTest`) spawn the real `phpstan` binary in a child process and remain
+> genuinely unmeasured — merging that coverage stream is not worth it. For pure, container-free logic
+> (`UnitExpressionAlgebra`, the branded `QuantityType` / `UnitIntegerType` / `UnitFloatType` semantics) prefer a direct
+> in-process `TestCase` / `PHPStanTestCase` unit test so the behavior is both asserted and measured.
 
 ## Non-Goals For Early Versions
 
