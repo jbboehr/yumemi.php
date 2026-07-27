@@ -64,14 +64,13 @@ final class ReadmeExamplesTest extends TestCase
     public function testReadmePhpExamplesExecute(string $label, string $code): void
     {
         $namespace = '__ReadmeExec_' . substr(md5($label), 0, 12);
-        $file = tempnam(sys_get_temp_dir(), 'yumemi-readme-');
-        self::assertIsString($file, 'Unable to create temp file for README example.');
+        $php = self::transformExample($code, $namespace);
 
-        file_put_contents($file, self::transformExample($code, $namespace));
-
-        // Isolate the block's top-level variables in the closure's scope (not $GLOBALS).
-        $run = static function () use ($file): void {
-            include $file;
+        // Isolate the block's top-level variables in the closure's scope (not $GLOBALS). The unique
+        // namespace baked into $php keeps its declarations from colliding with other blocks or with
+        // the global declarations ReadmePhpStanExamplesTest makes in the same process.
+        $run = static function () use ($php): void {
+            eval($php);
         };
 
         ob_start();
@@ -83,7 +82,6 @@ final class ReadmeExamplesTest extends TestCase
             self::fail(sprintf('%s: %s: %s', $label, $exception::class, $exception->getMessage()));
         } finally {
             $output = ob_get_clean();
-            @unlink($file);
         }
 
         // Registers an assertion for blocks that contain no assert() of their own (the PHPStan
@@ -145,7 +143,8 @@ final class ReadmeExamplesTest extends TestCase
         /** @var list<Node\Stmt> $statements the assert rewrite only ever swaps one Stmt for another */
         $statements = $traverser->traverse($statements);
 
-        return $printer->prettyPrintFile([new Node\Stmt\Namespace_(new Node\Name($namespace), $statements)]);
+        // prettyPrint (not prettyPrintFile) omits the <?php tag, as eval() requires.
+        return $printer->prettyPrint([new Node\Stmt\Namespace_(new Node\Name($namespace), $statements)]);
     }
 
     /**
