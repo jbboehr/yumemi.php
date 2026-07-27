@@ -23,9 +23,6 @@
         "ext-bcmath": "Enables decimal conversion output when exact integer conversion is not possible.",
         "phpstan/phpstan": "Enables the bundled Yumemi unit types extension (extension.neon; develop against PHPStan 2.x)."
     },
-    "bin": [
-        "bin/generate-udunits2-catalog"
-    ],
     "autoload": {
         "psr-4": {
             "jbboehr\\Yumemi\\": "src"

@@ -50,10 +50,18 @@ final class GenerateUdunits2CatalogCommand
  */
 HEADER;
 
+    /** @var resource */
+    private $errorStream;
+
+    /**
+     * @param resource|null $errorStream Defaults to STDERR; injectable for testing.
+     */
     public function __construct(
         private readonly Udunits2CatalogImporter $importer = new Udunits2CatalogImporter(),
         private readonly PhpCatalogExporter $exporter = new PhpCatalogExporter(),
+        $errorStream = null,
     ) {
+        $this->errorStream = $errorStream ?? STDERR;
     }
 
     /**
@@ -64,7 +72,7 @@ HEADER;
         array_shift($argv);
 
         if (count($argv) < 2) {
-            fwrite(STDERR, "Usage: bin/generate-udunits2-catalog <output-file> <udunits2-xml>...\n");
+            fwrite($this->errorStream, "Usage: bin/generate-udunits2-catalog <output-file> <udunits2-xml>...\n");
             return 1;
         }
 

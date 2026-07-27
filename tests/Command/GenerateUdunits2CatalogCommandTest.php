@@ -86,11 +86,17 @@ final class GenerateUdunits2CatalogCommandTest extends TestCase
         $this->assertArrayHasKey('meter', $units);
     }
 
-    public function testMissingArgumentsReturnsUsageExitCode(): void
+    public function testMissingArgumentsWritesUsageAndReturnsExitCode(): void
     {
-        $status = (new GenerateUdunits2CatalogCommand())->run(['bin/generate-udunits2-catalog']);
+        $stderr = fopen('php://memory', 'r+');
+        $this->assertNotFalse($stderr);
+
+        $status = (new GenerateUdunits2CatalogCommand(errorStream: $stderr))->run(['bin/generate-udunits2-catalog']);
 
         $this->assertSame(1, $status);
+        rewind($stderr);
+        $this->assertStringContainsString('Usage: bin/generate-udunits2-catalog', (string) stream_get_contents($stderr));
+        fclose($stderr);
     }
 
     private function tempFile(): string
