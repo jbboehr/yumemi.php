@@ -121,7 +121,9 @@ Code that opts into the runtime `Quantity` object gets the same checking on the 
 If you can't (or don't want to) put a Yumemi type in a native PHPDoc position — say, in a library whose consumers may
 not have the extension installed — use the vendor-prefixed `@yumemi-param` / `@yumemi-return` tags. They sit alongside a
 plain native signature and **degrade gracefully**: without the extension they are unknown tags and simply ignored; with
-it, the declared units are checked.
+it, the declared units are checked. The branded kind must match the native signature exactly: `unit_int` pairs with
+`int`, `unit_float` with `float`, and `Quantity<'...'>` with `Quantity`. Malformed tags, unknown units, unknown
+parameter names, duplicates, and mismatched native types are reported where the function or method is declared.
 
 ```php
 <?php
@@ -147,6 +149,9 @@ storeLength(5);
 //! @yumemi-param: parameter $length expects unit_int<'meter'>, unit_int<'international_foot'> given
 storeLength(unit(3, 'foot'));
 ```
+
+`@yumemi-return` currently brands named function returns only. Putting it on a method is reported as unsupported rather
+than being silently ignored; method return inference is planned separately.
 
 ## Runtime Unit Conversion (PHP)
 

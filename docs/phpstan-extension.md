@@ -172,7 +172,10 @@ documented mechanism for custom PHPDoc metadata.
 Tag family: `@yumemi-param`, `@yumemi-return`, `@yumemi-var` (one namespaced family; not `@phpstan-yumemi-param` — there
 is no conditional-tag mechanism, so it would just be another unknown tag either way). `@yumemi-param` and
 `@yumemi-return` are implemented; `@yumemi-var` was investigated and deferred (feasible via an AST-rewrite pass — see
-the progress log below).
+the progress log below). Declaration rules validate the implemented tags against their native signatures: `unit_int`
+requires exactly `int`, `unit_float` requires exactly `float`, and `Quantity<'...'>` requires exactly `Quantity`.
+Malformed payloads, unknown units/parameters, duplicates, and method-level `@yumemi-return` tags are reported at the
+declaration instead of disappearing silently.
 
 | Environment                                  | Sees                                |
 | -------------------------------------------- | ----------------------------------- |
@@ -200,9 +203,9 @@ final class YumemiStubFilesExtension implements StubFilesExtension
 ### Implementation notes (for when this slice lands)
 
 - Unknown tags arrive as `GenericTagValueNode`; read via `PhpDocNode::getTagsByName('@yumemi-param')`.
-- Read from the **resolved** PHPDoc attached to reflection (`ExtendedMethodReflection::getResolvedPhpDoc()`; for
-  functions route the doc comment through `FileTypeMapper::getResolvedPhpDoc()`), **not** the raw source doc comment —
-  otherwise stub-contributed tags are invisible.
+- Inference reads **resolved** PHPDoc attached to reflection (`ExtendedMethodReflection::getResolvedPhpDoc()`; functions
+  route the doc comment through `FileTypeMapper::getResolvedPhpDoc()`). Declaration validation resolves each local raw
+  docblock separately so inherited tags are reported once, at their source.
 - A `TypeNodeResolverExtension` alone will **not** parse the type inside `@yumemi-param`: the whole tag is generic text,
   and PHPStan only invokes the type resolver in recognized type positions. Parse the `unit_int<'foot'> $length` payload
   yourself — feed the type part through `TypeStringResolver` so it reaches the existing resolver and `unit_int<'…'>`
@@ -418,8 +421,9 @@ branded unit type.
   reserved; deferred but feasible — see below) from a `ResolvedPhpDocBlock`. Unknown tags survive as
   `GenericTagValueNode`; the type payload is re-parsed through PHPStan's `TypeStringResolver` so it reaches
   `UnitTypeNodeResolverExtension` — one parser, one meaning
-- Only branded unit types are honoured; a native type or an invalid-unit `ErrorType` is treated as absent, so a tag
-  never poisons unrelated analysis (fail-open, matching `UnitsQuantityReturnTypeExtension`)
+- Only branded unit types are honoured; a native type or an invalid-unit `ErrorType` is treated as absent for inference,
+  so a tag never poisons unrelated analysis (fail-open, matching `UnitsQuantityReturnTypeExtension`). The Piece 11
+  declaration rules report why that occurrence was ignored
 - `YumemiReturnTagFunctionReturnTypeExtension` (a `DynamicFunctionReturnTypeExtension`, covering every function via
   `isFunctionSupported`) resolves the callee's doc comment via `FileTypeMapper` and brands the return
 - **Fast path:** because `isFunctionSupported` runs on every function, a `str_contains($docComment, '@yumemi-return')`
@@ -427,9 +431,8 @@ branded unit type.
 - Covered by `YumemiReturnTagExtensionTest` — a `TypeInferenceTestCase` matrix (the annotated functions are `require`d
   into the process, since the harness does not index functions local to the analysed fixture), plus a CLI enforcement
   fixture proving the brand flows into core `argument.type` checking, not just `assertType`
-- **Deferred:** `@yumemi-return` on object methods (blocked by PHPStan's per-class `getClass()` dynamic-return hook); a
-  validation rule surfacing invalid-unit tag payloads (currently silently ignored); bundled stub files for third-party
-  libraries
+- **Deferred:** `@yumemi-return` inference on object methods (blocked by PHPStan's per-class `getClass()` dynamic-return
+  hook; method declarations using the tag are diagnosed by Piece 11); bundled stub files for third-party libraries
 
 ### Piece 9 — extension-optional `@yumemi-param` argument checking (done)
 
@@ -466,6 +469,19 @@ with `@yumemi-param unit_int<'meter'> $length`; branded arguments carrying the w
   receiver's brand
 - `InvalidQuantityArithmeticRule` surfaces invalid branded calls as `yumemi.invalidQuantityArithmetic`, including when
   the result is unused; unbranded operands continue to fail open
+
+### Piece 11 — `@yumemi-param` / `@yumemi-return` declaration validation (done)
+
+- `YumemiFunctionDocTagRule` and `YumemiMethodDocTagRule` validate local tag occurrences at their declarations, while
+  `YumemiDocTagReader` retains invalid parse results for diagnostics without changing its fail-open inference accessors
+- Branded kinds must exactly match native signatures: `unit_int<'...'>` to `int`, `unit_float<'...'>` to `float`, and
+  `Quantity<'...'>` to `Quantity`; nullable, union, `mixed`, and other native types are rejected
+- Malformed/empty payloads, invalid units, non-Yumemi types, unknown parameter names, and duplicates receive stable
+  per-cause identifiers; `@yumemi-return` on methods is reported as unsupported until method inference exists
+- Validation resolves only the declaration's own docblock, preventing inherited tags from being diagnosed again on
+  doc-less overrides and implementations
+- Covered by `YumemiFunctionDocTagRuleTest` and `YumemiMethodDocTagRuleTest`, including valid declarations, every error
+  category, exact native-type mismatches, and inherited-tag deduplication
 
 ### `@yumemi-var` — investigated, feasible, deferred (2026-07-26)
 
@@ -536,11 +552,12 @@ for a `final`-class fork or a check-only rule. (The `YumemiDocTagReader` already
 1. **Exact vs dimension native-arithmetic mode + neon config** — native `+` / `-` remain exact-unit today; add the
    relaxed dimension mode and a `parameters.yumemi` config shape (arithmetic mode, catalog, bare-numeric policy). This
    is now the largest remaining PHPStan item. Runtime `Quantity` method semantics remain fixed as described in Piece 10.
-2. **Richer identifiers / messages** — stable per-cause error identifiers beyond the current `yumemi.invalidUnitCall`.
-3. **Stub files for third-party libraries** — the last remaining piece of the extension-optional surface. The
+2. **Stub files for third-party libraries** — the last remaining piece of the extension-optional surface. The
    `@yumemi-return` (Piece 8) and `@yumemi-param` (Piece 9) tags are done; `@yumemi-var` is feasible via an AST-rewrite
    pass but deferred (see above). What is left is bundling `.stub` files via a `StubFilesExtension` so `@yumemi-*` tags
    can enrich libraries you do not control (see "Annotation Surface").
+3. **Richer identifiers / messages elsewhere** — Piece 11 adds stable per-cause identifiers for declaration tags; other
+   extension diagnostics can be split further where callers need more precise suppression.
 
 **Success criterion (piece 2):** `unit_int<'mass'>` errors; `unit_int<'meter / second'>` is a real type. **(met)**
 

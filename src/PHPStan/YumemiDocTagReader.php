@@ -39,7 +39,9 @@ namespace jbboehr\Yumemi\PHPStan;
 use PHPStan\PhpDoc\ResolvedPhpDocBlock;
 use PHPStan\PhpDoc\TypeStringResolver;
 use PHPStan\PhpDocParser\Ast\PhpDoc\GenericTagValueNode;
+use PHPStan\Type\ErrorType;
 use PHPStan\Type\Type;
+use PHPStan\Type\VerbosityLevel;
 
 /**
  * Reads Yumemi's vendor-prefixed PHPDoc tags (@yumemi-return / @yumemi-param / @yumemi-var).
@@ -50,8 +52,8 @@ use PHPStan\Type\Type;
  * grammar keeps exactly one parser and one meaning across the extension.
  *
  * Only branded unit types ({@see UnitIntegerType} / {@see UnitFloatType} / {@see QuantityType}) are
- * honoured; anything else (a plain native type, or an {@see \PHPStan\Type\ErrorType} from an invalid
- * unit string) is treated as absent, so the tag can never poison unrelated analysis.
+ * honoured by inference. Invalid occurrences are retained as {@see YumemiDocTag} values for the
+ * declaration rules, so diagnostics can be emitted without letting bad tags poison other analysis.
  */
 final class YumemiDocTagReader
 {
@@ -71,10 +73,9 @@ final class YumemiDocTagReader
      */
     public function returnType(ResolvedPhpDocBlock $phpDoc): ?Type
     {
-        foreach ($this->genericTagValues($phpDoc, self::RETURN_TAG) as $text) {
-            $type = $this->resolveUnitType($text);
-            if ($type !== null) {
-                return $type;
+        foreach ($this->returnTags($phpDoc) as $tag) {
+            if ($tag->type !== null) {
+                return $tag->type;
             }
         }
 
@@ -93,20 +94,12 @@ final class YumemiDocTagReader
     {
         $result = [];
 
-        foreach ($this->genericTagValues($phpDoc, self::PARAM_TAG) as $text) {
-            if (preg_match('/^\s*(?<type>.+?)\s*\$(?<name>\w+)/s', $text, $m) !== 1) {
+        foreach ($this->paramTags($phpDoc) as $tag) {
+            if ($tag->parameterName === null || $tag->type === null || isset($result[$tag->parameterName])) {
                 continue;
             }
 
-            $name = $m['name'];
-            if (isset($result[$name])) {
-                continue;
-            }
-
-            $type = $this->resolveUnitType($m['type']);
-            if ($type !== null) {
-                $result[$name] = $type;
-            }
+            $result[$tag->parameterName] = $tag->type;
         }
 
         return $result;
@@ -120,6 +113,51 @@ final class YumemiDocTagReader
         return $type instanceof UnitIntegerType
             || $type instanceof UnitFloatType
             || $type instanceof QuantityType;
+    }
+
+    /**
+     * Every @yumemi-return occurrence, including invalid ones.
+     *
+     * @return list<YumemiDocTag>
+     */
+    public function returnTags(ResolvedPhpDocBlock $phpDoc): array
+    {
+        $result = [];
+
+        foreach ($this->genericTagValues($phpDoc, self::RETURN_TAG) as $text) {
+            $result[] = $this->parseTypeTag(self::RETURN_TAG, $text, null, $text);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Every @yumemi-param occurrence, including invalid ones.
+     *
+     * @return list<YumemiDocTag>
+     */
+    public function paramTags(ResolvedPhpDocBlock $phpDoc): array
+    {
+        $result = [];
+
+        foreach ($this->genericTagValues($phpDoc, self::PARAM_TAG) as $text) {
+            if (preg_match('/^\s*(?<type>.+?)\s+\$(?<name>[A-Za-z_]\w*)/s', $text, $m) !== 1) {
+                $result[] = new YumemiDocTag(
+                    self::PARAM_TAG,
+                    $text,
+                    null,
+                    null,
+                    YumemiDocTag::ERROR_SYNTAX,
+                    'expected "<unit type> $parameter".',
+                );
+
+                continue;
+            }
+
+            $result[] = $this->parseTypeTag(self::PARAM_TAG, $text, $m['name'], $m['type']);
+        }
+
+        return $result;
     }
 
     /**
@@ -139,23 +177,62 @@ final class YumemiDocTagReader
         }
     }
 
-    /**
-     * Resolve a type payload, returning it only if it is one of our branded unit types.
-     */
-    private function resolveUnitType(string $text): ?Type
-    {
-        $text = trim($text);
-        if ($text === '') {
-            return null;
+    private function parseTypeTag(
+        string $tagName,
+        string $payload,
+        ?string $parameterName,
+        string $typeText,
+    ): YumemiDocTag {
+        $typeText = trim($typeText);
+        if ($typeText === '') {
+            return new YumemiDocTag(
+                $tagName,
+                $payload,
+                $parameterName,
+                null,
+                YumemiDocTag::ERROR_SYNTAX,
+                'a unit type is required.',
+            );
         }
 
         try {
-            $type = $this->typeStringResolver->resolve($text);
+            $type = $this->typeStringResolver->resolve($typeText);
         } catch (\Throwable) {
-            // Unparseable payload (e.g. trailing prose): treat the tag as absent.
-            return null;
+            return new YumemiDocTag(
+                $tagName,
+                $payload,
+                $parameterName,
+                null,
+                YumemiDocTag::ERROR_SYNTAX,
+                'the payload is not a valid PHPDoc type.',
+            );
         }
 
-        return $this->isUnitType($type) ? $type : null;
+        if ($type instanceof ErrorType) {
+            return new YumemiDocTag(
+                $tagName,
+                $payload,
+                $parameterName,
+                null,
+                YumemiDocTag::ERROR_TYPE,
+                $type->getReason() ?? 'the unit type is invalid.',
+            );
+        }
+
+        if (!$this->isUnitType($type)) {
+            return new YumemiDocTag(
+                $tagName,
+                $payload,
+                $parameterName,
+                null,
+                YumemiDocTag::ERROR_TYPE,
+                sprintf(
+                    'expected unit_int<\'...\'>, unit_float<\'...\'>, or Quantity<\'...\'>; %s given.',
+                    $type->describe(VerbosityLevel::typeOnly()),
+                ),
+            );
+        }
+
+        return new YumemiDocTag($tagName, $payload, $parameterName, $type, null, null);
     }
 }
