@@ -109,6 +109,13 @@ assertType('*ERROR*', $m->valueIn('not_a_real_unit_xyz'));
 assertType('*ERROR*', $m->intValueIn('not_a_real_unit_xyz'));
 assertType('*ERROR*', $m->exactIntValueIn('not_a_real_unit_xyz'));
 
+// An invalid conversion result is ErrorType: the diagnostic is emitted once at the offending call.
+// Reusing it fails open — chained calls degrade to mixed rather than branding a bogus unit or crashing.
+$invalidConversion = $m->to('second');
+assertType('*ERROR*', $invalidConversion);
+assertType('mixed', $invalidConversion->to('meter'));
+assertType('mixed', $invalidConversion->mul($s));
+
 /** @param 'meter'|'foot' $unit */
 function finiteConversionTargets(Units $units, string $unit): void
 {

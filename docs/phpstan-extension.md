@@ -338,6 +338,13 @@ Composer:
 Follow PHPStan extension testing patterns (`TypeInferenceTestCase`, `RuleTestCase`, or current equivalents for the
 PHPStan major version in use).
 
+> **Coverage caveat:** `TypeInferenceTestCase` (`assertType`) fixtures and the `shell_exec`-based integration tests run
+> PHPStan **out-of-process**, so PCOV attributes no line coverage to the extension classes they exercise (e.g.
+> `QuantityMethodReturnTypeExtension`, `QuantityType`). Line coverage on `src/PHPStan/` therefore understates the real,
+> functionally strong coverage and must not be treated as a quality gate. Where a class has pure, container-free logic
+> (`UnitExpressionAlgebra`, the branded `QuantityType` / `UnitIntegerType` / `UnitFloatType` semantics), add an
+> in-process `TestCase` / `PHPStanTestCase` unit test as well so the behavior is both asserted and measured.
+
 ## Non-Goals For Early Versions
 
 | Non-goal                                    | Why                                              |
