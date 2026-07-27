@@ -105,6 +105,16 @@ final class UnitExpressionParserTest extends TestCase
         $this->assertStringContainsString('Unsupported', $result->errorMessage() ?? '');
     }
 
+    public function testRejectsMalformedSyntaxWithAMessage(): void
+    {
+        $parser = new UnitExpressionParser();
+        // A trailing operator is a grammar error surfaced as a ParseException.
+        $result = $parser->parse('meter /');
+
+        $this->assertFalse($result->isOk());
+        $this->assertNotSame('', $result->errorMessage() ?? '');
+    }
+
     public function testUsesCustomRegistryFromUnits(): void
     {
         $registry = UnitRegistryBuilder::default()

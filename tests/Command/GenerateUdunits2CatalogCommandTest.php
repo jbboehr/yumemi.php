@@ -34,65 +34,71 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\Tests\Registry;
+namespace jbboehr\Yumemi\Tests\Command;
 
-use jbboehr\Yumemi\Exception\UnitNotFoundException;
-use jbboehr\Yumemi\Expr\Unit;
-use jbboehr\Yumemi\Registry\UnitRegistry;
+use jbboehr\Yumemi\Command\GenerateUdunits2CatalogCommand;
 use PHPUnit\Framework\TestCase;
 
-final class UnitRegistryTest extends TestCase
+final class GenerateUdunits2CatalogCommandTest extends TestCase
 {
-    public function testDefaultsContainBaseAndDerivedUnits(): void
-    {
-        $registry = UnitRegistry::defaults();
+    private const SAMPLE_XML = <<<'XML'
+        <?xml version="1.0" encoding="UTF-8"?>
+        <unit-system>
+          <unit><base/><name><singular>meter</singular></name><symbol>m</symbol></unit>
+          <prefix><name>kilo</name><symbol>k</symbol><value>1000</value></prefix>
+        </unit-system>
+        XML;
 
-        $this->assertSame('meter', $registry->get('meter')->toString());
-        $this->assertSame('kilometer', $registry->get('kilometer')->toString());
-        $this->assertFalse($registry->get('kilometer')->isBase());
+    /**
+     * @var list<string>
+     */
+    private array $tempFiles = [];
+
+    protected function tearDown(): void
+    {
+        foreach ($this->tempFiles as $file) {
+            @unlink($file);
+        }
+
+        $this->tempFiles = [];
     }
 
-    public function testMissingUnitFails(): void
+    public function testGeneratesCatalogFromXml(): void
     {
-        $registry = UnitRegistry::defaults();
+        $xml = $this->tempFile();
+        file_put_contents($xml, self::SAMPLE_XML);
+        $output = $this->tempFile();
 
-        $this->expectException(UnitNotFoundException::class);
-        $registry->get('league');
+        $status = (new GenerateUdunits2CatalogCommand())->run(['bin/generate-udunits2-catalog', $output, $xml]);
+
+        $this->assertSame(0, $status);
+
+        $contents = file_get_contents($output);
+        $this->assertIsString($contents);
+        $this->assertStringStartsWith("<?php", $contents);
+        $this->assertStringContainsString('UDUNITS-2 package', $contents);
+
+        $catalog = require $output;
+        $this->assertIsArray($catalog);
+        $this->assertArrayHasKey('units', $catalog);
+        $units = $catalog['units'];
+        $this->assertIsArray($units);
+        $this->assertArrayHasKey('meter', $units);
     }
 
-    public function testEmptyUnitNameIsRejected(): void
+    public function testMissingArgumentsReturnsUsageExitCode(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Unit registry name must not be empty.');
+        $status = (new GenerateUdunits2CatalogCommand())->run(['bin/generate-udunits2-catalog']);
 
-        new UnitRegistry(['' => new Unit('anonymous')]);
+        $this->assertSame(1, $status);
     }
 
-    public function testDuplicateUnitNameIsRejected(): void
+    private function tempFile(): string
     {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Duplicate unit registry name: widget');
+        $file = tempnam(sys_get_temp_dir(), 'yumemi-catalog-cmd-');
+        $this->assertNotFalse($file);
+        $this->tempFiles[] = $file;
 
-        // A list of units keyed by their own name; two distinct units share a name.
-        new UnitRegistry([new Unit('widget'), new Unit('widget')]);
-    }
-
-    public function testUnitNameConflictingWithCatalogRecordIsRejected(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Unit registry name conflicts with catalog record: clash');
-
-        new UnitRegistry(
-            ['clash' => new Unit('clash')],
-            ['clash' => ['type' => 'base', 'name' => 'clash']],
-        );
-    }
-
-    public function testEmptyCatalogRecordNameIsRejected(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Catalog record name must be a non-empty string.');
-
-        new UnitRegistry([], ['' => ['type' => 'base', 'name' => 'anonymous']]);
+        return $file;
     }
 }
