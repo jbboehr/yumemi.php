@@ -38,26 +38,20 @@ namespace jbboehr\Yumemi\PHPStan;
 
 use PhpParser\Node;
 use PHPStan\Analyser\Scope;
-use PHPStan\Node\InClassMethodNode;
+use PHPStan\Node\VirtualNode;
 use PHPStan\Rules\Rule;
-use PHPStan\Type\FileTypeMapper;
+use PHPStan\Rules\RuleErrorBuilder;
 
 /**
- * Validates locally declared @yumemi-param tags and rejects method-level @yumemi-return tags.
+ * Emits diagnostics collected while the parser safely declined Yumemi tag promotion.
  *
- * @implements Rule<InClassMethodNode>
+ * @implements Rule<Node>
  */
-final class YumemiMethodDocTagRule implements Rule
+final class YumemiTagPromotionRule implements Rule
 {
-    public function __construct(
-        private readonly FileTypeMapper $fileTypeMapper,
-        private readonly YumemiDocTagValidator $validator,
-    ) {
-    }
-
     public function getNodeType(): string
     {
-        return InClassMethodNode::class;
+        return Node::class;
     }
 
     /**
@@ -65,35 +59,19 @@ final class YumemiMethodDocTagRule implements Rule
      */
     public function processNode(Node $node, Scope $scope): array
     {
-        $originalNode = $node->getOriginalNode();
-        $docComment = $originalNode->getDocComment();
-        if ($docComment === null || !$this->hasRelevantTag($docComment->getText())) {
+        if ($node instanceof VirtualNode) {
             return [];
         }
 
-        $reflection = $node->getMethodReflection();
-        $classReflection = $node->getClassReflection();
-        $traitReflection = $scope->isInTrait() ? $scope->getTraitReflection() : null;
-        $phpDoc = $this->fileTypeMapper->getResolvedPhpDoc(
-            $scope->getFile(),
-            $classReflection->getName(),
-            $traitReflection?->getName(),
-            $reflection->getName(),
-            $docComment->getText(),
-        );
+        /** @var list<array{message: string, identifier: string, line: int}> $diagnostics */
+        $diagnostics = $node->getAttribute(YumemiDocTagPromoter::DIAGNOSTICS_ATTRIBUTE, []);
 
-        return $this->validator->validate(
-            $phpDoc,
-            $reflection->getParameters(),
-            $reflection->getNativeReturnType(),
-            false,
-            $originalNode->getStartLine(),
+        return array_map(
+            static fn (array $diagnostic) => RuleErrorBuilder::message($diagnostic['message'])
+                ->identifier($diagnostic['identifier'])
+                ->line($diagnostic['line'])
+                ->build(),
+            $diagnostics,
         );
-    }
-
-    private function hasRelevantTag(string $docComment): bool
-    {
-        return str_contains($docComment, YumemiDocTagReader::PARAM_TAG)
-            || str_contains($docComment, YumemiDocTagReader::RETURN_TAG);
     }
 }

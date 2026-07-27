@@ -119,11 +119,16 @@ Code that opts into the runtime `Quantity` object gets the same checking on the 
 ### Extension-optional annotations
 
 If you can't (or don't want to) put a Yumemi type in a native PHPDoc position — say, in a library whose consumers may
-not have the extension installed — use the vendor-prefixed `@yumemi-param` / `@yumemi-return` tags. They sit alongside a
-plain native signature and **degrade gracefully**: without the extension they are unknown tags and simply ignored; with
-it, the declared units are checked. The branded kind must match the native signature exactly: `unit_int` pairs with
-`int`, `unit_float` with `float`, and `Quantity<'...'>` with `Quantity`. Malformed tags, unknown units, unknown
-parameter names, duplicates, and mismatched native types are reported where the function or method is declared.
+not have the extension installed — use `@yumemi-param`, `@yumemi-return`, or `@yumemi-var`. Without the extension they
+are unknown tags and the ordinary PHPDoc/native types remain in force. With the extension, each Yumemi tag is promoted
+to PHPStan's native PHPDoc surface, so parameters, function and method returns, properties, and local variables all use
+PHPStan's normal type propagation and diagnostics.
+
+When an ordinary `@param`, `@return`, or `@var` (or its `@phpstan-*` form) exists, the Yumemi type must be its exact
+structural transform: every `unit_int<'...'>` erases to `int`, every `unit_float<'...'>` to `float`, and every
+`Quantity<'...'>` to `Quantity`, including inside nullable, union, intersection, and generic types. Union/intersection
+order and nullable spelling do not matter. `@phpstan-*` takes priority over the ordinary tag. A mismatch leaves the
+fallback unchanged and reports an error at the declaration.
 
 ```php
 <?php
@@ -133,8 +138,8 @@ require 'vendor/autoload.php';
 use function jbboehr\Yumemi\unit;
 
 /**
- * The native @param keeps every caller working. The @yumemi-param adds the
- * unit constraint only for analysers that understand it.
+ * The ordinary @param is used without Yumemi. With Yumemi loaded, the
+ * exact-transform tag replaces its type while retaining this description.
  *
  * @param int $length
  *
@@ -142,16 +147,16 @@ use function jbboehr\Yumemi\unit;
  */
 function storeLength(int $length): void {}
 
-// A bare int passes — graceful degradation for callers without the extension.
+// With the extension loaded, PHPStan's ordinary argument checking rejects a bare int:
+//! expects unit_int<'meter'>, int given
 storeLength(5);
 
 // A branded wrong-unit argument is reported:
-//! @yumemi-param: parameter $length expects unit_int<'meter'>, unit_int<'international_foot'> given
+//! expects unit_int<'meter'>, unit_int<'international_foot'> given
 storeLength(unit(3, 'foot'));
 ```
 
-`@yumemi-return` currently brands named function returns only. Putting it on a method is reported as unsupported rather
-than being silently ignored; method return inference is planned separately.
+Without the extension, both calls above are checked against the ordinary `int` fallback, and `storeLength(5)` is valid.
 
 ## Runtime Unit Conversion (PHP)
 

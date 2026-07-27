@@ -36,64 +36,25 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
-use PhpParser\Node\Expr\FuncCall;
-use PHPStan\Analyser\Scope;
-use PHPStan\Reflection\FunctionReflection;
-use PHPStan\Type\DynamicFunctionReturnTypeExtension;
-use PHPStan\Type\FileTypeMapper;
-use PHPStan\Type\Type;
+use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
+use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 
 /**
- * Brands a function's return with the unit declared in a @yumemi-return tag.
- *
- * This is the extension-optional annotation path: a function keeps a plain native return type in its
- * signature (so consumers without this extension are unaffected) and adds, e.g.:
- *
- *     @yumemi-return unit_int<'foot'>
- *
- * When the extension is loaded, call sites see the branded unit type instead of the bare native one.
- * Applies to every function via {@see isFunctionSupported()}; the object-method analogue is limited
- * by PHPStan's per-class dynamic-return hook and is handled separately.
+ * A syntactically valid @yumemi-* tag ready for fallback matching or promotion.
  */
-final class YumemiReturnTagFunctionReturnTypeExtension implements DynamicFunctionReturnTypeExtension
+final class YumemiDocTagCandidate
 {
+    /**
+     * @param 'param'|'return'|'var' $kind
+     */
     public function __construct(
-        private readonly FileTypeMapper $fileTypeMapper,
-        private readonly YumemiDocTagReader $reader,
+        public readonly int $childIndex,
+        public readonly string $kind,
+        public readonly string $key,
+        public readonly PhpDocTagNode $originalTag,
+        public readonly PhpDocTagNode $promotedTag,
+        public readonly TypeNode $type,
+        public readonly int $line,
     ) {
-    }
-
-    public function isFunctionSupported(FunctionReflection $functionReflection): bool
-    {
-        return $this->brandedReturnType($functionReflection) !== null;
-    }
-
-    public function getTypeFromFunctionCall(
-        FunctionReflection $functionReflection,
-        FuncCall $functionCall,
-        Scope $scope,
-    ): ?Type {
-        return $this->brandedReturnType($functionReflection);
-    }
-
-    private function brandedReturnType(FunctionReflection $functionReflection): ?Type
-    {
-        $docComment = $functionReflection->getDocComment();
-
-        // Fast path: skip resolving/scanning the phpdoc unless the raw comment mentions our tag.
-        // Runs on every function, so this substring test avoids the common no-tag case entirely.
-        if ($docComment === null || !str_contains($docComment, YumemiDocTagReader::RETURN_TAG)) {
-            return null;
-        }
-
-        $phpDoc = $this->fileTypeMapper->getResolvedPhpDoc(
-            $functionReflection->getFileName(),
-            null,
-            null,
-            $functionReflection->getName(),
-            $docComment,
-        );
-
-        return $this->reader->returnType($phpDoc);
     }
 }

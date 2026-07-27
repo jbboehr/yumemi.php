@@ -36,29 +36,44 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
-use PHPStan\Type\Type;
+use PhpParser\Node;
+use PhpParser\NodeTraverser;
+use PHPStan\Parser\Parser;
 
 /**
- * One parsed @yumemi-return or @yumemi-param occurrence.
- *
- * Invalid occurrences are retained for declaration-time diagnostics while the inference-facing
- * reader methods continue to ignore them.
+ * Applies Yumemi tag promotion after PHPStan chooses its rich, simple, or stub parser.
  */
-final class YumemiDocTag
+final class YumemiTagPromotingParser implements Parser
 {
-    public const ERROR_SYNTAX = 'syntax';
-    public const ERROR_TYPE = 'type';
+    private readonly NodeTraverser $traverser;
+
+    public function __construct(
+        private readonly Parser $wrappedParser,
+        YumemiDocTagPromoter $promoter,
+    ) {
+        $this->traverser = new NodeTraverser($promoter);
+    }
+
+    /** @return array<Node\Stmt> */
+    public function parseFile(string $file): array
+    {
+        return $this->promote($this->wrappedParser->parseFile($file));
+    }
+
+    /** @return array<Node\Stmt> */
+    public function parseString(string $sourceCode): array
+    {
+        return $this->promote($this->wrappedParser->parseString($sourceCode));
+    }
 
     /**
-     * @param self::ERROR_*|null $errorKind
+     * @param array<Node\Stmt> $nodes
+     *
+     * @return array<Node\Stmt>
      */
-    public function __construct(
-        public readonly string $tagName,
-        public readonly string $payload,
-        public readonly ?string $parameterName,
-        public readonly ?Type $type,
-        public readonly ?string $errorKind,
-        public readonly ?string $errorReason,
-    ) {
+    private function promote(array $nodes): array
+    {
+        /** @var array<Node\Stmt> */
+        return $this->traverser->traverse($nodes);
     }
 }

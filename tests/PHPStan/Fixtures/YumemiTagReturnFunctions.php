@@ -57,11 +57,48 @@ function bogusUnit(): int
 }
 
 /**
- * Trailing prose after the type → unparseable payload, treated as absent.
+ * Trailing prose is parsed as the promoted return tag's description.
  *
  * @yumemi-return unit_int<'foot'> the height above ground
  */
 function withProse(): int
 {
     return 1;
+}
+
+/**
+ * @return array<string, int|null>
+ * @yumemi-return array<string, unit_int<'second'>|null>
+ */
+function durations(): array
+{
+    return ['request' => 1];
+}
+
+/**
+ * @return mixed ordinary fallback
+ * @phpstan-return int preferred fallback
+ * @yumemi-return unit_int<'meter'>
+ */
+function phpstanFallbackWins(): int
+{
+    return 1;
+}
+
+/**
+ * @return int fallback remains effective
+ * @yumemi-return unit_float<'meter'>
+ */
+function mismatchedFallback(): int
+{
+    return 1;
+}
+
+final class TaggedProperties
+{
+    /**
+     * @var int fallback description
+     * @yumemi-var unit_int<'meter'>
+     */
+    public int $length = 1;
 }

@@ -36,62 +36,20 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
-use PhpParser\Node;
-use PHPStan\Analyser\Scope;
-use PHPStan\Node\InFunctionNode;
-use PHPStan\Rules\Rule;
-use PHPStan\Type\FileTypeMapper;
+use PHPStan\PhpDocParser\Ast\NodeTraverser;
+use PHPStan\PhpDocParser\Ast\NodeVisitor\CloningVisitor;
+use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 
-/**
- * Validates locally declared @yumemi-param and @yumemi-return tags on named functions.
- *
- * @implements Rule<InFunctionNode>
- */
-final class YumemiFunctionDocTagRule implements Rule
+final class YumemiTypeNodeNormalizer
 {
-    public function __construct(
-        private readonly FileTypeMapper $fileTypeMapper,
-        private readonly YumemiDocTagValidator $validator,
-    ) {
-    }
-
-    public function getNodeType(): string
+    public function describe(TypeNode $type, bool $eraseUnits): string
     {
-        return InFunctionNode::class;
-    }
+        $traverser = new NodeTraverser([
+            new CloningVisitor(),
+            new YumemiTypeNodeNormalizationVisitor($eraseUnits),
+        ]);
+        $nodes = $traverser->traverse([$type]);
 
-    /**
-     * @return list<\PHPStan\Rules\IdentifierRuleError>
-     */
-    public function processNode(Node $node, Scope $scope): array
-    {
-        $originalNode = $node->getOriginalNode();
-        $docComment = $originalNode->getDocComment();
-        if ($docComment === null || !$this->hasRelevantTag($docComment->getText())) {
-            return [];
-        }
-
-        $reflection = $node->getFunctionReflection();
-        $phpDoc = $this->fileTypeMapper->getResolvedPhpDoc(
-            $scope->getFile(),
-            null,
-            null,
-            $reflection->getName(),
-            $docComment->getText(),
-        );
-
-        return $this->validator->validate(
-            $phpDoc,
-            $reflection->getParameters(),
-            $reflection->getNativeReturnType(),
-            true,
-            $originalNode->getStartLine(),
-        );
-    }
-
-    private function hasRelevantTag(string $docComment): bool
-    {
-        return str_contains($docComment, YumemiDocTagReader::PARAM_TAG)
-            || str_contains($docComment, YumemiDocTagReader::RETURN_TAG);
+        return (string) $nodes[0];
     }
 }

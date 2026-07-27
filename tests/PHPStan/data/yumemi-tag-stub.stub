@@ -1,0 +1,11 @@
+<?php
+
+namespace YumemiStubFixture;
+
+/**
+ * @param int $length
+ * @yumemi-param unit_int<'meter'> $length
+ */
+function acceptsMeters(int $length): void
+{
+}

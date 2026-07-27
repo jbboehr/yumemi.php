@@ -44,7 +44,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 require_once __DIR__ . '/Fixtures/YumemiTagReturnFunctions.php';
 
 /**
- * Type-inference coverage for the extension-optional @yumemi-return tag.
+ * Type-inference and end-to-end coverage for parser-level @yumemi-* promotion.
  */
 final class YumemiReturnTagExtensionTest extends TypeInferenceTestCase
 {
@@ -89,22 +89,67 @@ final class YumemiReturnTagExtensionTest extends TypeInferenceTestCase
         $this->assertStringContainsString("unit_int<'international_foot'>", $output, $output);
     }
 
-    private function analyse(string $fixture): string
+    public function testPromotedParamTagsUsePhpStanCoreChecking(): void
+    {
+        $output = $this->analyse('yumemi-tag-call-enforcement.php');
+
+        $this->assertStringContainsString('[ERROR] Found 3 errors', $output, $output);
+        $this->assertStringContainsString("unit_int<'meter'>", $output, $output);
+        $this->assertStringContainsString("unit_int<'international_foot'>", $output, $output);
+    }
+
+    public function testTagsRemainIgnoredWithoutTheExtension(): void
+    {
+        $output = $this->analyse('yumemi-tag-no-extension.php', false);
+
+        $this->assertStringContainsString('[OK] No errors', $output, $output);
+    }
+
+    public function testPhpStanChecksPromotedTypesAgainstNativeSignatures(): void
+    {
+        $output = $this->analyse('yumemi-tag-native-mismatch.php');
+
+        $this->assertStringContainsString('parameter.phpDocType', $output, $output);
+        $this->assertStringContainsString('return.phpDocType', $output, $output);
+        $this->assertStringContainsString("unit_float<'meter'>", $output, $output);
+    }
+
+    public function testStubParserPromotesTags(): void
+    {
+        $output = $this->analyse('yumemi-tag-stub.php', true, 'yumemi-tag-stub.stub');
+
+        $this->assertStringContainsString('[ERROR] Found 1 error', $output, $output);
+        $this->assertStringContainsString("unit_int<'meter'>", $output, $output);
+    }
+
+    private function analyse(string $fixture, bool $withExtension = true, ?string $stub = null): string
     {
         $fixturePath = __DIR__ . '/data/' . $fixture;
         $this->assertFileExists($fixturePath);
 
         $config = sys_get_temp_dir() . '/yumemi-tag-' . md5($fixture) . '.neon';
-        $extension = realpath(__DIR__ . '/../../extension.neon');
-        $this->assertNotFalse($extension);
+        $includes = '';
+        if ($withExtension) {
+            $extension = realpath(__DIR__ . '/../../extension.neon');
+            $this->assertNotFalse($extension);
+            $includes = "includes:\n    - {$extension}\n";
+        }
+
+        $stubFiles = '';
+        if ($stub !== null) {
+            $stubPath = realpath(__DIR__ . '/data/' . $stub);
+            $this->assertNotFalse($stubPath);
+            $bootstrapPath = realpath(__DIR__ . '/Fixtures/YumemiTagStubFunctions.php');
+            $this->assertNotFalse($bootstrapPath);
+            $stubFiles = "    bootstrapFiles:\n        - {$bootstrapPath}\n    stubFiles:\n        - {$stubPath}\n";
+        }
 
         $neon = <<<NEON
-includes:
-    - {$extension}
-parameters:
+{$includes}parameters:
     level: max
     paths:
         - {$fixturePath}
+{$stubFiles}    treatPhpDocTypesAsCertain: true
     reportUnmatchedIgnoredErrors: false
 NEON;
         file_put_contents($config, $neon);

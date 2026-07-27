@@ -36,18 +36,18 @@
 
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
-use jbboehr\Yumemi\PHPStan\YumemiMethodDocTagRule;
+use jbboehr\Yumemi\PHPStan\YumemiTagPromotionRule;
 use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;
 
 /**
- * @extends RuleTestCase<YumemiMethodDocTagRule>
+ * @extends RuleTestCase<YumemiTagPromotionRule>
  */
-final class YumemiMethodDocTagRuleTest extends RuleTestCase
+final class YumemiTagPromotionRuleTest extends RuleTestCase
 {
     protected function getRule(): Rule
     {
-        return self::getContainer()->getByType(YumemiMethodDocTagRule::class);
+        return self::getContainer()->getByType(YumemiTagPromotionRule::class);
     }
 
     public static function getAdditionalConfigFiles(): array
@@ -55,31 +55,42 @@ final class YumemiMethodDocTagRuleTest extends RuleTestCase
         return [__DIR__ . '/../../extension.neon'];
     }
 
-    public function testMethodTagsAreValidatedAtTheirDeclarations(): void
+    public function testInvalidPromotionsAreReportedAtTheirDeclarations(): void
     {
-        $this->analyse([__DIR__ . '/data/yumemi-method-doc-tag-validation.php'], [
-            ['PHPDoc tag @yumemi-return is not supported on methods.', 30],
-            ['PHPDoc tag @yumemi-return is duplicated.', 39],
-            ['PHPDoc tag @yumemi-return is not supported on methods.', 39],
-            ['PHPDoc tag @yumemi-param has invalid syntax: expected "<unit type> $parameter".', 45],
-            ['PHPDoc tag @yumemi-param references unknown parameter $missing.', 51],
-            ['PHPDoc tag @yumemi-param for $length is duplicated.', 60],
-            [
-                "PHPDoc tag @yumemi-param for \$length declares unit_float<'meter'> but the native parameter type is int; expected float.",
-                66,
-            ],
-            [
-                "PHPDoc tag @yumemi-param for \$length declares unit_int<'meter'> but the native parameter type is int|null; expected int.",
-                72,
-            ],
-            [
-                "PHPDoc tag @yumemi-param for \$quantity declares Quantity<'meter'> but the native parameter type is object; expected jbboehr\\Yumemi\\Quantity.",
-                78,
-            ],
+        $this->analyse([__DIR__ . '/data/yumemi-tag-promotion-validation.php'], [
+            ['PHPDoc tag @yumemi-param has invalid syntax.', 35],
             [
                 'PHPDoc tag @yumemi-param for $length has invalid type: Unit not found: not_a_real_unit_xyz.',
-                87,
+                40,
             ],
+            [
+                "PHPDoc tag @yumemi-return has invalid type: expected a type containing unit_int<'...'>, unit_float<'...'>, or Quantity<'...'>.",
+                45,
+            ],
+            ['PHPDoc tag @yumemi-param references unknown parameter $missing.', 51],
+            ['PHPDoc tag @yumemi-param for $length is duplicated.', 59],
+            [
+                'PHPDoc tag @yumemi-param for $length must be an exact unit transform of (float | null); its erased type is (int | null).',
+                67,
+            ],
+            [
+                'PHPDoc tag @yumemi-param for $length must be an exact unit transform of float; its erased type is int.',
+                76,
+            ],
+            [
+                'PHPDoc tag @yumemi-return must be an exact unit transform of (float | null); its erased type is (int | null).',
+                84,
+            ],
+            [
+                'PHPDoc tag @yumemi-param for $length must be an exact unit transform of int; reference/variadic markers differ.',
+                93,
+            ],
+            [
+                'PHPDoc tag @yumemi-var for $length must be an exact unit transform of float; its erased type is int.',
+                101,
+            ],
+            ['PHPDoc tag @yumemi-var without a variable name has an ambiguous fallback.', 108],
+            ['PHPDoc tag @yumemi-param is only supported on function-like declarations.', 113],
         ]);
     }
 }

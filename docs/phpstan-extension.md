@@ -165,51 +165,57 @@ For public APIs that only _optionally_ support Yumemi, pair the ordinary native 
 function area(int $length): int { /* ... */ }
 ```
 
-PHPStan preserves unknown tags as generic PHPDoc nodes and otherwise ignores them, so consumers without the extension —
-plus IDEs and phpDocumentor — see only native `int`: an unfamiliar tag, never a nonexistent type. This is PHPStan's
-documented mechanism for custom PHPDoc metadata.
+Without Yumemi, PHPStan preserves these as unknown generic tags and uses the ordinary `@param` / `@return` / `@var` or
+native signature. With Yumemi, the parser promotes `@yumemi-param`, `@yumemi-return`, and `@yumemi-var` into the
+corresponding PHPStan type positions before reflection and analysis. From that point onward PHPStan owns propagation,
+inheritance, call checking, method returns, properties, locals, and ordinary diagnostics. This is deliberately true
+replacement: a bare `int` does not satisfy a promoted `unit_int<'meter'>` parameter.
 
-Tag family: `@yumemi-param`, `@yumemi-return`, `@yumemi-var` (one namespaced family; not `@phpstan-yumemi-param` — there
-is no conditional-tag mechanism, so it would just be another unknown tag either way). `@yumemi-param` and
-`@yumemi-return` are implemented; `@yumemi-var` was investigated and deferred (feasible via an AST-rewrite pass — see
-the progress log below). Declaration rules validate the implemented tags against their native signatures: `unit_int`
-requires exactly `int`, `unit_float` requires exactly `float`, and `Quantity<'...'>` requires exactly `Quantity`.
-Malformed payloads, unknown units/parameters, duplicates, and method-level `@yumemi-return` tags are reported at the
-declaration instead of disappearing silently.
+If a fallback tag exists, promotion is allowed only when the Yumemi type is its exact structural unit transform:
 
-| Environment                                  | Sees                                |
+- erase every `unit_int<'...'>` leaf to `int`, every `unit_float<'...'>` to `float`, and every `Quantity<'...'>` to the
+  same `Quantity` base name;
+- recurse through nullable, union, intersection, and generic types;
+- normalize nullable spelling, union/intersection ordering, flattening, and duplicate members before comparison;
+- for parameters, require the reference and variadic markers to match too;
+- prefer `@phpstan-param` / `@phpstan-return` / `@phpstan-var` over the corresponding ordinary tag.
+
+On success only the fallback's type node is replaced, preserving its variable name, markers, and description. On a
+mismatch the fallback remains effective and `yumemi.docTagTransform` is reported. With no fallback, the custom tag is
+promoted directly and PHPStan checks it against the native declaration. Malformed payloads, invalid units, unknown
+parameters, duplicates, unsupported targets, and ambiguous unnamed `@var` fallbacks receive their own diagnostics.
+
+| Environment                                  | Effective type                      |
 | -------------------------------------------- | ----------------------------------- |
-| Extension installed                          | `int` **plus** dimensional check    |
-| No extension (PHPStan / IDE / phpDocumentor) | plain `int`; unknown tag ignored    |
+| Extension installed                          | promoted Yumemi unit type           |
+| No extension (PHPStan / IDE / phpDocumentor) | ordinary fallback/native type       |
 | Third-party consumer                         | no hard dependency on the extension |
 
 ### Third-party libraries you don't control
 
-Ship **stub files** from the extension rather than editing foreign source. A bundled `StubFilesExtension` (tagged
-`phpstan.stubFilesExtension`) auto-registers `.stub` files carrying `@yumemi-*` tags, so consumers don't hand-add
-`parameters.stubFiles`. Stub declarations must match the real namespace/class/method/params; native types written only
-in the stub are ignored, so keep matching native signatures for readability.
+Use normal PHPStan **stub files** rather than editing foreign source. Yumemi wraps PHPStan's stub parser as well as its
+analysis parser, so the same promotion and exact-transform rules apply to `.stub` PHPDoc. Stub declarations must match
+the real namespace/class/method/parameters; native types written only in the stub are ignored, so keep matching native
+signatures for readability.
 
-```php
-final class YumemiStubFilesExtension implements StubFilesExtension
-{
-    public function getFiles(): array
-    {
-        return [__DIR__ . '/../stubs/some-geometry-library.stub'];
-    }
-}
+```neon
+parameters:
+    stubFiles:
+        - stubs/some-geometry-library.stub
 ```
 
-### Implementation notes (for when this slice lands)
+### Implementation notes
 
-- Unknown tags arrive as `GenericTagValueNode`; read via `PhpDocNode::getTagsByName('@yumemi-param')`.
-- Inference reads **resolved** PHPDoc attached to reflection (`ExtendedMethodReflection::getResolvedPhpDoc()`; functions
-  route the doc comment through `FileTypeMapper::getResolvedPhpDoc()`). Declaration validation resolves each local raw
-  docblock separately so inherited tags are reported once, at their source.
-- A `TypeNodeResolverExtension` alone will **not** parse the type inside `@yumemi-param`: the whole tag is generic text,
-  and PHPStan only invokes the type resolver in recognized type positions. Parse the `unit_int<'foot'> $length` payload
-  yourself — feed the type part through `TypeStringResolver` so it reaches the existing resolver and `unit_int<'…'>`
-  keeps exactly one parser and one meaning. Reuse `UnitExpressionParser`; do not add a second unit grammar.
+- `YumemiTagPromotingParser` decorates PHPStan's `pathRoutingParser` before the normal analysis cache, so it runs after
+  PHPStan chooses the rich parser for analyzed files or the simple parser for reflection-only dependencies. A second
+  instance decorates `freshStubParser` before the stub cache.
+- `YumemiDocTagPromoter` reparses the custom payload as the corresponding `@phpstan-*` tag using PHPStan's configured
+  PHPDoc parser. This supports the full PHPDoc grammar instead of maintaining a second parser for unions, nullable
+  types, generics, descriptions, references, or variadics.
+- Validity still flows through `TypeStringResolver`, and therefore through `UnitTypeNodeResolverExtension` and the one
+  shared unit-expression parser.
+- The parser service names and `PhpDocStringResolver` call are internal PHPStan seams. That coupling is localized in the
+  wrapper/promoter and guarded by analyzed-source, dependency-reflection, and stub-parser integration tests.
 
 References: PHPStan docs — Custom PHPDoc Types, Stub Files, Stub Files Extensions, Reflection.
 
@@ -411,55 +417,13 @@ dimensional checking as the native `unit_int` / `unit_float` path.
 - Covered by `QuantityReturnTypeExtensionTest`, `QuantityArgumentTypeRuleTest`, and the `quantity-assert.php` fixture
 - Every current unit-bearing fluent method is now branded, including `simplify()`.
 
-### Piece 8 — extension-optional `@yumemi-return` for functions (done)
+### Pieces 8–9 — first extension-optional param/return implementation (superseded)
 
-First slice of the extension-optional annotation surface (see "Annotation Surface"). A function keeps a native return
-type in its signature and adds `@yumemi-return unit_int<'foot'>`; when the extension is loaded, call sites see the
-branded unit type.
-
-- `YumemiDocTagReader` reads the vendor-prefixed tags (`@yumemi-return` here, `@yumemi-param` in Piece 9; `@yumemi-var`
-  reserved; deferred but feasible — see below) from a `ResolvedPhpDocBlock`. Unknown tags survive as
-  `GenericTagValueNode`; the type payload is re-parsed through PHPStan's `TypeStringResolver` so it reaches
-  `UnitTypeNodeResolverExtension` — one parser, one meaning
-- Only branded unit types are honoured; a native type or an invalid-unit `ErrorType` is treated as absent for inference,
-  so a tag never poisons unrelated analysis (fail-open, matching `UnitsQuantityReturnTypeExtension`). The Piece 11
-  declaration rules report why that occurrence was ignored
-- `YumemiReturnTagFunctionReturnTypeExtension` (a `DynamicFunctionReturnTypeExtension`, covering every function via
-  `isFunctionSupported`) resolves the callee's doc comment via `FileTypeMapper` and brands the return
-- **Fast path:** because `isFunctionSupported` runs on every function, a `str_contains($docComment, '@yumemi-return')`
-  guard short-circuits before any phpdoc resolution/scan for the overwhelmingly common no-tag case
-- Covered by `YumemiReturnTagExtensionTest` — a `TypeInferenceTestCase` matrix (the annotated functions are `require`d
-  into the process, since the harness does not index functions local to the analysed fixture), plus a CLI enforcement
-  fixture proving the brand flows into core `argument.type` checking, not just `assertType`
-- **Deferred:** `@yumemi-return` inference on object methods (blocked by PHPStan's per-class `getClass()` dynamic-return
-  hook; method declarations using the tag are diagnosed by Piece 11); bundled stub files for third-party libraries
-
-### Piece 9 — extension-optional `@yumemi-param` argument checking (done)
-
-The caller side of graceful degradation. A function/method keeps a native parameter type and declares the intended unit
-with `@yumemi-param unit_int<'meter'> $length`; branded arguments carrying the wrong unit are reported at the call site.
-
-- `YumemiDocTagReader::paramTypes()` parses the `<type> $name` payloads (reusing the same `TypeStringResolver` route),
-  keyed by parameter name; only branded unit payloads are kept
-- `YumemiParamTagRule` is registered on `PhpParser\Node\Expr\CallLike`, so one rule covers function calls, instance and
-  static method calls, and `new` (constructor) calls (PHPStan's `LazyRegistry` dispatches a node to rules registered on
-  any of its parent classes). Each subtype resolves its callee reflection — function via `ReflectionProvider`, instance
-  method via the receiver type, static method via `resolveTypeByName()`, constructor via `ClassReflection` — then shares
-  one tail that maps positional and named arguments to parameter names via `ParametersAcceptorSelector` and checks each
-  branded argument with the expected type's `accepts()`
-- **Only branded arguments are checked**: a bare native value is the graceful escape hatch and passes silently; a
-  branded value with an incompatible unit yields a `yumemi.paramType` error carrying the `accepts()` reason as the tip
-- **Fast path:** a `str_contains($docComment, '@yumemi-param')` guard skips phpdoc resolution/scan for the common no-tag
-  case — unconditionally for functions (no inheritance), and for methods only when they do not inherit phpdoc. A method
-  that overrides a parent or implements an interface can inherit the tag from an ancestor (`getResolvedPhpDoc()`
-  resolves it), so it always takes the full path; the split is decided by comparing `getPrototype()`'s declaring class
-- Covered by `YumemiParamTagRuleTest` (a `RuleTestCase` asserting exact message + line + tip for function, instance
-  method, static method, and constructor calls, positional and named args; the annotated free function and inheritance
-  types are `require`d into the process, the rest are PSR-4 autoloaded), including an inheritance regression fixture
-  proving a tag inherited by a doc-less override / interface implementation is still checked (i.e. the fast path never
-  skips it)
-- **Deferred:** dynamic (`$class::m()`, `new $class()`) and anonymous-class targets are left unresolved; a stricter
-  opt-in mode that also rejects bare-native arguments at `@yumemi-param` positions
+The first implementation read generic tags from resolved reflection PHPDoc, used a dynamic function-return extension,
+and maintained a custom call-site rule for parameters. It proved the annotation surface, but it duplicated PHPStan's
+reflection and argument-mapping logic, covered function returns but not method returns, did not support `@yumemi-var`,
+and intentionally allowed bare native arguments. Piece 11 added separate declaration-validation rules. The unified
+parser-promotion implementation below replaces all of those components and semantics.
 
 ### Piece 10 — `Quantity` addition/subtraction policies and diagnostics (done)
 
@@ -470,93 +434,32 @@ with `@yumemi-param unit_int<'meter'> $length`; branded arguments carrying the w
 - `InvalidQuantityArithmeticRule` surfaces invalid branded calls as `yumemi.invalidQuantityArithmetic`, including when
   the result is unused; unbranded operands continue to fail open
 
-### Piece 11 — `@yumemi-param` / `@yumemi-return` declaration validation (done)
+### Piece 11 — parser-level promotion for the full `@yumemi-*` family (done)
 
-- `YumemiFunctionDocTagRule` and `YumemiMethodDocTagRule` validate local tag occurrences at their declarations, while
-  `YumemiDocTagReader` retains invalid parse results for diagnostics without changing its fail-open inference accessors
-- Branded kinds must exactly match native signatures: `unit_int<'...'>` to `int`, `unit_float<'...'>` to `float`, and
-  `Quantity<'...'>` to `Quantity`; nullable, union, `mixed`, and other native types are rejected
-- Malformed/empty payloads, invalid units, non-Yumemi types, unknown parameter names, and duplicates receive stable
-  per-cause identifiers; `@yumemi-return` on methods is reported as unsupported until method inference exists
-- Validation resolves only the declaration's own docblock, preventing inherited tags from being diagnosed again on
-  doc-less overrides and implementations
-- Covered by `YumemiFunctionDocTagRuleTest` and `YumemiMethodDocTagRuleTest`, including valid declarations, every error
-  category, exact native-type mismatches, and inherited-tag deduplication
-
-### `@yumemi-var` — investigated, feasible, deferred (2026-07-26)
-
-The third tag in the family was investigated in depth. It turns out to be **feasible via a supported hook**; it is
-deferred on product-value grounds, not because it can't be done. The reasoning, in order:
-
-**Propagation is already solved by the extension-required `@var`.** A native-position `@var unit_int<'…'>` brands a
-local variable and flows through operators, so the local/property use case needs no new tag:
-
-```php
-/** @var unit_int<'foot'> $x */
-$x = 3;
-// assertType confirms: $x is unit_int<'international_foot'>, and so is $x + $x
-```
-
-(Verified via a CLI assertType probe. Property `@var` should resolve through the same `UnitTypeNodeResolverExtension`;
-confirm with a fixture if ever pursued.)
-
-**You cannot _inject_ a var type via an extension — but you don't need to.** Reviewed every `*Extension` interface
-PHPStan exposes; the type-affecting ones are all call / operator / property-reflection shaped
-(`Dynamic{Function,Method,StaticMethod}ReturnTypeExtension`, `OperatorTypeSpecifyingExtension`,
-`ExpressionTypeResolverExtension`, `TypeNodeResolverExtension`, `PropertiesClassReflectionExtension`). None can inject a
-type into a variable's scope from an unknown statement-level tag, and the one internal seam that does
-(`PhpDocNodeResolver::resolveVarTags()`) is a `final` class hinted by concrete type — un-decoratable without forking
-PHPStan. So _direct type injection_ is a dead end.
-
-**The viable route is AST rewrite (sugar expansion), via a supported hook.** Instead of injecting a type, rewrite
-`@yumemi-var` into a real `@var` before analysis, and let the already-working machinery do the rest. PHPStan exposes the
-`phpstan.parser.richParserNodeVisitor` service tag: `RichParser` runs container-tagged nikic node visitors on every
-file's AST during parsing. The design:
-
-1. Register a `NodeVisitor` tagged `phpstan.parser.richParserNodeVisitor`.
-2. In `enterNode`, guard with `str_contains($docText, '@yumemi-var')` (cheap; skips ~everything).
-3. On a match, rewrite the node's doc comment — turn `@yumemi-var unit_int<'foot'> $x` into a real
-   `@var unit_int<'foot'> $x`, **replacing** the native `@var int $x` for that variable (not adding a second `@var`),
-   and `$node->setDocComment(new Doc($rewritten, …))`.
-4. Downstream, PHPStan's own `@var` handling reads the now-real tag and brands + propagates through
-   `UnitTypeNodeResolverExtension`. No internal-class hacking, no reimplementation of scope injection, and when the
-   extension is absent `@yumemi-var` is just an ignored comment — clean graceful degradation.
-
-This is legitimately clean: a registered extension point plus the propagation path we already proved. It is far better
-than either a `final`-class fork or a **check-only** assignment rule (which would validate the RHS but not propagate,
-i.e. strictly weaker than `@var unit_int<'…'>`).
-
-**Open questions before committing** (settle with a ~10-line spike):
-
-- **The one unverified link:** confirm a doc-comment mutation inside a richParser visitor is actually honoured by
-  `NodeScopeResolver`'s `@var` reading (parsing runs before analysis, so it should be — but verify).
-- **Dedup:** the graceful pattern is `@var int $x` + `@yumemi-var unit_int<'foot'> $x`; the rewrite must replace the
-  native `@var` for that variable, keyed by name, rather than emit a duplicate.
-- Minor: per-node cost (mitigated by the `str_contains` guard), doc-line-position shifts, and that the tag — while
-  supported and stable across 1.x/2.x — is lightly documented.
-
-**Why defer anyway (product, not feasibility).** Graceful degradation — the reason `@yumemi-param` / `@yumemi-return`
-exist — protects _external_ consumers (other libraries, IDEs, phpDocumentor) from seeing `unit_int` as an unknown type
-on a _public API_. A `@var` is a local implementation detail with no external audience; anyone annotating local units
-already runs the extension, so `@var unit_int<'…'>` serves them directly. The one niche a custom tag would add — a
-codebase that runs the extension in some CI configs but not others and wants a local `@var unit_int` to stay quiet in
-the without-extension runs — is narrow. Now that the implementation cost is "one node visitor," the call is purely
-whether that niche is worth it, not whether it's possible.
-
-**Decision:** deferred. Default guidance stays `@var unit_int<'…'>` for locals and properties. If the mixed-config niche
-becomes real, implement the richParser-visitor sugar-expansion above (spike the unverified link first); do **not** reach
-for a `final`-class fork or a check-only rule. (The `YumemiDocTagReader` already reserves the `@yumemi-var` constant.)
+- `YumemiTagPromotingParser` wraps both analysis path routing and stub parsing before their caches. Promotion therefore
+  reaches rich-parsed project files, simple-parsed reflection dependencies, and configured `.stub` files.
+- `YumemiDocTagPromoter` parses each custom payload through PHPStan's full PHPDoc parser. Valid tags either replace the
+  matching fallback type node or become `@phpstan-param`, `@phpstan-return`, or `@phpstan-var` when no fallback exists.
+- Fallback matching recursively erases unit leaves and compares normalized PHPDoc structures. It supports complex
+  nullable/union/intersection/generic expressions instead of limiting the fallback to one native scalar.
+- PHPStan's native machinery now handles argument mapping, bare-native rejection, inheritance, function and method
+  returns, and local/property `@var` propagation. The former dynamic-return and custom call-site extensions were
+  removed.
+- `YumemiTagPromotionRule` reports cases where promotion safely declined, with stable identifiers for syntax, type,
+  target, parameter, duplicate, and exact-transform errors. On failure, any existing fallback remains effective.
+- Covered by `YumemiTagPromotionRuleTest` and `YumemiReturnTagExtensionTest`, including composite exact transforms,
+  PHPStan-tag priority, ref/variadic mismatches, method returns, locals, bare-native enforcement, no-extension behavior,
+  dependency reflection, and stub parsing.
 
 ### Next pieces
 
 1. **Exact vs dimension native-arithmetic mode + neon config** — native `+` / `-` remain exact-unit today; add the
    relaxed dimension mode and a `parameters.yumemi` config shape (arithmetic mode, catalog, bare-numeric policy). This
    is now the largest remaining PHPStan item. Runtime `Quantity` method semantics remain fixed as described in Piece 10.
-2. **Stub files for third-party libraries** — the last remaining piece of the extension-optional surface. The
-   `@yumemi-return` (Piece 8) and `@yumemi-param` (Piece 9) tags are done; `@yumemi-var` is feasible via an AST-rewrite
-   pass but deferred (see above). What is left is bundling `.stub` files via a `StubFilesExtension` so `@yumemi-*` tags
-   can enrich libraries you do not control (see "Annotation Surface").
-3. **Richer identifiers / messages elsewhere** — Piece 11 adds stable per-cause identifiers for declaration tags; other
+2. **Bundled stubs for selected third-party libraries** — configured `.stub` files already receive the same promotion as
+   source and dependency PHPDoc. What remains is deciding which integrations merit bundled stubs and registering those
+   files through a `StubFilesExtension`.
+3. **Richer identifiers / messages elsewhere** — Piece 11 has stable per-cause identifiers for promotion failures; other
    extension diagnostics can be split further where callers need more precise suppression.
 
 **Success criterion (piece 2):** `unit_int<'mass'>` errors; `unit_int<'meter / second'>` is a real type. **(met)**

@@ -36,11 +36,6 @@
 
 namespace jbboehr\Yumemi\Tests\Documentation;
 
-use jbboehr\Yumemi\PHPStan\YumemiParamTagRule;
-use PhpParser\Node;
-use PhpParser\Node\Expr\CallLike;
-use PhpParser\Node\Expr\FuncCall;
-use PHPStan\Analyser\Scope;
 use PHPStan\Rules\Functions\CallToFunctionParametersRule;
 use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;
@@ -59,14 +54,13 @@ use PHPStan\Testing\RuleTestCase;
  * "…is rejected" comments in the README are verified, not just decorative. A block with no `//!`
  * marker must analyse clean, which pins down the documented *good* code too.
  *
- * No subprocess: the diagnostics come from the real rules pulled out of the container — PHPStan's
- * own {@see CallToFunctionParametersRule} for the native unit_float argument checks, and Yumemi's
- * own {@see YumemiParamTagRule} for the @yumemi-param path — composed into one rule so a single
- * {@see RuleTestCase} covers both. Each block is `require`d into the process first so file-local
+ * No subprocess: the diagnostics come from PHPStan's real {@see CallToFunctionParametersRule},
+ * pulled out of the container after Yumemi's parser has promoted any custom tags. Each block is
+ * `require`d into the process first so file-local
  * functions resolve in reflection (same reason {@see \jbboehr\Yumemi\Tests\PHPStan\YumemiReturnTagExtensionTest}
  * requires its fixtures); the blocks are already runtime-safe because ReadmeExamplesTest runs them.
  *
- * @extends RuleTestCase<Rule<Node>>
+ * @extends RuleTestCase<CallToFunctionParametersRule>
  */
 final class ReadmePhpStanExamplesTest extends RuleTestCase
 {
@@ -79,51 +73,7 @@ final class ReadmePhpStanExamplesTest extends RuleTestCase
 
     protected function getRule(): Rule
     {
-        $functionRule = self::getContainer()->getByType(CallToFunctionParametersRule::class); // @phpstan-ignore phpstanApi.classConstant
-        $yumemiRule = self::getContainer()->getByType(YumemiParamTagRule::class);
-
-        $composite = new class ($functionRule, $yumemiRule) implements Rule {
-            /**
-             * @param Rule<FuncCall> $functionRule
-             * @param Rule<CallLike> $yumemiRule
-             */
-            public function __construct(
-                private readonly Rule $functionRule,
-                private readonly Rule $yumemiRule,
-            ) {
-            }
-
-            public function getNodeType(): string
-            {
-                return CallLike::class;
-            }
-
-            /**
-             * @return list<\PHPStan\Rules\IdentifierRuleError>
-             */
-            public function processNode(Node $node, Scope $scope): array
-            {
-                $errors = [];
-
-                // Core argument checking only applies to plain function calls here.
-                if ($node instanceof FuncCall) {
-                    foreach ($this->functionRule->processNode($node, $scope) as $error) {
-                        $errors[] = $error;
-                    }
-                }
-
-                // The @yumemi-param rule handles every call form (function / method / static / new).
-                if ($node instanceof CallLike) {
-                    foreach ($this->yumemiRule->processNode($node, $scope) as $error) {
-                        $errors[] = $error;
-                    }
-                }
-
-                return $errors;
-            }
-        };
-
-        return $composite;
+        return self::getContainer()->getByType(CallToFunctionParametersRule::class); // @phpstan-ignore phpstanApi.classConstant
     }
 
     public static function getAdditionalConfigFiles(): array
