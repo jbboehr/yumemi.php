@@ -36,37 +36,116 @@
 
 namespace jbboehr\Yumemi\Tests\Documentation;
 
+use PhpParser\Node;
+use PhpParser\NodeTraverser;
+use PhpParser\NodeVisitorAbstract;
+use PhpParser\ParserFactory;
+use PhpParser\PrettyPrinter\Standard;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Executes every ```php block in the README to prove the documented examples actually run.
+ *
+ * Runs each block in-process rather than spawning a PHP subprocess. Two transforms make that safe
+ * (see {@see transformExample()}):
+ *
+ *  - `assert(EXPR)` is rewritten to `\PHPUnit\Framework\Assert::assertTrue((bool) EXPR, …)` so the
+ *    documented checks run regardless of the ambient `zend.assertions` ini (which is compile-time and
+ *    cannot be forced on at runtime the way a spawned `php -d` could), and register real PHPUnit
+ *    assertions;
+ *  - the block is wrapped in a unique namespace so its function/class declarations can't collide with
+ *    other blocks or with the global declarations {@see ReadmePhpStanExamplesTest} makes in the same
+ *    process.
+ */
 final class ReadmeExamplesTest extends TestCase
 {
     #[DataProvider('readmePhpExampleProvider')]
     public function testReadmePhpExamplesExecute(string $label, string $code): void
     {
-        $pipes = [];
-        $process = proc_open(
-            [PHP_BINARY, '-d', 'zend.assertions=1', '-d', 'assert.exception=1'],
-            [
-                0 => ['pipe', 'r'],
-                1 => ['pipe', 'w'],
-                2 => ['pipe', 'w'],
-            ],
-            $pipes,
-            self::projectRoot(),
-        );
+        $namespace = '__ReadmeExec_' . substr(md5($label), 0, 12);
+        $file = tempnam(sys_get_temp_dir(), 'yumemi-readme-');
+        self::assertIsString($file, 'Unable to create temp file for README example.');
 
-        self::assertIsResource($process);
+        file_put_contents($file, self::transformExample($code, $namespace));
 
-        fwrite($pipes[0], $code);
-        fclose($pipes[0]);
+        // Isolate the block's top-level variables in the closure's scope (not $GLOBALS).
+        $run = static function () use ($file): void {
+            include $file;
+        };
 
-        $stdout = stream_get_contents($pipes[1]);
-        $stderr = stream_get_contents($pipes[2]);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
+        ob_start();
 
-        self::assertSame(0, proc_close($process), $label . "\n" . trim($stderr . "\n" . $stdout));
+        try {
+            $run();
+        } catch (\Throwable $exception) {
+            // A failed rewritten assert() (or any other error) fails this block, with its source.
+            self::fail(sprintf('%s: %s: %s', $label, $exception::class, $exception->getMessage()));
+        } finally {
+            $output = ob_get_clean();
+            @unlink($file);
+        }
+
+        // Registers an assertion for blocks that contain no assert() of their own (the PHPStan
+        // examples); the rewritten assert()s already register theirs.
+        self::assertIsString($output, $label);
+    }
+
+    /**
+     * Rewrite a README example for safe in-process execution: turn `assert()` into an unconditional
+     * PHPUnit assertion, then wrap everything in a unique namespace to isolate declarations.
+     */
+    private static function transformExample(string $code, string $namespace): string
+    {
+        $parser = (new ParserFactory())->createForHostVersion();
+        $statements = $parser->parse($code);
+
+        if ($statements === null) {
+            throw new \RuntimeException('Unable to parse README example.');
+        }
+
+        $printer = new Standard();
+
+        $traverser = new NodeTraverser();
+        $traverser->addVisitor(new class ($printer) extends NodeVisitorAbstract {
+            public function __construct(private readonly Standard $printer)
+            {
+            }
+
+            public function leaveNode(Node $node): ?Node
+            {
+                if (
+                    !$node instanceof Node\Stmt\Expression
+                    || !$node->expr instanceof Node\Expr\FuncCall
+                    || !$node->expr->name instanceof Node\Name
+                    || $node->expr->name->toLowerString() !== 'assert'
+                    || !isset($node->expr->args[0])
+                    || !$node->expr->args[0] instanceof Node\Arg
+                ) {
+                    return null;
+                }
+
+                $condition = $node->expr->args[0]->value;
+
+                $call = new Node\Expr\StaticCall(
+                    new Node\Name\FullyQualified('PHPUnit\\Framework\\Assert'),
+                    'assertTrue',
+                    [
+                        new Node\Arg(new Node\Expr\Cast\Bool_($condition)),
+                        new Node\Arg(new Node\Scalar\String_(
+                            'README example failed: assert(' . $this->printer->prettyPrintExpr($condition) . ')',
+                        )),
+                    ],
+                );
+
+                return new Node\Stmt\Expression($call);
+            }
+        });
+
+        /** @var list<Node\Stmt> $statements the assert rewrite only ever swaps one Stmt for another */
+        $statements = $traverser->traverse($statements);
+
+        return $printer->prettyPrintFile([new Node\Stmt\Namespace_(new Node\Name($namespace), $statements)]);
     }
 
     /**
