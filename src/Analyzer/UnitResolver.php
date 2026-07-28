@@ -56,6 +56,8 @@ use jbboehr\Yumemi\Registry\UnitRegistry;
  *
  * Residuals after a prefix are never re-prefixed. Unknown strings such as
  * "mass" or "bus" do not invent units.
+ *
+ * @phpstan-import-type CatalogRecord from UnitRegistry
  */
 final class UnitResolver
 {
@@ -174,7 +176,7 @@ final class UnitResolver
     }
 
     /**
-     * @param array{type: 'base'|'dimensionless'|'unit'|'alias', name: string, def?: string} $record
+     * @phpstan-param CatalogRecord $record
      */
     private function exprFromRecord(array $record): Expr
     {

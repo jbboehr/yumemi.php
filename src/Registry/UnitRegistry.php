@@ -36,6 +36,10 @@
 
 namespace jbboehr\Yumemi\Registry;
 
+use jbboehr\Yumemi\Catalog\CatalogNameKind;
+use jbboehr\Yumemi\Catalog\PrefixDescriptor;
+use jbboehr\Yumemi\Catalog\UnitDescriptor;
+use jbboehr\Yumemi\Catalog\UnitKind;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Expr\Compound;
 use jbboehr\Yumemi\Expr\Constant;
@@ -54,7 +58,12 @@ use jbboehr\Yumemi\Expr\Unit;
  * @phpstan-type CatalogRecord array{
  *     type: 'base'|'dimensionless'|'unit'|'alias',
  *     name: string,
- *     def?: string
+ *     def?: string,
+ *     aliasKind?: 'alias'|'symbol'|'explicit_plural'|'generated_plural',
+ *     definition?: string,
+ *     documentation?: string,
+ *     comment?: string,
+ *     plural?: string
  * }
  */
 class UnitRegistry
@@ -86,7 +95,7 @@ class UnitRegistry
                 throw new \InvalidArgumentException('Duplicate unit registry name: ' . $name);
             }
 
-            if (isset($records[$name])) {
+            if (isset($records[$name]) && $records[$name]['type'] !== 'alias') {
                 throw new \InvalidArgumentException(
                     'Unit registry name conflicts with catalog record: ' . $name,
                 );
@@ -100,7 +109,7 @@ class UnitRegistry
                 throw new \InvalidArgumentException('Catalog record name must be a non-empty string.');
             }
 
-            if (isset($this->units[$name])) {
+            if (isset($this->units[$name]) && $record['type'] !== 'alias') {
                 throw new \InvalidArgumentException(
                     'Catalog record name conflicts with prebuilt unit: ' . $name,
                 );
@@ -203,10 +212,138 @@ class UnitRegistry
     }
 
     /**
+     * Describe an exact unit spelling without applying prefix decomposition or unit substitution.
+     */
+    public function describe(string $name): ?UnitDescriptor
+    {
+        $resolved = $this->resolveCanonicalEntry($name);
+        if ($resolved === null) {
+            return null;
+        }
+
+        [$canonicalName, $record, $unit] = $resolved;
+        $aliases = [];
+        $symbols = [];
+        $explicitPlurals = [];
+        $generatedPlurals = [];
+
+        foreach ($this->names() as $candidate) {
+            try {
+                $candidateResolved = $this->resolveCanonicalEntry($candidate);
+            } catch (\UnexpectedValueException) {
+                continue;
+            }
+
+            if ($candidateResolved === null || $candidateResolved[0] !== $canonicalName || $candidate === $canonicalName) {
+                continue;
+            }
+
+            match ($this->nameKind($candidate)) {
+                CatalogNameKind::Symbol => $symbols[] = $candidate,
+                CatalogNameKind::ExplicitPlural => $explicitPlurals[] = $candidate,
+                CatalogNameKind::GeneratedPlural => $generatedPlurals[] = $candidate,
+                default => $aliases[] = $candidate,
+            };
+        }
+
+        sort($aliases, SORT_STRING);
+        sort($symbols, SORT_STRING);
+        sort($explicitPlurals, SORT_STRING);
+        sort($generatedPlurals, SORT_STRING);
+
+        return new UnitDescriptor(
+            matchedName: $name,
+            canonicalName: $canonicalName,
+            matchedAs: $name === $canonicalName ? CatalogNameKind::Canonical : $this->nameKind($name),
+            kind: match ($record['type'] ?? null) {
+                'base' => UnitKind::Base,
+                'dimensionless' => UnitKind::Dimensionless,
+                'unit' => UnitKind::Derived,
+                default => UnitKind::Prebuilt,
+            },
+            definitionExpression: $record['def'] ?? $unit?->definition?->toString(),
+            documentation: $record['documentation'] ?? $record['definition'] ?? null,
+            comment: $record['comment'] ?? null,
+            aliases: $aliases,
+            symbols: $symbols,
+            explicitPlurals: $explicitPlurals,
+            generatedPlurals: $generatedPlurals,
+        );
+    }
+
+    /**
+     * Describe an exact prefix spelling. This does not synthesize prefixed unit names.
+     */
+    public function describePrefix(string $name): ?PrefixDescriptor
+    {
+        $definition = $this->prefixes()[$name] ?? null;
+
+        return $definition === null ? null : new PrefixDescriptor(
+            matchedName: $name,
+            canonicalName: $name,
+            matchedAs: CatalogNameKind::Canonical,
+            definitionExpression: $definition,
+        );
+    }
+
+    /**
      * @return array<string, string>
      */
     public function prefixes(): array
     {
         return [];
+    }
+
+    /**
+     * @param array<string, true> $seen
+     * @return array{string, CatalogRecord|null, Unit|null}|null
+     */
+    private function resolveCanonicalEntry(string $name, array $seen = []): ?array
+    {
+        if (isset($seen[$name])) {
+            throw new \UnexpectedValueException('Circular catalog alias while describing unit: ' . $name);
+        }
+
+        $record = $this->record($name);
+        if ($record !== null) {
+            if ($record['type'] !== 'alias') {
+                return [$record['name'], $record, null];
+            }
+
+            $target = $record['def'] ?? throw new \UnexpectedValueException(
+                'Catalog alias is missing target while describing unit: ' . $name,
+            );
+            $seen[$name] = true;
+
+            return $this->resolveCanonicalEntry($target, $seen) ?? throw new \UnexpectedValueException(
+                'Catalog alias target is unknown while describing unit: ' . $target,
+            );
+        }
+
+        $unit = $this->lookup($name);
+        if ($unit === null) {
+            return null;
+        }
+
+        if ($unit->name !== $name && !isset($seen[$unit->name])) {
+            $canonical = $this->resolveCanonicalEntry($unit->name, $seen);
+            if ($canonical !== null) {
+                return $canonical;
+            }
+        }
+
+        return [$unit->name, null, $unit];
+    }
+
+    private function nameKind(string $name): CatalogNameKind
+    {
+        $record = $this->record($name);
+        if ($record === null || $record['type'] !== 'alias') {
+            return CatalogNameKind::Alias;
+        }
+
+        return isset($record['aliasKind'])
+            ? CatalogNameKind::from($record['aliasKind'])
+            : CatalogNameKind::Alias;
     }
 }

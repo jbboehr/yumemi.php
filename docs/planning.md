@@ -87,6 +87,8 @@ Already implemented:
   - generated aliases
   - generated plural aliases honoring explicit plurals and `<noplural>` metadata
   - generated prefix data
+  - exact catalog introspection preserving canonical names, aliases, symbols, plural provenance, comments, and
+    documentation
   - resolver-side prefix handling
   - fail-closed, case-sensitive name resolution without runtime morphology
 - Runtime conversion-factor resolver
@@ -98,6 +100,8 @@ Already implemented:
   - `conversionFactor()`
   - `convert()`
   - `quantity()`
+  - `describe()`
+  - `describePrefix()`
 - Ported generated parser from `units.php`:
   - grammar
   - lexer
@@ -417,8 +421,8 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
 
 - Publish focused references for unit syntax, case sensitivity, generated catalog regeneration, runtime guarantees, and
   unsupported semantics.
-- Add catalog introspection and canonicalization for names, aliases, symbols, prefixes, comments, and unsupported
-  reasons.
+- Extend catalog introspection to explain dynamically prefixed names and catalog entries omitted for unsupported
+  semantics.
 - Improve parser errors with token locations/source spans and map those spans into PHPStan diagnostics.
 - Define stable decimal and float output APIs with explicit precision and rounding; keep exact `Rational` storage.
 - Add small formatting policies for canonical names versus symbols, ASCII versus Unicode, and dimensionless output.
@@ -438,6 +442,8 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
   independent source and target unions whose Cartesian product loses value correlation.
 - Lookup is case-sensitive. Short but valid prefix/symbol compositions such as `pa` (pico-are) and `PA` (peta-ampere)
   remain accepted while `Pa` is pascal; Yumemi does not special-case these catalog-valid ambiguities.
+- Catalog introspection currently describes exact unit and prefix entries only. It does not synthesize descriptors for
+  dynamically prefixed names or retain units omitted by the importer.
 - Exceptions expose structured units and dimensions but do not yet carry parser source spans.
 - Very large parsed integer exponents may exceed PHP integer range before reaching the expression model.
 - The UDUNITS2 importer still special-cases `cm2` syntax, and generated `prefixRegex` metadata is currently unused by
@@ -456,6 +462,9 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
 - GNU Units import
 - Formula interpolation
 - Preferred/compact unit selection and broader formatting presets
+- Optimize bulk catalog introspection by pre-grouping canonical aliases, symbols, and plurals during generation, then
+  lazily caching an effective index per immutable registry. Composite registries must build a composition-aware index so
+  base aliases continue to follow overlay replacements; expression resolution remains in `UnitResolver`.
 - Quantity serialization and ecosystem integrations
 - Strict same-unit comparison variants and PHP object comparison operators unless a concrete use case appears
 - Bundled third-party stubs until specific libraries are selected; ordinary PHPStan stubs already work

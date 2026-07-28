@@ -36,11 +36,16 @@
 
 namespace jbboehr\Yumemi\Tests\Registry;
 
+use jbboehr\Yumemi\Catalog\CatalogNameKind;
+use jbboehr\Yumemi\Catalog\UnitKind;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Registry\CompositeUnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @phpstan-import-type CatalogRecord from UnitRegistry
+ */
 final class CompositeUnitRegistryTest extends TestCase
 {
     public function testOverlayWinsForLookupAndRecordWithBaseFallback(): void
@@ -101,17 +106,83 @@ final class CompositeUnitRegistryTest extends TestCase
         );
     }
 
+    public function testDescriptionsUseEffectiveOverlayAndVisibleBaseAliases(): void
+    {
+        $composite = new CompositeUnitRegistry(
+            $this->registry(
+                [],
+                [
+                    'shared' => [
+                        'type' => 'base',
+                        'name' => 'shared',
+                        'documentation' => 'base documentation',
+                    ],
+                    'sh' => [
+                        'type' => 'alias',
+                        'name' => 'sh',
+                        'def' => 'shared',
+                        'aliasKind' => 'symbol',
+                    ],
+                ],
+                [],
+            ),
+            $this->registry(
+                [],
+                [
+                    'shared' => [
+                        'type' => 'unit',
+                        'name' => 'shared',
+                        'def' => '2 * meter',
+                        'documentation' => 'overlay documentation',
+                    ],
+                ],
+                [],
+            ),
+        );
+
+        $descriptor = $composite->describe('sh');
+
+        $this->assertNotNull($descriptor);
+        $this->assertSame('shared', $descriptor->canonicalName);
+        $this->assertSame(CatalogNameKind::Symbol, $descriptor->matchedAs);
+        $this->assertSame(UnitKind::Derived, $descriptor->kind);
+        $this->assertSame('overlay documentation', $descriptor->documentation);
+        $this->assertSame(['sh'], $descriptor->symbols);
+    }
+
+    public function testPrefixDescriptionUsesOverlayPrecedence(): void
+    {
+        $composite = new CompositeUnitRegistry(
+            $this->registry([], [], ['shared' => '2']),
+            $this->registry([], [], ['shared' => '3']),
+        );
+
+        $descriptor = $composite->describePrefix('shared');
+
+        $this->assertNotNull($descriptor);
+        $this->assertSame('3', $descriptor->definitionExpression);
+    }
+
     /**
-     * @param array<string, Unit>                                                     $units
-     * @param array<string, array{type: 'base'|'dimensionless'|'unit'|'alias', name: string, def?: string}> $records
-     * @param array<string, string>                                                   $prefixes
+     * @param array<string, Unit>          $units
+     * @phpstan-param array<string, CatalogRecord> $records
+     * @param array<string, string>        $prefixes
      */
     private function registry(array $units, array $records, array $prefixes): UnitRegistry
     {
         return new class ($units, $records, $prefixes) extends UnitRegistry {
             /**
              * @param array<string, Unit> $units
-             * @param array<string, array{type: 'base'|'dimensionless'|'unit'|'alias', name: string, def?: string}> $records
+             * @param array<string, array{
+             *     type: 'base'|'dimensionless'|'unit'|'alias',
+             *     name: string,
+             *     def?: string,
+             *     aliasKind?: 'alias'|'symbol'|'explicit_plural'|'generated_plural',
+             *     definition?: string,
+             *     documentation?: string,
+             *     comment?: string,
+             *     plural?: string
+             * }> $records
              * @param array<string, string> $prefixes
              */
             public function __construct(

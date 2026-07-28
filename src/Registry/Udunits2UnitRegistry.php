@@ -36,6 +36,8 @@
 
 namespace jbboehr\Yumemi\Registry;
 
+use jbboehr\Yumemi\Catalog\CatalogNameKind;
+use jbboehr\Yumemi\Catalog\PrefixDescriptor;
 use jbboehr\Yumemi\Expr\Unit;
 
 /**
@@ -54,12 +56,23 @@ use jbboehr\Yumemi\Expr\Unit;
  *     comment?: string
  * }
  * @phpstan-type Udunits2DerivedUnit array{type: 'unit', name: string, def: string, definition?: string, plural?: string, comment?: string}
- * @phpstan-type Udunits2AliasUnit array{type: 'alias', name: string, def: string}
+ * @phpstan-type Udunits2AliasUnit array{
+ *     type: 'alias',
+ *     name: string,
+ *     def: string,
+ *     aliasKind?: 'alias'|'symbol'|'explicit_plural'|'generated_plural'
+ * }
+ * @phpstan-type Udunits2Prefix array{
+ *     name: string,
+ *     kind: 'canonical'|'symbol',
+ *     value: string
+ * }
  * @phpstan-type Udunits2Unit Udunits2BaseUnit|Udunits2DimensionlessUnit|Udunits2DerivedUnit|Udunits2AliasUnit
  * @phpstan-type Udunits2Catalog array{
  *     units: array<string, Udunits2Unit>,
  *     base: list<string>,
  *     prefixes: array<string, string>,
+ *     prefixMetadata?: array<string, Udunits2Prefix>,
  *     prefixRegex?: string
  * }
  * @phpstan-import-type CatalogRecord from UnitRegistry
@@ -105,26 +118,7 @@ final class Udunits2UnitRegistry extends UnitRegistry
             return null;
         }
 
-        return match ($unit['type']) {
-            'alias' => [
-                'type' => 'alias',
-                'name' => $unit['name'],
-                'def' => $unit['def'],
-            ],
-            'base' => [
-                'type' => 'base',
-                'name' => $unit['name'],
-            ],
-            'dimensionless' => [
-                'type' => 'dimensionless',
-                'name' => $unit['name'],
-            ],
-            'unit' => [
-                'type' => 'unit',
-                'name' => $unit['name'],
-                'def' => $unit['def'],
-            ],
-        };
+        return $unit;
     }
 
     /**
@@ -133,6 +127,21 @@ final class Udunits2UnitRegistry extends UnitRegistry
     public function prefixes(): array
     {
         return $this->catalog['prefixes'];
+    }
+
+    public function describePrefix(string $name): ?PrefixDescriptor
+    {
+        $prefix = $this->catalog['prefixMetadata'][$name] ?? null;
+        if ($prefix === null) {
+            return parent::describePrefix($name);
+        }
+
+        return new PrefixDescriptor(
+            matchedName: $name,
+            canonicalName: $prefix['name'],
+            matchedAs: CatalogNameKind::from($prefix['kind']),
+            definitionExpression: $prefix['value'],
+        );
     }
 
     /**

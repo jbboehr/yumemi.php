@@ -36,9 +36,12 @@
 
 namespace jbboehr\Yumemi\Tests\Registry;
 
+use jbboehr\Yumemi\Catalog\CatalogNameKind;
+use jbboehr\Yumemi\Catalog\UnitKind;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Registry\UnitRegistry;
+use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
 use PHPUnit\Framework\TestCase;
 
 final class UnitRegistryTest extends TestCase
@@ -94,5 +97,65 @@ final class UnitRegistryTest extends TestCase
         $this->expectExceptionMessage('Catalog record name must be a non-empty string.');
 
         new UnitRegistry([], ['' => ['type' => 'base', 'name' => 'anonymous']]);
+    }
+
+    public function testDescribesPrebuiltUnits(): void
+    {
+        $descriptor = UnitRegistry::defaults()->describe('kilometer');
+
+        $this->assertNotNull($descriptor);
+        $this->assertSame('kilometer', $descriptor->matchedName);
+        $this->assertSame('kilometer', $descriptor->canonicalName);
+        $this->assertSame(CatalogNameKind::Canonical, $descriptor->matchedAs);
+        $this->assertSame(UnitKind::Prebuilt, $descriptor->kind);
+        $this->assertSame('1000 * meter', $descriptor->definitionExpression);
+    }
+
+    public function testDescribesBuilderDefinitionsAndAliases(): void
+    {
+        $registry = UnitRegistryBuilder::empty()
+            ->define('widget = 12 * meter')
+            ->alias('widgets', 'widget')
+            ->build();
+
+        $descriptor = $registry->describe('widgets');
+
+        $this->assertNotNull($descriptor);
+        $this->assertSame('widget', $descriptor->canonicalName);
+        $this->assertSame(CatalogNameKind::Alias, $descriptor->matchedAs);
+        $this->assertSame(UnitKind::Derived, $descriptor->kind);
+        $this->assertSame('12 * meter', $descriptor->definitionExpression);
+        $this->assertSame(['widgets'], $descriptor->aliases);
+    }
+
+    public function testPrebuiltAliasRemainsAvailableToGetAndIntrospection(): void
+    {
+        $widget = new Unit('widget');
+        $registry = UnitRegistryBuilder::empty()
+            ->add($widget)
+            ->alias('thing', 'widget')
+            ->build();
+
+        $this->assertSame($widget, $registry->get('thing'));
+        $this->assertSame('widget', $registry->describe('thing')?->canonicalName);
+        $this->assertSame(['thing'], $registry->describe('widget')?->aliases);
+    }
+
+    public function testUnknownDescriptionReturnsNull(): void
+    {
+        $this->assertNull(UnitRegistry::defaults()->describe('league'));
+    }
+
+    public function testCircularAliasDescriptionFailsDeterministically(): void
+    {
+        $registry = new UnitRegistry([], [
+            'left' => ['type' => 'alias', 'name' => 'left', 'def' => 'right'],
+            'right' => ['type' => 'alias', 'name' => 'right', 'def' => 'left'],
+        ]);
+
+        $this->expectException(\UnexpectedValueException::class);
+        $this->expectExceptionMessage('Circular catalog alias while describing unit: left');
+
+        $registry->describe('left');
     }
 }

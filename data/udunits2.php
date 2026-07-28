@@ -12,12 +12,14 @@ return [
         'm' => [
             'type' => 'alias',
             'name' => 'm',
-            'def' => 'meter'
+            'def' => 'meter',
+            'aliasKind' => 'symbol'
         ],
         'metre' => [
             'type' => 'alias',
             'name' => 'metre',
-            'def' => 'meter'
+            'def' => 'meter',
+            'aliasKind' => 'alias'
         ],
         'meter' => [
             'type' => 'base',
@@ -27,7 +29,8 @@ return [
         'kg' => [
             'type' => 'alias',
             'name' => 'kg',
-            'def' => 'kilogram'
+            'def' => 'kilogram',
+            'aliasKind' => 'symbol'
         ],
         'kilogram' => [
             'type' => 'base',
@@ -37,7 +40,8 @@ return [
         's' => [
             'type' => 'alias',
             'name' => 's',
-            'def' => 'second'
+            'def' => 'second',
+            'aliasKind' => 'symbol'
         ],
         'second' => [
             'type' => 'base',
@@ -47,7 +51,8 @@ return [
         'A' => [
             'type' => 'alias',
             'name' => 'A',
-            'def' => 'ampere'
+            'def' => 'ampere',
+            'aliasKind' => 'symbol'
         ],
         'ampere' => [
             'type' => 'base',
@@ -57,7 +62,8 @@ return [
         'K' => [
             'type' => 'alias',
             'name' => 'K',
-            'def' => 'kelvin'
+            'def' => 'kelvin',
+            'aliasKind' => 'symbol'
         ],
         'kelvin' => [
             'type' => 'base',
@@ -67,7 +73,8 @@ return [
         'mol' => [
             'type' => 'alias',
             'name' => 'mol',
-            'def' => 'mole'
+            'def' => 'mole',
+            'aliasKind' => 'symbol'
         ],
         'mole' => [
             'type' => 'base',
@@ -77,7 +84,8 @@ return [
         'cd' => [
             'type' => 'alias',
             'name' => 'cd',
-            'def' => 'candela'
+            'def' => 'candela',
+            'aliasKind' => 'symbol'
         ],
         'candela' => [
             'type' => 'base',
@@ -87,7 +95,8 @@ return [
         'rad' => [
             'type' => 'alias',
             'name' => 'rad',
-            'def' => 'radian'
+            'def' => 'radian',
+            'aliasKind' => 'symbol'
         ],
         'radian' => [
             'type' => 'dimensionless',
@@ -98,7 +107,8 @@ return [
         'sr' => [
             'type' => 'alias',
             'name' => 'sr',
-            'def' => 'steradian'
+            'def' => 'steradian',
+            'aliasKind' => 'symbol'
         ],
         'steradian' => [
             'type' => 'unit',
@@ -110,7 +120,8 @@ return [
         'Hz' => [
             'type' => 'alias',
             'name' => 'Hz',
-            'def' => 'hertz'
+            'def' => 'hertz',
+            'aliasKind' => 'symbol'
         ],
         'hertz' => [
             'type' => 'unit',
@@ -122,7 +133,8 @@ return [
         'g' => [
             'type' => 'alias',
             'name' => 'g',
-            'def' => 'gram'
+            'def' => 'gram',
+            'aliasKind' => 'symbol'
         ],
         'gram' => [
             'type' => 'unit',
@@ -134,7 +146,8 @@ return [
         'N' => [
             'type' => 'alias',
             'name' => 'N',
-            'def' => 'newton'
+            'def' => 'newton',
+            'aliasKind' => 'symbol'
         ],
         'newton' => [
             'type' => 'unit',
@@ -146,7 +159,8 @@ return [
         'Pa' => [
             'type' => 'alias',
             'name' => 'Pa',
-            'def' => 'pascal'
+            'def' => 'pascal',
+            'aliasKind' => 'symbol'
         ],
         'pascal' => [
             'type' => 'unit',
@@ -158,7 +172,8 @@ return [
         'J' => [
             'type' => 'alias',
             'name' => 'J',
-            'def' => 'joule'
+            'def' => 'joule',
+            'aliasKind' => 'symbol'
         ],
         'joule' => [
             'type' => 'unit',
@@ -170,7 +185,8 @@ return [
         'W' => [
             'type' => 'alias',
             'name' => 'W',
-            'def' => 'watt'
+            'def' => 'watt',
+            'aliasKind' => 'symbol'
         ],
         'watt' => [
             'type' => 'unit',
@@ -182,7 +198,8 @@ return [
         'C' => [
             'type' => 'alias',
             'name' => 'C',
-            'def' => 'coulomb'
+            'def' => 'coulomb',
+            'aliasKind' => 'symbol'
         ],
         'coulomb' => [
             'type' => 'unit',
@@ -194,7 +211,8 @@ return [
         'V' => [
             'type' => 'alias',
             'name' => 'V',
-            'def' => 'volt'
+            'def' => 'volt',
+            'aliasKind' => 'symbol'
         ],
         'volt' => [
             'type' => 'unit',
@@ -206,7 +224,8 @@ return [
         'F' => [
             'type' => 'alias',
             'name' => 'F',
-            'def' => 'farad'
+            'def' => 'farad',
+            'aliasKind' => 'symbol'
         ],
         'farad' => [
             'type' => 'unit',
@@ -218,12 +237,14 @@ return [
         'Ω' => [
             'type' => 'alias',
             'name' => 'Ω',
-            'def' => 'ohm'
+            'def' => 'ohm',
+            'aliasKind' => 'symbol'
         ],
         'Ω' => [
             'type' => 'alias',
             'name' => 'Ω',
-            'def' => 'ohm'
+            'def' => 'ohm',
+            'aliasKind' => 'symbol'
         ],
         'ohm' => [
             'type' => 'unit',
@@ -235,7 +256,8 @@ return [
         'S' => [
             'type' => 'alias',
             'name' => 'S',
-            'def' => 'siemens'
+            'def' => 'siemens',
+            'aliasKind' => 'symbol'
         ],
         'siemens' => [
             'type' => 'unit',
@@ -247,7 +269,8 @@ return [
         'Wb' => [
             'type' => 'alias',
             'name' => 'Wb',
-            'def' => 'weber'
+            'def' => 'weber',
+            'aliasKind' => 'symbol'
         ],
         'weber' => [
             'type' => 'unit',
@@ -259,7 +282,8 @@ return [
         'T' => [
             'type' => 'alias',
             'name' => 'T',
-            'def' => 'tesla'
+            'def' => 'tesla',
+            'aliasKind' => 'symbol'
         ],
         'tesla' => [
             'type' => 'unit',
@@ -271,7 +295,8 @@ return [
         'H' => [
             'type' => 'alias',
             'name' => 'H',
-            'def' => 'henry'
+            'def' => 'henry',
+            'aliasKind' => 'symbol'
         ],
         'henry' => [
             'type' => 'unit',
@@ -283,7 +308,8 @@ return [
         '°C' => [
             'type' => 'alias',
             'name' => '°C',
-            'def' => 'degree_Celsius'
+            'def' => 'degree_Celsius',
+            'aliasKind' => 'symbol'
         ],
         'degree_Celsius' => [
             'type' => 'unit',
@@ -296,12 +322,14 @@ return [
         'degrees_Celsius' => [
             'type' => 'alias',
             'name' => 'degrees_Celsius',
-            'def' => 'degree_Celsius'
+            'def' => 'degree_Celsius',
+            'aliasKind' => 'explicit_plural'
         ],
         'lm' => [
             'type' => 'alias',
             'name' => 'lm',
-            'def' => 'lumen'
+            'def' => 'lumen',
+            'aliasKind' => 'symbol'
         ],
         'lumen' => [
             'type' => 'unit',
@@ -313,7 +341,8 @@ return [
         'lx' => [
             'type' => 'alias',
             'name' => 'lx',
-            'def' => 'lux'
+            'def' => 'lux',
+            'aliasKind' => 'symbol'
         ],
         'lux' => [
             'type' => 'unit',
@@ -325,7 +354,8 @@ return [
         'kat' => [
             'type' => 'alias',
             'name' => 'kat',
-            'def' => 'katal'
+            'def' => 'katal',
+            'aliasKind' => 'symbol'
         ],
         'katal' => [
             'type' => 'unit',
@@ -337,7 +367,8 @@ return [
         'Bq' => [
             'type' => 'alias',
             'name' => 'Bq',
-            'def' => 'becquerel'
+            'def' => 'becquerel',
+            'aliasKind' => 'symbol'
         ],
         'becquerel' => [
             'type' => 'unit',
@@ -349,7 +380,8 @@ return [
         'Gy' => [
             'type' => 'alias',
             'name' => 'Gy',
-            'def' => 'gray'
+            'def' => 'gray',
+            'aliasKind' => 'symbol'
         ],
         'gray' => [
             'type' => 'unit',
@@ -361,7 +393,8 @@ return [
         'Sv' => [
             'type' => 'alias',
             'name' => 'Sv',
-            'def' => 'sievert'
+            'def' => 'sievert',
+            'aliasKind' => 'symbol'
         ],
         'sievert' => [
             'type' => 'unit',
@@ -373,7 +406,8 @@ return [
         'min' => [
             'type' => 'alias',
             'name' => 'min',
-            'def' => 'minute'
+            'def' => 'minute',
+            'aliasKind' => 'symbol'
         ],
         'minute' => [
             'type' => 'unit',
@@ -384,12 +418,14 @@ return [
         'h' => [
             'type' => 'alias',
             'name' => 'h',
-            'def' => 'hour'
+            'def' => 'hour',
+            'aliasKind' => 'symbol'
         ],
         'hr' => [
             'type' => 'alias',
             'name' => 'hr',
-            'def' => 'hour'
+            'def' => 'hour',
+            'aliasKind' => 'symbol'
         ],
         'hour' => [
             'type' => 'unit',
@@ -400,7 +436,8 @@ return [
         'd' => [
             'type' => 'alias',
             'name' => 'd',
-            'def' => 'day'
+            'def' => 'day',
+            'aliasKind' => 'symbol'
         ],
         'day' => [
             'type' => 'unit',
@@ -411,7 +448,8 @@ return [
         'π' => [
             'type' => 'alias',
             'name' => 'π',
-            'def' => 'pi'
+            'def' => 'pi',
+            'aliasKind' => 'symbol'
         ],
         'pi' => [
             'type' => 'unit',
@@ -423,22 +461,26 @@ return [
         '°' => [
             'type' => 'alias',
             'name' => '°',
-            'def' => 'arc_degree'
+            'def' => 'arc_degree',
+            'aliasKind' => 'symbol'
         ],
         'angular_degree' => [
             'type' => 'alias',
             'name' => 'angular_degree',
-            'def' => 'arc_degree'
+            'def' => 'arc_degree',
+            'aliasKind' => 'alias'
         ],
         'degree' => [
             'type' => 'alias',
             'name' => 'degree',
-            'def' => 'arc_degree'
+            'def' => 'arc_degree',
+            'aliasKind' => 'alias'
         ],
         'arcdeg' => [
             'type' => 'alias',
             'name' => 'arcdeg',
-            'def' => 'arc_degree'
+            'def' => 'arc_degree',
+            'aliasKind' => 'alias'
         ],
         'arc_degree' => [
             'type' => 'unit',
@@ -449,27 +491,32 @@ return [
         '\'' => [
             'type' => 'alias',
             'name' => '\'',
-            'def' => 'arc_minute'
+            'def' => 'arc_minute',
+            'aliasKind' => 'symbol'
         ],
         '′' => [
             'type' => 'alias',
             'name' => '′',
-            'def' => 'arc_minute'
+            'def' => 'arc_minute',
+            'aliasKind' => 'symbol'
         ],
         'angular_minute' => [
             'type' => 'alias',
             'name' => 'angular_minute',
-            'def' => 'arc_minute'
+            'def' => 'arc_minute',
+            'aliasKind' => 'alias'
         ],
         'arcminute' => [
             'type' => 'alias',
             'name' => 'arcminute',
-            'def' => 'arc_minute'
+            'def' => 'arc_minute',
+            'aliasKind' => 'alias'
         ],
         'arcmin' => [
             'type' => 'alias',
             'name' => 'arcmin',
-            'def' => 'arc_minute'
+            'def' => 'arc_minute',
+            'aliasKind' => 'alias'
         ],
         'arc_minute' => [
             'type' => 'unit',
@@ -480,27 +527,32 @@ return [
         '"' => [
             'type' => 'alias',
             'name' => '"',
-            'def' => 'arc_second'
+            'def' => 'arc_second',
+            'aliasKind' => 'symbol'
         ],
         '″' => [
             'type' => 'alias',
             'name' => '″',
-            'def' => 'arc_second'
+            'def' => 'arc_second',
+            'aliasKind' => 'symbol'
         ],
         'angular_second' => [
             'type' => 'alias',
             'name' => 'angular_second',
-            'def' => 'arc_second'
+            'def' => 'arc_second',
+            'aliasKind' => 'alias'
         ],
         'arcsecond' => [
             'type' => 'alias',
             'name' => 'arcsecond',
-            'def' => 'arc_second'
+            'def' => 'arc_second',
+            'aliasKind' => 'alias'
         ],
         'arcsec' => [
             'type' => 'alias',
             'name' => 'arcsec',
-            'def' => 'arc_second'
+            'def' => 'arc_second',
+            'aliasKind' => 'alias'
         ],
         'arc_second' => [
             'type' => 'unit',
@@ -511,17 +563,20 @@ return [
         'L' => [
             'type' => 'alias',
             'name' => 'L',
-            'def' => 'liter'
+            'def' => 'liter',
+            'aliasKind' => 'symbol'
         ],
         'l' => [
             'type' => 'alias',
             'name' => 'l',
-            'def' => 'liter'
+            'def' => 'liter',
+            'aliasKind' => 'symbol'
         ],
         'litre' => [
             'type' => 'alias',
             'name' => 'litre',
-            'def' => 'liter'
+            'def' => 'liter',
+            'aliasKind' => 'alias'
         ],
         'liter' => [
             'type' => 'unit',
@@ -533,12 +588,14 @@ return [
         't' => [
             'type' => 'alias',
             'name' => 't',
-            'def' => 'metric_ton'
+            'def' => 'metric_ton',
+            'aliasKind' => 'symbol'
         ],
         'tonne' => [
             'type' => 'alias',
             'name' => 'tonne',
-            'def' => 'metric_ton'
+            'def' => 'metric_ton',
+            'aliasKind' => 'alias'
         ],
         'metric_ton' => [
             'type' => 'unit',
@@ -549,12 +606,14 @@ return [
         'eV' => [
             'type' => 'alias',
             'name' => 'eV',
-            'def' => 'electronvolt'
+            'def' => 'electronvolt',
+            'aliasKind' => 'symbol'
         ],
         'electron_volt' => [
             'type' => 'alias',
             'name' => 'electron_volt',
-            'def' => 'electronvolt'
+            'def' => 'electronvolt',
+            'aliasKind' => 'alias'
         ],
         'electronvolt' => [
             'type' => 'unit',
@@ -566,22 +625,26 @@ return [
         'u' => [
             'type' => 'alias',
             'name' => 'u',
-            'def' => 'unified_atomic_mass_unit'
+            'def' => 'unified_atomic_mass_unit',
+            'aliasKind' => 'symbol'
         ],
         'atomic_mass_unit' => [
             'type' => 'alias',
             'name' => 'atomic_mass_unit',
-            'def' => 'unified_atomic_mass_unit'
+            'def' => 'unified_atomic_mass_unit',
+            'aliasKind' => 'alias'
         ],
         'atomicmassunit' => [
             'type' => 'alias',
             'name' => 'atomicmassunit',
-            'def' => 'unified_atomic_mass_unit'
+            'def' => 'unified_atomic_mass_unit',
+            'aliasKind' => 'alias'
         ],
         'amu' => [
             'type' => 'alias',
             'name' => 'amu',
-            'def' => 'unified_atomic_mass_unit'
+            'def' => 'unified_atomic_mass_unit',
+            'aliasKind' => 'alias'
         ],
         'unified_atomic_mass_unit' => [
             'type' => 'unit',
@@ -593,7 +656,8 @@ return [
         'au' => [
             'type' => 'alias',
             'name' => 'au',
-            'def' => 'astronomical_unit'
+            'def' => 'astronomical_unit',
+            'aliasKind' => 'symbol'
         ],
         'astronomical_unit' => [
             'type' => 'unit',
@@ -605,7 +669,8 @@ return [
         'ua' => [
             'type' => 'alias',
             'name' => 'ua',
-            'def' => 'astronomical_unit_BIPM_2006'
+            'def' => 'astronomical_unit_BIPM_2006',
+            'aliasKind' => 'symbol'
         ],
         'astronomical_unit_BIPM_2006' => [
             'type' => 'unit',
@@ -624,12 +689,14 @@ return [
         'knot_international' => [
             'type' => 'alias',
             'name' => 'knot_international',
-            'def' => 'international_knot'
+            'def' => 'international_knot',
+            'aliasKind' => 'alias'
         ],
         'knot' => [
             'type' => 'alias',
             'name' => 'knot',
-            'def' => 'international_knot'
+            'def' => 'international_knot',
+            'aliasKind' => 'alias'
         ],
         'international_knot' => [
             'type' => 'unit',
@@ -641,17 +708,20 @@ return [
         'Å' => [
             'type' => 'alias',
             'name' => 'Å',
-            'def' => 'angstrom'
+            'def' => 'angstrom',
+            'aliasKind' => 'symbol'
         ],
         'Å' => [
             'type' => 'alias',
             'name' => 'Å',
-            'def' => 'angstrom'
+            'def' => 'angstrom',
+            'aliasKind' => 'symbol'
         ],
         'ångström' => [
             'type' => 'alias',
             'name' => 'ångström',
-            'def' => 'angstrom'
+            'def' => 'angstrom',
+            'aliasKind' => 'alias'
         ],
         'angstrom' => [
             'type' => 'unit',
@@ -663,7 +733,8 @@ return [
         'a' => [
             'type' => 'alias',
             'name' => 'a',
-            'def' => 'are'
+            'def' => 'are',
+            'aliasKind' => 'symbol'
         ],
         'are' => [
             'type' => 'unit',
@@ -682,7 +753,8 @@ return [
         'b' => [
             'type' => 'alias',
             'name' => 'b',
-            'def' => 'barn'
+            'def' => 'barn',
+            'aliasKind' => 'symbol'
         ],
         'barn' => [
             'type' => 'unit',
@@ -708,7 +780,8 @@ return [
         'Ci' => [
             'type' => 'alias',
             'name' => 'Ci',
-            'def' => 'curie'
+            'def' => 'curie',
+            'aliasKind' => 'symbol'
         ],
         'curie' => [
             'type' => 'unit',
@@ -720,7 +793,8 @@ return [
         'R' => [
             'type' => 'alias',
             'name' => 'R',
-            'def' => 'roentgen'
+            'def' => 'roentgen',
+            'aliasKind' => 'symbol'
         ],
         'roentgen' => [
             'type' => 'unit',
@@ -753,47 +827,56 @@ return [
         '°K' => [
             'type' => 'alias',
             'name' => '°K',
-            'def' => 'degree_kelvin'
+            'def' => 'degree_kelvin',
+            'aliasKind' => 'symbol'
         ],
         'degree_K' => [
             'type' => 'alias',
             'name' => 'degree_K',
-            'def' => 'degree_kelvin'
+            'def' => 'degree_kelvin',
+            'aliasKind' => 'alias'
         ],
         'degrees_K' => [
             'type' => 'alias',
             'name' => 'degrees_K',
-            'def' => 'degree_kelvin'
+            'def' => 'degree_kelvin',
+            'aliasKind' => 'explicit_plural'
         ],
         'degreeK' => [
             'type' => 'alias',
             'name' => 'degreeK',
-            'def' => 'degree_kelvin'
+            'def' => 'degree_kelvin',
+            'aliasKind' => 'alias'
         ],
         'degreesK' => [
             'type' => 'alias',
             'name' => 'degreesK',
-            'def' => 'degree_kelvin'
+            'def' => 'degree_kelvin',
+            'aliasKind' => 'explicit_plural'
         ],
         'deg_K' => [
             'type' => 'alias',
             'name' => 'deg_K',
-            'def' => 'degree_kelvin'
+            'def' => 'degree_kelvin',
+            'aliasKind' => 'alias'
         ],
         'degs_K' => [
             'type' => 'alias',
             'name' => 'degs_K',
-            'def' => 'degree_kelvin'
+            'def' => 'degree_kelvin',
+            'aliasKind' => 'explicit_plural'
         ],
         'degK' => [
             'type' => 'alias',
             'name' => 'degK',
-            'def' => 'degree_kelvin'
+            'def' => 'degree_kelvin',
+            'aliasKind' => 'alias'
         ],
         'degsK' => [
             'type' => 'alias',
             'name' => 'degsK',
-            'def' => 'degree_kelvin'
+            'def' => 'degree_kelvin',
+            'aliasKind' => 'explicit_plural'
         ],
         'degree_kelvin' => [
             'type' => 'unit',
@@ -806,7 +889,8 @@ return [
         'degrees_kelvin' => [
             'type' => 'alias',
             'name' => 'degrees_kelvin',
-            'def' => 'degree_kelvin'
+            'def' => 'degree_kelvin',
+            'aliasKind' => 'explicit_plural'
         ],
         'candle' => [
             'type' => 'unit',
@@ -825,12 +909,14 @@ return [
         'Bd' => [
             'type' => 'alias',
             'name' => 'Bd',
-            'def' => 'baud'
+            'def' => 'baud',
+            'aliasKind' => 'symbol'
         ],
         'bps' => [
             'type' => 'alias',
             'name' => 'bps',
-            'def' => 'baud'
+            'def' => 'baud',
+            'aliasKind' => 'symbol'
         ],
         'baud' => [
             'type' => 'unit',
@@ -842,47 +928,56 @@ return [
         '℃' => [
             'type' => 'alias',
             'name' => '℃',
-            'def' => 'celsius'
+            'def' => 'celsius',
+            'aliasKind' => 'symbol'
         ],
         'degree_C' => [
             'type' => 'alias',
             'name' => 'degree_C',
-            'def' => 'celsius'
+            'def' => 'celsius',
+            'aliasKind' => 'alias'
         ],
         'degrees_C' => [
             'type' => 'alias',
             'name' => 'degrees_C',
-            'def' => 'celsius'
+            'def' => 'celsius',
+            'aliasKind' => 'explicit_plural'
         ],
         'degreeC' => [
             'type' => 'alias',
             'name' => 'degreeC',
-            'def' => 'celsius'
+            'def' => 'celsius',
+            'aliasKind' => 'alias'
         ],
         'degreesC' => [
             'type' => 'alias',
             'name' => 'degreesC',
-            'def' => 'celsius'
+            'def' => 'celsius',
+            'aliasKind' => 'explicit_plural'
         ],
         'deg_C' => [
             'type' => 'alias',
             'name' => 'deg_C',
-            'def' => 'celsius'
+            'def' => 'celsius',
+            'aliasKind' => 'alias'
         ],
         'degs_C' => [
             'type' => 'alias',
             'name' => 'degs_C',
-            'def' => 'celsius'
+            'def' => 'celsius',
+            'aliasKind' => 'explicit_plural'
         ],
         'degC' => [
             'type' => 'alias',
             'name' => 'degC',
-            'def' => 'celsius'
+            'def' => 'celsius',
+            'aliasKind' => 'alias'
         ],
         'degsC' => [
             'type' => 'alias',
             'name' => 'degsC',
-            'def' => 'celsius'
+            'def' => 'celsius',
+            'aliasKind' => 'explicit_plural'
         ],
         'celsius' => [
             'type' => 'unit',
@@ -894,7 +989,8 @@ return [
         'kts' => [
             'type' => 'alias',
             'name' => 'kts',
-            'def' => 'kt'
+            'def' => 'kt',
+            'aliasKind' => 'symbol'
         ],
         'kt' => [
             'type' => 'unit',
@@ -913,7 +1009,8 @@ return [
         '%' => [
             'type' => 'alias',
             'name' => '%',
-            'def' => 'percent'
+            'def' => 'percent',
+            'aliasKind' => 'symbol'
         ],
         'percent' => [
             'type' => 'unit',
@@ -932,7 +1029,8 @@ return [
         'ppmv' => [
             'type' => 'alias',
             'name' => 'ppmv',
-            'def' => 'ppm'
+            'def' => 'ppm',
+            'aliasKind' => 'symbol'
         ],
         'ppm' => [
             'type' => 'unit',
@@ -944,7 +1042,8 @@ return [
         'ppbv' => [
             'type' => 'alias',
             'name' => 'ppbv',
-            'def' => 'ppb'
+            'def' => 'ppb',
+            'aliasKind' => 'symbol'
         ],
         'ppb' => [
             'type' => 'unit',
@@ -956,7 +1055,8 @@ return [
         'pptv' => [
             'type' => 'alias',
             'name' => 'pptv',
-            'def' => 'ppt'
+            'def' => 'ppt',
+            'aliasKind' => 'symbol'
         ],
         'ppt' => [
             'type' => 'unit',
@@ -968,7 +1068,8 @@ return [
         'ppqv' => [
             'type' => 'alias',
             'name' => 'ppqv',
-            'def' => 'ppq'
+            'def' => 'ppq',
+            'aliasKind' => 'symbol'
         ],
         'ppq' => [
             'type' => 'unit',
@@ -986,22 +1087,26 @@ return [
         'cycle' => [
             'type' => 'alias',
             'name' => 'cycle',
-            'def' => 'circle'
+            'def' => 'circle',
+            'aliasKind' => 'alias'
         ],
         'turn' => [
             'type' => 'alias',
             'name' => 'turn',
-            'def' => 'circle'
+            'def' => 'circle',
+            'aliasKind' => 'alias'
         ],
         'revolution' => [
             'type' => 'alias',
             'name' => 'revolution',
-            'def' => 'circle'
+            'def' => 'circle',
+            'aliasKind' => 'alias'
         ],
         'rotation' => [
             'type' => 'alias',
             'name' => 'rotation',
-            'def' => 'circle'
+            'def' => 'circle',
+            'aliasKind' => 'alias'
         ],
         'circle' => [
             'type' => 'unit',
@@ -1012,82 +1117,98 @@ return [
         'degree_N' => [
             'type' => 'alias',
             'name' => 'degree_N',
-            'def' => 'degree_north'
+            'def' => 'degree_north',
+            'aliasKind' => 'alias'
         ],
         'degrees_N' => [
             'type' => 'alias',
             'name' => 'degrees_N',
-            'def' => 'degree_north'
+            'def' => 'degree_north',
+            'aliasKind' => 'explicit_plural'
         ],
         'degreeN' => [
             'type' => 'alias',
             'name' => 'degreeN',
-            'def' => 'degree_north'
+            'def' => 'degree_north',
+            'aliasKind' => 'alias'
         ],
         'degreesN' => [
             'type' => 'alias',
             'name' => 'degreesN',
-            'def' => 'degree_north'
+            'def' => 'degree_north',
+            'aliasKind' => 'explicit_plural'
         ],
         'degree_east' => [
             'type' => 'alias',
             'name' => 'degree_east',
-            'def' => 'degree_north'
+            'def' => 'degree_north',
+            'aliasKind' => 'alias'
         ],
         'degrees_east' => [
             'type' => 'alias',
             'name' => 'degrees_east',
-            'def' => 'degree_north'
+            'def' => 'degree_north',
+            'aliasKind' => 'explicit_plural'
         ],
         'degree_E' => [
             'type' => 'alias',
             'name' => 'degree_E',
-            'def' => 'degree_north'
+            'def' => 'degree_north',
+            'aliasKind' => 'alias'
         ],
         'degrees_E' => [
             'type' => 'alias',
             'name' => 'degrees_E',
-            'def' => 'degree_north'
+            'def' => 'degree_north',
+            'aliasKind' => 'explicit_plural'
         ],
         'degreeE' => [
             'type' => 'alias',
             'name' => 'degreeE',
-            'def' => 'degree_north'
+            'def' => 'degree_north',
+            'aliasKind' => 'alias'
         ],
         'degreesE' => [
             'type' => 'alias',
             'name' => 'degreesE',
-            'def' => 'degree_north'
+            'def' => 'degree_north',
+            'aliasKind' => 'explicit_plural'
         ],
         'degree_true' => [
             'type' => 'alias',
             'name' => 'degree_true',
-            'def' => 'degree_north'
+            'def' => 'degree_north',
+            'aliasKind' => 'alias'
         ],
         'degrees_true' => [
             'type' => 'alias',
             'name' => 'degrees_true',
-            'def' => 'degree_north'
+            'def' => 'degree_north',
+            'aliasKind' => 'explicit_plural'
         ],
         'degree_T' => [
             'type' => 'alias',
             'name' => 'degree_T',
-            'def' => 'degree_north'
+            'def' => 'degree_north',
+            'aliasKind' => 'alias'
         ],
         'degrees_T' => [
             'type' => 'alias',
             'name' => 'degrees_T',
-            'def' => 'degree_north'
+            'def' => 'degree_north',
+            'aliasKind' => 'explicit_plural'
         ],
         'degreeT' => [
             'type' => 'alias',
             'name' => 'degreeT',
-            'def' => 'degree_north'
+            'def' => 'degree_north',
+            'aliasKind' => 'alias'
         ],
         'degreesT' => [
             'type' => 'alias',
             'name' => 'degreesT',
-            'def' => 'degree_north'
+            'def' => 'degree_north',
+            'aliasKind' => 'explicit_plural'
         ],
         'degree_north' => [
             'type' => 'unit',
@@ -1099,27 +1220,32 @@ return [
         'degrees_north' => [
             'type' => 'alias',
             'name' => 'degrees_north',
-            'def' => 'degree_north'
+            'def' => 'degree_north',
+            'aliasKind' => 'explicit_plural'
         ],
         'degree_W' => [
             'type' => 'alias',
             'name' => 'degree_W',
-            'def' => 'degree_west'
+            'def' => 'degree_west',
+            'aliasKind' => 'alias'
         ],
         'degrees_W' => [
             'type' => 'alias',
             'name' => 'degrees_W',
-            'def' => 'degree_west'
+            'def' => 'degree_west',
+            'aliasKind' => 'explicit_plural'
         ],
         'degreeW' => [
             'type' => 'alias',
             'name' => 'degreeW',
-            'def' => 'degree_west'
+            'def' => 'degree_west',
+            'aliasKind' => 'alias'
         ],
         'degreesW' => [
             'type' => 'alias',
             'name' => 'degreesW',
-            'def' => 'degree_west'
+            'def' => 'degree_west',
+            'aliasKind' => 'explicit_plural'
         ],
         'degree_west' => [
             'type' => 'unit',
@@ -1131,7 +1257,8 @@ return [
         'degrees_west' => [
             'type' => 'alias',
             'name' => 'degrees_west',
-            'def' => 'degree_west'
+            'def' => 'degree_west',
+            'aliasKind' => 'explicit_plural'
         ],
         'assay_ton' => [
             'type' => 'unit',
@@ -1148,12 +1275,14 @@ return [
         'lb' => [
             'type' => 'alias',
             'name' => 'lb',
-            'def' => 'avoirdupois_pound'
+            'def' => 'avoirdupois_pound',
+            'aliasKind' => 'symbol'
         ],
         'pound' => [
             'type' => 'alias',
             'name' => 'pound',
-            'def' => 'avoirdupois_pound'
+            'def' => 'avoirdupois_pound',
+            'aliasKind' => 'alias'
         ],
         'avoirdupois_pound' => [
             'type' => 'unit',
@@ -1170,7 +1299,8 @@ return [
         'gr' => [
             'type' => 'alias',
             'name' => 'gr',
-            'def' => 'grain'
+            'def' => 'grain',
+            'aliasKind' => 'symbol'
         ],
         'grain' => [
             'type' => 'unit',
@@ -1205,7 +1335,8 @@ return [
         'apothecary_ounce' => [
             'type' => 'alias',
             'name' => 'apothecary_ounce',
-            'def' => 'troy_ounce'
+            'def' => 'troy_ounce',
+            'aliasKind' => 'alias'
         ],
         'troy_ounce' => [
             'type' => 'unit',
@@ -1216,7 +1347,8 @@ return [
         'apothecary_pound' => [
             'type' => 'alias',
             'name' => 'apothecary_pound',
-            'def' => 'troy_pound'
+            'def' => 'troy_pound',
+            'aliasKind' => 'alias'
         ],
         'troy_pound' => [
             'type' => 'unit',
@@ -1239,7 +1371,8 @@ return [
         'dr' => [
             'type' => 'alias',
             'name' => 'dr',
-            'def' => 'dram'
+            'def' => 'dram',
+            'aliasKind' => 'symbol'
         ],
         'dram' => [
             'type' => 'unit',
@@ -1269,7 +1402,8 @@ return [
         'ton' => [
             'type' => 'alias',
             'name' => 'ton',
-            'def' => 'short_ton'
+            'def' => 'short_ton',
+            'aliasKind' => 'alias'
         ],
         'short_ton' => [
             'type' => 'unit',
@@ -1328,7 +1462,8 @@ return [
         'pica' => [
             'type' => 'alias',
             'name' => 'pica',
-            'def' => 'printers_pica'
+            'def' => 'printers_pica',
+            'aliasKind' => 'alias'
         ],
         'printers_pica' => [
             'type' => 'unit',
@@ -1352,7 +1487,8 @@ return [
         'US_survey_feet' => [
             'type' => 'alias',
             'name' => 'US_survey_feet',
-            'def' => 'US_survey_foot'
+            'def' => 'US_survey_foot',
+            'aliasKind' => 'explicit_plural'
         ],
         'US_survey_yard' => [
             'type' => 'unit',
@@ -1363,7 +1499,8 @@ return [
         'US_statute_mile' => [
             'type' => 'alias',
             'name' => 'US_statute_mile',
-            'def' => 'US_survey_mile'
+            'def' => 'US_survey_mile',
+            'aliasKind' => 'alias'
         ],
         'US_survey_mile' => [
             'type' => 'unit',
@@ -1374,12 +1511,14 @@ return [
         'pole' => [
             'type' => 'alias',
             'name' => 'pole',
-            'def' => 'rod'
+            'def' => 'rod',
+            'aliasKind' => 'alias'
         ],
         'perch' => [
             'type' => 'alias',
             'name' => 'perch',
-            'def' => 'rod'
+            'def' => 'rod',
+            'aliasKind' => 'alias'
         ],
         'rod' => [
             'type' => 'unit',
@@ -1402,12 +1541,14 @@ return [
         'in' => [
             'type' => 'alias',
             'name' => 'in',
-            'def' => 'international_inch'
+            'def' => 'international_inch',
+            'aliasKind' => 'symbol'
         ],
         'inch' => [
             'type' => 'alias',
             'name' => 'inch',
-            'def' => 'international_inch'
+            'def' => 'international_inch',
+            'aliasKind' => 'alias'
         ],
         'international_inch' => [
             'type' => 'unit',
@@ -1418,17 +1559,20 @@ return [
         'ft' => [
             'type' => 'alias',
             'name' => 'ft',
-            'def' => 'international_foot'
+            'def' => 'international_foot',
+            'aliasKind' => 'symbol'
         ],
         'foot' => [
             'type' => 'alias',
             'name' => 'foot',
-            'def' => 'international_foot'
+            'def' => 'international_foot',
+            'aliasKind' => 'alias'
         ],
         'feet' => [
             'type' => 'alias',
             'name' => 'feet',
-            'def' => 'international_foot'
+            'def' => 'international_foot',
+            'aliasKind' => 'explicit_plural'
         ],
         'international_foot' => [
             'type' => 'unit',
@@ -1440,17 +1584,20 @@ return [
         'international_feet' => [
             'type' => 'alias',
             'name' => 'international_feet',
-            'def' => 'international_foot'
+            'def' => 'international_foot',
+            'aliasKind' => 'explicit_plural'
         ],
         'yd' => [
             'type' => 'alias',
             'name' => 'yd',
-            'def' => 'international_yard'
+            'def' => 'international_yard',
+            'aliasKind' => 'symbol'
         ],
         'yard' => [
             'type' => 'alias',
             'name' => 'yard',
-            'def' => 'international_yard'
+            'def' => 'international_yard',
+            'aliasKind' => 'alias'
         ],
         'international_yard' => [
             'type' => 'unit',
@@ -1461,12 +1608,14 @@ return [
         'mi' => [
             'type' => 'alias',
             'name' => 'mi',
-            'def' => 'international_mile'
+            'def' => 'international_mile',
+            'aliasKind' => 'symbol'
         ],
         'mile' => [
             'type' => 'alias',
             'name' => 'mile',
-            'def' => 'international_mile'
+            'def' => 'international_mile',
+            'aliasKind' => 'alias'
         ],
         'international_mile' => [
             'type' => 'unit',
@@ -1495,12 +1644,14 @@ return [
         'rps' => [
             'type' => 'alias',
             'name' => 'rps',
-            'def' => 'rotation_per_second'
+            'def' => 'rotation_per_second',
+            'aliasKind' => 'symbol'
         ],
         'cps' => [
             'type' => 'alias',
             'name' => 'cps',
-            'def' => 'rotation_per_second'
+            'def' => 'rotation_per_second',
+            'aliasKind' => 'symbol'
         ],
         'rotation_per_second' => [
             'type' => 'unit',
@@ -1513,7 +1664,8 @@ return [
         'rotations_per_second' => [
             'type' => 'alias',
             'name' => 'rotations_per_second',
-            'def' => 'rotation_per_second'
+            'def' => 'rotation_per_second',
+            'aliasKind' => 'explicit_plural'
         ],
         'rpm' => [
             'type' => 'unit',
@@ -1545,7 +1697,8 @@ return [
         'perms_0C' => [
             'type' => 'alias',
             'name' => 'perms_0C',
-            'def' => 'perm_0C'
+            'def' => 'perm_0C',
+            'aliasKind' => 'explicit_plural'
         ],
         'perm_23C' => [
             'type' => 'unit',
@@ -1557,7 +1710,8 @@ return [
         'perms_23C' => [
             'type' => 'alias',
             'name' => 'perms_23C',
-            'def' => 'perm_23C'
+            'def' => 'perm_23C',
+            'aliasKind' => 'explicit_plural'
         ],
         'circular_mil' => [
             'type' => 'unit',
@@ -1590,7 +1744,8 @@ return [
         'acre_feet' => [
             'type' => 'alias',
             'name' => 'acre_feet',
-            'def' => 'acre_foot'
+            'def' => 'acre_foot',
+            'aliasKind' => 'explicit_plural'
         ],
         'board_foot' => [
             'type' => 'unit',
@@ -1602,12 +1757,14 @@ return [
         'board_feet' => [
             'type' => 'alias',
             'name' => 'board_feet',
-            'def' => 'board_foot'
+            'def' => 'board_foot',
+            'aliasKind' => 'explicit_plural'
         ],
         'bu' => [
             'type' => 'alias',
             'name' => 'bu',
-            'def' => 'bushel'
+            'def' => 'bushel',
+            'aliasKind' => 'symbol'
         ],
         'bushel' => [
             'type' => 'unit',
@@ -1618,7 +1775,8 @@ return [
         'pk' => [
             'type' => 'alias',
             'name' => 'pk',
-            'def' => 'peck'
+            'def' => 'peck',
+            'aliasKind' => 'symbol'
         ],
         'peck' => [
             'type' => 'unit',
@@ -1663,7 +1821,8 @@ return [
         'dry_quart' => [
             'type' => 'alias',
             'name' => 'dry_quart',
-            'def' => 'US_dry_quart'
+            'def' => 'US_dry_quart',
+            'aliasKind' => 'alias'
         ],
         'US_dry_quart' => [
             'type' => 'unit',
@@ -1675,7 +1834,8 @@ return [
         'dry_pint' => [
             'type' => 'alias',
             'name' => 'dry_pint',
-            'def' => 'US_dry_pint'
+            'def' => 'US_dry_pint',
+            'aliasKind' => 'alias'
         ],
         'US_dry_pint' => [
             'type' => 'unit',
@@ -1687,12 +1847,14 @@ return [
         'liquid_gallon' => [
             'type' => 'alias',
             'name' => 'liquid_gallon',
-            'def' => 'US_liquid_gallon'
+            'def' => 'US_liquid_gallon',
+            'aliasKind' => 'alias'
         ],
         'gallon' => [
             'type' => 'alias',
             'name' => 'gallon',
-            'def' => 'US_liquid_gallon'
+            'def' => 'US_liquid_gallon',
+            'aliasKind' => 'alias'
         ],
         'US_liquid_gallon' => [
             'type' => 'unit',
@@ -1703,7 +1865,8 @@ return [
         'bbl' => [
             'type' => 'alias',
             'name' => 'bbl',
-            'def' => 'barrel'
+            'def' => 'barrel',
+            'aliasKind' => 'symbol'
         ],
         'barrel' => [
             'type' => 'unit',
@@ -1722,12 +1885,14 @@ return [
         'liquid_quart' => [
             'type' => 'alias',
             'name' => 'liquid_quart',
-            'def' => 'US_liquid_quart'
+            'def' => 'US_liquid_quart',
+            'aliasKind' => 'alias'
         ],
         'quart' => [
             'type' => 'alias',
             'name' => 'quart',
-            'def' => 'US_liquid_quart'
+            'def' => 'US_liquid_quart',
+            'aliasKind' => 'alias'
         ],
         'US_liquid_quart' => [
             'type' => 'unit',
@@ -1739,17 +1904,20 @@ return [
         'pt' => [
             'type' => 'alias',
             'name' => 'pt',
-            'def' => 'US_liquid_pint'
+            'def' => 'US_liquid_pint',
+            'aliasKind' => 'symbol'
         ],
         'liquid_pint' => [
             'type' => 'alias',
             'name' => 'liquid_pint',
-            'def' => 'US_liquid_pint'
+            'def' => 'US_liquid_pint',
+            'aliasKind' => 'alias'
         ],
         'pint' => [
             'type' => 'alias',
             'name' => 'pint',
-            'def' => 'US_liquid_pint'
+            'def' => 'US_liquid_pint',
+            'aliasKind' => 'alias'
         ],
         'US_liquid_pint' => [
             'type' => 'unit',
@@ -1761,12 +1929,14 @@ return [
         'liquid_cup' => [
             'type' => 'alias',
             'name' => 'liquid_cup',
-            'def' => 'US_liquid_cup'
+            'def' => 'US_liquid_cup',
+            'aliasKind' => 'alias'
         ],
         'cup' => [
             'type' => 'alias',
             'name' => 'cup',
-            'def' => 'US_liquid_cup'
+            'def' => 'US_liquid_cup',
+            'aliasKind' => 'alias'
         ],
         'US_liquid_cup' => [
             'type' => 'unit',
@@ -1778,12 +1948,14 @@ return [
         'liquid_gill' => [
             'type' => 'alias',
             'name' => 'liquid_gill',
-            'def' => 'US_liquid_gill'
+            'def' => 'US_liquid_gill',
+            'aliasKind' => 'alias'
         ],
         'gill' => [
             'type' => 'alias',
             'name' => 'gill',
-            'def' => 'US_liquid_gill'
+            'def' => 'US_liquid_gill',
+            'aliasKind' => 'alias'
         ],
         'US_liquid_gill' => [
             'type' => 'unit',
@@ -1795,27 +1967,32 @@ return [
         'oz' => [
             'type' => 'alias',
             'name' => 'oz',
-            'def' => 'US_fluid_ounce'
+            'def' => 'US_fluid_ounce',
+            'aliasKind' => 'symbol'
         ],
         'floz' => [
             'type' => 'alias',
             'name' => 'floz',
-            'def' => 'US_fluid_ounce'
+            'def' => 'US_fluid_ounce',
+            'aliasKind' => 'symbol'
         ],
         'US_liquid_ounce' => [
             'type' => 'alias',
             'name' => 'US_liquid_ounce',
-            'def' => 'US_fluid_ounce'
+            'def' => 'US_fluid_ounce',
+            'aliasKind' => 'alias'
         ],
         'fluid_ounce' => [
             'type' => 'alias',
             'name' => 'fluid_ounce',
-            'def' => 'US_fluid_ounce'
+            'def' => 'US_fluid_ounce',
+            'aliasKind' => 'alias'
         ],
         'liquid_ounce' => [
             'type' => 'alias',
             'name' => 'liquid_ounce',
-            'def' => 'US_fluid_ounce'
+            'def' => 'US_fluid_ounce',
+            'aliasKind' => 'alias'
         ],
         'US_fluid_ounce' => [
             'type' => 'unit',
@@ -1827,27 +2004,32 @@ return [
         'Tbl' => [
             'type' => 'alias',
             'name' => 'Tbl',
-            'def' => 'tablespoon'
+            'def' => 'tablespoon',
+            'aliasKind' => 'symbol'
         ],
         'Tbsp' => [
             'type' => 'alias',
             'name' => 'Tbsp',
-            'def' => 'tablespoon'
+            'def' => 'tablespoon',
+            'aliasKind' => 'symbol'
         ],
         'tbsp' => [
             'type' => 'alias',
             'name' => 'tbsp',
-            'def' => 'tablespoon'
+            'def' => 'tablespoon',
+            'aliasKind' => 'symbol'
         ],
         'Tblsp' => [
             'type' => 'alias',
             'name' => 'Tblsp',
-            'def' => 'tablespoon'
+            'def' => 'tablespoon',
+            'aliasKind' => 'symbol'
         ],
         'tblsp' => [
             'type' => 'alias',
             'name' => 'tblsp',
-            'def' => 'tablespoon'
+            'def' => 'tablespoon',
+            'aliasKind' => 'symbol'
         ],
         'tablespoon' => [
             'type' => 'unit',
@@ -1859,7 +2041,8 @@ return [
         'fldr' => [
             'type' => 'alias',
             'name' => 'fldr',
-            'def' => 'fluid_dram'
+            'def' => 'fluid_dram',
+            'aliasKind' => 'symbol'
         ],
         'fluid_dram' => [
             'type' => 'unit',
@@ -1871,7 +2054,8 @@ return [
         'tsp' => [
             'type' => 'alias',
             'name' => 'tsp',
-            'def' => 'teaspoon'
+            'def' => 'teaspoon',
+            'aliasKind' => 'symbol'
         ],
         'teaspoon' => [
             'type' => 'unit',
@@ -1918,7 +2102,8 @@ return [
         'UK_liquid_ounce' => [
             'type' => 'alias',
             'name' => 'UK_liquid_ounce',
-            'def' => 'UK_fluid_ounce'
+            'def' => 'UK_fluid_ounce',
+            'aliasKind' => 'alias'
         ],
         'UK_fluid_ounce' => [
             'type' => 'unit',
@@ -1966,12 +2151,14 @@ return [
         'yr' => [
             'type' => 'alias',
             'name' => 'yr',
-            'def' => 'tropical_year'
+            'def' => 'tropical_year',
+            'aliasKind' => 'symbol'
         ],
         'year' => [
             'type' => 'alias',
             'name' => 'year',
-            'def' => 'tropical_year'
+            'def' => 'tropical_year',
+            'aliasKind' => 'alias'
         ],
         'tropical_year' => [
             'type' => 'unit',
@@ -2076,17 +2263,20 @@ return [
         'H2O' => [
             'type' => 'alias',
             'name' => 'H2O',
-            'def' => 'conventional_water'
+            'def' => 'conventional_water',
+            'aliasKind' => 'symbol'
         ],
         'h2o' => [
             'type' => 'alias',
             'name' => 'h2o',
-            'def' => 'conventional_water'
+            'def' => 'conventional_water',
+            'aliasKind' => 'symbol'
         ],
         'water' => [
             'type' => 'alias',
             'name' => 'water',
-            'def' => 'conventional_water'
+            'def' => 'conventional_water',
+            'aliasKind' => 'alias'
         ],
         'conventional_water' => [
             'type' => 'unit',
@@ -2098,12 +2288,14 @@ return [
         'water_39F' => [
             'type' => 'alias',
             'name' => 'water_39F',
-            'def' => 'water_4C'
+            'def' => 'water_4C',
+            'aliasKind' => 'alias'
         ],
         'waters_39F' => [
             'type' => 'alias',
             'name' => 'waters_39F',
-            'def' => 'water_4C'
+            'def' => 'water_4C',
+            'aliasKind' => 'explicit_plural'
         ],
         'water_4C' => [
             'type' => 'unit',
@@ -2115,7 +2307,8 @@ return [
         'waters_4C' => [
             'type' => 'alias',
             'name' => 'waters_4C',
-            'def' => 'water_4C'
+            'def' => 'water_4C',
+            'aliasKind' => 'explicit_plural'
         ],
         'water_60F' => [
             'type' => 'unit',
@@ -2127,32 +2320,38 @@ return [
         'waters_60F' => [
             'type' => 'alias',
             'name' => 'waters_60F',
-            'def' => 'water_60F'
+            'def' => 'water_60F',
+            'aliasKind' => 'explicit_plural'
         ],
         'Hg' => [
             'type' => 'alias',
             'name' => 'Hg',
-            'def' => 'mercury_0C'
+            'def' => 'mercury_0C',
+            'aliasKind' => 'symbol'
         ],
         'mercury_32F' => [
             'type' => 'alias',
             'name' => 'mercury_32F',
-            'def' => 'mercury_0C'
+            'def' => 'mercury_0C',
+            'aliasKind' => 'alias'
         ],
         'mercuries_32F' => [
             'type' => 'alias',
             'name' => 'mercuries_32F',
-            'def' => 'mercury_0C'
+            'def' => 'mercury_0C',
+            'aliasKind' => 'explicit_plural'
         ],
         'conventional_mercury' => [
             'type' => 'alias',
             'name' => 'conventional_mercury',
-            'def' => 'mercury_0C'
+            'def' => 'mercury_0C',
+            'aliasKind' => 'alias'
         ],
         'conventional_mercuries' => [
             'type' => 'alias',
             'name' => 'conventional_mercuries',
-            'def' => 'mercury_0C'
+            'def' => 'mercury_0C',
+            'aliasKind' => 'explicit_plural'
         ],
         'mercury_0C' => [
             'type' => 'unit',
@@ -2164,7 +2363,8 @@ return [
         'mercuries_0C' => [
             'type' => 'alias',
             'name' => 'mercuries_0C',
-            'def' => 'mercury_0C'
+            'def' => 'mercury_0C',
+            'aliasKind' => 'explicit_plural'
         ],
         'mercury_60F' => [
             'type' => 'unit',
@@ -2176,7 +2376,8 @@ return [
         'mercuries_60F' => [
             'type' => 'alias',
             'name' => 'mercuries_60F',
-            'def' => 'mercury_60F'
+            'def' => 'mercury_60F',
+            'aliasKind' => 'explicit_plural'
         ],
         'force' => [
             'type' => 'unit',
@@ -2201,17 +2402,20 @@ return [
         'kgf' => [
             'type' => 'alias',
             'name' => 'kgf',
-            'def' => 'force_kilogram'
+            'def' => 'force_kilogram',
+            'aliasKind' => 'symbol'
         ],
         'kilogram_force' => [
             'type' => 'alias',
             'name' => 'kilogram_force',
-            'def' => 'force_kilogram'
+            'def' => 'force_kilogram',
+            'aliasKind' => 'alias'
         ],
         'kilograms_force' => [
             'type' => 'alias',
             'name' => 'kilograms_force',
-            'def' => 'force_kilogram'
+            'def' => 'force_kilogram',
+            'aliasKind' => 'explicit_plural'
         ],
         'force_kilogram' => [
             'type' => 'unit',
@@ -2223,17 +2427,20 @@ return [
         'ozf' => [
             'type' => 'alias',
             'name' => 'ozf',
-            'def' => 'force_ounce'
+            'def' => 'force_ounce',
+            'aliasKind' => 'symbol'
         ],
         'ounce_force' => [
             'type' => 'alias',
             'name' => 'ounce_force',
-            'def' => 'force_ounce'
+            'def' => 'force_ounce',
+            'aliasKind' => 'alias'
         ],
         'ounces_force' => [
             'type' => 'alias',
             'name' => 'ounces_force',
-            'def' => 'force_ounce'
+            'def' => 'force_ounce',
+            'aliasKind' => 'explicit_plural'
         ],
         'force_ounce' => [
             'type' => 'unit',
@@ -2245,17 +2452,20 @@ return [
         'lbf' => [
             'type' => 'alias',
             'name' => 'lbf',
-            'def' => 'force_pound'
+            'def' => 'force_pound',
+            'aliasKind' => 'symbol'
         ],
         'pound_force' => [
             'type' => 'alias',
             'name' => 'pound_force',
-            'def' => 'force_pound'
+            'def' => 'force_pound',
+            'aliasKind' => 'alias'
         ],
         'pounds_force' => [
             'type' => 'alias',
             'name' => 'pounds_force',
-            'def' => 'force_pound'
+            'def' => 'force_pound',
+            'aliasKind' => 'explicit_plural'
         ],
         'force_pound' => [
             'type' => 'unit',
@@ -2274,12 +2484,14 @@ return [
         'gf' => [
             'type' => 'alias',
             'name' => 'gf',
-            'def' => 'gram_force'
+            'def' => 'gram_force',
+            'aliasKind' => 'symbol'
         ],
         'force_gram' => [
             'type' => 'alias',
             'name' => 'force_gram',
-            'def' => 'gram_force'
+            'def' => 'gram_force',
+            'aliasKind' => 'alias'
         ],
         'gram_force' => [
             'type' => 'unit',
@@ -2292,17 +2504,20 @@ return [
         'grams_force' => [
             'type' => 'alias',
             'name' => 'grams_force',
-            'def' => 'gram_force'
+            'def' => 'gram_force',
+            'aliasKind' => 'explicit_plural'
         ],
         'ton_force' => [
             'type' => 'alias',
             'name' => 'ton_force',
-            'def' => 'force_ton'
+            'def' => 'force_ton',
+            'aliasKind' => 'alias'
         ],
         'tons_force' => [
             'type' => 'alias',
             'name' => 'tons_force',
-            'def' => 'force_ton'
+            'def' => 'force_ton',
+            'aliasKind' => 'explicit_plural'
         ],
         'force_ton' => [
             'type' => 'unit',
@@ -2321,12 +2536,14 @@ return [
         'atm' => [
             'type' => 'alias',
             'name' => 'atm',
-            'def' => 'standard_atmosphere'
+            'def' => 'standard_atmosphere',
+            'aliasKind' => 'symbol'
         ],
         'atmosphere' => [
             'type' => 'alias',
             'name' => 'atmosphere',
-            'def' => 'standard_atmosphere'
+            'def' => 'standard_atmosphere',
+            'aliasKind' => 'alias'
         ],
         'standard_atmosphere' => [
             'type' => 'unit',
@@ -2338,7 +2555,8 @@ return [
         'at' => [
             'type' => 'alias',
             'name' => 'at',
-            'def' => 'technical_atmosphere'
+            'def' => 'technical_atmosphere',
+            'aliasKind' => 'symbol'
         ],
         'technical_atmosphere' => [
             'type' => 'unit',
@@ -2350,7 +2568,8 @@ return [
         'cmH2O' => [
             'type' => 'alias',
             'name' => 'cmH2O',
-            'def' => 'cm_H2O'
+            'def' => 'cm_H2O',
+            'aliasKind' => 'symbol'
         ],
         'cm_H2O' => [
             'type' => 'unit',
@@ -2369,7 +2588,8 @@ return [
         'inches_H2O_39F' => [
             'type' => 'alias',
             'name' => 'inches_H2O_39F',
-            'def' => 'inch_H2O_39F'
+            'def' => 'inch_H2O_39F',
+            'aliasKind' => 'explicit_plural'
         ],
         'inch_H2O_60F' => [
             'type' => 'unit',
@@ -2382,37 +2602,44 @@ return [
         'inches_H2O_60F' => [
             'type' => 'alias',
             'name' => 'inches_H2O_60F',
-            'def' => 'inch_H2O_60F'
+            'def' => 'inch_H2O_60F',
+            'aliasKind' => 'explicit_plural'
         ],
         'ftH2O' => [
             'type' => 'alias',
             'name' => 'ftH2O',
-            'def' => 'foot_water'
+            'def' => 'foot_water',
+            'aliasKind' => 'symbol'
         ],
         'fth2o' => [
             'type' => 'alias',
             'name' => 'fth2o',
-            'def' => 'foot_water'
+            'def' => 'foot_water',
+            'aliasKind' => 'symbol'
         ],
         'foot_H2O' => [
             'type' => 'alias',
             'name' => 'foot_H2O',
-            'def' => 'foot_water'
+            'def' => 'foot_water',
+            'aliasKind' => 'alias'
         ],
         'feet_H2O' => [
             'type' => 'alias',
             'name' => 'feet_H2O',
-            'def' => 'foot_water'
+            'def' => 'foot_water',
+            'aliasKind' => 'explicit_plural'
         ],
         'footH2O' => [
             'type' => 'alias',
             'name' => 'footH2O',
-            'def' => 'foot_water'
+            'def' => 'foot_water',
+            'aliasKind' => 'alias'
         ],
         'feetH2O' => [
             'type' => 'alias',
             'name' => 'feetH2O',
-            'def' => 'foot_water'
+            'def' => 'foot_water',
+            'aliasKind' => 'explicit_plural'
         ],
         'foot_water' => [
             'type' => 'unit',
@@ -2424,12 +2651,14 @@ return [
         'feet_water' => [
             'type' => 'alias',
             'name' => 'feet_water',
-            'def' => 'foot_water'
+            'def' => 'foot_water',
+            'aliasKind' => 'explicit_plural'
         ],
         'cmHg' => [
             'type' => 'alias',
             'name' => 'cmHg',
-            'def' => 'cm_Hg'
+            'def' => 'cm_Hg',
+            'aliasKind' => 'symbol'
         ],
         'cm_Hg' => [
             'type' => 'unit',
@@ -2448,7 +2677,8 @@ return [
         'millimeters_Hg_0C' => [
             'type' => 'alias',
             'name' => 'millimeters_Hg_0C',
-            'def' => 'millimeter_Hg_0C'
+            'def' => 'millimeter_Hg_0C',
+            'aliasKind' => 'explicit_plural'
         ],
         'inch_Hg_32F' => [
             'type' => 'unit',
@@ -2461,7 +2691,8 @@ return [
         'inches_Hg_32F' => [
             'type' => 'alias',
             'name' => 'inches_Hg_32F',
-            'def' => 'inch_Hg_32F'
+            'def' => 'inch_Hg_32F',
+            'aliasKind' => 'explicit_plural'
         ],
         'inch_Hg_60F' => [
             'type' => 'unit',
@@ -2474,32 +2705,38 @@ return [
         'inches_Hg_60F' => [
             'type' => 'alias',
             'name' => 'inches_Hg_60F',
-            'def' => 'inch_Hg_60F'
+            'def' => 'inch_Hg_60F',
+            'aliasKind' => 'explicit_plural'
         ],
         'mm_Hg' => [
             'type' => 'alias',
             'name' => 'mm_Hg',
-            'def' => 'millimeter_Hg'
+            'def' => 'millimeter_Hg',
+            'aliasKind' => 'symbol'
         ],
         'mm_hg' => [
             'type' => 'alias',
             'name' => 'mm_hg',
-            'def' => 'millimeter_Hg'
+            'def' => 'millimeter_Hg',
+            'aliasKind' => 'symbol'
         ],
         'mmHg' => [
             'type' => 'alias',
             'name' => 'mmHg',
-            'def' => 'millimeter_Hg'
+            'def' => 'millimeter_Hg',
+            'aliasKind' => 'symbol'
         ],
         'mmhg' => [
             'type' => 'alias',
             'name' => 'mmhg',
-            'def' => 'millimeter_Hg'
+            'def' => 'millimeter_Hg',
+            'aliasKind' => 'symbol'
         ],
         'torr' => [
             'type' => 'alias',
             'name' => 'torr',
-            'def' => 'millimeter_Hg'
+            'def' => 'millimeter_Hg',
+            'aliasKind' => 'alias'
         ],
         'millimeter_Hg' => [
             'type' => 'unit',
@@ -2511,17 +2748,20 @@ return [
         'millimeters_Hg' => [
             'type' => 'alias',
             'name' => 'millimeters_Hg',
-            'def' => 'millimeter_Hg'
+            'def' => 'millimeter_Hg',
+            'aliasKind' => 'explicit_plural'
         ],
         'in_Hg' => [
             'type' => 'alias',
             'name' => 'in_Hg',
-            'def' => 'inch_Hg'
+            'def' => 'inch_Hg',
+            'aliasKind' => 'symbol'
         ],
         'inHg' => [
             'type' => 'alias',
             'name' => 'inHg',
-            'def' => 'inch_Hg'
+            'def' => 'inch_Hg',
+            'aliasKind' => 'symbol'
         ],
         'inch_Hg' => [
             'type' => 'unit',
@@ -2533,7 +2773,8 @@ return [
         'inches_Hg' => [
             'type' => 'alias',
             'name' => 'inches_Hg',
-            'def' => 'inch_Hg'
+            'def' => 'inch_Hg',
+            'aliasKind' => 'explicit_plural'
         ],
         'psi' => [
             'type' => 'unit',
@@ -2552,7 +2793,8 @@ return [
         'barye' => [
             'type' => 'alias',
             'name' => 'barye',
-            'def' => 'barie'
+            'def' => 'barie',
+            'aliasKind' => 'alias'
         ],
         'barie' => [
             'type' => 'unit',
@@ -2571,7 +2813,8 @@ return [
         'St' => [
             'type' => 'alias',
             'name' => 'St',
-            'def' => 'stokes'
+            'def' => 'stokes',
+            'aliasKind' => 'symbol'
         ],
         'stokes' => [
             'type' => 'unit',
@@ -2597,12 +2840,14 @@ return [
         'Btu' => [
             'type' => 'alias',
             'name' => 'Btu',
-            'def' => 'IT_Btu'
+            'def' => 'IT_Btu',
+            'aliasKind' => 'alias'
         ],
         'Btus' => [
             'type' => 'alias',
             'name' => 'Btus',
-            'def' => 'IT_Btu'
+            'def' => 'IT_Btu',
+            'aliasKind' => 'explicit_plural'
         ],
         'IT_Btu' => [
             'type' => 'unit',
@@ -2615,7 +2860,8 @@ return [
         'IT_Btus' => [
             'type' => 'alias',
             'name' => 'IT_Btus',
-            'def' => 'IT_Btu'
+            'def' => 'IT_Btu',
+            'aliasKind' => 'explicit_plural'
         ],
         'EC_therm' => [
             'type' => 'unit',
@@ -2634,12 +2880,14 @@ return [
         'cal' => [
             'type' => 'alias',
             'name' => 'cal',
-            'def' => 'IT_calorie'
+            'def' => 'IT_calorie',
+            'aliasKind' => 'symbol'
         ],
         'calorie' => [
             'type' => 'alias',
             'name' => 'calorie',
-            'def' => 'IT_calorie'
+            'def' => 'IT_calorie',
+            'aliasKind' => 'alias'
         ],
         'IT_calorie' => [
             'type' => 'unit',
@@ -2666,17 +2914,20 @@ return [
         'tons_TNT' => [
             'type' => 'alias',
             'name' => 'tons_TNT',
-            'def' => 'ton_TNT'
+            'def' => 'ton_TNT',
+            'aliasKind' => 'explicit_plural'
         ],
         'thm' => [
             'type' => 'alias',
             'name' => 'thm',
-            'def' => 'US_therm'
+            'def' => 'US_therm',
+            'aliasKind' => 'symbol'
         ],
         'therm' => [
             'type' => 'alias',
             'name' => 'therm',
-            'def' => 'US_therm'
+            'def' => 'US_therm',
+            'aliasKind' => 'alias'
         ],
         'US_therm' => [
             'type' => 'unit',
@@ -2702,7 +2953,8 @@ return [
         'VA' => [
             'type' => 'alias',
             'name' => 'VA',
-            'def' => 'voltampere'
+            'def' => 'voltampere',
+            'aliasKind' => 'symbol'
         ],
         'voltampere' => [
             'type' => 'unit',
@@ -2720,12 +2972,14 @@ return [
         'hp' => [
             'type' => 'alias',
             'name' => 'hp',
-            'def' => 'shaft_horsepower'
+            'def' => 'shaft_horsepower',
+            'aliasKind' => 'symbol'
         ],
         'horsepower' => [
             'type' => 'alias',
             'name' => 'horsepower',
-            'def' => 'shaft_horsepower'
+            'def' => 'shaft_horsepower',
+            'aliasKind' => 'alias'
         ],
         'shaft_horsepower' => [
             'type' => 'unit',
@@ -2762,12 +3016,14 @@ return [
         'ton_of_refrigeration' => [
             'type' => 'alias',
             'name' => 'ton_of_refrigeration',
-            'def' => 'refrigeration_ton'
+            'def' => 'refrigeration_ton',
+            'aliasKind' => 'alias'
         ],
         'tons_of_refrigeration' => [
             'type' => 'alias',
             'name' => 'tons_of_refrigeration',
-            'def' => 'refrigeration_ton'
+            'def' => 'refrigeration_ton',
+            'aliasKind' => 'explicit_plural'
         ],
         'refrigeration_ton' => [
             'type' => 'unit',
@@ -2861,7 +3117,8 @@ return [
         'faraday' => [
             'type' => 'alias',
             'name' => 'faraday',
-            'def' => 'C12_faraday'
+            'def' => 'C12_faraday',
+            'aliasKind' => 'alias'
         ],
         'C12_faraday' => [
             'type' => 'unit',
@@ -2893,7 +3150,8 @@ return [
         'Oe' => [
             'type' => 'alias',
             'name' => 'Oe',
-            'def' => 'oersted'
+            'def' => 'oersted',
+            'aliasKind' => 'symbol'
         ],
         'oersted' => [
             'type' => 'unit',
@@ -2946,47 +3204,56 @@ return [
         '°R' => [
             'type' => 'alias',
             'name' => '°R',
-            'def' => 'degree_rankine'
+            'def' => 'degree_rankine',
+            'aliasKind' => 'symbol'
         ],
         'degreeR' => [
             'type' => 'alias',
             'name' => 'degreeR',
-            'def' => 'degree_rankine'
+            'def' => 'degree_rankine',
+            'aliasKind' => 'alias'
         ],
         'degreesR' => [
             'type' => 'alias',
             'name' => 'degreesR',
-            'def' => 'degree_rankine'
+            'def' => 'degree_rankine',
+            'aliasKind' => 'explicit_plural'
         ],
         'degree_R' => [
             'type' => 'alias',
             'name' => 'degree_R',
-            'def' => 'degree_rankine'
+            'def' => 'degree_rankine',
+            'aliasKind' => 'alias'
         ],
         'degrees_R' => [
             'type' => 'alias',
             'name' => 'degrees_R',
-            'def' => 'degree_rankine'
+            'def' => 'degree_rankine',
+            'aliasKind' => 'explicit_plural'
         ],
         'degR' => [
             'type' => 'alias',
             'name' => 'degR',
-            'def' => 'degree_rankine'
+            'def' => 'degree_rankine',
+            'aliasKind' => 'alias'
         ],
         'degsR' => [
             'type' => 'alias',
             'name' => 'degsR',
-            'def' => 'degree_rankine'
+            'def' => 'degree_rankine',
+            'aliasKind' => 'explicit_plural'
         ],
         'deg_R' => [
             'type' => 'alias',
             'name' => 'deg_R',
-            'def' => 'degree_rankine'
+            'def' => 'degree_rankine',
+            'aliasKind' => 'alias'
         ],
         'degs_R' => [
             'type' => 'alias',
             'name' => 'degs_R',
-            'def' => 'degree_rankine'
+            'def' => 'degree_rankine',
+            'aliasKind' => 'explicit_plural'
         ],
         'degree_rankine' => [
             'type' => 'unit',
@@ -2998,67 +3265,80 @@ return [
         'degrees_rankine' => [
             'type' => 'alias',
             'name' => 'degrees_rankine',
-            'def' => 'degree_rankine'
+            'def' => 'degree_rankine',
+            'aliasKind' => 'explicit_plural'
         ],
         '°F' => [
             'type' => 'alias',
             'name' => '°F',
-            'def' => 'fahrenheit'
+            'def' => 'fahrenheit',
+            'aliasKind' => 'symbol'
         ],
         '℉' => [
             'type' => 'alias',
             'name' => '℉',
-            'def' => 'fahrenheit'
+            'def' => 'fahrenheit',
+            'aliasKind' => 'symbol'
         ],
         'degree_fahrenheit' => [
             'type' => 'alias',
             'name' => 'degree_fahrenheit',
-            'def' => 'fahrenheit'
+            'def' => 'fahrenheit',
+            'aliasKind' => 'alias'
         ],
         'degrees_fahrenheit' => [
             'type' => 'alias',
             'name' => 'degrees_fahrenheit',
-            'def' => 'fahrenheit'
+            'def' => 'fahrenheit',
+            'aliasKind' => 'explicit_plural'
         ],
         'degreeF' => [
             'type' => 'alias',
             'name' => 'degreeF',
-            'def' => 'fahrenheit'
+            'def' => 'fahrenheit',
+            'aliasKind' => 'alias'
         ],
         'degreesF' => [
             'type' => 'alias',
             'name' => 'degreesF',
-            'def' => 'fahrenheit'
+            'def' => 'fahrenheit',
+            'aliasKind' => 'explicit_plural'
         ],
         'degree_F' => [
             'type' => 'alias',
             'name' => 'degree_F',
-            'def' => 'fahrenheit'
+            'def' => 'fahrenheit',
+            'aliasKind' => 'alias'
         ],
         'degrees_F' => [
             'type' => 'alias',
             'name' => 'degrees_F',
-            'def' => 'fahrenheit'
+            'def' => 'fahrenheit',
+            'aliasKind' => 'explicit_plural'
         ],
         'degF' => [
             'type' => 'alias',
             'name' => 'degF',
-            'def' => 'fahrenheit'
+            'def' => 'fahrenheit',
+            'aliasKind' => 'alias'
         ],
         'degsF' => [
             'type' => 'alias',
             'name' => 'degsF',
-            'def' => 'fahrenheit'
+            'def' => 'fahrenheit',
+            'aliasKind' => 'explicit_plural'
         ],
         'deg_F' => [
             'type' => 'alias',
             'name' => 'deg_F',
-            'def' => 'fahrenheit'
+            'def' => 'fahrenheit',
+            'aliasKind' => 'alias'
         ],
         'degs_F' => [
             'type' => 'alias',
             'name' => 'degs_F',
-            'def' => 'fahrenheit'
+            'def' => 'fahrenheit',
+            'aliasKind' => 'explicit_plural'
         ],
         'fahrenheit' => [
             'type' => 'unit',
@@ -3089,7 +3369,8 @@ return [
         'sb' => [
             'type' => 'alias',
             'name' => 'sb',
-            'def' => 'stilb'
+            'def' => 'stilb',
+            'aliasKind' => 'symbol'
         ],
         'stilb' => [
             'type' => 'unit',
@@ -3101,7 +3382,8 @@ return [
         'ph' => [
             'type' => 'alias',
             'name' => 'ph',
-            'def' => 'phot'
+            'def' => 'phot',
+            'aliasKind' => 'symbol'
         ],
         'phot' => [
             'type' => 'unit',
@@ -3113,7 +3395,8 @@ return [
         'nt' => [
             'type' => 'alias',
             'name' => 'nt',
-            'def' => 'nit'
+            'def' => 'nit',
+            'aliasKind' => 'symbol'
         ],
         'nit' => [
             'type' => 'unit',
@@ -3132,7 +3415,8 @@ return [
         'apostilb' => [
             'type' => 'alias',
             'name' => 'apostilb',
-            'def' => 'blondel'
+            'def' => 'blondel',
+            'aliasKind' => 'alias'
         ],
         'blondel' => [
             'type' => 'unit',
@@ -3151,12 +3435,14 @@ return [
         'gp' => [
             'type' => 'alias',
             'name' => 'gp',
-            'def' => 'geopotential'
+            'def' => 'geopotential',
+            'aliasKind' => 'symbol'
         ],
         'dynamic' => [
             'type' => 'alias',
             'name' => 'dynamic',
-            'def' => 'geopotential'
+            'def' => 'geopotential',
+            'aliasKind' => 'alias'
         ],
         'geopotential' => [
             'type' => 'unit',
@@ -3182,7 +3468,8 @@ return [
         'PVU' => [
             'type' => 'alias',
             'name' => 'PVU',
-            'def' => 'potential_vorticity_unit'
+            'def' => 'potential_vorticity_unit',
+            'aliasKind' => 'symbol'
         ],
         'potential_vorticity_unit' => [
             'type' => 'unit',
@@ -3206,7 +3493,8 @@ return [
         'byte' => [
             'type' => 'alias',
             'name' => 'byte',
-            'def' => 'octet'
+            'def' => 'octet',
+            'aliasKind' => 'alias'
         ],
         'octet' => [
             'type' => 'unit',
@@ -3217,7 +3505,8 @@ return [
         'DU' => [
             'type' => 'alias',
             'name' => 'DU',
-            'def' => 'dobson'
+            'def' => 'dobson',
+            'aliasKind' => 'symbol'
         ],
         'dobson' => [
             'type' => 'unit',
@@ -3228,17 +3517,20 @@ return [
         'molec' => [
             'type' => 'alias',
             'name' => 'molec',
-            'def' => 'molecule'
+            'def' => 'molecule',
+            'aliasKind' => 'alias'
         ],
         'nucleon' => [
             'type' => 'alias',
             'name' => 'nucleon',
-            'def' => 'molecule'
+            'def' => 'molecule',
+            'aliasKind' => 'alias'
         ],
         'nuc' => [
             'type' => 'alias',
             'name' => 'nuc',
-            'def' => 'molecule'
+            'def' => 'molecule',
+            'aliasKind' => 'alias'
         ],
         'molecule' => [
             'type' => 'unit',
@@ -3249,1297 +3541,1556 @@ return [
         'metres' => [
             'type' => 'alias',
             'name' => 'metres',
-            'def' => 'meter'
+            'def' => 'meter',
+            'aliasKind' => 'generated_plural'
         ],
         'meters' => [
             'type' => 'alias',
             'name' => 'meters',
-            'def' => 'meter'
+            'def' => 'meter',
+            'aliasKind' => 'generated_plural'
         ],
         'kilograms' => [
             'type' => 'alias',
             'name' => 'kilograms',
-            'def' => 'kilogram'
+            'def' => 'kilogram',
+            'aliasKind' => 'generated_plural'
         ],
         'seconds' => [
             'type' => 'alias',
             'name' => 'seconds',
-            'def' => 'second'
+            'def' => 'second',
+            'aliasKind' => 'generated_plural'
         ],
         'amperes' => [
             'type' => 'alias',
             'name' => 'amperes',
-            'def' => 'ampere'
+            'def' => 'ampere',
+            'aliasKind' => 'generated_plural'
         ],
         'kelvins' => [
             'type' => 'alias',
             'name' => 'kelvins',
-            'def' => 'kelvin'
+            'def' => 'kelvin',
+            'aliasKind' => 'generated_plural'
         ],
         'moles' => [
             'type' => 'alias',
             'name' => 'moles',
-            'def' => 'mole'
+            'def' => 'mole',
+            'aliasKind' => 'generated_plural'
         ],
         'candelas' => [
             'type' => 'alias',
             'name' => 'candelas',
-            'def' => 'candela'
+            'def' => 'candela',
+            'aliasKind' => 'generated_plural'
         ],
         'radians' => [
             'type' => 'alias',
             'name' => 'radians',
-            'def' => 'radian'
+            'def' => 'radian',
+            'aliasKind' => 'generated_plural'
         ],
         'steradians' => [
             'type' => 'alias',
             'name' => 'steradians',
-            'def' => 'steradian'
+            'def' => 'steradian',
+            'aliasKind' => 'generated_plural'
         ],
         'hertzes' => [
             'type' => 'alias',
             'name' => 'hertzes',
-            'def' => 'hertz'
+            'def' => 'hertz',
+            'aliasKind' => 'generated_plural'
         ],
         'grams' => [
             'type' => 'alias',
             'name' => 'grams',
-            'def' => 'gram'
+            'def' => 'gram',
+            'aliasKind' => 'generated_plural'
         ],
         'newtons' => [
             'type' => 'alias',
             'name' => 'newtons',
-            'def' => 'newton'
+            'def' => 'newton',
+            'aliasKind' => 'generated_plural'
         ],
         'pascals' => [
             'type' => 'alias',
             'name' => 'pascals',
-            'def' => 'pascal'
+            'def' => 'pascal',
+            'aliasKind' => 'generated_plural'
         ],
         'joules' => [
             'type' => 'alias',
             'name' => 'joules',
-            'def' => 'joule'
+            'def' => 'joule',
+            'aliasKind' => 'generated_plural'
         ],
         'watts' => [
             'type' => 'alias',
             'name' => 'watts',
-            'def' => 'watt'
+            'def' => 'watt',
+            'aliasKind' => 'generated_plural'
         ],
         'coulombs' => [
             'type' => 'alias',
             'name' => 'coulombs',
-            'def' => 'coulomb'
+            'def' => 'coulomb',
+            'aliasKind' => 'generated_plural'
         ],
         'volts' => [
             'type' => 'alias',
             'name' => 'volts',
-            'def' => 'volt'
+            'def' => 'volt',
+            'aliasKind' => 'generated_plural'
         ],
         'farads' => [
             'type' => 'alias',
             'name' => 'farads',
-            'def' => 'farad'
+            'def' => 'farad',
+            'aliasKind' => 'generated_plural'
         ],
         'ohms' => [
             'type' => 'alias',
             'name' => 'ohms',
-            'def' => 'ohm'
+            'def' => 'ohm',
+            'aliasKind' => 'generated_plural'
         ],
         'siemenses' => [
             'type' => 'alias',
             'name' => 'siemenses',
-            'def' => 'siemens'
+            'def' => 'siemens',
+            'aliasKind' => 'generated_plural'
         ],
         'webers' => [
             'type' => 'alias',
             'name' => 'webers',
-            'def' => 'weber'
+            'def' => 'weber',
+            'aliasKind' => 'generated_plural'
         ],
         'teslas' => [
             'type' => 'alias',
             'name' => 'teslas',
-            'def' => 'tesla'
+            'def' => 'tesla',
+            'aliasKind' => 'generated_plural'
         ],
         'henries' => [
             'type' => 'alias',
             'name' => 'henries',
-            'def' => 'henry'
+            'def' => 'henry',
+            'aliasKind' => 'generated_plural'
         ],
         'lumens' => [
             'type' => 'alias',
             'name' => 'lumens',
-            'def' => 'lumen'
+            'def' => 'lumen',
+            'aliasKind' => 'generated_plural'
         ],
         'luxes' => [
             'type' => 'alias',
             'name' => 'luxes',
-            'def' => 'lux'
+            'def' => 'lux',
+            'aliasKind' => 'generated_plural'
         ],
         'katals' => [
             'type' => 'alias',
             'name' => 'katals',
-            'def' => 'katal'
+            'def' => 'katal',
+            'aliasKind' => 'generated_plural'
         ],
         'becquerels' => [
             'type' => 'alias',
             'name' => 'becquerels',
-            'def' => 'becquerel'
+            'def' => 'becquerel',
+            'aliasKind' => 'generated_plural'
         ],
         'grays' => [
             'type' => 'alias',
             'name' => 'grays',
-            'def' => 'gray'
+            'def' => 'gray',
+            'aliasKind' => 'generated_plural'
         ],
         'sieverts' => [
             'type' => 'alias',
             'name' => 'sieverts',
-            'def' => 'sievert'
+            'def' => 'sievert',
+            'aliasKind' => 'generated_plural'
         ],
         'minutes' => [
             'type' => 'alias',
             'name' => 'minutes',
-            'def' => 'minute'
+            'def' => 'minute',
+            'aliasKind' => 'generated_plural'
         ],
         'hours' => [
             'type' => 'alias',
             'name' => 'hours',
-            'def' => 'hour'
+            'def' => 'hour',
+            'aliasKind' => 'generated_plural'
         ],
         'days' => [
             'type' => 'alias',
             'name' => 'days',
-            'def' => 'day'
+            'def' => 'day',
+            'aliasKind' => 'generated_plural'
         ],
         'angular_degrees' => [
             'type' => 'alias',
             'name' => 'angular_degrees',
-            'def' => 'arc_degree'
+            'def' => 'arc_degree',
+            'aliasKind' => 'generated_plural'
         ],
         'degrees' => [
             'type' => 'alias',
             'name' => 'degrees',
-            'def' => 'arc_degree'
+            'def' => 'arc_degree',
+            'aliasKind' => 'generated_plural'
         ],
         'arcdegs' => [
             'type' => 'alias',
             'name' => 'arcdegs',
-            'def' => 'arc_degree'
+            'def' => 'arc_degree',
+            'aliasKind' => 'generated_plural'
         ],
         'arc_degrees' => [
             'type' => 'alias',
             'name' => 'arc_degrees',
-            'def' => 'arc_degree'
+            'def' => 'arc_degree',
+            'aliasKind' => 'generated_plural'
         ],
         'angular_minutes' => [
             'type' => 'alias',
             'name' => 'angular_minutes',
-            'def' => 'arc_minute'
+            'def' => 'arc_minute',
+            'aliasKind' => 'generated_plural'
         ],
         'arcminutes' => [
             'type' => 'alias',
             'name' => 'arcminutes',
-            'def' => 'arc_minute'
+            'def' => 'arc_minute',
+            'aliasKind' => 'generated_plural'
         ],
         'arcmins' => [
             'type' => 'alias',
             'name' => 'arcmins',
-            'def' => 'arc_minute'
+            'def' => 'arc_minute',
+            'aliasKind' => 'generated_plural'
         ],
         'arc_minutes' => [
             'type' => 'alias',
             'name' => 'arc_minutes',
-            'def' => 'arc_minute'
+            'def' => 'arc_minute',
+            'aliasKind' => 'generated_plural'
         ],
         'angular_seconds' => [
             'type' => 'alias',
             'name' => 'angular_seconds',
-            'def' => 'arc_second'
+            'def' => 'arc_second',
+            'aliasKind' => 'generated_plural'
         ],
         'arcseconds' => [
             'type' => 'alias',
             'name' => 'arcseconds',
-            'def' => 'arc_second'
+            'def' => 'arc_second',
+            'aliasKind' => 'generated_plural'
         ],
         'arcsecs' => [
             'type' => 'alias',
             'name' => 'arcsecs',
-            'def' => 'arc_second'
+            'def' => 'arc_second',
+            'aliasKind' => 'generated_plural'
         ],
         'arc_seconds' => [
             'type' => 'alias',
             'name' => 'arc_seconds',
-            'def' => 'arc_second'
+            'def' => 'arc_second',
+            'aliasKind' => 'generated_plural'
         ],
         'litres' => [
             'type' => 'alias',
             'name' => 'litres',
-            'def' => 'liter'
+            'def' => 'liter',
+            'aliasKind' => 'generated_plural'
         ],
         'liters' => [
             'type' => 'alias',
             'name' => 'liters',
-            'def' => 'liter'
+            'def' => 'liter',
+            'aliasKind' => 'generated_plural'
         ],
         'tonnes' => [
             'type' => 'alias',
             'name' => 'tonnes',
-            'def' => 'metric_ton'
+            'def' => 'metric_ton',
+            'aliasKind' => 'generated_plural'
         ],
         'metric_tons' => [
             'type' => 'alias',
             'name' => 'metric_tons',
-            'def' => 'metric_ton'
+            'def' => 'metric_ton',
+            'aliasKind' => 'generated_plural'
         ],
         'electron_volts' => [
             'type' => 'alias',
             'name' => 'electron_volts',
-            'def' => 'electronvolt'
+            'def' => 'electronvolt',
+            'aliasKind' => 'generated_plural'
         ],
         'electronvolts' => [
             'type' => 'alias',
             'name' => 'electronvolts',
-            'def' => 'electronvolt'
+            'def' => 'electronvolt',
+            'aliasKind' => 'generated_plural'
         ],
         'atomic_mass_units' => [
             'type' => 'alias',
             'name' => 'atomic_mass_units',
-            'def' => 'unified_atomic_mass_unit'
+            'def' => 'unified_atomic_mass_unit',
+            'aliasKind' => 'generated_plural'
         ],
         'atomicmassunits' => [
             'type' => 'alias',
             'name' => 'atomicmassunits',
-            'def' => 'unified_atomic_mass_unit'
+            'def' => 'unified_atomic_mass_unit',
+            'aliasKind' => 'generated_plural'
         ],
         'unified_atomic_mass_units' => [
             'type' => 'alias',
             'name' => 'unified_atomic_mass_units',
-            'def' => 'unified_atomic_mass_unit'
+            'def' => 'unified_atomic_mass_unit',
+            'aliasKind' => 'generated_plural'
         ],
         'astronomical_units' => [
             'type' => 'alias',
             'name' => 'astronomical_units',
-            'def' => 'astronomical_unit'
+            'def' => 'astronomical_unit',
+            'aliasKind' => 'generated_plural'
         ],
         'nautical_miles' => [
             'type' => 'alias',
             'name' => 'nautical_miles',
-            'def' => 'nautical_mile'
+            'def' => 'nautical_mile',
+            'aliasKind' => 'generated_plural'
         ],
         'knot_internationals' => [
             'type' => 'alias',
             'name' => 'knot_internationals',
-            'def' => 'international_knot'
+            'def' => 'international_knot',
+            'aliasKind' => 'generated_plural'
         ],
         'knots' => [
             'type' => 'alias',
             'name' => 'knots',
-            'def' => 'international_knot'
+            'def' => 'international_knot',
+            'aliasKind' => 'generated_plural'
         ],
         'international_knots' => [
             'type' => 'alias',
             'name' => 'international_knots',
-            'def' => 'international_knot'
+            'def' => 'international_knot',
+            'aliasKind' => 'generated_plural'
         ],
         'angstroms' => [
             'type' => 'alias',
             'name' => 'angstroms',
-            'def' => 'angstrom'
+            'def' => 'angstrom',
+            'aliasKind' => 'generated_plural'
         ],
         'ares' => [
             'type' => 'alias',
             'name' => 'ares',
-            'def' => 'are'
+            'def' => 'are',
+            'aliasKind' => 'generated_plural'
         ],
         'hectares' => [
             'type' => 'alias',
             'name' => 'hectares',
-            'def' => 'hectare'
+            'def' => 'hectare',
+            'aliasKind' => 'generated_plural'
         ],
         'barns' => [
             'type' => 'alias',
             'name' => 'barns',
-            'def' => 'barn'
+            'def' => 'barn',
+            'aliasKind' => 'generated_plural'
         ],
         'bars' => [
             'type' => 'alias',
             'name' => 'bars',
-            'def' => 'bar'
+            'def' => 'bar',
+            'aliasKind' => 'generated_plural'
         ],
         'gals' => [
             'type' => 'alias',
             'name' => 'gals',
-            'def' => 'gal'
+            'def' => 'gal',
+            'aliasKind' => 'generated_plural'
         ],
         'curies' => [
             'type' => 'alias',
             'name' => 'curies',
-            'def' => 'curie'
+            'def' => 'curie',
+            'aliasKind' => 'generated_plural'
         ],
         'roentgens' => [
             'type' => 'alias',
             'name' => 'roentgens',
-            'def' => 'roentgen'
+            'def' => 'roentgen',
+            'aliasKind' => 'generated_plural'
         ],
         'rems' => [
             'type' => 'alias',
             'name' => 'rems',
-            'def' => 'rem'
+            'def' => 'rem',
+            'aliasKind' => 'generated_plural'
         ],
         'secs' => [
             'type' => 'alias',
             'name' => 'secs',
-            'def' => 'sec'
+            'def' => 'sec',
+            'aliasKind' => 'generated_plural'
         ],
         'amps' => [
             'type' => 'alias',
             'name' => 'amps',
-            'def' => 'amp'
+            'def' => 'amp',
+            'aliasKind' => 'generated_plural'
         ],
         'candles' => [
             'type' => 'alias',
             'name' => 'candles',
-            'def' => 'candle'
+            'def' => 'candle',
+            'aliasKind' => 'generated_plural'
         ],
         'einsteins' => [
             'type' => 'alias',
             'name' => 'einsteins',
-            'def' => 'einstein'
+            'def' => 'einstein',
+            'aliasKind' => 'generated_plural'
         ],
         'bauds' => [
             'type' => 'alias',
             'name' => 'bauds',
-            'def' => 'baud'
+            'def' => 'baud',
+            'aliasKind' => 'generated_plural'
         ],
         'celsiuses' => [
             'type' => 'alias',
             'name' => 'celsiuses',
-            'def' => 'celsius'
+            'def' => 'celsius',
+            'aliasKind' => 'generated_plural'
         ],
         'grades' => [
             'type' => 'alias',
             'name' => 'grades',
-            'def' => 'grade'
+            'def' => 'grade',
+            'aliasKind' => 'generated_plural'
         ],
         'cycles' => [
             'type' => 'alias',
             'name' => 'cycles',
-            'def' => 'circle'
+            'def' => 'circle',
+            'aliasKind' => 'generated_plural'
         ],
         'turns' => [
             'type' => 'alias',
             'name' => 'turns',
-            'def' => 'circle'
+            'def' => 'circle',
+            'aliasKind' => 'generated_plural'
         ],
         'revolutions' => [
             'type' => 'alias',
             'name' => 'revolutions',
-            'def' => 'circle'
+            'def' => 'circle',
+            'aliasKind' => 'generated_plural'
         ],
         'rotations' => [
             'type' => 'alias',
             'name' => 'rotations',
-            'def' => 'circle'
+            'def' => 'circle',
+            'aliasKind' => 'generated_plural'
         ],
         'circles' => [
             'type' => 'alias',
             'name' => 'circles',
-            'def' => 'circle'
+            'def' => 'circle',
+            'aliasKind' => 'generated_plural'
         ],
         'assay_tons' => [
             'type' => 'alias',
             'name' => 'assay_tons',
-            'def' => 'assay_ton'
+            'def' => 'assay_ton',
+            'aliasKind' => 'generated_plural'
         ],
         'avoirdupois_ounces' => [
             'type' => 'alias',
             'name' => 'avoirdupois_ounces',
-            'def' => 'avoirdupois_ounce'
+            'def' => 'avoirdupois_ounce',
+            'aliasKind' => 'generated_plural'
         ],
         'pounds' => [
             'type' => 'alias',
             'name' => 'pounds',
-            'def' => 'avoirdupois_pound'
+            'def' => 'avoirdupois_pound',
+            'aliasKind' => 'generated_plural'
         ],
         'avoirdupois_pounds' => [
             'type' => 'alias',
             'name' => 'avoirdupois_pounds',
-            'def' => 'avoirdupois_pound'
+            'def' => 'avoirdupois_pound',
+            'aliasKind' => 'generated_plural'
         ],
         'carats' => [
             'type' => 'alias',
             'name' => 'carats',
-            'def' => 'carat'
+            'def' => 'carat',
+            'aliasKind' => 'generated_plural'
         ],
         'grains' => [
             'type' => 'alias',
             'name' => 'grains',
-            'def' => 'grain'
+            'def' => 'grain',
+            'aliasKind' => 'generated_plural'
         ],
         'long_hundredweights' => [
             'type' => 'alias',
             'name' => 'long_hundredweights',
-            'def' => 'long_hundredweight'
+            'def' => 'long_hundredweight',
+            'aliasKind' => 'generated_plural'
         ],
         'pennyweights' => [
             'type' => 'alias',
             'name' => 'pennyweights',
-            'def' => 'pennyweight'
+            'def' => 'pennyweight',
+            'aliasKind' => 'generated_plural'
         ],
         'short_hundredweights' => [
             'type' => 'alias',
             'name' => 'short_hundredweights',
-            'def' => 'short_hundredweight'
+            'def' => 'short_hundredweight',
+            'aliasKind' => 'generated_plural'
         ],
         'slugs' => [
             'type' => 'alias',
             'name' => 'slugs',
-            'def' => 'slug'
+            'def' => 'slug',
+            'aliasKind' => 'generated_plural'
         ],
         'apothecary_ounces' => [
             'type' => 'alias',
             'name' => 'apothecary_ounces',
-            'def' => 'troy_ounce'
+            'def' => 'troy_ounce',
+            'aliasKind' => 'generated_plural'
         ],
         'troy_ounces' => [
             'type' => 'alias',
             'name' => 'troy_ounces',
-            'def' => 'troy_ounce'
+            'def' => 'troy_ounce',
+            'aliasKind' => 'generated_plural'
         ],
         'apothecary_pounds' => [
             'type' => 'alias',
             'name' => 'apothecary_pounds',
-            'def' => 'troy_pound'
+            'def' => 'troy_pound',
+            'aliasKind' => 'generated_plural'
         ],
         'troy_pounds' => [
             'type' => 'alias',
             'name' => 'troy_pounds',
-            'def' => 'troy_pound'
+            'def' => 'troy_pound',
+            'aliasKind' => 'generated_plural'
         ],
         'scruples' => [
             'type' => 'alias',
             'name' => 'scruples',
-            'def' => 'scruple'
+            'def' => 'scruple',
+            'aliasKind' => 'generated_plural'
         ],
         'apdrams' => [
             'type' => 'alias',
             'name' => 'apdrams',
-            'def' => 'apdram'
+            'def' => 'apdram',
+            'aliasKind' => 'generated_plural'
         ],
         'drams' => [
             'type' => 'alias',
             'name' => 'drams',
-            'def' => 'dram'
+            'def' => 'dram',
+            'aliasKind' => 'generated_plural'
         ],
         'apounces' => [
             'type' => 'alias',
             'name' => 'apounces',
-            'def' => 'apounce'
+            'def' => 'apounce',
+            'aliasKind' => 'generated_plural'
         ],
         'appounds' => [
             'type' => 'alias',
             'name' => 'appounds',
-            'def' => 'appound'
+            'def' => 'appound',
+            'aliasKind' => 'generated_plural'
         ],
         'bags' => [
             'type' => 'alias',
             'name' => 'bags',
-            'def' => 'bag'
+            'def' => 'bag',
+            'aliasKind' => 'generated_plural'
         ],
         'tons' => [
             'type' => 'alias',
             'name' => 'tons',
-            'def' => 'short_ton'
+            'def' => 'short_ton',
+            'aliasKind' => 'generated_plural'
         ],
         'short_tons' => [
             'type' => 'alias',
             'name' => 'short_tons',
-            'def' => 'short_ton'
+            'def' => 'short_ton',
+            'aliasKind' => 'generated_plural'
         ],
         'long_tons' => [
             'type' => 'alias',
             'name' => 'long_tons',
-            'def' => 'long_ton'
+            'def' => 'long_ton',
+            'aliasKind' => 'generated_plural'
         ],
         'fermis' => [
             'type' => 'alias',
             'name' => 'fermis',
-            'def' => 'fermi'
+            'def' => 'fermi',
+            'aliasKind' => 'generated_plural'
         ],
         'light_years' => [
             'type' => 'alias',
             'name' => 'light_years',
-            'def' => 'light_year'
+            'def' => 'light_year',
+            'aliasKind' => 'generated_plural'
         ],
         'microns' => [
             'type' => 'alias',
             'name' => 'microns',
-            'def' => 'micron'
+            'def' => 'micron',
+            'aliasKind' => 'generated_plural'
         ],
         'mils' => [
             'type' => 'alias',
             'name' => 'mils',
-            'def' => 'mil'
+            'def' => 'mil',
+            'aliasKind' => 'generated_plural'
         ],
         'parsecs' => [
             'type' => 'alias',
             'name' => 'parsecs',
-            'def' => 'parsec'
+            'def' => 'parsec',
+            'aliasKind' => 'generated_plural'
         ],
         'printers_points' => [
             'type' => 'alias',
             'name' => 'printers_points',
-            'def' => 'printers_point'
+            'def' => 'printers_point',
+            'aliasKind' => 'generated_plural'
         ],
         'chains' => [
             'type' => 'alias',
             'name' => 'chains',
-            'def' => 'chain'
+            'def' => 'chain',
+            'aliasKind' => 'generated_plural'
         ],
         'picas' => [
             'type' => 'alias',
             'name' => 'picas',
-            'def' => 'printers_pica'
+            'def' => 'printers_pica',
+            'aliasKind' => 'generated_plural'
         ],
         'printers_picas' => [
             'type' => 'alias',
             'name' => 'printers_picas',
-            'def' => 'printers_pica'
+            'def' => 'printers_pica',
+            'aliasKind' => 'generated_plural'
         ],
         'nmiles' => [
             'type' => 'alias',
             'name' => 'nmiles',
-            'def' => 'nmile'
+            'def' => 'nmile',
+            'aliasKind' => 'generated_plural'
         ],
         'poles' => [
             'type' => 'alias',
             'name' => 'poles',
-            'def' => 'rod'
+            'def' => 'rod',
+            'aliasKind' => 'generated_plural'
         ],
         'perches' => [
             'type' => 'alias',
             'name' => 'perches',
-            'def' => 'rod'
+            'def' => 'rod',
+            'aliasKind' => 'generated_plural'
         ],
         'rods' => [
             'type' => 'alias',
             'name' => 'rods',
-            'def' => 'rod'
+            'def' => 'rod',
+            'aliasKind' => 'generated_plural'
         ],
         'furlongs' => [
             'type' => 'alias',
             'name' => 'furlongs',
-            'def' => 'furlong'
+            'def' => 'furlong',
+            'aliasKind' => 'generated_plural'
         ],
         'fathoms' => [
             'type' => 'alias',
             'name' => 'fathoms',
-            'def' => 'fathom'
+            'def' => 'fathom',
+            'aliasKind' => 'generated_plural'
         ],
         'inches' => [
             'type' => 'alias',
             'name' => 'inches',
-            'def' => 'international_inch'
+            'def' => 'international_inch',
+            'aliasKind' => 'generated_plural'
         ],
         'international_inches' => [
             'type' => 'alias',
             'name' => 'international_inches',
-            'def' => 'international_inch'
+            'def' => 'international_inch',
+            'aliasKind' => 'generated_plural'
         ],
         'yards' => [
             'type' => 'alias',
             'name' => 'yards',
-            'def' => 'international_yard'
+            'def' => 'international_yard',
+            'aliasKind' => 'generated_plural'
         ],
         'international_yards' => [
             'type' => 'alias',
             'name' => 'international_yards',
-            'def' => 'international_yard'
+            'def' => 'international_yard',
+            'aliasKind' => 'generated_plural'
         ],
         'miles' => [
             'type' => 'alias',
             'name' => 'miles',
-            'def' => 'international_mile'
+            'def' => 'international_mile',
+            'aliasKind' => 'generated_plural'
         ],
         'international_miles' => [
             'type' => 'alias',
             'name' => 'international_miles',
-            'def' => 'international_mile'
+            'def' => 'international_mile',
+            'aliasKind' => 'generated_plural'
         ],
         'big_points' => [
             'type' => 'alias',
             'name' => 'big_points',
-            'def' => 'big_point'
+            'def' => 'big_point',
+            'aliasKind' => 'generated_plural'
         ],
         'barleycorns' => [
             'type' => 'alias',
             'name' => 'barleycorns',
-            'def' => 'barleycorn'
+            'def' => 'barleycorn',
+            'aliasKind' => 'generated_plural'
         ],
         'arpentlins' => [
             'type' => 'alias',
             'name' => 'arpentlins',
-            'def' => 'arpentlin'
+            'def' => 'arpentlin',
+            'aliasKind' => 'generated_plural'
         ],
         'deniers' => [
             'type' => 'alias',
             'name' => 'deniers',
-            'def' => 'denier'
+            'def' => 'denier',
+            'aliasKind' => 'generated_plural'
         ],
         'texes' => [
             'type' => 'alias',
             'name' => 'texes',
-            'def' => 'tex'
+            'def' => 'tex',
+            'aliasKind' => 'generated_plural'
         ],
         'circular_mils' => [
             'type' => 'alias',
             'name' => 'circular_mils',
-            'def' => 'circular_mil'
+            'def' => 'circular_mil',
+            'aliasKind' => 'generated_plural'
         ],
         'darcies' => [
             'type' => 'alias',
             'name' => 'darcies',
-            'def' => 'darcy'
+            'def' => 'darcy',
+            'aliasKind' => 'generated_plural'
         ],
         'acres' => [
             'type' => 'alias',
             'name' => 'acres',
-            'def' => 'acre'
+            'def' => 'acre',
+            'aliasKind' => 'generated_plural'
         ],
         'bushels' => [
             'type' => 'alias',
             'name' => 'bushels',
-            'def' => 'bushel'
+            'def' => 'bushel',
+            'aliasKind' => 'generated_plural'
         ],
         'pecks' => [
             'type' => 'alias',
             'name' => 'pecks',
-            'def' => 'peck'
+            'def' => 'peck',
+            'aliasKind' => 'generated_plural'
         ],
         'steres' => [
             'type' => 'alias',
             'name' => 'steres',
-            'def' => 'stere'
+            'def' => 'stere',
+            'aliasKind' => 'generated_plural'
         ],
         'register_tons' => [
             'type' => 'alias',
             'name' => 'register_tons',
-            'def' => 'register_ton'
+            'def' => 'register_ton',
+            'aliasKind' => 'generated_plural'
         ],
         'dry_quarts' => [
             'type' => 'alias',
             'name' => 'dry_quarts',
-            'def' => 'US_dry_quart'
+            'def' => 'US_dry_quart',
+            'aliasKind' => 'generated_plural'
         ],
         'dry_pints' => [
             'type' => 'alias',
             'name' => 'dry_pints',
-            'def' => 'US_dry_pint'
+            'def' => 'US_dry_pint',
+            'aliasKind' => 'generated_plural'
         ],
         'liquid_gallons' => [
             'type' => 'alias',
             'name' => 'liquid_gallons',
-            'def' => 'US_liquid_gallon'
+            'def' => 'US_liquid_gallon',
+            'aliasKind' => 'generated_plural'
         ],
         'gallons' => [
             'type' => 'alias',
             'name' => 'gallons',
-            'def' => 'US_liquid_gallon'
+            'def' => 'US_liquid_gallon',
+            'aliasKind' => 'generated_plural'
         ],
         'barrels' => [
             'type' => 'alias',
             'name' => 'barrels',
-            'def' => 'barrel'
+            'def' => 'barrel',
+            'aliasKind' => 'generated_plural'
         ],
         'firkins' => [
             'type' => 'alias',
             'name' => 'firkins',
-            'def' => 'firkin'
+            'def' => 'firkin',
+            'aliasKind' => 'generated_plural'
         ],
         'liquid_quarts' => [
             'type' => 'alias',
             'name' => 'liquid_quarts',
-            'def' => 'US_liquid_quart'
+            'def' => 'US_liquid_quart',
+            'aliasKind' => 'generated_plural'
         ],
         'quarts' => [
             'type' => 'alias',
             'name' => 'quarts',
-            'def' => 'US_liquid_quart'
+            'def' => 'US_liquid_quart',
+            'aliasKind' => 'generated_plural'
         ],
         'liquid_pints' => [
             'type' => 'alias',
             'name' => 'liquid_pints',
-            'def' => 'US_liquid_pint'
+            'def' => 'US_liquid_pint',
+            'aliasKind' => 'generated_plural'
         ],
         'pints' => [
             'type' => 'alias',
             'name' => 'pints',
-            'def' => 'US_liquid_pint'
+            'def' => 'US_liquid_pint',
+            'aliasKind' => 'generated_plural'
         ],
         'liquid_cups' => [
             'type' => 'alias',
             'name' => 'liquid_cups',
-            'def' => 'US_liquid_cup'
+            'def' => 'US_liquid_cup',
+            'aliasKind' => 'generated_plural'
         ],
         'cups' => [
             'type' => 'alias',
             'name' => 'cups',
-            'def' => 'US_liquid_cup'
+            'def' => 'US_liquid_cup',
+            'aliasKind' => 'generated_plural'
         ],
         'liquid_gills' => [
             'type' => 'alias',
             'name' => 'liquid_gills',
-            'def' => 'US_liquid_gill'
+            'def' => 'US_liquid_gill',
+            'aliasKind' => 'generated_plural'
         ],
         'gills' => [
             'type' => 'alias',
             'name' => 'gills',
-            'def' => 'US_liquid_gill'
+            'def' => 'US_liquid_gill',
+            'aliasKind' => 'generated_plural'
         ],
         'fluid_ounces' => [
             'type' => 'alias',
             'name' => 'fluid_ounces',
-            'def' => 'US_fluid_ounce'
+            'def' => 'US_fluid_ounce',
+            'aliasKind' => 'generated_plural'
         ],
         'liquid_ounces' => [
             'type' => 'alias',
             'name' => 'liquid_ounces',
-            'def' => 'US_fluid_ounce'
+            'def' => 'US_fluid_ounce',
+            'aliasKind' => 'generated_plural'
         ],
         'tablespoons' => [
             'type' => 'alias',
             'name' => 'tablespoons',
-            'def' => 'tablespoon'
+            'def' => 'tablespoon',
+            'aliasKind' => 'generated_plural'
         ],
         'fluid_drams' => [
             'type' => 'alias',
             'name' => 'fluid_drams',
-            'def' => 'fluid_dram'
+            'def' => 'fluid_dram',
+            'aliasKind' => 'generated_plural'
         ],
         'teaspoons' => [
             'type' => 'alias',
             'name' => 'teaspoons',
-            'def' => 'teaspoon'
+            'def' => 'teaspoon',
+            'aliasKind' => 'generated_plural'
         ],
         'shakes' => [
             'type' => 'alias',
             'name' => 'shakes',
-            'def' => 'shake'
+            'def' => 'shake',
+            'aliasKind' => 'generated_plural'
         ],
         'sidereal_days' => [
             'type' => 'alias',
             'name' => 'sidereal_days',
-            'def' => 'sidereal_day'
+            'def' => 'sidereal_day',
+            'aliasKind' => 'generated_plural'
         ],
         'sidereal_hours' => [
             'type' => 'alias',
             'name' => 'sidereal_hours',
-            'def' => 'sidereal_hour'
+            'def' => 'sidereal_hour',
+            'aliasKind' => 'generated_plural'
         ],
         'sidereal_minutes' => [
             'type' => 'alias',
             'name' => 'sidereal_minutes',
-            'def' => 'sidereal_minute'
+            'def' => 'sidereal_minute',
+            'aliasKind' => 'generated_plural'
         ],
         'sidereal_seconds' => [
             'type' => 'alias',
             'name' => 'sidereal_seconds',
-            'def' => 'sidereal_second'
+            'def' => 'sidereal_second',
+            'aliasKind' => 'generated_plural'
         ],
         'sidereal_years' => [
             'type' => 'alias',
             'name' => 'sidereal_years',
-            'def' => 'sidereal_year'
+            'def' => 'sidereal_year',
+            'aliasKind' => 'generated_plural'
         ],
         'years' => [
             'type' => 'alias',
             'name' => 'years',
-            'def' => 'tropical_year'
+            'def' => 'tropical_year',
+            'aliasKind' => 'generated_plural'
         ],
         'tropical_years' => [
             'type' => 'alias',
             'name' => 'tropical_years',
-            'def' => 'tropical_year'
+            'def' => 'tropical_year',
+            'aliasKind' => 'generated_plural'
         ],
         'lunar_months' => [
             'type' => 'alias',
             'name' => 'lunar_months',
-            'def' => 'lunar_month'
+            'def' => 'lunar_month',
+            'aliasKind' => 'generated_plural'
         ],
         'common_years' => [
             'type' => 'alias',
             'name' => 'common_years',
-            'def' => 'common_year'
+            'def' => 'common_year',
+            'aliasKind' => 'generated_plural'
         ],
         'leap_years' => [
             'type' => 'alias',
             'name' => 'leap_years',
-            'def' => 'leap_year'
+            'def' => 'leap_year',
+            'aliasKind' => 'generated_plural'
         ],
         'sidereal_months' => [
             'type' => 'alias',
             'name' => 'sidereal_months',
-            'def' => 'sidereal_month'
+            'def' => 'sidereal_month',
+            'aliasKind' => 'generated_plural'
         ],
         'tropical_months' => [
             'type' => 'alias',
             'name' => 'tropical_months',
-            'def' => 'tropical_month'
+            'def' => 'tropical_month',
+            'aliasKind' => 'generated_plural'
         ],
         'fortnights' => [
             'type' => 'alias',
             'name' => 'fortnights',
-            'def' => 'fortnight'
+            'def' => 'fortnight',
+            'aliasKind' => 'generated_plural'
         ],
         'weeks' => [
             'type' => 'alias',
             'name' => 'weeks',
-            'def' => 'week'
+            'def' => 'week',
+            'aliasKind' => 'generated_plural'
         ],
         'jiffies' => [
             'type' => 'alias',
             'name' => 'jiffies',
-            'def' => 'jiffy'
+            'def' => 'jiffy',
+            'aliasKind' => 'generated_plural'
         ],
         'eons' => [
             'type' => 'alias',
             'name' => 'eons',
-            'def' => 'eon'
+            'def' => 'eon',
+            'aliasKind' => 'generated_plural'
         ],
         'months' => [
             'type' => 'alias',
             'name' => 'months',
-            'def' => 'month'
+            'def' => 'month',
+            'aliasKind' => 'generated_plural'
         ],
         'sverdrups' => [
             'type' => 'alias',
             'name' => 'sverdrups',
-            'def' => 'sverdrup'
+            'def' => 'sverdrup',
+            'aliasKind' => 'generated_plural'
         ],
         'standard_free_falls' => [
             'type' => 'alias',
             'name' => 'standard_free_falls',
-            'def' => 'standard_free_fall'
+            'def' => 'standard_free_fall',
+            'aliasKind' => 'generated_plural'
         ],
         'gravities' => [
             'type' => 'alias',
             'name' => 'gravities',
-            'def' => 'gravity'
+            'def' => 'gravity',
+            'aliasKind' => 'generated_plural'
         ],
         'waters' => [
             'type' => 'alias',
             'name' => 'waters',
-            'def' => 'conventional_water'
+            'def' => 'conventional_water',
+            'aliasKind' => 'generated_plural'
         ],
         'conventional_waters' => [
             'type' => 'alias',
             'name' => 'conventional_waters',
-            'def' => 'conventional_water'
+            'def' => 'conventional_water',
+            'aliasKind' => 'generated_plural'
         ],
         'forces' => [
             'type' => 'alias',
             'name' => 'forces',
-            'def' => 'force'
+            'def' => 'force',
+            'aliasKind' => 'generated_plural'
         ],
         'dynes' => [
             'type' => 'alias',
             'name' => 'dynes',
-            'def' => 'dyne'
+            'def' => 'dyne',
+            'aliasKind' => 'generated_plural'
         ],
         'ponds' => [
             'type' => 'alias',
             'name' => 'ponds',
-            'def' => 'pond'
+            'def' => 'pond',
+            'aliasKind' => 'generated_plural'
         ],
         'force_kilograms' => [
             'type' => 'alias',
             'name' => 'force_kilograms',
-            'def' => 'force_kilogram'
+            'def' => 'force_kilogram',
+            'aliasKind' => 'generated_plural'
         ],
         'force_ounces' => [
             'type' => 'alias',
             'name' => 'force_ounces',
-            'def' => 'force_ounce'
+            'def' => 'force_ounce',
+            'aliasKind' => 'generated_plural'
         ],
         'force_pounds' => [
             'type' => 'alias',
             'name' => 'force_pounds',
-            'def' => 'force_pound'
+            'def' => 'force_pound',
+            'aliasKind' => 'generated_plural'
         ],
         'poundals' => [
             'type' => 'alias',
             'name' => 'poundals',
-            'def' => 'poundal'
+            'def' => 'poundal',
+            'aliasKind' => 'generated_plural'
         ],
         'force_grams' => [
             'type' => 'alias',
             'name' => 'force_grams',
-            'def' => 'gram_force'
+            'def' => 'gram_force',
+            'aliasKind' => 'generated_plural'
         ],
         'force_tons' => [
             'type' => 'alias',
             'name' => 'force_tons',
-            'def' => 'force_ton'
+            'def' => 'force_ton',
+            'aliasKind' => 'generated_plural'
         ],
         'kips' => [
             'type' => 'alias',
             'name' => 'kips',
-            'def' => 'kip'
+            'def' => 'kip',
+            'aliasKind' => 'generated_plural'
         ],
         'atmospheres' => [
             'type' => 'alias',
             'name' => 'atmospheres',
-            'def' => 'standard_atmosphere'
+            'def' => 'standard_atmosphere',
+            'aliasKind' => 'generated_plural'
         ],
         'standard_atmospheres' => [
             'type' => 'alias',
             'name' => 'standard_atmospheres',
-            'def' => 'standard_atmosphere'
+            'def' => 'standard_atmosphere',
+            'aliasKind' => 'generated_plural'
         ],
         'technical_atmospheres' => [
             'type' => 'alias',
             'name' => 'technical_atmospheres',
-            'def' => 'technical_atmosphere'
+            'def' => 'technical_atmosphere',
+            'aliasKind' => 'generated_plural'
         ],
         'torrs' => [
             'type' => 'alias',
             'name' => 'torrs',
-            'def' => 'millimeter_Hg'
+            'def' => 'millimeter_Hg',
+            'aliasKind' => 'generated_plural'
         ],
         'baryes' => [
             'type' => 'alias',
             'name' => 'baryes',
-            'def' => 'barie'
+            'def' => 'barie',
+            'aliasKind' => 'generated_plural'
         ],
         'baries' => [
             'type' => 'alias',
             'name' => 'baries',
-            'def' => 'barie'
+            'def' => 'barie',
+            'aliasKind' => 'generated_plural'
         ],
         'poises' => [
             'type' => 'alias',
             'name' => 'poises',
-            'def' => 'poise'
+            'def' => 'poise',
+            'aliasKind' => 'generated_plural'
         ],
         'stokeses' => [
             'type' => 'alias',
             'name' => 'stokeses',
-            'def' => 'stokes'
+            'def' => 'stokes',
+            'aliasKind' => 'generated_plural'
         ],
         'rhes' => [
             'type' => 'alias',
             'name' => 'rhes',
-            'def' => 'rhe'
+            'def' => 'rhe',
+            'aliasKind' => 'generated_plural'
         ],
         'ergs' => [
             'type' => 'alias',
             'name' => 'ergs',
-            'def' => 'erg'
+            'def' => 'erg',
+            'aliasKind' => 'generated_plural'
         ],
         'thermochemical_calories' => [
             'type' => 'alias',
             'name' => 'thermochemical_calories',
-            'def' => 'thermochemical_calorie'
+            'def' => 'thermochemical_calorie',
+            'aliasKind' => 'generated_plural'
         ],
         'calories' => [
             'type' => 'alias',
             'name' => 'calories',
-            'def' => 'IT_calorie'
+            'def' => 'IT_calorie',
+            'aliasKind' => 'generated_plural'
         ],
         'therms' => [
             'type' => 'alias',
             'name' => 'therms',
-            'def' => 'US_therm'
+            'def' => 'US_therm',
+            'aliasKind' => 'generated_plural'
         ],
         'watthours' => [
             'type' => 'alias',
             'name' => 'watthours',
-            'def' => 'watthour'
+            'def' => 'watthour',
+            'aliasKind' => 'generated_plural'
         ],
         'voltamperes' => [
             'type' => 'alias',
             'name' => 'voltamperes',
-            'def' => 'voltampere'
+            'def' => 'voltampere',
+            'aliasKind' => 'generated_plural'
         ],
         'boiler_horsepowers' => [
             'type' => 'alias',
             'name' => 'boiler_horsepowers',
-            'def' => 'boiler_horsepower'
+            'def' => 'boiler_horsepower',
+            'aliasKind' => 'generated_plural'
         ],
         'horsepowers' => [
             'type' => 'alias',
             'name' => 'horsepowers',
-            'def' => 'shaft_horsepower'
+            'def' => 'shaft_horsepower',
+            'aliasKind' => 'generated_plural'
         ],
         'shaft_horsepowers' => [
             'type' => 'alias',
             'name' => 'shaft_horsepowers',
-            'def' => 'shaft_horsepower'
+            'def' => 'shaft_horsepower',
+            'aliasKind' => 'generated_plural'
         ],
         'metric_horsepowers' => [
             'type' => 'alias',
             'name' => 'metric_horsepowers',
-            'def' => 'metric_horsepower'
+            'def' => 'metric_horsepower',
+            'aliasKind' => 'generated_plural'
         ],
         'electric_horsepowers' => [
             'type' => 'alias',
             'name' => 'electric_horsepowers',
-            'def' => 'electric_horsepower'
+            'def' => 'electric_horsepower',
+            'aliasKind' => 'generated_plural'
         ],
         'water_horsepowers' => [
             'type' => 'alias',
             'name' => 'water_horsepowers',
-            'def' => 'water_horsepower'
+            'def' => 'water_horsepower',
+            'aliasKind' => 'generated_plural'
         ],
         'refrigeration_tons' => [
             'type' => 'alias',
             'name' => 'refrigeration_tons',
-            'def' => 'refrigeration_ton'
+            'def' => 'refrigeration_ton',
+            'aliasKind' => 'generated_plural'
         ],
         'clos' => [
             'type' => 'alias',
             'name' => 'clos',
-            'def' => 'clo'
+            'def' => 'clo',
+            'aliasKind' => 'generated_plural'
         ],
         'abamperes' => [
             'type' => 'alias',
             'name' => 'abamperes',
-            'def' => 'abampere'
+            'def' => 'abampere',
+            'aliasKind' => 'generated_plural'
         ],
         'gilberts' => [
             'type' => 'alias',
             'name' => 'gilberts',
-            'def' => 'gilbert'
+            'def' => 'gilbert',
+            'aliasKind' => 'generated_plural'
         ],
         'statamperes' => [
             'type' => 'alias',
             'name' => 'statamperes',
-            'def' => 'statampere'
+            'def' => 'statampere',
+            'aliasKind' => 'generated_plural'
         ],
         'biots' => [
             'type' => 'alias',
             'name' => 'biots',
-            'def' => 'biot'
+            'def' => 'biot',
+            'aliasKind' => 'generated_plural'
         ],
         'abfarads' => [
             'type' => 'alias',
             'name' => 'abfarads',
-            'def' => 'abfarad'
+            'def' => 'abfarad',
+            'aliasKind' => 'generated_plural'
         ],
         'abhenries' => [
             'type' => 'alias',
             'name' => 'abhenries',
-            'def' => 'abhenry'
+            'def' => 'abhenry',
+            'aliasKind' => 'generated_plural'
         ],
         'abmhos' => [
             'type' => 'alias',
             'name' => 'abmhos',
-            'def' => 'abmho'
+            'def' => 'abmho',
+            'aliasKind' => 'generated_plural'
         ],
         'abohms' => [
             'type' => 'alias',
             'name' => 'abohms',
-            'def' => 'abohm'
+            'def' => 'abohm',
+            'aliasKind' => 'generated_plural'
         ],
         'abvolts' => [
             'type' => 'alias',
             'name' => 'abvolts',
-            'def' => 'abvolt'
+            'def' => 'abvolt',
+            'aliasKind' => 'generated_plural'
         ],
         'chemical_faradays' => [
             'type' => 'alias',
             'name' => 'chemical_faradays',
-            'def' => 'chemical_faraday'
+            'def' => 'chemical_faraday',
+            'aliasKind' => 'generated_plural'
         ],
         'physical_faradays' => [
             'type' => 'alias',
             'name' => 'physical_faradays',
-            'def' => 'physical_faraday'
+            'def' => 'physical_faraday',
+            'aliasKind' => 'generated_plural'
         ],
         'faradays' => [
             'type' => 'alias',
             'name' => 'faradays',
-            'def' => 'C12_faraday'
+            'def' => 'C12_faraday',
+            'aliasKind' => 'generated_plural'
         ],
         'gammas' => [
             'type' => 'alias',
             'name' => 'gammas',
-            'def' => 'gamma'
+            'def' => 'gamma',
+            'aliasKind' => 'generated_plural'
         ],
         'gausses' => [
             'type' => 'alias',
             'name' => 'gausses',
-            'def' => 'gauss'
+            'def' => 'gauss',
+            'aliasKind' => 'generated_plural'
         ],
         'maxwells' => [
             'type' => 'alias',
             'name' => 'maxwells',
-            'def' => 'maxwell'
+            'def' => 'maxwell',
+            'aliasKind' => 'generated_plural'
         ],
         'oersteds' => [
             'type' => 'alias',
             'name' => 'oersteds',
-            'def' => 'oersted'
+            'def' => 'oersted',
+            'aliasKind' => 'generated_plural'
         ],
         'statcoulombs' => [
             'type' => 'alias',
             'name' => 'statcoulombs',
-            'def' => 'statcoulomb'
+            'def' => 'statcoulomb',
+            'aliasKind' => 'generated_plural'
         ],
         'statfarads' => [
             'type' => 'alias',
             'name' => 'statfarads',
-            'def' => 'statfarad'
+            'def' => 'statfarad',
+            'aliasKind' => 'generated_plural'
         ],
         'stathenries' => [
             'type' => 'alias',
             'name' => 'stathenries',
-            'def' => 'stathenry'
+            'def' => 'stathenry',
+            'aliasKind' => 'generated_plural'
         ],
         'statmhos' => [
             'type' => 'alias',
             'name' => 'statmhos',
-            'def' => 'statmho'
+            'def' => 'statmho',
+            'aliasKind' => 'generated_plural'
         ],
         'statohms' => [
             'type' => 'alias',
             'name' => 'statohms',
-            'def' => 'statohm'
+            'def' => 'statohm',
+            'aliasKind' => 'generated_plural'
         ],
         'statvolts' => [
             'type' => 'alias',
             'name' => 'statvolts',
-            'def' => 'statvolt'
+            'def' => 'statvolt',
+            'aliasKind' => 'generated_plural'
         ],
         'unit_poles' => [
             'type' => 'alias',
             'name' => 'unit_poles',
-            'def' => 'unit_pole'
+            'def' => 'unit_pole',
+            'aliasKind' => 'generated_plural'
         ],
         'fahrenheits' => [
             'type' => 'alias',
             'name' => 'fahrenheits',
-            'def' => 'fahrenheit'
+            'def' => 'fahrenheit',
+            'aliasKind' => 'generated_plural'
         ],
         'footcandles' => [
             'type' => 'alias',
             'name' => 'footcandles',
-            'def' => 'footcandle'
+            'def' => 'footcandle',
+            'aliasKind' => 'generated_plural'
         ],
         'footlamberts' => [
             'type' => 'alias',
             'name' => 'footlamberts',
-            'def' => 'footlambert'
+            'def' => 'footlambert',
+            'aliasKind' => 'generated_plural'
         ],
         'lamberts' => [
             'type' => 'alias',
             'name' => 'lamberts',
-            'def' => 'lambert'
+            'def' => 'lambert',
+            'aliasKind' => 'generated_plural'
         ],
         'stilbs' => [
             'type' => 'alias',
             'name' => 'stilbs',
-            'def' => 'stilb'
+            'def' => 'stilb',
+            'aliasKind' => 'generated_plural'
         ],
         'phots' => [
             'type' => 'alias',
             'name' => 'phots',
-            'def' => 'phot'
+            'def' => 'phot',
+            'aliasKind' => 'generated_plural'
         ],
         'nits' => [
             'type' => 'alias',
             'name' => 'nits',
-            'def' => 'nit'
+            'def' => 'nit',
+            'aliasKind' => 'generated_plural'
         ],
         'langleys' => [
             'type' => 'alias',
             'name' => 'langleys',
-            'def' => 'langley'
+            'def' => 'langley',
+            'aliasKind' => 'generated_plural'
         ],
         'apostilbs' => [
             'type' => 'alias',
             'name' => 'apostilbs',
-            'def' => 'blondel'
+            'def' => 'blondel',
+            'aliasKind' => 'generated_plural'
         ],
         'blondels' => [
             'type' => 'alias',
             'name' => 'blondels',
-            'def' => 'blondel'
+            'def' => 'blondel',
+            'aliasKind' => 'generated_plural'
         ],
         'kaysers' => [
             'type' => 'alias',
             'name' => 'kaysers',
-            'def' => 'kayser'
+            'def' => 'kayser',
+            'aliasKind' => 'generated_plural'
         ],
         'dynamics' => [
             'type' => 'alias',
             'name' => 'dynamics',
-            'def' => 'geopotential'
+            'def' => 'geopotential',
+            'aliasKind' => 'generated_plural'
         ],
         'geopotentials' => [
             'type' => 'alias',
             'name' => 'geopotentials',
-            'def' => 'geopotential'
+            'def' => 'geopotential',
+            'aliasKind' => 'generated_plural'
         ],
         'work_years' => [
             'type' => 'alias',
             'name' => 'work_years',
-            'def' => 'work_year'
+            'def' => 'work_year',
+            'aliasKind' => 'generated_plural'
         ],
         'work_months' => [
             'type' => 'alias',
             'name' => 'work_months',
-            'def' => 'work_month'
+            'def' => 'work_month',
+            'aliasKind' => 'generated_plural'
         ],
         'potential_vorticity_units' => [
             'type' => 'alias',
             'name' => 'potential_vorticity_units',
-            'def' => 'potential_vorticity_unit'
+            'def' => 'potential_vorticity_unit',
+            'aliasKind' => 'generated_plural'
         ],
         'counts' => [
             'type' => 'alias',
             'name' => 'counts',
-            'def' => 'count'
+            'def' => 'count',
+            'aliasKind' => 'generated_plural'
         ],
         'bits' => [
             'type' => 'alias',
             'name' => 'bits',
-            'def' => 'bit'
+            'def' => 'bit',
+            'aliasKind' => 'generated_plural'
         ],
         'bytes' => [
             'type' => 'alias',
             'name' => 'bytes',
-            'def' => 'octet'
+            'def' => 'octet',
+            'aliasKind' => 'generated_plural'
         ],
         'octets' => [
             'type' => 'alias',
             'name' => 'octets',
-            'def' => 'octet'
+            'def' => 'octet',
+            'aliasKind' => 'generated_plural'
         ],
         'dobsons' => [
             'type' => 'alias',
             'name' => 'dobsons',
-            'def' => 'dobson'
+            'def' => 'dobson',
+            'aliasKind' => 'generated_plural'
         ],
         'molecs' => [
             'type' => 'alias',
             'name' => 'molecs',
-            'def' => 'molecule'
+            'def' => 'molecule',
+            'aliasKind' => 'generated_plural'
         ],
         'nucleons' => [
             'type' => 'alias',
             'name' => 'nucleons',
-            'def' => 'molecule'
+            'def' => 'molecule',
+            'aliasKind' => 'generated_plural'
         ],
         'nucs' => [
             'type' => 'alias',
             'name' => 'nucs',
-            'def' => 'molecule'
+            'def' => 'molecule',
+            'aliasKind' => 'generated_plural'
         ],
         'molecules' => [
             'type' => 'alias',
             'name' => 'molecules',
-            'def' => 'molecule'
+            'def' => 'molecule',
+            'aliasKind' => 'generated_plural'
         ]
     ],
     'base' => [
@@ -4592,6 +5143,208 @@ return [
         'z' => '1e-21',
         'yocto' => '1e-24',
         'y' => '1e-24'
+    ],
+    'prefixMetadata' => [
+        'yotta' => [
+            'name' => 'yotta',
+            'kind' => 'canonical',
+            'value' => '1e24'
+        ],
+        'Y' => [
+            'name' => 'yotta',
+            'kind' => 'symbol',
+            'value' => '1e24'
+        ],
+        'zetta' => [
+            'name' => 'zetta',
+            'kind' => 'canonical',
+            'value' => '1e21'
+        ],
+        'Z' => [
+            'name' => 'zetta',
+            'kind' => 'symbol',
+            'value' => '1e21'
+        ],
+        'exa' => [
+            'name' => 'exa',
+            'kind' => 'canonical',
+            'value' => '1e18'
+        ],
+        'E' => [
+            'name' => 'exa',
+            'kind' => 'symbol',
+            'value' => '1e18'
+        ],
+        'peta' => [
+            'name' => 'peta',
+            'kind' => 'canonical',
+            'value' => '1e15'
+        ],
+        'P' => [
+            'name' => 'peta',
+            'kind' => 'symbol',
+            'value' => '1e15'
+        ],
+        'tera' => [
+            'name' => 'tera',
+            'kind' => 'canonical',
+            'value' => '1e12'
+        ],
+        'T' => [
+            'name' => 'tera',
+            'kind' => 'symbol',
+            'value' => '1e12'
+        ],
+        'giga' => [
+            'name' => 'giga',
+            'kind' => 'canonical',
+            'value' => '1e9'
+        ],
+        'G' => [
+            'name' => 'giga',
+            'kind' => 'symbol',
+            'value' => '1e9'
+        ],
+        'mega' => [
+            'name' => 'mega',
+            'kind' => 'canonical',
+            'value' => '1e6'
+        ],
+        'M' => [
+            'name' => 'mega',
+            'kind' => 'symbol',
+            'value' => '1e6'
+        ],
+        'kilo' => [
+            'name' => 'kilo',
+            'kind' => 'canonical',
+            'value' => '1e3'
+        ],
+        'k' => [
+            'name' => 'kilo',
+            'kind' => 'symbol',
+            'value' => '1e3'
+        ],
+        'hecto' => [
+            'name' => 'hecto',
+            'kind' => 'canonical',
+            'value' => '100'
+        ],
+        'h' => [
+            'name' => 'hecto',
+            'kind' => 'symbol',
+            'value' => '100'
+        ],
+        'deka' => [
+            'name' => 'deka',
+            'kind' => 'canonical',
+            'value' => '10'
+        ],
+        'da' => [
+            'name' => 'deka',
+            'kind' => 'symbol',
+            'value' => '10'
+        ],
+        'deci' => [
+            'name' => 'deci',
+            'kind' => 'canonical',
+            'value' => '0.1'
+        ],
+        'd' => [
+            'name' => 'deci',
+            'kind' => 'symbol',
+            'value' => '0.1'
+        ],
+        'centi' => [
+            'name' => 'centi',
+            'kind' => 'canonical',
+            'value' => '0.01'
+        ],
+        'c' => [
+            'name' => 'centi',
+            'kind' => 'symbol',
+            'value' => '0.01'
+        ],
+        'milli' => [
+            'name' => 'milli',
+            'kind' => 'canonical',
+            'value' => '1e-3'
+        ],
+        'm' => [
+            'name' => 'milli',
+            'kind' => 'symbol',
+            'value' => '1e-3'
+        ],
+        'micro' => [
+            'name' => 'micro',
+            'kind' => 'canonical',
+            'value' => '1e-6'
+        ],
+        'u' => [
+            'name' => 'micro',
+            'kind' => 'symbol',
+            'value' => '1e-6'
+        ],
+        'nano' => [
+            'name' => 'nano',
+            'kind' => 'canonical',
+            'value' => '1e-9'
+        ],
+        'n' => [
+            'name' => 'nano',
+            'kind' => 'symbol',
+            'value' => '1e-9'
+        ],
+        'pico' => [
+            'name' => 'pico',
+            'kind' => 'canonical',
+            'value' => '1e-12'
+        ],
+        'p' => [
+            'name' => 'pico',
+            'kind' => 'symbol',
+            'value' => '1e-12'
+        ],
+        'femto' => [
+            'name' => 'femto',
+            'kind' => 'canonical',
+            'value' => '1e-15'
+        ],
+        'f' => [
+            'name' => 'femto',
+            'kind' => 'symbol',
+            'value' => '1e-15'
+        ],
+        'atto' => [
+            'name' => 'atto',
+            'kind' => 'canonical',
+            'value' => '1e-18'
+        ],
+        'a' => [
+            'name' => 'atto',
+            'kind' => 'symbol',
+            'value' => '1e-18'
+        ],
+        'zepto' => [
+            'name' => 'zepto',
+            'kind' => 'canonical',
+            'value' => '1e-21'
+        ],
+        'z' => [
+            'name' => 'zepto',
+            'kind' => 'symbol',
+            'value' => '1e-21'
+        ],
+        'yocto' => [
+            'name' => 'yocto',
+            'kind' => 'canonical',
+            'value' => '1e-24'
+        ],
+        'y' => [
+            'name' => 'yocto',
+            'kind' => 'symbol',
+            'value' => '1e-24'
+        ]
     ],
     'prefixRegex' => '~^((?:yotta)|(?:Y)|(?:zetta)|(?:Z)|(?:exa)|(?:E)|(?:peta)|(?:P)|(?:tera)|(?:T)|(?:giga)|(?:G)|(?:mega)|(?:M)|(?:kilo)|(?:k)|(?:hecto)|(?:h)|(?:deka)|(?:da)|(?:deci)|(?:d)|(?:centi)|(?:c)|(?:milli)|(?:m)|(?:micro)|(?:u)|(?:nano)|(?:n)|(?:pico)|(?:p)|(?:femto)|(?:f)|(?:atto)|(?:a)|(?:zepto)|(?:z)|(?:yocto)|(?:y))~'
 ];

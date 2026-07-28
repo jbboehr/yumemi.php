@@ -258,6 +258,34 @@ assert($length->toString() === '124 * foot');
 assert($length->valueIn('inch')->toString() === '1488');
 ```
 
+Catalog introspection preserves the difference between canonical names, aliases, symbols, and plurals without
+normalizing the unit into an equivalent base-unit expression:
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+use jbboehr\Yumemi\Catalog\CatalogNameKind;
+use jbboehr\Yumemi\Units;
+
+$units = Units::default();
+$meter = $units->describe('m');
+$kilo = $units->describePrefix('k');
+
+assert($meter !== null);
+assert($meter->canonicalName === 'meter');
+assert($meter->matchedAs === CatalogNameKind::Symbol);
+assert(in_array('metre', $meter->aliases, true));
+
+assert($kilo !== null);
+assert($kilo->canonicalName === 'kilo');
+assert($kilo->definitionExpression === '1e3');
+```
+
+`describe()` and `describePrefix()` perform exact catalog lookup. They do not parse unit expressions, substitute unit
+definitions, or synthesize descriptions for dynamically prefixed names.
+
 Multiplication and division reduce chosen unit syntax, but do not substitute compatible unit definitions.
 
 ```php

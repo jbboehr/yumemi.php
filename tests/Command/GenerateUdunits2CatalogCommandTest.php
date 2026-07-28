@@ -84,7 +84,17 @@ final class GenerateUdunits2CatalogCommandTest extends TestCase
         $units = $catalog['units'];
         $this->assertIsArray($units);
         $this->assertArrayHasKey('meter', $units);
-        $this->assertSame(['type' => 'alias', 'name' => 'meters', 'def' => 'meter'], $units['meters']);
+        $this->assertSame(
+            ['type' => 'alias', 'name' => 'meters', 'def' => 'meter', 'aliasKind' => 'generated_plural'],
+            $units['meters'],
+        );
+        $this->assertArrayHasKey('prefixMetadata', $catalog);
+        $prefixMetadata = $catalog['prefixMetadata'];
+        $this->assertIsArray($prefixMetadata);
+        $this->assertSame(
+            ['name' => 'kilo', 'kind' => 'symbol', 'value' => '1000'],
+            $prefixMetadata['k'],
+        );
         $this->assertArrayNotHasKey('ms', $units);
     }
 

@@ -46,6 +46,7 @@ use DOMXPath;
  *     units: array<string, array<string, mixed>>,
  *     base: list<string>,
  *     prefixes: array<string, string>,
+ *     prefixMetadata: array<string, array{name: string, kind: 'canonical'|'symbol', value: string}>,
  *     prefixRegex?: string
  * }
  * @phpstan-type Udunits2Name array{singular: string, plural: string|null, pluralizable: bool}
@@ -69,6 +70,7 @@ final class Udunits2CatalogImporter
             'units' => [],
             'base' => [],
             'prefixes' => [],
+            'prefixMetadata' => [],
         ];
 
         /** @var ImplicitPluralTargets $implicitPluralTargets */
@@ -208,15 +210,15 @@ final class Udunits2CatalogImporter
                 continue;
             }
 
-            $this->addAlias($catalog, $symbol, $unit['name']);
+            $this->addAlias($catalog, $symbol, $unit['name'], 'symbol');
 
             if ($symbol === '′') {
-                $this->addAlias($catalog, '\'', $unit['name']);
+                $this->addAlias($catalog, '\'', $unit['name'], 'symbol');
             }
         }
 
         foreach ($aliases['names'] as $alias) {
-            $this->addAlias($catalog, $alias['singular'], $unit['name']);
+            $this->addAlias($catalog, $alias['singular'], $unit['name'], 'alias');
             $this->registerPluralAlias($catalog, $alias, $unit['name'], $implicitPluralTargets);
         }
 
@@ -330,7 +332,7 @@ final class Udunits2CatalogImporter
     ): void {
         if ($name['plural'] !== null) {
             if (!isset($catalog['units'][$name['plural']])) {
-                $this->addAlias($catalog, $name['plural'], $target);
+                $this->addAlias($catalog, $name['plural'], $target, 'explicit_plural');
             }
 
             return;
@@ -359,7 +361,7 @@ final class Udunits2CatalogImporter
                 continue;
             }
 
-            $this->addAlias($catalog, $plural, $target);
+            $this->addAlias($catalog, $plural, $target, 'generated_plural');
         }
     }
 
@@ -421,24 +423,41 @@ final class Udunits2CatalogImporter
             $value = '0' . $value;
         }
 
+        $canonicalName = $name ?? $symbol;
+        if ($canonicalName === null) {
+            return;
+        }
+
         if ($name !== null) {
             $catalog['prefixes'][$name] = $value;
+            $catalog['prefixMetadata'][$name] = [
+                'name' => $canonicalName,
+                'kind' => 'canonical',
+                'value' => $value,
+            ];
         }
 
         if ($symbol !== null) {
             $catalog['prefixes'][$symbol] = $value;
+            $catalog['prefixMetadata'][$symbol] = [
+                'name' => $canonicalName,
+                'kind' => $symbol === $canonicalName ? 'canonical' : 'symbol',
+                'value' => $value,
+            ];
         }
     }
 
     /**
      * @phpstan-param MutableUdunits2Catalog $catalog
+     * @param 'alias'|'symbol'|'explicit_plural'|'generated_plural' $kind
      */
-    private function addAlias(array &$catalog, string $alias, string $name): void
+    private function addAlias(array &$catalog, string $alias, string $name, string $kind): void
     {
         $catalog['units'][$alias] = [
             'type' => 'alias',
             'name' => $alias,
             'def' => $name,
+            'aliasKind' => $kind,
         ];
     }
 

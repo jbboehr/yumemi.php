@@ -42,6 +42,8 @@ use jbboehr\Yumemi\Analyzer\DimensionResolver;
 use jbboehr\Yumemi\Analyzer\ExprReducer;
 use jbboehr\Yumemi\Analyzer\UnitNormalizer;
 use jbboehr\Yumemi\Analyzer\UnitResolver;
+use jbboehr\Yumemi\Catalog\PrefixDescriptor;
+use jbboehr\Yumemi\Catalog\UnitDescriptor;
 use jbboehr\Yumemi\Expr\Compound;
 use jbboehr\Yumemi\Expr\Term;
 use jbboehr\Yumemi\Expr\Unit;
@@ -105,6 +107,22 @@ final class Units
     public function dimension(Expr|string $expr): Dimension
     {
         return $this->dimensionResolver->resolve($this->expr($expr));
+    }
+
+    /**
+     * Describe an exact unit spelling without parsing expressions or synthesizing prefixed names.
+     */
+    public function describe(string $name): ?UnitDescriptor
+    {
+        return $this->unitRegistry->describe($name);
+    }
+
+    /**
+     * Describe an exact prefix name or symbol.
+     */
+    public function describePrefix(string $name): ?PrefixDescriptor
+    {
+        return $this->unitRegistry->describePrefix($name);
     }
 
     public function normalize(Expr|string $expr): Expr

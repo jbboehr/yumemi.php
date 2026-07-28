@@ -234,7 +234,6 @@ final class UnitRegistryBuilder
             }
 
             $map[$name] = $map[$target];
-            unset($records[$name]);
         }
 
         return new UnitRegistry($map, $records);

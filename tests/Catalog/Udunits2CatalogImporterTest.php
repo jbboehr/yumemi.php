@@ -135,7 +135,10 @@ final class Udunits2CatalogImporterTest extends TestCase
         $this->assertSame(['meter'], $catalog['base']);
         $this->assertSame(['type' => 'base', 'name' => 'meter'], $catalog['units']['meter']);
         // The symbol is registered as an alias pointing back at the canonical name.
-        $this->assertSame(['type' => 'alias', 'name' => 'm', 'def' => 'meter'], $catalog['units']['m']);
+        $this->assertSame(
+            ['type' => 'alias', 'name' => 'm', 'def' => 'meter', 'aliasKind' => 'symbol'],
+            $catalog['units']['m'],
+        );
     }
 
     public function testImportsUnitMetadataAndPluralAlias(): void
@@ -148,7 +151,10 @@ final class Udunits2CatalogImporterTest extends TestCase
         $this->assertSame('seconds', $units['second']['plural'] ?? null);
 
         // Explicit UDUNITS2 plurals are registered as fail-closed aliases.
-        $this->assertSame(['type' => 'alias', 'name' => 'seconds', 'def' => 'second'], $units['seconds']);
+        $this->assertSame(
+            ['type' => 'alias', 'name' => 'seconds', 'def' => 'second', 'aliasKind' => 'explicit_plural'],
+            $units['seconds'],
+        );
         $this->assertSame('second', $units['s']['def'] ?? null);
     }
 
@@ -156,18 +162,27 @@ final class Udunits2CatalogImporterTest extends TestCase
     {
         $units = $this->import(self::SAMPLE)['units'];
 
-        $this->assertSame(['type' => 'alias', 'name' => 'meters', 'def' => 'meter'], $units['meters']);
-        $this->assertSame(['type' => 'alias', 'name' => 'metres', 'def' => 'meter'], $units['metres']);
+        $this->assertSame(
+            ['type' => 'alias', 'name' => 'meters', 'def' => 'meter', 'aliasKind' => 'generated_plural'],
+            $units['meters'],
+        );
+        $this->assertSame(
+            ['type' => 'alias', 'name' => 'metres', 'def' => 'meter', 'aliasKind' => 'generated_plural'],
+            $units['metres'],
+        );
     }
 
     public function testUsesExplicitPluralAndDoesNotPluralizeSymbols(): void
     {
         $units = $this->import(self::SAMPLE)['units'];
 
-        $this->assertSame(['type' => 'alias', 'name' => 'feet', 'def' => 'foot'], $units['feet']);
+        $this->assertSame(
+            ['type' => 'alias', 'name' => 'feet', 'def' => 'foot', 'aliasKind' => 'explicit_plural'],
+            $units['feet'],
+        );
         $this->assertArrayNotHasKey('foots', $units);
-        $this->assertSame(['type' => 'alias', 'name' => 'kt', 'def' => 'knot'], $units['kt']);
-        $this->assertSame(['type' => 'alias', 'name' => 'kts', 'def' => 'knot'], $units['kts']);
+        $this->assertSame('symbol', $units['kt']['aliasKind'] ?? null);
+        $this->assertSame('symbol', $units['kts']['aliasKind'] ?? null);
         $this->assertArrayNotHasKey('ktses', $units);
         $this->assertArrayNotHasKey('ms', $units);
     }
@@ -253,6 +268,19 @@ final class Udunits2CatalogImporterTest extends TestCase
         $this->assertSame('1000', $catalog['prefixes']['k']);
         // A leading-dot value is normalized to a leading zero.
         $this->assertSame('0.5', $catalog['prefixes']['half']);
+        $this->assertArrayHasKey('prefixMetadata', $catalog);
+        $this->assertSame(
+            ['name' => 'kilo', 'kind' => 'canonical', 'value' => '1000'],
+            $catalog['prefixMetadata']['kilo'],
+        );
+        $this->assertSame(
+            ['name' => 'kilo', 'kind' => 'symbol', 'value' => '1000'],
+            $catalog['prefixMetadata']['k'],
+        );
+        $this->assertSame(
+            ['name' => 'half', 'kind' => 'canonical', 'value' => '0.5'],
+            $catalog['prefixMetadata']['half'],
+        );
 
         $regex = $catalog['prefixRegex'] ?? null;
         $this->assertNotNull($regex);

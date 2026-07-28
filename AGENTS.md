@@ -6,6 +6,9 @@ Guidance for automated agents (and humans) working in this repository.
 
 This project keeps a [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) file at [`CHANGELOG.md`](CHANGELOG.md).
 
+If the repository has no Git tags, changelog updates are optional. Once at least one Git tag exists, the requirements
+below apply.
+
 **Any user-facing change — primarily anything at the public API level — must be recorded there** as part of the same
 change that introduces it. That includes:
 
