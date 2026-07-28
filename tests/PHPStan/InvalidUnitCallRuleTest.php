@@ -82,6 +82,18 @@ final class InvalidUnitCallRuleTest extends RuleTestCase
                 'unit_to() value unit international_foot does not match from unit meter (normalized forms differ).',
                 21,
             ],
+            [
+                "Syntax error, unexpected '/' at line 1, column 9 (byte offset 8).\n"
+                    . "| meter * / second\n"
+                    . '|         ^',
+                28,
+            ],
+            [
+                "Syntax error, unexpected 'end of file' at line 1, column 9 (byte offset 8).\n"
+                    . "| second /\n"
+                    . '|         ^',
+                29,
+            ],
         ]);
     }
 }

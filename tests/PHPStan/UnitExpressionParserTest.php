@@ -76,6 +76,7 @@ final class UnitExpressionParserTest extends TestCase
         $this->assertNotNull($message);
         $this->assertStringContainsString('Unit not found', $message);
         $this->assertStringContainsString('Did you mean', $message);
+        $this->assertNull($result->errorSpan());
     }
 
     public function testRejectsMorphologyFalseFriend(): void
@@ -121,11 +122,19 @@ final class UnitExpressionParserTest extends TestCase
     public function testRejectsMalformedSyntaxWithAMessage(): void
     {
         $parser = new UnitExpressionParser();
-        // A trailing operator is a grammar error surfaced as a ParseException.
-        $result = $parser->parse('meter /');
+        $result = $parser->parse('  meter * / second');
 
         $this->assertFalse($result->isOk());
-        $this->assertNotSame('', $result->errorMessage() ?? '');
+        $span = $result->errorSpan();
+        $this->assertNotNull($span);
+        $this->assertSame(10, $span->start);
+        $this->assertSame(11, $span->end);
+        $this->assertSame(
+            "Syntax error, unexpected '/' at line 1, column 11 (byte offset 10).\n"
+                . "|   meter * / second\n"
+                . '|           ^',
+            $result->errorMessage(),
+        );
     }
 
     public function testUsesCustomRegistryFromUnits(): void

@@ -33,6 +33,7 @@ $meters->exactIntValueIn('foot');
 $meters->decimalValueIn('foot', 2, \RoundingMode::HalfEven);
 $meters->exactDecimalValueIn('foot');
 $meters->floatValueIn('foot');
+$meters->to('meter * / second');
 
 // Genuinely dynamic targets fail open, including on an unbranded receiver.
 function convertUnknown(Quantity $quantity, string $unit): void

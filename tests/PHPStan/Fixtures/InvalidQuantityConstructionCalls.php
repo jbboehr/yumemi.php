@@ -25,3 +25,5 @@ function constructWithPossibleMismatch(Units $units, string $unit): void
 $units->quantity(3, 'meter');
 $units->quantity($feet, 'international_foot');
 $units->quantity(unit(2, 'kilometer'), '1000 * meter');
+
+$units->quantity(1, 'meter * / second');

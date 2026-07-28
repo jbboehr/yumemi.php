@@ -41,13 +41,22 @@ final class ParseException extends \Exception
     public function __construct(
         string $message = "",
         int $code = 0,
-        public readonly ?Location $location = null,
+        public readonly ?SourceSpan $span = null,
+        public readonly ?string $source = null,
     ) {
-        parent::__construct($message, $code);
+        parent::__construct(
+            $span !== null && $source !== null ? SyntaxErrorFormatter::format($message, $source, $span) : $message,
+            $code,
+        );
     }
 
-    public function getLocation(): ?Location
+    public function getSource(): ?string
     {
-        return $this->location;
+        return $this->source;
+    }
+
+    public function getSpan(): ?SourceSpan
+    {
+        return $this->span;
     }
 }

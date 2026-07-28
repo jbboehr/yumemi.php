@@ -24,6 +24,10 @@ unit_to(unit(3.0, 'foot'), 'meter', 'foot');
 unit(1.0, 'meter');
 unit_to(3.0, 'foot', 'meter');
 
+// Malformed constant strings include expression-local source diagnostics.
+unit(1.0, 'meter * / second');
+unit_to(1.0, 'meter', 'second /');
+
 // Non-constant unit string — not statically analysable, no diagnostic.
 function dynamicUnit(string $u): void
 {

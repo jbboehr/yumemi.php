@@ -55,7 +55,9 @@ trait ParserUtils
         $lexer = new Lexer($input);
         $parser = new Parser($lexer);
         if (!$parser->parse()) {
-            throw new ParseException();
+            $end = strlen($input);
+
+            throw new ParseException('Syntax error', 0, new SourceSpan($end, $end), $input);
         }
         return $parser->getAst();
     }

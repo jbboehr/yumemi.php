@@ -111,6 +111,8 @@ Already implemented:
   - AST nodes
   - generated `Parser.php`
   - Composer/Makefile generation wiring
+  - exact half-open byte spans for syntax errors
+  - bounded expression-local caret diagnostics shared by runtime and PHPStan
 - AST converter for supported runtime syntax:
   - identifiers
   - integer constants
@@ -447,7 +449,6 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
   unsupported semantics.
 - Extend catalog introspection to explain dynamically prefixed names and catalog entries omitted for unsupported
   semantics.
-- Improve parser errors with token locations/source spans and map those spans into PHPStan diagnostics.
 - Add small formatting policies for canonical names versus symbols, ASCII versus Unicode, and dimensionless output.
 - Split broad PHPStan diagnostic identifiers only where users need more precise suppression.
 - Decide whether user-defined base dimensions justify replacing or extending the fixed seven-axis `Dimension` vector.
@@ -467,7 +468,8 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
   remain accepted while `Pa` is pascal; Yumemi does not special-case these catalog-valid ambiguities.
 - Catalog introspection currently describes exact unit and prefix entries only. It does not synthesize descriptors for
   dynamically prefixed names or retain units omitted by the importer.
-- Exceptions expose structured units and dimensions but do not yet carry parser source spans.
+- Syntax errors carry decoded-expression byte spans. Unknown-unit and unsupported-semantic errors occur after parsing
+  and remain unspanned because AST nodes do not yet retain source locations.
 - Very large parsed integer exponents may exceed PHP integer range before reaching the expression model.
 - The UDUNITS2 importer still special-cases `cm2` syntax, and generated `prefixRegex` metadata is currently unused by
   resolution.

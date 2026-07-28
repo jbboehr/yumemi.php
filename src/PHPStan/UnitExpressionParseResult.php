@@ -36,6 +36,8 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
+use jbboehr\Yumemi\Parser\SourceSpan;
+
 /**
  * Result of parsing a unit string for static analysis.
  */
@@ -44,17 +46,18 @@ final class UnitExpressionParseResult
     private function __construct(
         private readonly ?UnitExpression $expression,
         private readonly ?string $errorMessage,
+        private readonly ?SourceSpan $errorSpan,
     ) {
     }
 
     public static function ok(UnitExpression $expression): self
     {
-        return new self($expression, null);
+        return new self($expression, null, null);
     }
 
-    public static function invalid(string $message): self
+    public static function invalid(string $message, ?SourceSpan $span = null): self
     {
-        return new self(null, $message);
+        return new self(null, $message, $span);
     }
 
     public function isOk(): bool
@@ -74,5 +77,10 @@ final class UnitExpressionParseResult
     public function errorMessage(): ?string
     {
         return $this->errorMessage;
+    }
+
+    public function errorSpan(): ?SourceSpan
+    {
+        return $this->errorSpan;
     }
 }

@@ -60,9 +60,7 @@ final class UnitExpressionParser
 
     public function parse(string $unitString): UnitExpressionParseResult
     {
-        $unitString = trim($unitString);
-
-        if ($unitString === '') {
+        if (trim($unitString) === '') {
             return UnitExpressionParseResult::invalid('Unit expression must not be empty.');
         }
 
@@ -89,7 +87,7 @@ final class UnitExpressionParser
                 $message = 'Invalid unit expression syntax.';
             }
 
-            return UnitExpressionParseResult::invalid($message);
+            return UnitExpressionParseResult::invalid($message, $exception->getSpan());
         } catch (\Throwable $exception) {
             return UnitExpressionParseResult::invalid(
                 'Failed to parse unit expression: ' . $exception->getMessage(),

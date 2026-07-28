@@ -34,54 +34,33 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\Tests\PHPStan;
-
-use jbboehr\Yumemi\PHPStan\InvalidQuantityConstructionRule;
-use PHPStan\Rules\Rule;
-use PHPStan\Testing\RuleTestCase;
+namespace jbboehr\Yumemi\Parser;
 
 /**
- * @extends RuleTestCase<InvalidQuantityConstructionRule>
+ * A zero-based, half-open byte range within a parsed unit expression.
  */
-final class InvalidQuantityConstructionRuleTest extends RuleTestCase
+final class SourceSpan
 {
-    protected function getRule(): Rule
-    {
-        return self::getContainer()->getByType(InvalidQuantityConstructionRule::class);
+    public function __construct(
+        public readonly int $start,
+        public readonly int $end,
+    ) {
+        if ($start < 0) {
+            throw new \InvalidArgumentException('Source span start must not be negative.');
+        }
+
+        if ($end < $start) {
+            throw new \InvalidArgumentException('Source span end must not precede its start.');
+        }
     }
 
-    public static function getAdditionalConfigFiles(): array
+    public function isEmpty(): bool
     {
-        return [
-            __DIR__ . '/../../extension.neon',
-        ];
+        return $this->start === $this->end;
     }
 
-    public function testInvalidBrandedConstructionIsReported(): void
+    public function length(): int
     {
-        $this->analyse([__DIR__ . '/Fixtures/InvalidQuantityConstructionCalls.php'], [
-            [
-                'Units::quantity() value unit international_foot does not match target unit meter (normalized forms differ).',
-                14,
-            ],
-            [
-                'Units::quantity() value unit second does not match target unit meter (normalized forms differ).',
-                15,
-            ],
-            [
-                'Unit not found: not_a_real_unit_xyz.',
-                16,
-            ],
-            [
-                'Units::quantity() value unit meter does not match target unit international_foot (normalized forms differ).',
-                21,
-            ],
-            [
-                "Syntax error, unexpected '/' at line 1, column 9 (byte offset 8).\n"
-                    . "| meter * / second\n"
-                    . '|         ^',
-                29,
-            ],
-        ]);
+        return $this->end - $this->start;
     }
 }

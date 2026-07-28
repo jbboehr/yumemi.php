@@ -96,6 +96,12 @@ final class InvalidQuantityConversionRuleTest extends RuleTestCase
                 'Cannot call Quantity::to() with dimensionally incompatible units meter (length) and second (time).',
                 25,
             ],
+            [
+                "Syntax error, unexpected '/' at line 1, column 9 (byte offset 8).\n"
+                    . "| meter * / second\n"
+                    . '|         ^',
+                36,
+            ],
         ]);
     }
 }

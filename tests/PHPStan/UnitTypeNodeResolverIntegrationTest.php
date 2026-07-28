@@ -57,6 +57,12 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
 
         $this->assertStringNotContainsString('[OK] No errors', $output, $output);
         $this->assertStringContainsString('mass', $output);
+        $this->assertStringContainsString(
+            "Syntax error, unexpected '/' at line 1, column 9 (byte offset 8).",
+            $output,
+        );
+        $this->assertStringContainsString('| meter * / second', $output);
+        $this->assertStringContainsString('|         ^', $output);
         $this->assertTrue(
             str_contains($output, 'Unit not found')
             || str_contains($output, 'ERROR')

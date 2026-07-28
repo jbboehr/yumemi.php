@@ -7,6 +7,9 @@
 /** @var unit_int<'mass'> $bad */
 $bad = 0;
 
+/** @var unit_int<'meter * / second'> $malformed */
+$malformed = 0;
+
 /** @var unit_int<'meter'> $length */
 $length = 0;
 

@@ -45,9 +45,11 @@ class Lexer extends AbstractLexer implements LexerInterface
 {
     private int $start = 0;
     private int $end = 0;
+    private readonly string $input;
 
     public function __construct(string $input)
     {
+        $this->input = $input;
         $this->setInput($input);
         $this->moveNext();
     }
@@ -114,11 +116,11 @@ class Lexer extends AbstractLexer implements LexerInterface
 
     public function yyerror(?Location $location, string $message): void
     {
-        if (null !== $location) {
-            $message .= ' at ' . $location;
-        }
+        $span = $location !== null && $location->begin !== null && $location->end !== null
+            ? new SourceSpan($location->begin, $location->end)
+            : null;
 
-        throw new ParseException($message);
+        throw new ParseException($message, 0, $span, $this->input);
     }
 
     public function getLVal()
@@ -129,14 +131,16 @@ class Lexer extends AbstractLexer implements LexerInterface
     public function yylex(): int
     {
         if (null === $this->lookahead) {
+            $this->start = strlen($this->input);
+            $this->end = $this->start;
+
             return LexerInterface::YYEOF;
         }
 
-        $this->start = $this->token->position ?? 0;
-
         $this->moveNext();
 
-        $this->end = $this->token->position ?? 0;
+        $this->start = $this->token->position ?? 0;
+        $this->end = $this->start + strlen($this->token->value ?? '');
 
         return $this->token->type ?? self::YYEOF;
     }

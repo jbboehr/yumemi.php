@@ -238,6 +238,11 @@ the caller chose, while `to()` and `valueIn()` explicitly convert through the un
 `Expr::toString()` is a structural/debug dump (e.g. `meter * second ^ -1`). Equality uses structure, not either string
 form.
 
+Malformed syntax throws `Parser\ParseException` with an optional `Parser\SourceSpan`. Spans are zero-based, half-open
+byte ranges in the decoded unit expression; exception messages render a one-based expression-local line and column with
+a bounded caret excerpt. PHPStan preserves the excerpt while anchoring the diagnostic to the containing PHP or PHPDoc
+line. Unknown unit names and parsed-but-unsupported semantics are later validation failures and currently have no span.
+
 **`Units::default()`** returns a shared instance (safe to call repeatedly). Use `new Units($registry)` when you need an
 isolated catalog or context.
 

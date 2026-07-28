@@ -14,18 +14,18 @@
 
 %define parse.error detailed
 
-%token T_INTEGER
-%token T_FLOAT
-%token T_DOT
-%token T_MUL '*'
-%token T_DIV '/'
-%token T_POW '^'
-%token T_SUB '-'
-%token T_ADD '+'
-%token T_IDENTIFIER
-%token T_LEFT_PAREN '('
-%token T_RIGHT_PAREN ')'
-%token T_AT '@'
+%token T_INTEGER "integer"
+%token T_FLOAT "decimal number"
+%token T_DOT "."
+%token T_MUL "*"
+%token T_DIV "/"
+%token T_POW "^"
+%token T_SUB "-"
+%token T_ADD "+"
+%token T_IDENTIFIER "identifier"
+%token T_LEFT_PAREN "("
+%token T_RIGHT_PAREN ")"
+%token T_AT "@"
 
 %precedence LOW
 %left T_DOT
