@@ -70,12 +70,12 @@
 
         pre-commit-check = pre-commit-hooks.lib.${system}.run {
           inherit src;
-          settings.treefmt.package = treefmt.config.build.wrapper;
           hooks = {
             actionlint.enable = true;
             shellcheck.enable = true;
             treefmt = {
               enable = true;
+              package = treefmt.config.build.wrapper;
               require_serial = true;
             };
           };
