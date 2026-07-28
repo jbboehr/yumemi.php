@@ -67,7 +67,7 @@ final class ExprFormatter
 
     private function formatUnitName(string $name): string
     {
-        if ($this->options->unitNames === UnitNameStyle::Preserve) {
+        if ($this->options->unitNameStyle === UnitNameStyle::Preserve) {
             return $name;
         }
 
@@ -88,7 +88,7 @@ final class ExprFormatter
             return $name;
         }
 
-        $unitName = $this->options->unitNames === UnitNameStyle::Symbol
+        $unitName = $this->options->unitNameStyle === UnitNameStyle::Symbol
             ? $this->preferredSymbol($unit->symbols) ?? $unit->canonicalName
             : $unit->canonicalName;
 
@@ -101,7 +101,7 @@ final class ExprFormatter
             return $name;
         }
 
-        $prefixName = $this->options->unitNames === UnitNameStyle::Symbol
+        $prefixName = $this->options->unitNameStyle === UnitNameStyle::Symbol
             ? $this->preferredPrefixSymbol($prefix->canonicalName) ?? $prefix->canonicalName
             : $prefix->canonicalName;
 

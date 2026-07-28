@@ -36,58 +36,8 @@
 
 namespace jbboehr\Yumemi\Formatter;
 
-final readonly class FormatOptions
+enum DivisionStyle: string
 {
-    public function __construct(
-        public UnitNameStyle $unitNameStyle = UnitNameStyle::Preserve,
-        public Typography $typography = Typography::Ascii,
-        public DimensionlessStyle $dimensionlessStyle = DimensionlessStyle::One,
-        public DivisionStyle $divisionStyle = DivisionStyle::Fraction,
-    ) {
-    }
-
-    public static function create(): self
-    {
-        return new self();
-    }
-
-    public function withUnitNameStyle(UnitNameStyle $unitNameStyle): self
-    {
-        return new self(
-            unitNameStyle: $unitNameStyle,
-            typography: $this->typography,
-            dimensionlessStyle: $this->dimensionlessStyle,
-            divisionStyle: $this->divisionStyle,
-        );
-    }
-
-    public function withTypography(Typography $typography): self
-    {
-        return new self(
-            unitNameStyle: $this->unitNameStyle,
-            typography: $typography,
-            dimensionlessStyle: $this->dimensionlessStyle,
-            divisionStyle: $this->divisionStyle,
-        );
-    }
-
-    public function withDimensionlessStyle(DimensionlessStyle $dimensionlessStyle): self
-    {
-        return new self(
-            unitNameStyle: $this->unitNameStyle,
-            typography: $this->typography,
-            dimensionlessStyle: $dimensionlessStyle,
-            divisionStyle: $this->divisionStyle,
-        );
-    }
-
-    public function withDivisionStyle(DivisionStyle $divisionStyle): self
-    {
-        return new self(
-            unitNameStyle: $this->unitNameStyle,
-            typography: $this->typography,
-            dimensionlessStyle: $this->dimensionlessStyle,
-            divisionStyle: $divisionStyle,
-        );
-    }
+    case Fraction = 'fraction';
+    case NegativePowers = 'negative_powers';
 }

@@ -72,6 +72,7 @@ final class ExprRenderer
         $constant = new Rational(1);
         $numerator = [];
         $denominator = [];
+        $negativePowers = [];
 
         self::collect(
             ExprReducer::reduce($expr),
@@ -80,9 +81,10 @@ final class ExprRenderer
             $constant,
             $numerator,
             $denominator,
+            $negativePowers,
         );
 
-        if ($numerator === [] && $denominator === []) {
+        if ($numerator === [] && $denominator === [] && $negativePowers === []) {
             return self::formatDimensionless($constant, $options);
         }
 
@@ -92,6 +94,7 @@ final class ExprRenderer
         }
 
         $parts = array_merge($parts, $numerator);
+        $parts = array_merge($parts, $negativePowers);
         if ($parts === []) {
             $parts[] = '1';
         }
@@ -113,6 +116,7 @@ final class ExprRenderer
      * @param callable(string): string $unitNameFormatter
      * @param list<string>             $numerator
      * @param list<string>             $denominator
+     * @param list<string>             $negativePowers
      */
     private static function collect(
         Expr $expr,
@@ -121,10 +125,19 @@ final class ExprRenderer
         Rational &$constant,
         array &$numerator,
         array &$denominator,
+        array &$negativePowers,
     ): void {
         if ($expr instanceof Compound) {
             foreach ($expr->exprs as $subexpr) {
-                self::collect($subexpr, $options, $unitNameFormatter, $constant, $numerator, $denominator);
+                self::collect(
+                    $subexpr,
+                    $options,
+                    $unitNameFormatter,
+                    $constant,
+                    $numerator,
+                    $denominator,
+                    $negativePowers,
+                );
             }
 
             return;
@@ -136,7 +149,15 @@ final class ExprRenderer
         }
 
         if ($expr instanceof Term) {
-            self::collectTerm($expr, $options, $unitNameFormatter, $constant, $numerator, $denominator);
+            self::collectTerm(
+                $expr,
+                $options,
+                $unitNameFormatter,
+                $constant,
+                $numerator,
+                $denominator,
+                $negativePowers,
+            );
             return;
         }
 
@@ -152,6 +173,7 @@ final class ExprRenderer
      * @param callable(string): string $unitNameFormatter
      * @param list<string>             $numerator
      * @param list<string>             $denominator
+     * @param list<string>             $negativePowers
      */
     private static function collectTerm(
         Term $term,
@@ -160,6 +182,7 @@ final class ExprRenderer
         Rational &$constant,
         array &$numerator,
         array &$denominator,
+        array &$negativePowers,
     ): void {
         if ($term->value instanceof Constant) {
             $constant = $constant->mul($term->value->value->pow($term->power));
@@ -169,14 +192,17 @@ final class ExprRenderer
         $factor = $term->value instanceof Unit
             ? $unitNameFormatter($term->value->name)
             : $term->value->toString();
-        $factor = self::formatPowered($factor, abs($term->power), $options);
-
         if ($term->power < 0) {
-            $denominator[] = $factor;
+            if ($options->divisionStyle === DivisionStyle::NegativePowers) {
+                $negativePowers[] = self::formatPowered($factor, $term->power, $options);
+            } else {
+                $denominator[] = self::formatPowered($factor, -$term->power, $options);
+            }
+
             return;
         }
 
-        $numerator[] = $factor;
+        $numerator[] = self::formatPowered($factor, $term->power, $options);
     }
 
     private static function formatPowered(string $expr, int $power, FormatOptions $options): string
@@ -194,7 +220,7 @@ final class ExprRenderer
 
     private static function formatDimensionless(Rational $constant, FormatOptions $options): string
     {
-        return match ($options->dimensionless) {
+        return match ($options->dimensionlessStyle) {
             DimensionlessStyle::One => $constant->toString(),
             DimensionlessStyle::Word => $constant->isOne()
                 ? 'dimensionless'

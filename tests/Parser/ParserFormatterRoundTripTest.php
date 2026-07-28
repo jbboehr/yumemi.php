@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\Tests\Parser;
 
+use jbboehr\Yumemi\Formatter\DivisionStyle;
 use jbboehr\Yumemi\Formatter\FormatOptions;
 use jbboehr\Yumemi\Formatter\Typography;
 use jbboehr\Yumemi\Formatter\UnitNameStyle;
@@ -65,7 +66,7 @@ final class ParserFormatterRoundTripTest extends TestCase
     {
         $units = Units::default();
         $formatter = $units->formatter(new FormatOptions(
-            unitNames: UnitNameStyle::Symbol,
+            unitNameStyle: UnitNameStyle::Symbol,
             typography: Typography::Unicode,
         ));
 
@@ -79,6 +80,34 @@ final class ParserFormatterRoundTripTest extends TestCase
                 $units->normalize($reparsed)->toString(),
                 $input . ' formatted as ' . $formatted,
             );
+        }
+    }
+
+    public function testNegativePowerOutputCanBeParsedAgainWithSameMeaning(): void
+    {
+        $units = Units::default();
+        $options = [
+            FormatOptions::create()->withDivisionStyle(DivisionStyle::NegativePowers),
+            FormatOptions::create()
+                ->withUnitNameStyle(UnitNameStyle::Symbol)
+                ->withTypography(Typography::Unicode)
+                ->withDivisionStyle(DivisionStyle::NegativePowers),
+        ];
+
+        foreach ($options as $formatOptions) {
+            $formatter = $units->formatter($formatOptions);
+
+            foreach (self::roundTripInputs() as $input) {
+                $parsed = $units->parse($input)->reduce();
+                $formatted = $formatter->format($parsed);
+                $reparsed = $units->parse($formatted)->reduce();
+
+                $this->assertSame(
+                    $units->normalize($parsed)->toString(),
+                    $units->normalize($reparsed)->toString(),
+                    $input . ' formatted as ' . $formatted,
+                );
+            }
         }
     }
 

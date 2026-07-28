@@ -143,6 +143,8 @@ Already implemented:
   - preserved, canonical, or symbol unit names
   - ASCII or round-trippable Unicode typography
   - numeric, word, or empty dimensionless presentation
+  - fraction or negative-power division layout
+  - direct named construction or immutable fluent option building
   - exact-before-prefix name resolution shared with the runtime resolver
 
 Current verification:

@@ -318,19 +318,20 @@ control dimensionless output. Formatting does not normalize or substitute unit d
 
 require 'vendor/autoload.php';
 
+use jbboehr\Yumemi\Formatter\DivisionStyle;
 use jbboehr\Yumemi\Formatter\FormatOptions;
 use jbboehr\Yumemi\Formatter\Typography;
 use jbboehr\Yumemi\Formatter\UnitNameStyle;
 use jbboehr\Yumemi\Units;
 
 $units = Units::default();
-$options = new FormatOptions(
-    unitNames: UnitNameStyle::Symbol,
-    typography: Typography::Unicode,
-);
+$options = FormatOptions::create()
+    ->withUnitNameStyle(UnitNameStyle::Symbol)
+    ->withTypography(Typography::Unicode)
+    ->withDivisionStyle(DivisionStyle::NegativePowers);
 
-assert($units->format('kilometers / second^2', $options) === 'km / s²');
-assert($units->quantity(3, 'kilometers / second^2')->formatUnit($options) === 'km / s²');
+assert($units->format('kilometers / second^2', $options) === 'km · s⁻²');
+assert($units->quantity(3, 'kilometers / second^2')->formatUnit($options) === 'km · s⁻²');
 ```
 
 `UnitNameStyle::Preserve` keeps each spelling supplied by the caller. `Canonical` resolves aliases, plurals, and one
@@ -342,6 +343,11 @@ Unicode typography emits `·` and superscript integer powers while retaining fra
 The parser accepts `·`, superscript digits, and optional superscript `⁺` or `⁻`, so ordinary Unicode formatter output
 can be parsed again. `DimensionlessStyle::Word` and `DimensionlessStyle::Empty` are presentation-only; the default
 `DimensionlessStyle::One` remains round-trippable.
+
+`DivisionStyle::NegativePowers` renders denominator units as negative powers while leaving exact rational coefficients
+alone: `1/2 * meter / second` becomes `1/2 * meter * second ^ -1`, or `1/2 · m · s⁻¹` with Unicode symbols. The default
+`DivisionStyle::Fraction` retains fraction layout. `FormatOptions` supports both named constructor arguments and
+immutable `create()->with...()` chains.
 
 Use `Units::formatter($options)` when the same options will format several `Expr` values. `Units::format()` parses a
 string symbolically before rendering it. An `Expr` previously returned by `Units::parse()` has already been resolved, so

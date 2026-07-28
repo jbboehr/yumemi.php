@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\Tests\Formatter;
 
 use jbboehr\Yumemi\Formatter\DimensionlessStyle;
+use jbboehr\Yumemi\Formatter\DivisionStyle;
 use jbboehr\Yumemi\Formatter\FormatOptions;
 use jbboehr\Yumemi\Formatter\Typography;
 use jbboehr\Yumemi\Formatter\UnitNameStyle;
@@ -47,6 +48,27 @@ use PHPUnit\Framework\TestCase;
 
 final class FormattingPolicyTest extends TestCase
 {
+    public function testFormatOptionsSupportImmutableFluentConstruction(): void
+    {
+        $defaults = FormatOptions::create();
+        $unitNames = $defaults->withUnitNameStyle(UnitNameStyle::Symbol);
+        $typography = $unitNames->withTypography(Typography::Unicode);
+        $dimensionless = $typography->withDimensionlessStyle(DimensionlessStyle::Word);
+        $division = $dimensionless->withDivisionStyle(DivisionStyle::NegativePowers);
+
+        $this->assertNotSame($defaults, $unitNames);
+        $this->assertNotSame($unitNames, $typography);
+        $this->assertNotSame($typography, $dimensionless);
+        $this->assertNotSame($dimensionless, $division);
+        $this->assertEquals(new FormatOptions(), $defaults);
+        $this->assertEquals(new FormatOptions(
+            unitNameStyle: UnitNameStyle::Symbol,
+            typography: Typography::Unicode,
+            dimensionlessStyle: DimensionlessStyle::Word,
+            divisionStyle: DivisionStyle::NegativePowers,
+        ), $division);
+    }
+
     public function testDefaultPolicyPreservesExistingOutputAndFormatterIsCached(): void
     {
         $units = Units::default();
@@ -66,7 +88,7 @@ final class FormattingPolicyTest extends TestCase
         string $expected,
     ): void {
         $actual = Units::default()->format('kilometers / seconds^2', new FormatOptions(
-            unitNames: $style,
+            unitNameStyle: $style,
             typography: $typography,
         ));
 
@@ -110,21 +132,21 @@ final class FormattingPolicyTest extends TestCase
         $units = Units::default();
 
         $this->assertSame('ohm', $units->format('ohm', new FormatOptions(
-            unitNames: UnitNameStyle::Symbol,
+            unitNameStyle: UnitNameStyle::Symbol,
             typography: Typography::Ascii,
         )));
         $this->assertSame('Ω', $units->format('ohm', new FormatOptions(
-            unitNames: UnitNameStyle::Symbol,
+            unitNameStyle: UnitNameStyle::Symbol,
             typography: Typography::Unicode,
         )));
         $this->assertSame('L', $units->format('litres', new FormatOptions(
-            unitNames: UnitNameStyle::Symbol,
+            unitNameStyle: UnitNameStyle::Symbol,
         )));
     }
 
     public function testExactNamesWinBeforePrefixDecomposition(): void
     {
-        $options = new FormatOptions(unitNames: UnitNameStyle::Canonical);
+        $options = new FormatOptions(unitNameStyle: UnitNameStyle::Canonical);
         $units = Units::default();
 
         $this->assertSame('pascal', $units->format('Pa', $options));
@@ -140,13 +162,13 @@ final class FormattingPolicyTest extends TestCase
         $units = new Units($registry);
 
         $this->assertSame('widget', $units->format('gadget', new FormatOptions(
-            unitNames: UnitNameStyle::Canonical,
+            unitNameStyle: UnitNameStyle::Canonical,
         )));
         $this->assertSame('kwidget', $units->format('kilowidget', new FormatOptions(
-            unitNames: UnitNameStyle::Symbol,
+            unitNameStyle: UnitNameStyle::Symbol,
         )));
         $this->assertSame('unknown', $units->format('unknown', new FormatOptions(
-            unitNames: UnitNameStyle::Canonical,
+            unitNameStyle: UnitNameStyle::Canonical,
         )));
     }
 
@@ -158,7 +180,7 @@ final class FormattingPolicyTest extends TestCase
         string $expectedQuantity,
     ): void {
         $units = Units::default();
-        $options = new FormatOptions(dimensionless: $style);
+        $options = new FormatOptions(dimensionlessStyle: $style);
 
         $this->assertSame($expectedIdentity, $units->format('1', $options));
         $this->assertSame($expectedFraction, $units->format('1 / 2', $options));
@@ -182,5 +204,44 @@ final class FormattingPolicyTest extends TestCase
         ));
 
         $this->assertSame('3 · meter² / (kilogram · second³)', $actual);
+    }
+
+    #[DataProvider('negativePowerProvider')]
+    public function testFormatsDivisionAsNegativePowers(string $input, string $expected): void
+    {
+        $options = FormatOptions::create()->withDivisionStyle(DivisionStyle::NegativePowers);
+
+        $this->assertSame($expected, Units::default()->format($input, $options));
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function negativePowerProvider(): iterable
+    {
+        yield 'single denominator' => ['meter / second', 'meter * second ^ -1'];
+        yield 'powered denominator' => ['meter / second^2', 'meter * second ^ -2'];
+        yield 'multiple denominator factors' => [
+            'meter / (kilogram * second^2)',
+            'meter * kilogram ^ -1 * second ^ -2',
+        ];
+        yield 'denominator only' => ['1 / second', 'second ^ -1'];
+        yield 'rational coefficient remains rational' => [
+            '1/2 * meter / second',
+            '1/2 * meter * second ^ -1',
+        ];
+    }
+
+    public function testUnicodeSymbolNegativePowerOutput(): void
+    {
+        $options = FormatOptions::create()
+            ->withUnitNameStyle(UnitNameStyle::Symbol)
+            ->withTypography(Typography::Unicode)
+            ->withDivisionStyle(DivisionStyle::NegativePowers);
+
+        $this->assertSame(
+            '1/2 · m · kg⁻¹ · s⁻²',
+            Units::default()->format('1/2 * meter / (kilogram * second^2)', $options),
+        );
     }
 }
