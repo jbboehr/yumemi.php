@@ -80,6 +80,48 @@ final class ParserTest extends TestCase
         );
     }
 
+    public function testExplicitMultiplicationAndDivisionAssociateLeft(): void
+    {
+        $this->assertEquals(
+            new Ast\Mul(
+                new Ast\Div(
+                    new Ast\Identifier('meter'),
+                    new Ast\Identifier('second'),
+                ),
+                new Ast\Identifier('kilogram'),
+            ),
+            Parser::parseString('meter / second * kilogram'),
+        );
+    }
+
+    public function testParenthesesOverrideMultiplicationAndDivisionPrecedence(): void
+    {
+        $this->assertEquals(
+            new Ast\Div(
+                new Ast\Identifier('meter'),
+                new Ast\Mul(
+                    new Ast\Identifier('second'),
+                    new Ast\Identifier('kilogram'),
+                ),
+            ),
+            Parser::parseString('meter / (second * kilogram)'),
+        );
+    }
+
+    public function testImplicitProductFormsCompoundDenominator(): void
+    {
+        $this->assertEquals(
+            new Ast\Div(
+                new Ast\Identifier('meter'),
+                new Ast\Mul(
+                    new Ast\Identifier('second'),
+                    new Ast\Identifier('kilogram'),
+                ),
+            ),
+            Parser::parseString('meter / second kilogram'),
+        );
+    }
+
     public function testPower(): void
     {
         $this->assertEquals(
@@ -88,6 +130,20 @@ final class ParserTest extends TestCase
                 new Ast\Integer_('2'),
             ),
             Parser::parseString('meter^2'),
+        );
+    }
+
+    public function testPowerBindsMoreTightlyThanMultiplication(): void
+    {
+        $this->assertEquals(
+            new Ast\Mul(
+                new Ast\Identifier('meter'),
+                new Ast\Pow(
+                    new Ast\Identifier('second'),
+                    new Ast\Integer_('2'),
+                ),
+            ),
+            Parser::parseString('meter * second^2'),
         );
     }
 

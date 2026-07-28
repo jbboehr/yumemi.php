@@ -34,59 +34,58 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\Command;
+namespace jbboehr\Yumemi\Tests\Documentation;
 
-use jbboehr\Yumemi\Catalog\PhpCatalogExporter;
-use jbboehr\Yumemi\Catalog\Udunits2CatalogImporter;
-
-final class GenerateUdunits2CatalogCommand
-{
-    private const HEADER = <<<'HEADER'
 /**
- * Copyright 2008, 2009 University Corporation for Atmospheric Research
- *
- * SPDX-License-Identifier: UCAR
- *
- * This file is derived from the UDUNITS-2 package. See docs/UDUNITS-COPYRIGHT for copying and redistribution
- * conditions.
+ * Explicit manifest and extractor for Markdown documents whose PHP fences are executable contracts.
  */
-HEADER;
-
-    /** @var resource */
-    private $errorStream;
+final class MarkdownExamples
+{
+    /** @var list<string> */
+    private const DOCUMENTS = [
+        'README.md',
+        'docs/unit-syntax.md',
+        'docs/runtime.md',
+        'docs/catalog.md',
+    ];
 
     /**
-     * @param resource|null $errorStream Defaults to STDERR; injectable for testing.
+     * @return list<array{id: string, label: string, code: string}>
      */
-    public function __construct(
-        private readonly Udunits2CatalogImporter $importer = new Udunits2CatalogImporter(),
-        private readonly PhpCatalogExporter $exporter = new PhpCatalogExporter(),
-        $errorStream = null,
-    ) {
-        $this->errorStream = $errorStream ?? STDERR;
+    public static function phpBlocks(): array
+    {
+        $blocks = [];
+
+        foreach (self::DOCUMENTS as $document) {
+            $path = self::projectRoot() . '/' . $document;
+            $contents = file_get_contents($path);
+
+            if ($contents === false) {
+                throw new \RuntimeException('Unable to read ' . $path);
+            }
+
+            preg_match_all('/```php\s*\R(.*?)\R```/s', $contents, $matches, PREG_SET_ORDER);
+
+            if ($matches === []) {
+                throw new \RuntimeException($document . ' must contain at least one PHP example.');
+            }
+
+            foreach ($matches as $index => $match) {
+                $number = $index + 1;
+                $label = sprintf('%s PHP example %d', $document, $number);
+                $blocks[] = [
+                    'id' => sprintf('example-%s-%02d', substr(sha1($document), 0, 12), $number),
+                    'label' => $label,
+                    'code' => $match[1],
+                ];
+            }
+        }
+
+        return $blocks;
     }
 
-    /**
-     * @param list<string> $argv
-     */
-    public function run(array $argv): int
+    public static function projectRoot(): string
     {
-        array_shift($argv);
-
-        if (count($argv) < 2) {
-            fwrite($this->errorStream, "Usage: bin/generate-udunits2-catalog <output-file> <udunits2-xml>...\n");
-            return 1;
-        }
-
-        $outputFile = array_shift($argv);
-
-        $catalog = $this->importer->importFiles($argv);
-        $bytes = file_put_contents($outputFile, $this->exporter->export($catalog, self::HEADER));
-
-        if ($bytes === false) {
-            throw new \RuntimeException('Could not write generated catalog: ' . $outputFile);
-        }
-
-        return 0;
+        return dirname(__DIR__, 2);
     }
 }

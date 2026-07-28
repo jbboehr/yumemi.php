@@ -3,6 +3,8 @@
 /**
  * Copyright 2008, 2009 University Corporation for Atmospheric Research
  *
+ * SPDX-License-Identifier: UCAR
+ *
  * This file is derived from the UDUNITS-2 package. See docs/UDUNITS-COPYRIGHT for copying and redistribution
  * conditions.
  */

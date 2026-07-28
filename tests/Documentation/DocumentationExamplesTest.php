@@ -45,7 +45,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Executes every ```php block in the README to prove the documented examples actually run.
+ * Executes every ```php block in the public documentation to prove the documented examples actually run.
  *
  * Runs each block in-process rather than spawning a PHP subprocess. Two transforms make that safe
  * (see {@see transformExample()}):
@@ -55,20 +55,20 @@ use PHPUnit\Framework\TestCase;
  *    cannot be forced on at runtime the way a spawned `php -d` could), and register real PHPUnit
  *    assertions;
  *  - the block is wrapped in a unique namespace so its function/class declarations can't collide with
- *    other blocks or with the global declarations {@see ReadmePhpStanExamplesTest} makes in the same
+ *    other blocks or with the global declarations {@see DocumentationPhpStanExamplesTest} makes in the same
  *    process.
  */
-final class ReadmeExamplesTest extends TestCase
+final class DocumentationExamplesTest extends TestCase
 {
-    #[DataProvider('readmePhpExampleProvider')]
-    public function testReadmePhpExamplesExecute(string $label, string $code): void
+    #[DataProvider('documentationPhpExampleProvider')]
+    public function testDocumentationPhpExamplesExecute(string $label, string $code): void
     {
-        $namespace = '__ReadmeExec_' . substr(md5($label), 0, 12);
+        $namespace = '__DocumentationExec_' . substr(md5($label), 0, 12);
         $php = self::transformExample($code, $namespace);
 
         // Isolate the block's top-level variables in the closure's scope (not $GLOBALS). The unique
         // namespace baked into $php keeps its declarations from colliding with other blocks or with
-        // the global declarations ReadmePhpStanExamplesTest makes in the same process.
+        // the global declarations DocumentationPhpStanExamplesTest makes in the same process.
         $run = static function () use ($php): void {
             eval($php);
         };
@@ -90,7 +90,7 @@ final class ReadmeExamplesTest extends TestCase
     }
 
     /**
-     * Rewrite a README example for safe in-process execution: turn `assert()` into an unconditional
+     * Rewrite a documentation example for safe in-process execution: turn `assert()` into an unconditional
      * PHPUnit assertion, then wrap everything in a unique namespace to isolate declarations.
      */
     private static function transformExample(string $code, string $namespace): string
@@ -99,7 +99,7 @@ final class ReadmeExamplesTest extends TestCase
         $statements = $parser->parse($code);
 
         if ($statements === null) {
-            throw new \RuntimeException('Unable to parse README example.');
+            throw new \RuntimeException('Unable to parse documentation example.');
         }
 
         $printer = new Standard();
@@ -131,7 +131,7 @@ final class ReadmeExamplesTest extends TestCase
                     [
                         new Node\Arg(new Node\Expr\Cast\Bool_($condition)),
                         new Node\Arg(new Node\Scalar\String_(
-                            'README example failed: assert(' . $this->printer->prettyPrintExpr($condition) . ')',
+                            'Documentation example failed: assert(' . $this->printer->prettyPrintExpr($condition) . ')',
                         )),
                     ],
                 );
@@ -150,30 +150,10 @@ final class ReadmeExamplesTest extends TestCase
     /**
      * @return iterable<string, array{string, string}>
      */
-    public static function readmePhpExampleProvider(): iterable
+    public static function documentationPhpExampleProvider(): iterable
     {
-        $readme = self::projectRoot() . '/README.md';
-        $contents = file_get_contents($readme);
-
-        if ($contents === false) {
-            throw new \RuntimeException('Unable to read ' . $readme);
+        foreach (MarkdownExamples::phpBlocks() as $block) {
+            yield $block['label'] => [$block['label'], $block['code']];
         }
-
-        preg_match_all('/```php\s*\R(.*?)\R```/s', $contents, $matches, PREG_SET_ORDER);
-
-        if ($matches === []) {
-            throw new \RuntimeException('README.md must contain at least one PHP example.');
-        }
-
-        foreach ($matches as $index => $match) {
-            $label = sprintf('README.md PHP example %d', $index + 1);
-
-            yield $label => [$label, $match[1]];
-        }
-    }
-
-    private static function projectRoot(): string
-    {
-        return dirname(__DIR__, 2);
     }
 }

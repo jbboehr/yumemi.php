@@ -126,6 +126,8 @@ Already implemented:
   - addition
   - subtraction
   - `@`
+- Focused user references for unit syntax, runtime guarantees, catalog behavior, and deterministic regeneration;
+  executable PHP blocks and PHPStan-relevant examples are verified in-process
 - Runtime `Quantity` value object:
   - explicit `Units` context
   - exact `Rational` value storage
@@ -461,8 +463,6 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
 
 ### Near-Term Work
 
-- Publish focused references for unit syntax, case sensitivity, generated catalog regeneration, runtime guarantees, and
-  unsupported semantics.
 - Extend catalog introspection to explain dynamically prefixed names and catalog entries omitted for unsupported
   semantics.
 - Split broad PHPStan diagnostic identifiers only where users need more precise suppression.
@@ -504,6 +504,11 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
 - GNU Units import
 - Formula interpolation
 - Preferred/compact unit selection and broader formatting presets
+- Change `UnitRegistryBuilder` fluent methods to mutate the builder in place, avoiding one clone per registered unit or
+  alias while keeping each built `UnitRegistry` immutable.
+- Finalize the parser precedence contract before release. Juxtaposition currently binds as a single algebraic product,
+  so `a / b c` means `a / (b * c)`, while explicit `a / b * c` is left-associative. Compare this with UDUNITS, decide
+  whether the distinction is intentional, and cover the complete operator matrix with parser and round-trip tests.
 - Optimize bulk catalog introspection by pre-grouping canonical aliases, symbols, and plurals during generation, then
   lazily caching an effective index per immutable registry. Composite registries must build a composition-aware index so
   base aliases continue to follow overlay replacements; expression resolution remains in `UnitResolver`.

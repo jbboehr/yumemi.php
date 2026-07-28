@@ -41,9 +41,9 @@ use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;
 
 /**
- * Checks that the documented static diagnostics in the README actually fire, in-process.
+ * Checks that documented static diagnostics actually fire, in-process.
  *
- * Companion to {@see ReadmeExamplesTest}, which executes every block at runtime. Here each
+ * Companion to {@see DocumentationExamplesTest}, which executes every block at runtime. Here each
  * PHPStan-relevant block (one that mentions a unit type or a `//!` marker) is analysed with the
  * core extension and opt-in tag promotion loaded, and the convention read straight from the block body:
  *
@@ -51,23 +51,23 @@ use PHPStan\Testing\RuleTestCase;
  *   <the offending statement>
  *
  * asserts the analyser reports an error whose message (or tip) contains `<substring>` — so the
- * "…is rejected" comments in the README are verified, not just decorative. A block with no `//!`
+ * "…is rejected" comments are verified, not just decorative. A block with no `//!`
  * marker must analyse clean, which pins down the documented *good* code too.
  *
  * No subprocess: the diagnostics come from PHPStan's real {@see CallToFunctionParametersRule},
  * pulled out of the container after Yumemi's parser has promoted any custom tags. Each block is
  * `require`d into the process first so file-local
  * functions resolve in reflection (same reason {@see \jbboehr\Yumemi\Tests\PHPStan\YumemiReturnTagExtensionTest}
- * requires its fixtures); the blocks are already runtime-safe because ReadmeExamplesTest runs them.
+ * requires its fixtures); the blocks are already runtime-safe because DocumentationExamplesTest runs them.
  *
  * @extends RuleTestCase<CallToFunctionParametersRule>
  */
-final class ReadmePhpStanExamplesTest extends RuleTestCase
+final class DocumentationPhpStanExamplesTest extends RuleTestCase
 {
     private const MARKER = '//!';
 
     /**
-     * Tokens that mark a README block as PHPStan-relevant (vs. a pure runtime example).
+     * Tokens that mark a documentation block as PHPStan-relevant (vs. a pure runtime example).
      */
     private const UNIT_TOKENS = ['unit_int<', 'unit_float<', "Quantity<'", '@yumemi-', self::MARKER];
 
@@ -79,37 +79,37 @@ final class ReadmePhpStanExamplesTest extends RuleTestCase
     public static function getAdditionalConfigFiles(): array
     {
         return [
-            self::projectRoot() . '/extension.neon',
-            self::projectRoot() . '/yumemi-tags.neon',
+            MarkdownExamples::projectRoot() . '/extension.neon',
+            MarkdownExamples::projectRoot() . '/yumemi-tags.neon',
         ];
     }
 
-    public function testPhpStanRelevantReadmeExamplesMatchDocumentedDiagnostics(): void
+    public function testPhpStanRelevantDocumentationExamplesMatchDocumentedDiagnostics(): void
     {
         $blocks = self::phpStanBlocks();
-        self::assertNotEmpty($blocks, 'Expected at least one PHPStan-relevant README code block.');
+        self::assertNotEmpty($blocks, 'Expected at least one PHPStan-relevant documentation code block.');
 
         $dir = self::analysisDir();
         $previousCwd = getcwd();
 
         try {
             // Blocks resolve `require 'vendor/autoload.php'` relative to the working directory.
-            chdir(self::projectRoot());
+            chdir(MarkdownExamples::projectRoot());
 
             $files = [];
-            foreach ($blocks as $name => $code) {
+            foreach ($blocks as $name => $block) {
                 $file = $dir . '/' . $name . '.php';
-                file_put_contents($file, $code);
+                file_put_contents($file, $block['code']);
                 // Declare the block's file-local functions so reflection can resolve calls to them.
                 require_once $file;
                 $files[$name] = $file;
             }
 
-            foreach ($blocks as $name => $code) {
-                $expected = self::markers($code);
+            foreach ($blocks as $name => $block) {
+                $expected = self::markers($block['code']);
                 $actual = self::errorsFor($this->gatherAnalyserErrors([$files[$name]]));
 
-                $report = self::report($name, $expected, $actual);
+                $report = self::report($block['label'], $expected, $actual);
 
                 self::assertCount(count($expected), $actual, $report);
 
@@ -129,30 +129,18 @@ final class ReadmePhpStanExamplesTest extends RuleTestCase
     }
 
     /**
-     * Extract PHPStan-relevant ```php blocks from the README, keyed by a stable file-safe name that
-     * encodes the block's overall position (so a failure points back to a specific example).
+     * Extract PHPStan-relevant ```php blocks, keyed by stable file-safe document/block identities.
      *
-     * @return array<string, string>
+     * @return array<string, array{label: string, code: string}>
      */
     private static function phpStanBlocks(): array
     {
-        $readme = self::projectRoot() . '/README.md';
-        $contents = file_get_contents($readme);
-
-        if ($contents === false) {
-            throw new \RuntimeException('Unable to read ' . $readme);
-        }
-
-        preg_match_all('/```php\s*\R(.*?)\R```/s', $contents, $matches, PREG_SET_ORDER);
-
         $blocks = [];
 
-        foreach ($matches as $index => $match) {
-            $code = $match[1];
-
+        foreach (MarkdownExamples::phpBlocks() as $block) {
             foreach (self::UNIT_TOKENS as $token) {
-                if (str_contains($code, $token)) {
-                    $blocks[sprintf('example-%02d', $index + 1)] = $code;
+                if (str_contains($block['code'], $token)) {
+                    $blocks[$block['id']] = ['label' => $block['label'], 'code' => $block['code']];
                     break;
                 }
             }
@@ -246,7 +234,7 @@ final class ReadmePhpStanExamplesTest extends RuleTestCase
 
     private static function analysisDir(): string
     {
-        $dir = sys_get_temp_dir() . '/yumemi-readme-phpstan-' . bin2hex(random_bytes(6));
+        $dir = sys_get_temp_dir() . '/yumemi-documentation-phpstan-' . bin2hex(random_bytes(6));
         self::assertTrue(mkdir($dir, 0o777, true) && is_dir($dir), 'Unable to create temp analysis dir.');
 
         return $dir;
@@ -264,10 +252,5 @@ final class ReadmePhpStanExamplesTest extends RuleTestCase
         }
 
         @rmdir($dir);
-    }
-
-    private static function projectRoot(): string
-    {
-        return dirname(__DIR__, 2);
     }
 }

@@ -76,6 +76,7 @@ final class GenerateUdunits2CatalogCommandTest extends TestCase
         $contents = file_get_contents($output);
         $this->assertIsString($contents);
         $this->assertStringStartsWith("<?php", $contents);
+        $this->assertStringContainsString('SPDX-License-Identifier: UCAR', $contents);
         $this->assertStringContainsString('UDUNITS-2 package', $contents);
 
         $catalog = require $output;

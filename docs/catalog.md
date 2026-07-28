@@ -1,0 +1,130 @@
+# Catalog Reference
+
+Yumemi ships a generated unit catalog derived from UDUNITS2. The same catalog drives runtime name resolution,
+conversion, formatting, and PHPStan analysis.
+
+The imported UDUNITS2 material is distributed under the terms in [UDUNITS-COPYRIGHT](UDUNITS-COPYRIGHT). Yumemi's own
+code remains under the project license described in the root README and license files.
+
+## Default Catalog
+
+`Units::default()` uses `Udunits2UnitRegistry` and the checked-in `data/udunits2.php` catalog. The generated data
+includes:
+
+- base, dimensionless, and derived units;
+- canonical names, aliases, symbols, explicit plurals, and unambiguous generated plurals;
+- decimal and scientific prefix definitions;
+- source definitions, comments, and documentation when present upstream.
+
+Lookup is case-sensitive. Exact names win before dynamic prefix decomposition, and prefixes apply only when the
+remaining suffix is an exact unit name. See the [unit syntax reference](unit-syntax.md#unit-names) for examples.
+
+## Introspection
+
+`Units::describe()` describes one exact catalog spelling and follows aliases to its canonical entry.
+`Units::describePrefix()` describes one exact prefix name or symbol. Descriptors preserve whether the matched spelling
+was canonical, an alias, a symbol, an explicit plural, or a generated plural.
+
+Introspection does not parse compound expressions or normalize definitions. It also does not currently synthesize a
+descriptor for a dynamically prefixed name, even when normal unit resolution accepts that name:
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+use jbboehr\Yumemi\Catalog\CatalogNameKind;
+use jbboehr\Yumemi\Units;
+
+$units = Units::default();
+$meter = $units->describe('m');
+
+assert($meter !== null);
+assert($meter->canonicalName === 'meter');
+assert($meter->matchedAs === CatalogNameKind::Symbol);
+assert(in_array('metre', $meter->aliases, true));
+
+assert($units->normalize('micrometer')->toString() === '1/1000000 * meter');
+assert($units->describe('micrometer') === null);
+```
+
+That distinction is intentional current behavior, not evidence that `micrometer` is invalid.
+
+## Custom Registries
+
+Use `UnitRegistryBuilder::default()` to layer custom definitions and aliases over UDUNITS2. Use
+`UnitRegistryBuilder::empty()` for an isolated catalog.
+
+Definitions use the normal multiplicative unit language and are parsed against the completed registry on first use. The
+builder is immutable: each method returns a new builder.
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
+use jbboehr\Yumemi\Units;
+
+$registry = UnitRegistryBuilder::default()
+    ->define('widget = 12 * meter')
+    ->alias('widgets', 'widget')
+    ->build();
+
+$units = new Units($registry);
+
+assert($units->quantity(2, 'widgets')->valueIn('meter')->toString() === '24');
+assert($units->describe('widgets')?->canonicalName === 'widget');
+```
+
+An overlay definition wins over a base UDUNITS2 record with the same name. Aliases resolve through the composed
+registry, so an overlay alias may target either another custom definition or a base catalog unit.
+
+For PHPStan, configure one `UnitRegistryFactory` that returns the complete registry. Runtime code should construct its
+`Units` context from the same registry. PHPStan assumes one authoritative registry for an analysis run and does not
+track a separate catalog identity for each value.
+
+## Unsupported Catalog Semantics
+
+The parser intentionally supports only multiplicative unit algebra with integer powers. Affine definitions such as
+Celsius remain in the generated catalog but throw `UnsupportedSyntaxException` when evaluated. Logarithmic definitions
+containing UDUNITS2 `lg(...)` syntax are currently omitted during import.
+
+Consequently, `describe()` cannot yet explain every upstream unit that was omitted for unsupported semantics. Retaining
+those entries with explicit unsupported-reason metadata is planned future work.
+
+## Regenerating The Catalog
+
+Do not edit `data/udunits2.php` manually. Rebuild it from the UDUNITS2 XML source in the Nix development shell:
+
+```shell
+composer generate-catalog
+```
+
+The equivalent Make target is:
+
+```shell
+make generate-catalog
+```
+
+The flake sets `UDUNITS_XML_DIR` to the installed UDUNITS2 XML directory. Outside the development shell, specify an
+equivalent directory explicitly:
+
+```shell
+UDUNITS_XML_DIR=/path/to/share/udunits make generate-catalog
+```
+
+The Make target supplies these files in the order declared by the upstream `udunits2.xml` manifest:
+
+1. `udunits2-prefixes.xml`
+2. `udunits2-base.xml`
+3. `udunits2-derived.xml`
+4. `udunits2-accepted.xml`
+5. `udunits2-common.xml`
+
+The generator imports the XML, materializes aliases and plural metadata, and exports deterministic PHP through
+`brick/varexporter`. A successful rebuild should leave no diff unless the importer, exporter, source package, or
+generated header changed.
+
+After regeneration, run the full test suite. The catalog smoke tests resolve every supported definition and pin the
+known unsupported affine set, making source-data drift explicit.
