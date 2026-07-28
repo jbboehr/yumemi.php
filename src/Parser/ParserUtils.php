@@ -47,6 +47,21 @@ use jbboehr\Yumemi\Parser\Ast\Sub;
 
 trait ParserUtils
 {
+    private const SUPERSCRIPT_TO_ASCII = [
+        '⁰' => '0',
+        '¹' => '1',
+        '²' => '2',
+        '³' => '3',
+        '⁴' => '4',
+        '⁵' => '5',
+        '⁶' => '6',
+        '⁷' => '7',
+        '⁸' => '8',
+        '⁹' => '9',
+        '⁺' => '+',
+        '⁻' => '-',
+    ];
+
     /**
      * @throws ParseException
      */
@@ -65,6 +80,11 @@ trait ParserUtils
     public static function makeInteger(string $text): Ast
     {
         return new Ast\Integer_($text);
+    }
+
+    public static function makeSuperscriptInteger(string $text): Ast
+    {
+        return self::makeInteger(strtr($text, self::SUPERSCRIPT_TO_ASCII));
     }
 
     public static function makeFloat(string $text): Ast

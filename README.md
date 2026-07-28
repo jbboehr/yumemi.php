@@ -236,7 +236,8 @@ the caller chose, while `to()` and `valueIn()` explicitly convert through the un
 
 **String forms:** `Quantity` (and error messages) use display form via `ExprFormatter` (e.g. `meter / second`).
 `Expr::toString()` is a structural/debug dump (e.g. `meter * second ^ -1`). Equality uses structure, not either string
-form.
+form. The default display format preserves unit spellings and uses parser-compatible ASCII, so existing `toString()` and
+`unitToString()` output remains stable.
 
 Malformed syntax throws `Parser\ParseException` with an optional `Parser\SourceSpan`. Spans are zero-based, half-open
 byte ranges in the decoded unit expression; exception messages render a one-based expression-local line and column with
@@ -308,6 +309,43 @@ assert($kilo->definitionExpression === '1e3');
 
 `describe()` and `describePrefix()` perform exact catalog lookup. They do not parse unit expressions, substitute unit
 definitions, or synthesize descriptions for dynamically prefixed names.
+
+Formatting policies can canonicalize aliases and generated plurals, select catalog symbols, use Unicode typography, and
+control dimensionless output. Formatting does not normalize or substitute unit definitions:
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+use jbboehr\Yumemi\Formatter\FormatOptions;
+use jbboehr\Yumemi\Formatter\Typography;
+use jbboehr\Yumemi\Formatter\UnitNameStyle;
+use jbboehr\Yumemi\Units;
+
+$units = Units::default();
+$options = new FormatOptions(
+    unitNames: UnitNameStyle::Symbol,
+    typography: Typography::Unicode,
+);
+
+assert($units->format('kilometers / second^2', $options) === 'km / s²');
+assert($units->quantity(3, 'kilometers / second^2')->formatUnit($options) === 'km / s²');
+```
+
+`UnitNameStyle::Preserve` keeps each spelling supplied by the caller. `Canonical` resolves aliases, plurals, and one
+dynamic prefix to canonical names. `Symbol` selects the shortest deterministic catalog symbol; ASCII typography falls
+back to a canonical name when a unit has only Unicode symbols, while Unicode typography may emit symbols such as `Ω`.
+Unknown expression leaves are preserved.
+
+Unicode typography emits `·` and superscript integer powers while retaining fraction layout, for example `m · kg / s²`.
+The parser accepts `·`, superscript digits, and optional superscript `⁺` or `⁻`, so ordinary Unicode formatter output
+can be parsed again. `DimensionlessStyle::Word` and `DimensionlessStyle::Empty` are presentation-only; the default
+`DimensionlessStyle::One` remains round-trippable.
+
+Use `Units::formatter($options)` when the same options will format several `Expr` values. `Units::format()` parses a
+string symbolically before rendering it. An `Expr` previously returned by `Units::parse()` has already been resolved, so
+its formatter output reflects that resolved expression rather than recovering the original source spelling.
 
 Multiplication and division reduce chosen unit syntax, but do not substitute compatible unit definitions.
 

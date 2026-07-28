@@ -36,7 +36,7 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
-use jbboehr\Yumemi\Formatter\ExprFormatter;
+use jbboehr\Yumemi\Formatter\ExprRenderer;
 
 /**
  * Unit algebra on {@see UnitExpression} for the static layer.
@@ -56,7 +56,7 @@ final class UnitExpressionAlgebra
 
         return new UnitExpression(
             $expr,
-            ExprFormatter::format($expr),
+            ExprRenderer::format($expr),
             $left->dimension->mul($right->dimension),
             $normalized,
         );
@@ -69,7 +69,7 @@ final class UnitExpressionAlgebra
 
         return new UnitExpression(
             $expr,
-            ExprFormatter::format($expr),
+            ExprRenderer::format($expr),
             $left->dimension->div($right->dimension),
             $normalized,
         );
@@ -87,7 +87,7 @@ final class UnitExpressionAlgebra
 
         return new UnitExpression(
             $expr,
-            ExprFormatter::format($expr),
+            ExprRenderer::format($expr),
             $unit->dimension->pow($exponent),
             $normalized,
         );

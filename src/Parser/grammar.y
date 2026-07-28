@@ -15,6 +15,8 @@
 %define parse.error detailed
 
 %token T_INTEGER "integer"
+%token T_SUPERSCRIPT_INTEGER "superscript integer"
+%token T_INVALID_SUPERSCRIPT "superscript sign without digits"
 %token T_FLOAT "decimal number"
 %token T_DOT "."
 %token T_MUL "*"
@@ -64,6 +66,7 @@ simple:
         number                                  { $$ = $1; }
     |   identifier                              { $$ = $1; }
     |   T_LEFT_PAREN exp T_RIGHT_PAREN          { $$ = $2; }
+    |   simple T_SUPERSCRIPT_INTEGER %prec T_POW { $$ = self::makePow($1, self::makeSuperscriptInteger($2)); }
     ;
 
 number:

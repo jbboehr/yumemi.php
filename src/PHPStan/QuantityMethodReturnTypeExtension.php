@@ -37,7 +37,7 @@
 namespace jbboehr\Yumemi\PHPStan;
 
 use jbboehr\Yumemi\Analyzer\NormalizedExpr;
-use jbboehr\Yumemi\Formatter\ExprFormatter;
+use jbboehr\Yumemi\Formatter\ExprRenderer;
 use jbboehr\Yumemi\Quantity;
 use PhpParser\Node\Expr\MethodCall;
 use PHPStan\Analyser\Scope;
@@ -352,7 +352,7 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
 
         return new QuantityType(new UnitExpression(
             $normalized,
-            ExprFormatter::format($normalized),
+            ExprRenderer::format($normalized),
             $unit->dimension,
             $normalized,
         ));
@@ -366,7 +366,7 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
 
         return new QuantityType(new UnitExpression(
             $simplified,
-            ExprFormatter::format($simplified),
+            ExprRenderer::format($simplified),
             $unit->dimension,
             $simplified,
         ));

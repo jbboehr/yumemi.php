@@ -34,60 +34,69 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\Exception;
+namespace jbboehr\Yumemi\Analyzer;
 
-use jbboehr\Yumemi\Dimension;
-use jbboehr\Yumemi\Expr;
-use jbboehr\Yumemi\Formatter\ExprRenderer;
+use jbboehr\Yumemi\Registry\UnitRegistry;
 
-final class IncompatibleUnitException extends \RuntimeException
+/**
+ * Resolves only unit-name structure: exact spelling first, then one prefix plus an exact residual.
+ *
+ * @internal Expression construction remains the responsibility of {@see UnitResolver}.
+ */
+final class UnitNameResolver
 {
-    public readonly Expr $from;
-    public readonly Expr $to;
-    public readonly ?Dimension $fromDimension;
-    public readonly ?Dimension $toDimension;
+    /** @var array<string, ResolvedUnitName|null> */
+    private array $cache = [];
 
     public function __construct(
-        string $message,
-        Expr $from,
-        Expr $to,
-        ?Dimension $fromDimension = null,
-        ?Dimension $toDimension = null,
+        private readonly UnitRegistry $unitRegistry,
     ) {
-        parent::__construct($message);
-        $this->from = $from;
-        $this->to = $to;
-        $this->fromDimension = $fromDimension;
-        $this->toDimension = $toDimension;
     }
 
-    public static function create(
-        Expr $from,
-        Expr $to,
-        ?Dimension $fromDimension = null,
-        ?Dimension $toDimension = null,
-    ): self {
-        $message = sprintf(
-            'Incompatible unit expressions: %s and %s.',
-            ExprRenderer::format($from),
-            ExprRenderer::format($to),
-        );
-
-        if ($fromDimension !== null && $toDimension !== null) {
-            if ($fromDimension->equals($toDimension)) {
-                $message .= sprintf(
-                    ' Both have dimension %s; use add()/sub() to convert, or convert explicitly.',
-                    $fromDimension->toString(),
-                );
-            } else {
-                $message .= sprintf(
-                    ' Dimensions: %s vs %s.',
-                    $fromDimension->toString(),
-                    $toDimension->toString(),
-                );
-            }
+    public function resolve(string $name): ?ResolvedUnitName
+    {
+        if (array_key_exists($name, $this->cache)) {
+            return $this->cache[$name];
         }
 
-        return new self($message, $from, $to, $fromDimension, $toDimension);
+        if ($this->existsExactly($name)) {
+            return $this->cache[$name] = new ResolvedUnitName($name, $name);
+        }
+
+        foreach ($this->sortedPrefixes() as $prefix => $definition) {
+            if (!str_starts_with($name, $prefix)) {
+                continue;
+            }
+
+            $unitName = substr($name, strlen($prefix));
+            if ($unitName === '' || !$this->existsExactly($unitName)) {
+                continue;
+            }
+
+            return $this->cache[$name] = new ResolvedUnitName(
+                matchedName: $name,
+                unitName: $unitName,
+                prefixName: $prefix,
+                prefixDefinition: $definition,
+            );
+        }
+
+        return $this->cache[$name] = null;
+    }
+
+    private function existsExactly(string $name): bool
+    {
+        return $this->unitRegistry->lookup($name) !== null || $this->unitRegistry->record($name) !== null;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function sortedPrefixes(): array
+    {
+        $prefixes = $this->unitRegistry->prefixes();
+        uksort($prefixes, static fn (string $left, string $right): int => strlen($right) <=> strlen($left));
+
+        return $prefixes;
     }
 }

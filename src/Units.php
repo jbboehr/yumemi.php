@@ -47,6 +47,8 @@ use jbboehr\Yumemi\Catalog\UnitDescriptor;
 use jbboehr\Yumemi\Expr\Compound;
 use jbboehr\Yumemi\Expr\Term;
 use jbboehr\Yumemi\Expr\Unit;
+use jbboehr\Yumemi\Formatter\ExprFormatter;
+use jbboehr\Yumemi\Formatter\FormatOptions;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Parser\Parser;
 use jbboehr\Yumemi\Registry\UnitRegistry;
@@ -59,6 +61,7 @@ final class Units
     private readonly AstConverter $astConverter;
     private readonly ConversionFactorResolver $conversionFactorResolver;
     private readonly DimensionResolver $dimensionResolver;
+    private readonly ExprFormatter $defaultFormatter;
     private readonly UnitNormalizer $unitNormalizer;
     private readonly UnitResolver $unitResolver;
 
@@ -73,6 +76,7 @@ final class Units
             $this->unitNormalizer,
             $this->dimensionResolver,
         );
+        $this->defaultFormatter = new ExprFormatter($this->unitRegistry);
     }
 
     /**
@@ -107,6 +111,22 @@ final class Units
     public function dimension(Expr|string $expr): Dimension
     {
         return $this->dimensionResolver->resolve($this->expr($expr));
+    }
+
+    public function format(Expr|string $expr, ?FormatOptions $options = null): string
+    {
+        $symbolicExpr = is_string($expr)
+            ? ExprReducer::reduce(AstConverter::symbolic()->convert(Parser::parseString($expr)))
+            : $expr;
+
+        return $this->formatter($options)->format($symbolicExpr);
+    }
+
+    public function formatter(?FormatOptions $options = null): ExprFormatter
+    {
+        return $options === null
+            ? $this->defaultFormatter
+            : new ExprFormatter($this->unitRegistry, $options);
     }
 
     /**

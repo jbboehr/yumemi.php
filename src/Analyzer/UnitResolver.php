@@ -71,11 +71,13 @@ final class UnitResolver
     private array $resolving = [];
 
     private readonly AstConverter $astConverter;
+    private readonly UnitNameResolver $unitNameResolver;
 
     public function __construct(
         private readonly UnitRegistry $unitRegistry,
     ) {
         $this->astConverter = new AstConverter($this);
+        $this->unitNameResolver = new UnitNameResolver($this->unitRegistry);
     }
 
     public function resolve(string $name): ?Expr
@@ -150,8 +152,22 @@ final class UnitResolver
 
     private function resolveUncached(string $name): ?Expr
     {
-        return $this->resolveExact($name)
-            ?? $this->tryLookupWithPrefixes($name);
+        $resolvedName = $this->unitNameResolver->resolve($name);
+        if ($resolvedName === null) {
+            return null;
+        }
+
+        $unit = $this->resolveExact($resolvedName->unitName);
+        if ($unit === null || !$resolvedName->isPrefixed()) {
+            return $unit;
+        }
+
+        return new Compound([
+            $this->prefixToExpr($resolvedName->prefixDefinition ?? throw new \LogicException(
+                'A prefixed unit name must include its prefix definition.',
+            )),
+            $unit,
+        ]);
     }
 
     /**
@@ -195,44 +211,6 @@ final class UnitResolver
                 )),
             ),
         };
-    }
-
-    private function tryLookupWithPrefixes(string $name): ?Expr
-    {
-        foreach ($this->sortedPrefixes() as $prefix => $definition) {
-            if (!str_starts_with($name, $prefix)) {
-                continue;
-            }
-
-            $remainingName = substr($name, strlen($prefix));
-            if ($remainingName === '') {
-                continue;
-            }
-
-            // Exact catalog/prebuilt residual only — no nested prefixes.
-            $remainingUnit = $this->resolveExact($remainingName);
-            if ($remainingUnit === null) {
-                continue;
-            }
-
-            return new Compound([
-                $this->prefixToExpr($definition),
-                $remainingUnit,
-            ]);
-        }
-
-        return null;
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private function sortedPrefixes(): array
-    {
-        $prefixes = $this->unitRegistry->prefixes();
-        uksort($prefixes, static fn (string $left, string $right): int => strlen($right) <=> strlen($left));
-
-        return $prefixes;
     }
 
     private function prefixToExpr(string $definition): Expr

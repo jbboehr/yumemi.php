@@ -103,6 +103,7 @@ Already implemented:
   - `conversionFactor()`
   - `convert()`
   - `quantity()`
+  - `format()` and reusable registry-aware formatters
   - `describe()`
   - `describePrefix()`
 - Ported generated parser from `units.php`:
@@ -113,6 +114,7 @@ Already implemented:
   - Composer/Makefile generation wiring
   - exact half-open byte spans for syntax errors
   - bounded expression-local caret diagnostics shared by runtime and PHPStan
+  - Unicode middle-dot multiplication and signed superscript integer powers
 - AST converter for supported runtime syntax:
   - identifiers
   - integer constants
@@ -137,6 +139,11 @@ Already implemented:
   - `normalize()` for unit-definition substitution without changing stored value
   - `simplify()` for unit-definition substitution with scale folded into the stored value
   - context checks that reject arithmetic between quantities from different `Units` instances
+- Configurable expression formatting:
+  - preserved, canonical, or symbol unit names
+  - ASCII or round-trippable Unicode typography
+  - numeric, word, or empty dimensionless presentation
+  - exact-before-prefix name resolution shared with the runtime resolver
 
 Current verification:
 
@@ -308,6 +315,8 @@ Supported by parser and converter now:
 - `meter^2`
 - `second^-2`
 - `(meter / second)^2`
+- `meter · second`
+- `meter²` and `second⁻²`
 - decimal constants such as `1.25 meter`
 - scientific notation accepted by the lexer
 
@@ -449,7 +458,6 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
   unsupported semantics.
 - Extend catalog introspection to explain dynamically prefixed names and catalog entries omitted for unsupported
   semantics.
-- Add small formatting policies for canonical names versus symbols, ASCII versus Unicode, and dimensionless output.
 - Split broad PHPStan diagnostic identifiers only where users need more precise suppression.
 - Decide whether user-defined base dimensions justify replacing or extending the fixed seven-axis `Dimension` vector.
 

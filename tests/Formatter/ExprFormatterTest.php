@@ -41,7 +41,6 @@ use jbboehr\Yumemi\Expr\Compound;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Term;
 use jbboehr\Yumemi\Expr\Unit;
-use jbboehr\Yumemi\Formatter\ExprFormatter;
 use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\TestCase;
 
@@ -55,7 +54,7 @@ final class ExprFormatterTest extends TestCase
             new Term(new Unit('second'), -1),
         ]);
 
-        $this->assertSame('3 * meter / second', ExprFormatter::format($expr));
+        $this->assertSame('3 * meter / second', Units::default()->formatter()->format($expr));
     }
 
     public function testDisplayFormDiffersFromStructuralToStringForQuotients(): void
@@ -63,7 +62,7 @@ final class ExprFormatterTest extends TestCase
         $expr = Units::default()->parse('meter / second');
 
         $this->assertSame('meter * second ^ -1', $expr->toString());
-        $this->assertSame('meter / second', ExprFormatter::format($expr));
+        $this->assertSame('meter / second', Units::default()->formatter()->format($expr));
     }
 
     public function testIncompatibleUnitExceptionUsesDisplayForm(): void
@@ -86,13 +85,13 @@ final class ExprFormatterTest extends TestCase
             new Term(new Unit('second'), -1),
         ]);
 
-        $this->assertSame('centimeter / (foot * second)', ExprFormatter::format($expr));
+        $this->assertSame('centimeter / (foot * second)', Units::default()->formatter()->format($expr));
     }
 
     public function testFormatsPositivePowers(): void
     {
         $expr = (new Unit('meter'))->pow(2);
 
-        $this->assertSame('meter ^ 2', ExprFormatter::format($expr));
+        $this->assertSame('meter ^ 2', Units::default()->formatter()->format($expr));
     }
 }

@@ -44,7 +44,7 @@ use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\Expr\Constant;
-use jbboehr\Yumemi\Formatter\ExprFormatter;
+use jbboehr\Yumemi\Formatter\FormatOptions;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Parser\Parser;
 
@@ -319,14 +319,24 @@ final class Quantity
         );
     }
 
+    public function format(?FormatOptions $options = null): string
+    {
+        return $this->units->format($this->expr(), $options);
+    }
+
+    public function formatUnit(?FormatOptions $options = null): string
+    {
+        return $this->units->format($this->unit, $options);
+    }
+
     public function toString(): string
     {
-        return ExprFormatter::format($this->expr());
+        return $this->format();
     }
 
     public function unitToString(): string
     {
-        return ExprFormatter::format($this->unit);
+        return $this->formatUnit();
     }
 
     public function unit(): Expr

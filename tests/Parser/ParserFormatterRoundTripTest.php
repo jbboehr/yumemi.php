@@ -36,7 +36,9 @@
 
 namespace jbboehr\Yumemi\Tests\Parser;
 
-use jbboehr\Yumemi\Formatter\ExprFormatter;
+use jbboehr\Yumemi\Formatter\FormatOptions;
+use jbboehr\Yumemi\Formatter\Typography;
+use jbboehr\Yumemi\Formatter\UnitNameStyle;
 use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\TestCase;
 
@@ -48,7 +50,28 @@ final class ParserFormatterRoundTripTest extends TestCase
 
         foreach (self::roundTripInputs() as $input) {
             $parsed = $units->parse($input)->reduce();
-            $formatted = ExprFormatter::format($parsed);
+            $formatted = $units->formatter()->format($parsed);
+            $reparsed = $units->parse($formatted)->reduce();
+
+            $this->assertSame(
+                $units->normalize($parsed)->toString(),
+                $units->normalize($reparsed)->toString(),
+                $input . ' formatted as ' . $formatted,
+            );
+        }
+    }
+
+    public function testUnicodeSymbolOutputCanBeParsedAgainWithSameMeaning(): void
+    {
+        $units = Units::default();
+        $formatter = $units->formatter(new FormatOptions(
+            unitNames: UnitNameStyle::Symbol,
+            typography: Typography::Unicode,
+        ));
+
+        foreach (self::roundTripInputs() as $input) {
+            $parsed = $units->parse($input)->reduce();
+            $formatted = $formatter->format($parsed);
             $reparsed = $units->parse($formatted)->reduce();
 
             $this->assertSame(

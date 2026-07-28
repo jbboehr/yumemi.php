@@ -59,8 +59,10 @@ class Lexer extends AbstractLexer implements LexerInterface
         return [
             // numbers
             '(?:[\d]+(?:[\.][\d]+)*)(?:e[+-]?[\d]+)?',
+            // postfix superscript integer power
+            '(?:[⁺⁻]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+|[⁺⁻])',
             // identifier or qualified name
-            '[\w_°][\w\d_]*(?:[\w_][\w\d_]*)*',
+            '[\p{L}\p{Nd}_°][\p{L}\p{Nd}_°]*',
         ];
     }
 
@@ -74,6 +76,14 @@ class Lexer extends AbstractLexer implements LexerInterface
 
     protected function getType(string &$value): int
     {
+        if (preg_match('/^[⁺⁻]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+$/u', $value) === 1) {
+            return self::T_SUPERSCRIPT_INTEGER;
+        }
+
+        if ($value === '⁺' || $value === '⁻') {
+            return self::T_INVALID_SUPERSCRIPT;
+        }
+
         if (is_numeric($value)) {
             if (strpos($value, '.') !== false || stripos($value, 'e') !== false) {
                 return self::T_FLOAT;
@@ -84,6 +94,7 @@ class Lexer extends AbstractLexer implements LexerInterface
 
         switch ($value) {
             case '*':
+            case '·':
                 return self::T_MUL;
 
             case '/':

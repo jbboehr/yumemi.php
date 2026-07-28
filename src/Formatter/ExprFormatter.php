@@ -36,120 +36,126 @@
 
 namespace jbboehr\Yumemi\Formatter;
 
-use jbboehr\Yumemi\Analyzer\ExprReducer;
+use jbboehr\Yumemi\Analyzer\ResolvedUnitName;
+use jbboehr\Yumemi\Analyzer\UnitNameResolver;
+use jbboehr\Yumemi\Catalog\CatalogNameKind;
 use jbboehr\Yumemi\Expr;
-use jbboehr\Yumemi\Expr\Compound;
-use jbboehr\Yumemi\Expr\Constant;
-use jbboehr\Yumemi\Expr\Term;
-use jbboehr\Yumemi\Expr\Unit;
-use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\Registry\UnitRegistry;
 
-/**
- * User-facing rendering of unit expressions.
- *
- * Prefers fraction form for negative powers (e.g. "meter / second") rather than the
- * structural tree dump from {@see Expr::toString()} (e.g. "meter * second ^ -1").
- * Quantity display and exception messages should use this formatter.
- */
+/** Registry-aware user-facing rendering of unit expressions. */
 final class ExprFormatter
 {
-    public static function format(Expr $expr): string
+    private readonly UnitNameResolver $unitNameResolver;
+
+    /** @var array<string, string> */
+    private array $unitNameCache = [];
+
+    /** @var array<string, list<string>>|null */
+    private ?array $prefixSymbols = null;
+
+    public function __construct(
+        private readonly UnitRegistry $unitRegistry,
+        private readonly FormatOptions $options = new FormatOptions(),
+    ) {
+        $this->unitNameResolver = new UnitNameResolver($this->unitRegistry);
+    }
+
+    public function format(Expr $expr): string
     {
-        $constant = new Rational(1);
-        $numerator = [];
-        $denominator = [];
+        return ExprRenderer::format($expr, $this->options, $this->formatUnitName(...));
+    }
 
-        self::collect(ExprReducer::reduce($expr), $constant, $numerator, $denominator);
-
-        if ($numerator === [] && $denominator === []) {
-            return $constant->toString();
+    private function formatUnitName(string $name): string
+    {
+        if ($this->options->unitNames === UnitNameStyle::Preserve) {
+            return $name;
         }
 
-        $parts = [];
-        if (!$constant->isOne()) {
-            $parts[] = $constant->toString();
+        return $this->unitNameCache[$name] ??= $this->formatResolvedUnitName(
+            $name,
+            $this->unitNameResolver->resolve($name),
+        );
+    }
+
+    private function formatResolvedUnitName(string $name, ?ResolvedUnitName $resolved): string
+    {
+        if ($resolved === null) {
+            return $name;
         }
 
-        $parts = array_merge($parts, $numerator);
-
-        if ($parts === []) {
-            $parts[] = '1';
+        $unit = $this->unitRegistry->describe($resolved->unitName);
+        if ($unit === null) {
+            return $name;
         }
 
-        $formatted = implode(' * ', $parts);
+        $unitName = $this->options->unitNames === UnitNameStyle::Symbol
+            ? $this->preferredSymbol($unit->symbols) ?? $unit->canonicalName
+            : $unit->canonicalName;
 
-        if (count($denominator) === 1) {
-            return $formatted . ' / ' . $denominator[0];
+        if (!$resolved->isPrefixed()) {
+            return $unitName;
         }
 
-        if (count($denominator) > 1) {
-            return $formatted . ' / (' . implode(' * ', $denominator) . ')';
+        $prefix = $this->unitRegistry->describePrefix($resolved->prefixName ?? '');
+        if ($prefix === null) {
+            return $name;
         }
 
-        return $formatted;
+        $prefixName = $this->options->unitNames === UnitNameStyle::Symbol
+            ? $this->preferredPrefixSymbol($prefix->canonicalName) ?? $prefix->canonicalName
+            : $prefix->canonicalName;
+
+        return $prefixName . $unitName;
     }
 
     /**
-     * @param list<string> $numerator
-     * @param list<string> $denominator
+     * @param list<string> $symbols
      */
-    private static function collect(Expr $expr, Rational &$constant, array &$numerator, array &$denominator): void
+    private function preferredSymbol(array $symbols): ?string
     {
-        if ($expr instanceof Compound) {
-            foreach ($expr->exprs as $subexpr) {
-                self::collect($subexpr, $constant, $numerator, $denominator);
+        if ($this->options->typography === Typography::Ascii) {
+            $symbols = array_values(array_filter($symbols, self::isAscii(...)));
+        }
+
+        usort($symbols, self::compareSymbols(...));
+
+        return $symbols[0] ?? null;
+    }
+
+    private function preferredPrefixSymbol(string $canonicalName): ?string
+    {
+        if ($this->prefixSymbols === null) {
+            $this->prefixSymbols = [];
+
+            foreach (array_keys($this->unitRegistry->prefixes()) as $name) {
+                $prefix = $this->unitRegistry->describePrefix($name);
+                if ($prefix === null || $prefix->matchedAs !== CatalogNameKind::Symbol) {
+                    continue;
+                }
+
+                $this->prefixSymbols[$prefix->canonicalName][] = $name;
             }
-
-            return;
         }
 
-        if ($expr instanceof Constant) {
-            $constant = $constant->mul($expr->value);
-            return;
-        }
-
-        if ($expr instanceof Term) {
-            self::collectTerm($expr, $constant, $numerator, $denominator);
-            return;
-        }
-
-        if ($expr instanceof Unit) {
-            $numerator[] = $expr->toString();
-            return;
-        }
-
-        throw new \LogicException('Cannot format expression of type ' . $expr::class);
+        return $this->preferredSymbol($this->prefixSymbols[$canonicalName] ?? []);
     }
 
-    /**
-     * @param list<string> $numerator
-     * @param list<string> $denominator
-     */
-    private static function collectTerm(Term $term, Rational &$constant, array &$numerator, array &$denominator): void
+    private static function isAscii(string $value): bool
     {
-        if ($term->value instanceof Constant) {
-            $constant = $constant->mul($term->value->value->pow($term->power));
-            return;
-        }
-
-        $factor = self::formatPowered($term->value, abs($term->power));
-
-        if ($term->power < 0) {
-            $denominator[] = $factor;
-            return;
-        }
-
-        $numerator[] = $factor;
+        return preg_match('/^[\x00-\x7f]*$/D', $value) === 1;
     }
 
-    private static function formatPowered(Expr $expr, int $power): string
+    private static function compareSymbols(string $left, string $right): int
     {
-        $formatted = $expr->toString();
+        $lengthComparison = self::codepointLength($left) <=> self::codepointLength($right);
 
-        if ($power === 1) {
-            return $formatted;
-        }
+        return $lengthComparison !== 0 ? $lengthComparison : strcmp($left, $right);
+    }
 
-        return $formatted . ' ^ ' . $power;
+    private static function codepointLength(string $value): int
+    {
+        $result = preg_match_all('/./us', $value);
+
+        return $result === false ? strlen($value) : $result;
     }
 }

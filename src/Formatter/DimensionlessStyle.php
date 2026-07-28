@@ -34,60 +34,11 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\Exception;
+namespace jbboehr\Yumemi\Formatter;
 
-use jbboehr\Yumemi\Dimension;
-use jbboehr\Yumemi\Expr;
-use jbboehr\Yumemi\Formatter\ExprRenderer;
-
-final class IncompatibleUnitException extends \RuntimeException
+enum DimensionlessStyle: string
 {
-    public readonly Expr $from;
-    public readonly Expr $to;
-    public readonly ?Dimension $fromDimension;
-    public readonly ?Dimension $toDimension;
-
-    public function __construct(
-        string $message,
-        Expr $from,
-        Expr $to,
-        ?Dimension $fromDimension = null,
-        ?Dimension $toDimension = null,
-    ) {
-        parent::__construct($message);
-        $this->from = $from;
-        $this->to = $to;
-        $this->fromDimension = $fromDimension;
-        $this->toDimension = $toDimension;
-    }
-
-    public static function create(
-        Expr $from,
-        Expr $to,
-        ?Dimension $fromDimension = null,
-        ?Dimension $toDimension = null,
-    ): self {
-        $message = sprintf(
-            'Incompatible unit expressions: %s and %s.',
-            ExprRenderer::format($from),
-            ExprRenderer::format($to),
-        );
-
-        if ($fromDimension !== null && $toDimension !== null) {
-            if ($fromDimension->equals($toDimension)) {
-                $message .= sprintf(
-                    ' Both have dimension %s; use add()/sub() to convert, or convert explicitly.',
-                    $fromDimension->toString(),
-                );
-            } else {
-                $message .= sprintf(
-                    ' Dimensions: %s vs %s.',
-                    $fromDimension->toString(),
-                    $toDimension->toString(),
-                );
-            }
-        }
-
-        return new self($message, $from, $to, $fromDimension, $toDimension);
-    }
+    case One = 'one';
+    case Word = 'word';
+    case Empty = 'empty';
 }

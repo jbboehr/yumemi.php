@@ -39,7 +39,7 @@ namespace jbboehr\Yumemi\PHPStan;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitDimensionException;
-use jbboehr\Yumemi\Formatter\ExprFormatter;
+use jbboehr\Yumemi\Formatter\ExprRenderer;
 use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Units;
 
@@ -71,7 +71,7 @@ final class UnitExpressionParser
 
             return UnitExpressionParseResult::ok(new UnitExpression(
                 $expr,
-                ExprFormatter::format($expr),
+                ExprRenderer::format($expr),
                 $dimension,
                 $normalized,
             ));
