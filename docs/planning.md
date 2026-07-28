@@ -132,12 +132,86 @@ Current verification:
 
 - PHPUnit passes
 - PHPStan passes
-- PHPCS passes
+- PHP-CS-Fixer passes
 - Composer validation passes
+- Nix flake checks pass
 
-Known test-suite issue:
+## PHPStan Model And Status
 
-- PHPUnit reports one deprecation warning, likely from config/tooling. It has not affected test execution.
+Yumemi intentionally has two presentation layers over the same unit engine:
+
+| Layer                  | Magnitude model                           | Primary audience                            |
+| ---------------------- | ----------------------------------------- | ------------------------------------------- |
+| Runtime `Quantity`     | Exact `Rational`                          | Code opting into value objects              |
+| PHPStan branded values | Native PHP `int` / `float` plus an `Expr` | Existing application code using native data |
+
+The PHPStan path does not introduce runtime wrappers for native values. `unit_int<'meter'>` remains an `int`, and
+`unit_float<'meter / second'>` remains a `float`; the extension attaches unit identity during analysis. Runtime object
+code can instead use `Quantity<'meter'>`, whose magnitude remains `Rational`.
+
+Both paths reuse the runtime parser, resolver, registry, reducer, dimension resolver, comparer, formatter, and
+conversion semantics. Unit identity is always a reduced Yumemi `Expr`, never a class-per-unit hierarchy or a duplicated
+PHPStan expression model.
+
+Implemented PHPStan behavior:
+
+- `unit_int<'…'>`, `unit_float<'…'>`, and `Quantity<'…'>` resolve in ordinary PHPDoc type positions.
+- Native unary and binary inference supports `+ - * / ** %`; multiplication and division combine units, exponentiation
+  requires a constant integer exponent, and modulo requires equivalent `unit_int` operands.
+- Native `+` / `-` require normalized-equivalent units. Merely compatible dimensions are insufficient because native
+  arithmetic cannot convert the right magnitude.
+- `unit()` brands a native magnitude and `unit_to()` performs a runtime conversion while returning a branded float.
+- `Units::quantity()` and all current unit-bearing `Quantity` methods preserve or transform the static unit brand.
+- Quantity arithmetic, conversion, extraction, and comparisons receive standalone diagnostics even when an invalid
+  result is unused.
+- Finite literal-string target unions are preserved for Quantity construction, conversion, and integer extraction.
+- One configured registry is authoritative for a PHPStan run and is fingerprinted for result-cache invalidation.
+
+Stable rule identifiers currently include:
+
+- `yumemi.invalidUnitCall`
+- `yumemi.invalidQuantityArithmetic`
+- `yumemi.invalidQuantityConstruction`
+- `yumemi.invalidQuantityConversion`
+- `yumemi.invalidQuantityComparison`
+- the `yumemi.docTag*` family for optional annotation promotion
+
+Invalid native binary operations use PHPStan's `binaryOp.invalid` diagnostic. Genuinely dynamic unit strings fail open
+to native return types because their unit cannot be proven; unknown constant strings fail closed with a diagnostic.
+
+### Annotation Surfaces
+
+Direct `unit_int<'…'>`, `unit_float<'…'>`, and `Quantity<'…'>` types require Yumemi's PHPStan extension. They work in
+normal `@param`, `@return`, `@var`, generic, union, intersection, and nullable positions.
+
+Libraries that want optional Yumemi support can pair ordinary fallback tags with `@yumemi-param`, `@yumemi-return`, or
+`@yumemi-var`. Promotion is deliberately opt-in through `yumemi-tags.neon`. A Yumemi tag may replace a fallback only
+when erasing its unit leaves produces the same PHPDoc structure, including parameter reference and variadic markers. A
+mismatch leaves the fallback effective and reports a diagnostic.
+
+The opt-in promoter replaces internal PHPStan parser services for analyzed source and stubs. That coupling is isolated
+and integration-tested, but remains an upgrade risk and a potential conflict with another extension replacing the same
+services. Ordinary third-party integrations should use standard PHPStan stub files containing direct Yumemi types
+instead of parser promotion.
+
+### Registry Configuration
+
+`parameters.yumemi.registryFactory` names a class implementing `UnitRegistryFactory`. Its `create()` method returns the
+complete immutable registry used by every extension path. The factory runs once and the resulting names, records,
+prebuilt units, and prefixes contribute to PHPStan's result-cache fingerprint.
+
+Runtime code should construct `Units` from the same registry when custom units are used in both layers. PHPStan does not
+track a separate registry identity on every branded value, so one shared catalog is the supported static-analysis model.
+
+### PHPStan Testing Notes
+
+Prefer direct unit tests for container-free type and algebra logic, rule tests for diagnostics, and in-process
+`TypeInferenceTestCase` fixtures for propagation. Assertion fixtures use `AssertsFixtureUnderCoverage` and run from the
+test body rather than a data provider: PHPStan's process-global parser/PHPDoc caches would otherwise warm during test
+discovery, outside coverage, and prevent parse-time extensions from executing again.
+
+CLI integration tests still spawn the real PHPStan binary for startup, parser-service, and end-to-end checks. Their
+child-process coverage is intentionally not merged; correctness matters more than an inflated coverage figure.
 
 ## Runtime API Direction
 
@@ -290,8 +364,8 @@ $distance;
 
 The string form can represent compound units without requiring a PHP class for every base, derived, or compound unit.
 
-The PHPStan extension should eventually make `Quantity<'meter / second'>` meaningful statically, but runtime application
-code should continue to use ordinary `Units` and `Quantity` objects.
+The PHPStan extension makes `Quantity<'meter / second'>` meaningful statically, while runtime application code continues
+to use ordinary `Units` and `Quantity` objects.
 
 ## Compatibility And Conversion
 
@@ -334,66 +408,60 @@ nodes:
 This is a convenience API, not the core model. It should wait until quantity arithmetic, formatting, and PHPStan
 semantics are stable enough that formula strings can share the same runtime/static behavior.
 
-## Deferred Work
+## Remaining Issues And Deferred Work
 
-The multiplicative runtime foundation is now strong enough to start static analysis work. Remaining runtime gaps are
-mostly catalog semantics, API polish, and edge-case formatting.
+The multiplicative runtime and the PHPStan native/Quantity paths are usable. Remaining work is mostly release-facing
+documentation, API polish, catalog semantics beyond multiplication, and explicitly deferred advanced features.
 
-- GNU Units import
-- User-defined registry/catalog composition
-- Offset and affine units, especially temperature
+### Near-Term Work
+
+- Publish focused references for unit syntax, case sensitivity, generated catalog regeneration, runtime guarantees, and
+  unsupported semantics.
+- Add catalog introspection and canonicalization for names, aliases, symbols, prefixes, comments, and unsupported
+  reasons.
+- Improve parser errors with token locations/source spans and map those spans into PHPStan diagnostics.
+- Define stable decimal and float output APIs with explicit precision and rounding; keep exact `Rational` storage.
+- Add small formatting policies for canonical names versus symbols, ASCII versus Unicode, and dimensionless output.
+- Split broad PHPStan diagnostic identifiers only where users need more precise suppression.
+- Decide whether user-defined base dimensions justify replacing or extending the fixed seven-axis `Dimension` vector.
+
+### Known Limitations And Risks
+
+- Dynamic unit strings cannot be validated statically and intentionally fall back to native PHPStan return types.
+- PHPStan assumes one authoritative registry. Flow-sensitive tracking of several runtime registry identities is not
+  implemented.
+- The opt-in `@yumemi-*` parser integration depends on internal PHPStan parser services and may conflict with another
+  parser-replacing extension.
+- Casts and unsupported PHP built-ins can erase native unit brands. Add targeted extensions only for demonstrated
+  workflows rather than trying to model every built-in preemptively.
+- Finite target unions are supported on Quantity boundaries. Extending `unit()` is straightforward, but `unit_to()` has
+  independent source and target unions whose Cartesian product loses value correlation.
+- Lookup is case-sensitive. Short but valid prefix/symbol compositions such as `pa` (pico-are) and `PA` (peta-ampere)
+  remain accepted while `Pa` is pascal; Yumemi does not special-case these catalog-valid ambiguities.
+- Exceptions expose structured units and dimensions but do not yet carry parser source spans.
+- Very large parsed integer exponents may exceed PHP integer range before reaching the expression model.
+- The UDUNITS2 importer still special-cases `cm2` syntax, and generated `prefixRegex` metadata is currently unused by
+  resolution.
+- Expression arithmetic reduces eagerly and has not been benchmarked as a hot path.
+- Dimensional analysis intentionally cannot distinguish semantically different quantities with the same dimension, such
+  as gray and sievert.
+- Exact catalog decimals for angles can normalize to large rationals; this is correct but can produce unwieldy display
+  text.
+
+### Deferred Features
+
+- Offset and affine units, especially absolute versus delta temperatures
 - Logarithmic units
-- Exact rational powers and roots; decimal approximations require an explicit precision and rounding policy
-- Better numeric output policies for decimal/float conversion
-- PHPStan static analysis extension — see [phpstan-extension.md](phpstan-extension.md)
-- Scalar-specific PHPDoc types such as `unit_int` or `unit_float` (optional edge types; not the core model)
-- Public documentation for generated catalog regeneration
-- Public documentation for runtime guarantees and non-goals
+- Exact rational powers and roots; approximate results require explicit precision and rounding
+- GNU Units import
+- Formula interpolation
+- Preferred/compact unit selection and broader formatting presets
+- Quantity serialization and ecosystem integrations
+- Strict same-unit comparison variants and PHP object comparison operators unless a concrete use case appears
+- Bundled third-party stubs until specific libraries are selected; ordinary PHPStan stubs already work
 
-## Near-Term Roadmap
-
-Suggested next slices (detail in [phpstan-extension.md](phpstan-extension.md)):
-
-1. Add PHPStan type parsing. **Done for the native path:** `unit_int<'…'>` / `unit_float<'…'>` resolve via
-   `UnitTypeNodeResolverExtension`, parsing the string through Yumemi's runtime parser and storing the reduced
-   expression on `UnitIntegerType` / `UnitFloatType`. **Also done (Piece 7):** the `Quantity<'meter / second'>` object
-   generic (sugar for `Quantity<Rational, '…'>`), resolved by the same `UnitTypeNodeResolverExtension`.
-
-2. Add PHPStan diagnostics for invalid unit strings. **Done:** invalid units become `ErrorType` with Yumemi messages in
-   PHPDoc and constant args, and `InvalidUnitCallRule` now emits standalone `yumemi.invalidUnitCall` diagnostics for
-   invalid `unit()` / `unit_to()` calls.
-
-3. Add PHPStan return-type inference. **Done for the native path:** operator inference for `+ - * / ** %`, plus `unit()`
-   / `unit_to()` dynamic return types. **Also done (Piece 7):** the `Quantity` _method_ inference —
-   `QuantityMethodReturnTypeExtension` brands `mul()` / `div()` / `pow()` / `neg()` / `add()` / `sub()` / `to()` /
-   `normalize()` / `simplify()`, validates conversion/extraction targets, and brands `intValueIn()` /
-   `exactIntValueIn()` results. `simplify()` removes the normalized scale constant from the static unit because runtime
-   folds it into the magnitude.
-
-4. Add PHPStan checks for `add()` and `sub()`. **Done:** native `+` / `-` require normalized-equivalent units;
-   `Quantity::add()` / `sub()` require compatible dimensions; and `Quantity::addWithSameUnit()` / `subWithSameUnit()`
-   require normalized-equivalent units. Native dimension-only addition is intentionally not supported because PHP cannot
-   convert the right operand's magnitude.
-
-5. Harden registry extensibility. **Mostly done:** immutable `UnitRegistry` + `UnitRegistryBuilder` (`empty()` /
-   `default()` with UDUNITS2, `define('name = expr')`, `add()`, `alias()`, `CompositeUnitRegistry`), plus PHPStan's
-   `parameters.yumemi.registryFactory` hook and automatic result-cache fingerprinting. Remaining: user-defined base
-   dimensions.
-
-6. Improve catalog semantics. **Plural handling is done:** canonical and alias names expand into generated catalog
-   aliases, explicit plurals and `<noplural>` are honored, symbols stay exact, and the runtime loader performs no
-   morphology. Remaining: design explicit behavior for affine and logarithmic definitions.
-
-> **Update 2026-07-26:** The runtime **`Quantity<…>` object path** is now done (Piece 7 — commits `7b8b759`, `64786af`):
-> `Quantity<'…'>` PHPDoc resolution, `Units::quantity()` inference, and fluent-method inference through `mul` / `div` /
-> `pow` / `neg` / `add` / `sub` / `to` / `normalize`. `simplify()` inference and object-path `Quantity`
-> addition/subtraction checks are also complete.
-
-> **Update 2026-07-27:** PHPStan custom catalogs are now supplied by a typed `UnitRegistryFactory`, shared by every
-> extension path and fingerprinted for result-cache invalidation. Native `+` / `-` deliberately remain exact-unit-only;
-> a dimension-only mode would accept arithmetic whose raw PHP magnitudes have not been converted. Native/`Quantity`
-> boundaries now reject mismatched branded construction and incompatible conversions, while integer extraction carries
-> the requested unit back to `unit_int`.
+The broader feature comparison and intentionally deferred Pint-style capabilities remain in
+[pint-parity.md](pint-parity.md).
 
 ## Current Architecture Sketch
 
@@ -406,6 +474,11 @@ Expr -> ExprReducer -> reduced Expr
 Expr -> UnitNormalizer -> normalized Expr
 normalized Expr -> ConversionFactorResolver -> Rational factor
 Units facade -> Quantity/runtime expression API
+
+PHPDoc/call site -> UnitTypeNodeResolverExtension/dynamic return extensions/rules
+configured UnitRegistryFactory -> shared Units -> UnitExpressionParser -> runtime pipeline above
+UnitExpression -> UnitIntegerType/UnitFloatType/QuantityType -> PHPStan inference and diagnostics
 ```
 
-The PHPStan layer should later reuse the same pipeline.
+The PHPStan layer is an adapter over the same runtime pipeline; it does not maintain a second catalog or expression
+engine.

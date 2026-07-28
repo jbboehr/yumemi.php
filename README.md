@@ -18,9 +18,8 @@ meaning for `meter / second` whether PHPStan is reading it or your code is compu
 - **Runtime library:** usable — unit expressions, UDUNITS2 catalog, quantities, exact rational conversion, dimensional
   checks.
 
-Design notes: [docs/planning.md](docs/planning.md). PHPStan design:
-[docs/phpstan-extension.md](docs/phpstan-extension.md). Code-quality snapshot:
-[docs/grok-review.md](docs/grok-review.md).
+Architecture, implementation status, and roadmap: [docs/planning.md](docs/planning.md). Broader feature comparison:
+[docs/pint-parity.md](docs/pint-parity.md).
 
 ## Installation
 
