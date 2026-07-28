@@ -234,6 +234,38 @@ This should remain explicit until offsets/affine units are designed.
 The parser can read more UDUNITS2 syntax than the runtime chooses to support semantically. The importer currently skips
 logarithmic definitions and the runtime rejects affine syntax such as Celsius offsets.
 
+## Rational Powers And Exact Roots
+
+`Quantity::pow()` intentionally accepts only an integer today. Widening it to `int|float` would be incorrect: binary
+floating-point exponents cannot provide stable equality, cancellation, formatting, or PHPStan type identity for unit
+expressions.
+
+GMP integers can represent a finite decimal exactly as a coefficient and decimal scale (`coefficient * 10^-scale`).
+Yumemi's `Rational` is more general because it also represents values such as `1/3` exactly. Neither representation can
+store an irrational result such as `sqrt(2)` exactly, however, so arbitrary-precision decimal arithmetic does not by
+itself make arbitrary real exponentiation exact.
+
+Future exact exponentiation should use a `Rational` exponent, never a `float`. For an exponent `p/q`, the exact
+operation can succeed when the required `q`th roots of the magnitude's numerator and denominator are integers. Otherwise
+the exact API should throw. Approximate results should require a separate API with explicit precision and rounding
+rather than silently changing `Quantity` from exact rational arithmetic to decimal approximation.
+
+Full rational unit powers would be a cross-cutting representation change. `Expr\Term`, reduction state, `Dimension`,
+formatting, normalization, comparison, and PHPStan unit identity currently store integer powers. They would all need
+canonical `Rational` powers before expressions such as `meter^(1/10)` could be represented safely.
+
+A smaller future first step is an exact root operation:
+
+```php
+$units->quantity(4, 'meter^2')->root(2); // 2 meter
+$units->quantity(8, 'meter^3')->root(3); // 2 meter
+$units->quantity(2, 'meter^2')->root(2); // throws: sqrt(2) is not rational
+```
+
+An initial `root(int $degree)` should require both an exact rational magnitude root and normalized unit powers divisible
+by the degree, keeping the resulting unit powers integral. This is useful but not currently on the near-term roadmap;
+`pow(int)` remains the supported API until the exact-root semantics and symbolic-unit display policy are designed.
+
 ## Design Choices
 
 Prefer unit strings over one PHP class per unit.
@@ -311,6 +343,7 @@ mostly catalog semantics, API polish, and edge-case formatting.
 - Better plural handling using generated UDUNITS2 plural metadata rather than suffix stripping alone
 - Offset and affine units, especially temperature
 - Logarithmic units
+- Exact rational powers and roots; decimal approximations require an explicit precision and rounding policy
 - Better numeric output policies for decimal/float conversion
 - PHPStan static analysis extension — see [phpstan-extension.md](phpstan-extension.md)
 - Scalar-specific PHPDoc types such as `unit_int` or `unit_float` (optional edge types; not the core model)
