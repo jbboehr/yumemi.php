@@ -135,10 +135,9 @@ Add regression tests for at least: `mass`, `bus`, `METER`, `PA` / `pa` / `Pa`, `
 
 - `UnitResolver` is fail-closed: exact `lookup`, then a single prefix applied only when the residual is an exact catalog
   hit. Recursive plural stripping was removed.
-- Plurals such as `meters` / `inches` / `centimeters` work via catalog-backed aliases:
-  - `Udunits2UnitRegistry` materializes conservative English plurals (and explicit `plural` fields) into aliases at load
-    time.
-  - `Udunits2CatalogImporter` registers explicit UDUNITS2 plurals as aliases on future catalog regenerations.
+- Plurals such as `meters` / `inches` / `centimeters` work via generated catalog aliases. The importer expands canonical
+  and alias names, honors explicit plurals and `<noplural>`, and leaves symbols exact; the runtime registry loads those
+  records without morphology.
 - Adversarial tests live in `tests/Analyzer/UnitResolverTest.php` (`mass`, `bus`, `METER`, …).
 - **Still open / intentional ambiguity:** one-level SI compositions like `pa` → pico·are and `PA` → peta·ampere remain,
   because `p`/`P` are prefixes and `a`/`A` are real catalog names. `Pa` still resolves to pascal via exact lookup.

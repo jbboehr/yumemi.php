@@ -17,6 +17,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Made generated UDUNITS2 plural aliases authoritative, preserving explicit and suppressed plurals without pluralizing
+  symbols at runtime.
+
 ### Security
 
 [Unreleased]: https://github.com/jbboehr/yumemi.php/commits/master

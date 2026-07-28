@@ -52,7 +52,8 @@ final class Udunits2CatalogSmokeTest extends TestCase
         'affine' => [
             '°C',
             'degree_Celsius',
-            'celsius',
+            'degrees_Celsius',
+            '℃',
             'degree_C',
             'degrees_C',
             'degreeC',
@@ -61,9 +62,9 @@ final class Udunits2CatalogSmokeTest extends TestCase
             'degs_C',
             'degC',
             'degsC',
-            '℃',
+            'celsius',
+            '°F',
             '℉',
-            'fahrenheit',
             'degree_fahrenheit',
             'degrees_fahrenheit',
             'degreeF',
@@ -74,7 +75,9 @@ final class Udunits2CatalogSmokeTest extends TestCase
             'degsF',
             'deg_F',
             'degs_F',
-            '°F',
+            'fahrenheit',
+            'celsiuses',
+            'fahrenheits',
         ],
         'logarithmic' => [],
     ];
@@ -198,7 +201,7 @@ final class Udunits2CatalogSmokeTest extends TestCase
         }
 
         $this->assertSame([], $failures);
-        $this->assertSame(526, $normalizedCount);
+        $this->assertSame(784, $normalizedCount);
         $this->assertSame(self::EXPECTED_UNSUPPORTED_BY_REASON, $unsupported);
     }
 

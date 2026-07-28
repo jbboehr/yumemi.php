@@ -87,6 +87,19 @@ final class UnitExpressionParserTest extends TestCase
         $this->assertStringContainsString('Unit not found', $result->errorMessage() ?? '');
     }
 
+    public function testUsesGeneratedPluralAliasesWithoutRuntimeMorphology(): void
+    {
+        $parser = new UnitExpressionParser();
+
+        $meters = $parser->parse('meters');
+        $suppressed = $parser->parse('percents');
+
+        $this->assertTrue($meters->isOk());
+        $this->assertSame('meter', $meters->expression()->displayString);
+        $this->assertFalse($suppressed->isOk());
+        $this->assertStringContainsString('Unit not found', $suppressed->errorMessage() ?? '');
+    }
+
     public function testRejectsEmptyString(): void
     {
         $parser = new UnitExpressionParser();

@@ -85,9 +85,10 @@ Already implemented:
   - `UnitRegistry`
   - `Udunits2UnitRegistry`
   - generated aliases
+  - generated plural aliases honoring explicit plurals and `<noplural>` metadata
   - generated prefix data
   - resolver-side prefix handling
-  - simple plural stripping
+  - fail-closed, case-sensitive name resolution without runtime morphology
 - Runtime conversion-factor resolver
 - Public `Units` facade with `Expr|string` ergonomics:
   - `unit()`
@@ -340,7 +341,6 @@ mostly catalog semantics, API polish, and edge-case formatting.
 
 - GNU Units import
 - User-defined registry/catalog composition
-- Better plural handling using generated UDUNITS2 plural metadata rather than suffix stripping alone
 - Offset and affine units, especially temperature
 - Logarithmic units
 - Exact rational powers and roots; decimal approximations require an explicit precision and rounding policy
@@ -380,8 +380,9 @@ Suggested next slices (detail in [phpstan-extension.md](phpstan-extension.md)):
    `parameters.yumemi.registryFactory` hook and automatic result-cache fingerprinting. Remaining: user-defined base
    dimensions.
 
-6. Improve catalog semantics. Replace simple plural stripping with catalog plural aliases where possible, and design
-   explicit behavior for affine and logarithmic definitions.
+6. Improve catalog semantics. **Plural handling is done:** canonical and alias names expand into generated catalog
+   aliases, explicit plurals and `<noplural>` are honored, symbols stay exact, and the runtime loader performs no
+   morphology. Remaining: design explicit behavior for affine and logarithmic definitions.
 
 > **Update 2026-07-26:** The runtime **`Quantity<…>` object path** is now done (Piece 7 — commits `7b8b759`, `64786af`):
 > `Quantity<'…'>` PHPDoc resolution, `Units::quantity()` inference, and fluent-method inference through `mul` / `div` /

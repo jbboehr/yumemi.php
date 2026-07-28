@@ -84,6 +84,8 @@ final class GenerateUdunits2CatalogCommandTest extends TestCase
         $units = $catalog['units'];
         $this->assertIsArray($units);
         $this->assertArrayHasKey('meter', $units);
+        $this->assertSame(['type' => 'alias', 'name' => 'meters', 'def' => 'meter'], $units['meters']);
+        $this->assertArrayNotHasKey('ms', $units);
     }
 
     public function testMissingArgumentsWritesUsageAndReturnsExitCode(): void

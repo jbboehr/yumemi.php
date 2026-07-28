@@ -48,6 +48,9 @@ use DOMXPath;
  *     prefixes: array<string, string>,
  *     prefixRegex?: string
  * }
+ * @phpstan-type Udunits2Name array{singular: string, plural: string|null, pluralizable: bool}
+ * @phpstan-type Udunits2Aliases array{names: list<Udunits2Name>, symbols: list<string>}
+ * @phpstan-type ImplicitPluralTargets array<string, string|null>
  */
 final class Udunits2CatalogImporter
 {
@@ -68,10 +71,14 @@ final class Udunits2CatalogImporter
             'prefixes' => [],
         ];
 
+        /** @var ImplicitPluralTargets $implicitPluralTargets */
+        $implicitPluralTargets = [];
+
         foreach ($files as $file) {
-            $this->importFile($catalog, $file);
+            $this->importFile($catalog, $file, $implicitPluralTargets);
         }
 
+        $this->materializeImplicitPluralAliases($catalog, $implicitPluralTargets);
         $catalog['prefixRegex'] = $this->createPrefixRegex(array_keys($catalog['prefixes']));
 
         /** @phpstan-var Udunits2Catalog $catalog */
@@ -80,8 +87,9 @@ final class Udunits2CatalogImporter
 
     /**
      * @phpstan-param MutableUdunits2Catalog $catalog
+     * @phpstan-param ImplicitPluralTargets $implicitPluralTargets
      */
-    private function importFile(array &$catalog, string $file): void
+    private function importFile(array &$catalog, string $file, array &$implicitPluralTargets): void
     {
         $contents = file_get_contents($file);
         if ($contents === false) {
@@ -99,7 +107,7 @@ final class Udunits2CatalogImporter
         if ($unitNodes !== false) {
             foreach ($unitNodes as $node) {
                 if ($node instanceof DOMElement) {
-                    $this->importUnit($catalog, $node);
+                    $this->importUnit($catalog, $node, $implicitPluralTargets);
                 }
             }
         }
@@ -116,17 +124,20 @@ final class Udunits2CatalogImporter
 
     /**
      * @phpstan-param MutableUdunits2Catalog $catalog
+     * @phpstan-param ImplicitPluralTargets $implicitPluralTargets
      */
-    private function importUnit(array &$catalog, DOMElement $node): void
+    private function importUnit(array &$catalog, DOMElement $node, array &$implicitPluralTargets): void
     {
         $base = false;
+        /** @var Udunits2Name|null $name */
         $name = null;
-        $symbol = null;
-        $aliases = [];
+        /** @var list<string> $symbols */
+        $symbols = [];
+        /** @var Udunits2Aliases $aliases */
+        $aliases = ['names' => [], 'symbols' => []];
         $definition = null;
         $dimensionless = false;
         $def = null;
-        $plural = null;
         $comment = null;
 
         foreach ($node->childNodes as $childNode) {
@@ -141,18 +152,18 @@ final class Udunits2CatalogImporter
                 'def' => $def = trim($childNode->textContent),
                 'definition' => $definition = trim($childNode->textContent),
                 'dimensionless' => $dimensionless = true,
-                'name' => [$name, $plural] = $this->readName($childNode, $name, $plural),
-                'symbol' => $symbol = trim($childNode->textContent),
+                'name' => $name = $this->readName($childNode),
+                'symbol' => $symbols[] = trim($childNode->textContent),
                 default => throw new \RuntimeException('Unhandled UDUNITS2 unit tag: ' . $childNode->tagName),
             };
         }
 
-        if ($name === null && $aliases !== []) {
-            $name = array_shift($aliases);
+        if ($name === null && $aliases['names'] !== []) {
+            $name = array_shift($aliases['names']);
         }
 
         // If name is still null, aliases were empty (see above), so only symbol can identify the unit.
-        if ($name === null && $symbol === null) {
+        if ($name === null && $symbols === [] && $aliases['symbols'] === []) {
             return;
         }
 
@@ -164,7 +175,7 @@ final class Udunits2CatalogImporter
         $type = 'unit';
         // Guaranteed by the early return above: at least one of name/symbol is non-null.
         $unit = [
-            'name' => $name ?? $symbol,
+            'name' => $name['singular'] ?? $symbols[0] ?? $aliases['symbols'][0],
         ];
 
         if ($definition !== null) {
@@ -180,8 +191,8 @@ final class Udunits2CatalogImporter
             $type = 'dimensionless';
         }
 
-        if ($plural !== null) {
-            $unit['plural'] = $plural;
+        if ($name !== null && $name['plural'] !== null) {
+            $unit['plural'] = $name['plural'];
         }
 
         if ($def !== null) {
@@ -192,7 +203,11 @@ final class Udunits2CatalogImporter
             $unit['comment'] = $comment;
         }
 
-        if ($symbol !== null) {
+        foreach ([...$symbols, ...$aliases['symbols']] as $symbol) {
+            if ($symbol === $unit['name']) {
+                continue;
+            }
+
             $this->addAlias($catalog, $symbol, $unit['name']);
 
             if ($symbol === '′') {
@@ -200,14 +215,9 @@ final class Udunits2CatalogImporter
             }
         }
 
-        foreach ($aliases as $alias) {
-            $this->addAlias($catalog, $alias, $unit['name']);
-        }
-
-        // Register explicit UDUNITS2 plurals as aliases so resolution stays fail-closed
-        // without runtime morphology.
-        if ($plural !== null && !isset($catalog['units'][$plural])) {
-            $this->addAlias($catalog, $plural, $unit['name']);
+        foreach ($aliases['names'] as $alias) {
+            $this->addAlias($catalog, $alias['singular'], $unit['name']);
+            $this->registerPluralAlias($catalog, $alias, $unit['name'], $implicitPluralTargets);
         }
 
         if (isset($catalog['units'][$unit['name']])) {
@@ -221,58 +231,164 @@ final class Udunits2CatalogImporter
         } else {
             $catalog['units'][$unit['name']] = ['type' => 'dimensionless'] + $unit;
         }
+
+        if ($name !== null) {
+            $this->registerPluralAlias($catalog, $name, $unit['name'], $implicitPluralTargets);
+        }
     }
 
     /**
-     * @return array{string|null, string|null}
+     * @phpstan-return Udunits2Name
      */
-    private function readName(DOMElement $node, ?string $name, ?string $plural): array
+    private function readName(DOMElement $node): array
     {
+        $singular = null;
+        $plural = null;
+        $pluralizable = true;
+
         foreach ($node->childNodes as $childNode) {
             if (!$childNode instanceof DOMElement) {
                 continue;
             }
 
             if ($childNode->tagName === 'singular') {
-                $name = trim($childNode->textContent);
+                $singular = trim($childNode->textContent);
             } elseif ($childNode->tagName === 'plural') {
                 $plural = trim($childNode->textContent);
+            } elseif ($childNode->tagName === 'noplural') {
+                $pluralizable = false;
+            } else {
+                throw new \RuntimeException('Unhandled UDUNITS2 name tag: ' . $childNode->tagName);
             }
         }
 
-        return [$name, $plural];
+        if ($singular === null || $singular === '') {
+            throw new \RuntimeException('UDUNITS2 name must contain a non-empty singular form.');
+        }
+
+        return [
+            'singular' => $singular,
+            'plural' => $plural,
+            'pluralizable' => $pluralizable,
+        ];
     }
 
     /**
-     * @return list<string>
+     * @phpstan-return Udunits2Aliases
      */
     private function readAliases(DOMElement $node): array
     {
-        $aliases = [];
+        /** @var list<Udunits2Name> $names */
+        $names = [];
+        $symbols = [];
+        $directSingular = null;
+        $directPlural = null;
+        $pluralizable = true;
 
         foreach ($node->childNodes as $childNode) {
             if (!$childNode instanceof DOMElement) {
                 continue;
             }
 
-            if (in_array($childNode->tagName, ['singular', 'plural', 'symbol'], true)) {
-                $aliases[] = trim($childNode->textContent);
-                continue;
-            }
-
-            if ($childNode->tagName === 'noplural') {
-                continue;
-            }
-
-            if ($childNode->tagName === 'name') {
-                $aliases = array_merge($aliases, $this->readAliases($childNode));
-                continue;
-            }
-
-            throw new \RuntimeException('Unhandled UDUNITS2 alias tag: ' . $childNode->tagName);
+            match ($childNode->tagName) {
+                'name' => $names[] = $this->readName($childNode),
+                'noplural' => $pluralizable = false,
+                'plural' => $directPlural = trim($childNode->textContent),
+                'singular' => $directSingular = trim($childNode->textContent),
+                'symbol' => $symbols[] = trim($childNode->textContent),
+                default => throw new \RuntimeException('Unhandled UDUNITS2 alias tag: ' . $childNode->tagName),
+            };
         }
 
-        return $aliases;
+        if ($directSingular !== null) {
+            $names[] = [
+                'singular' => $directSingular,
+                'plural' => $directPlural,
+                'pluralizable' => $pluralizable,
+            ];
+        }
+
+        if (!$pluralizable) {
+            foreach ($names as $key => $name) {
+                $names[$key]['pluralizable'] = false;
+            }
+        }
+
+        return ['names' => $names, 'symbols' => $symbols];
+    }
+
+    /**
+     * @phpstan-param MutableUdunits2Catalog $catalog
+     * @phpstan-param Udunits2Name $name
+     * @phpstan-param ImplicitPluralTargets $implicitPluralTargets
+     */
+    private function registerPluralAlias(
+        array &$catalog,
+        array $name,
+        string $target,
+        array &$implicitPluralTargets,
+    ): void {
+        if ($name['plural'] !== null) {
+            if (!isset($catalog['units'][$name['plural']])) {
+                $this->addAlias($catalog, $name['plural'], $target);
+            }
+
+            return;
+        }
+
+        if (!$name['pluralizable'] || !self::isPluralizableName($name['singular'])) {
+            return;
+        }
+
+        $plural = self::pluralForm($name['singular']);
+        if (!array_key_exists($plural, $implicitPluralTargets)) {
+            $implicitPluralTargets[$plural] = $target;
+        } elseif ($implicitPluralTargets[$plural] !== $target) {
+            $implicitPluralTargets[$plural] = null;
+        }
+    }
+
+    /**
+     * @phpstan-param MutableUdunits2Catalog $catalog
+     * @phpstan-param ImplicitPluralTargets $implicitPluralTargets
+     */
+    private function materializeImplicitPluralAliases(array &$catalog, array $implicitPluralTargets): void
+    {
+        foreach ($implicitPluralTargets as $plural => $target) {
+            if ($target === null || isset($catalog['units'][$plural])) {
+                continue;
+            }
+
+            $this->addAlias($catalog, $plural, $target);
+        }
+    }
+
+    private static function isPluralizableName(string $name): bool
+    {
+        return strlen($name) >= 3
+            && preg_match('/^[a-z][a-z0-9_]*$/', $name) === 1;
+    }
+
+    private static function pluralForm(string $name): string
+    {
+        if (str_ends_with($name, 'y') && strlen($name) >= 2) {
+            $previous = $name[strlen($name) - 2];
+            if (!str_contains('aeiou', $previous)) {
+                return substr($name, 0, -1) . 'ies';
+            }
+        }
+
+        if (
+            str_ends_with($name, 's')
+            || str_ends_with($name, 'x')
+            || str_ends_with($name, 'z')
+            || str_ends_with($name, 'ch')
+            || str_ends_with($name, 'sh')
+        ) {
+            return $name . 'es';
+        }
+
+        return $name . 's';
     }
 
     /**

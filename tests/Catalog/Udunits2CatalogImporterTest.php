@@ -55,6 +55,7 @@ final class Udunits2CatalogImporterTest extends TestCase
             <base/>
             <name><singular>meter</singular></name>
             <symbol>m</symbol>
+            <aliases><name><singular>metre</singular></name></aliases>
           </unit>
           <unit>
             <name><singular>second</singular><plural>seconds</plural></name>
@@ -84,6 +85,22 @@ final class Udunits2CatalogImporterTest extends TestCase
           <unit>
             <name><singular>arcminute</singular></name>
             <symbol>′</symbol>
+          </unit>
+          <unit>
+            <name><singular>foot</singular><plural>feet</plural></name>
+            <def>12 meter</def>
+          </unit>
+          <unit>
+            <def>1</def>
+            <aliases><name><singular>pi_constant</singular><noplural/></name></aliases>
+          </unit>
+          <unit>
+            <def>0.01</def>
+            <aliases><name><singular>percent</singular></name><noplural/></aliases>
+          </unit>
+          <unit>
+            <name><singular>knot</singular></name>
+            <aliases><symbol>kt</symbol><symbol>kts</symbol></aliases>
           </unit>
           <prefix>
             <name>kilo</name>
@@ -133,6 +150,67 @@ final class Udunits2CatalogImporterTest extends TestCase
         // Explicit UDUNITS2 plurals are registered as fail-closed aliases.
         $this->assertSame(['type' => 'alias', 'name' => 'seconds', 'def' => 'second'], $units['seconds']);
         $this->assertSame('second', $units['s']['def'] ?? null);
+    }
+
+    public function testGeneratesImplicitPluralsForCanonicalAndAliasNames(): void
+    {
+        $units = $this->import(self::SAMPLE)['units'];
+
+        $this->assertSame(['type' => 'alias', 'name' => 'meters', 'def' => 'meter'], $units['meters']);
+        $this->assertSame(['type' => 'alias', 'name' => 'metres', 'def' => 'meter'], $units['metres']);
+    }
+
+    public function testUsesExplicitPluralAndDoesNotPluralizeSymbols(): void
+    {
+        $units = $this->import(self::SAMPLE)['units'];
+
+        $this->assertSame(['type' => 'alias', 'name' => 'feet', 'def' => 'foot'], $units['feet']);
+        $this->assertArrayNotHasKey('foots', $units);
+        $this->assertSame(['type' => 'alias', 'name' => 'kt', 'def' => 'knot'], $units['kt']);
+        $this->assertSame(['type' => 'alias', 'name' => 'kts', 'def' => 'knot'], $units['kts']);
+        $this->assertArrayNotHasKey('ktses', $units);
+        $this->assertArrayNotHasKey('ms', $units);
+    }
+
+    public function testHonorsNameAndAliasGroupNoPluralMarkers(): void
+    {
+        $units = $this->import(self::SAMPLE)['units'];
+
+        $this->assertArrayHasKey('pi_constant', $units);
+        $this->assertArrayNotHasKey('pi_constants', $units);
+        $this->assertArrayHasKey('percent', $units);
+        $this->assertArrayNotHasKey('percents', $units);
+    }
+
+    public function testExactIdentifierWinsOverGeneratedPlural(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <unit-system>
+              <unit><name><singular>widget</singular></name><def>1</def></unit>
+              <unit><name><singular>widgets</singular><noplural/></name><def>2</def></unit>
+            </unit-system>
+            XML;
+
+        $units = $this->import($xml)['units'];
+
+        $this->assertSame('unit', $units['widgets']['type']);
+        $this->assertSame('2', $units['widgets']['def']);
+    }
+
+    public function testAmbiguousGeneratedPluralIsOmitted(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <unit-system>
+              <unit><name><singular>category</singular></name><def>1</def></unit>
+              <unit><name><singular>categorie</singular></name><def>2</def></unit>
+            </unit-system>
+            XML;
+
+        $units = $this->import($xml)['units'];
+
+        $this->assertArrayNotHasKey('categories', $units);
     }
 
     public function testImportsDefinitionAndExplicitAliases(): void

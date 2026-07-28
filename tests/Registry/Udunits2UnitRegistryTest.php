@@ -45,6 +45,18 @@ use PHPUnit\Framework\TestCase;
 
 final class Udunits2UnitRegistryTest extends TestCase
 {
+    /** @var list<string> */
+    private array $tempFiles = [];
+
+    protected function tearDown(): void
+    {
+        foreach ($this->tempFiles as $file) {
+            @unlink($file);
+        }
+
+        $this->tempFiles = [];
+    }
+
     public function testRecordReturnsBaseUnits(): void
     {
         $registry = new Udunits2UnitRegistry();
@@ -131,6 +143,28 @@ final class Udunits2UnitRegistryTest extends TestCase
         $registry = new Udunits2UnitRegistry();
 
         $this->assertNull($registry->record('supercalifragilisticexpialidocious'));
+    }
+
+    public function testCatalogLoaderDoesNotSynthesizePluralRecords(): void
+    {
+        $file = tempnam(sys_get_temp_dir(), 'yumemi-catalog-');
+        $this->assertNotFalse($file);
+        $this->tempFiles[] = $file;
+
+        $catalog = [
+            'units' => [
+                'widget' => ['type' => 'dimensionless', 'name' => 'widget'],
+            ],
+            'base' => [],
+            'prefixes' => [],
+        ];
+        file_put_contents($file, '<?php return ' . var_export($catalog, true) . ';');
+
+        $registry = new Udunits2UnitRegistry($file);
+
+        $this->assertNotNull($registry->record('widget'));
+        $this->assertNull($registry->record('widgets'));
+        $this->assertSame(['widget'], $registry->names());
     }
 
     public function testBareUnitDimensionRequiresUnitsContextOrDefinition(): void

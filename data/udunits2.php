@@ -293,6 +293,11 @@ return [
             'def' => 'K @ 273.15',
             'comment' => 'SI derived unit'
         ],
+        'degrees_Celsius' => [
+            'type' => 'alias',
+            'name' => 'degrees_Celsius',
+            'def' => 'degree_Celsius'
+        ],
         'lm' => [
             'type' => 'alias',
             'name' => 'lm',
@@ -441,14 +446,14 @@ return [
             'definition' => 'measurement of a plane angle representing 1/360 of a full rotation',
             'def' => '(pi/180) rad'
         ],
-        '′' => [
-            'type' => 'alias',
-            'name' => '′',
-            'def' => 'arc_minute'
-        ],
         '\'' => [
             'type' => 'alias',
             'name' => '\'',
+            'def' => 'arc_minute'
+        ],
+        '′' => [
+            'type' => 'alias',
+            'name' => '′',
             'def' => 'arc_minute'
         ],
         'angular_minute' => [
@@ -471,6 +476,11 @@ return [
             'name' => 'arc_minute',
             'definition' => 'measurement of a plane angle equal to 1/60 arc degree',
             'def' => '°/60'
+        ],
+        '"' => [
+            'type' => 'alias',
+            'name' => '"',
+            'def' => 'arc_second'
         ],
         '″' => [
             'type' => 'alias',
@@ -503,14 +513,14 @@ return [
             'name' => 'L',
             'def' => 'liter'
         ],
-        'litre' => [
-            'type' => 'alias',
-            'name' => 'litre',
-            'def' => 'liter'
-        ],
         'l' => [
             'type' => 'alias',
             'name' => 'l',
+            'def' => 'liter'
+        ],
+        'litre' => [
+            'type' => 'alias',
+            'name' => 'litre',
             'def' => 'liter'
         ],
         'liter' => [
@@ -628,11 +638,6 @@ return [
             'def' => 'nautical_mile/hour',
             'comment' => 'Unit is temporarily accepted for use with the SI.'
         ],
-        'ångström' => [
-            'type' => 'alias',
-            'name' => 'ångström',
-            'def' => 'angstrom'
-        ],
         'Å' => [
             'type' => 'alias',
             'name' => 'Å',
@@ -641,6 +646,11 @@ return [
         'Å' => [
             'type' => 'alias',
             'name' => 'Å',
+            'def' => 'angstrom'
+        ],
+        'ångström' => [
+            'type' => 'alias',
+            'name' => 'ångström',
             'def' => 'angstrom'
         ],
         'angstrom' => [
@@ -740,62 +750,63 @@ return [
             'def' => 'A',
             'comment' => 'Synonym for SI unit'
         ],
-        'degree_kelvin' => [
+        '°K' => [
             'type' => 'alias',
-            'name' => 'degree_kelvin',
-            'def' => '°K'
-        ],
-        'degrees_kelvin' => [
-            'type' => 'alias',
-            'name' => 'degrees_kelvin',
-            'def' => '°K'
+            'name' => '°K',
+            'def' => 'degree_kelvin'
         ],
         'degree_K' => [
             'type' => 'alias',
             'name' => 'degree_K',
-            'def' => '°K'
+            'def' => 'degree_kelvin'
         ],
         'degrees_K' => [
             'type' => 'alias',
             'name' => 'degrees_K',
-            'def' => '°K'
+            'def' => 'degree_kelvin'
         ],
         'degreeK' => [
             'type' => 'alias',
             'name' => 'degreeK',
-            'def' => '°K'
+            'def' => 'degree_kelvin'
         ],
         'degreesK' => [
             'type' => 'alias',
             'name' => 'degreesK',
-            'def' => '°K'
+            'def' => 'degree_kelvin'
         ],
         'deg_K' => [
             'type' => 'alias',
             'name' => 'deg_K',
-            'def' => '°K'
+            'def' => 'degree_kelvin'
         ],
         'degs_K' => [
             'type' => 'alias',
             'name' => 'degs_K',
-            'def' => '°K'
+            'def' => 'degree_kelvin'
         ],
         'degK' => [
             'type' => 'alias',
             'name' => 'degK',
-            'def' => '°K'
+            'def' => 'degree_kelvin'
         ],
         'degsK' => [
             'type' => 'alias',
             'name' => 'degsK',
-            'def' => '°K'
+            'def' => 'degree_kelvin'
         ],
-        '°K' => [
+        'degree_kelvin' => [
             'type' => 'unit',
-            'name' => '°K',
+            'name' => 'degree_kelvin',
             'definition' => 'unit of temperature, synonym for kelvin',
+            'plural' => 'degrees_kelvin',
             'def' => 'K',
             'comment' => 'Synonym for SI unit'
+        ],
+        'degrees_kelvin' => [
+            'type' => 'alias',
+            'name' => 'degrees_kelvin',
+            'def' => 'degree_kelvin'
         ],
         'candle' => [
             'type' => 'unit',
@@ -828,54 +839,54 @@ return [
             'def' => 'Hz',
             'comment' => 'Synonym for SI unit'
         ],
-        'celsius' => [
+        '℃' => [
             'type' => 'alias',
-            'name' => 'celsius',
-            'def' => '℃'
+            'name' => '℃',
+            'def' => 'celsius'
         ],
         'degree_C' => [
             'type' => 'alias',
             'name' => 'degree_C',
-            'def' => '℃'
+            'def' => 'celsius'
         ],
         'degrees_C' => [
             'type' => 'alias',
             'name' => 'degrees_C',
-            'def' => '℃'
+            'def' => 'celsius'
         ],
         'degreeC' => [
             'type' => 'alias',
             'name' => 'degreeC',
-            'def' => '℃'
+            'def' => 'celsius'
         ],
         'degreesC' => [
             'type' => 'alias',
             'name' => 'degreesC',
-            'def' => '℃'
+            'def' => 'celsius'
         ],
         'deg_C' => [
             'type' => 'alias',
             'name' => 'deg_C',
-            'def' => '℃'
+            'def' => 'celsius'
         ],
         'degs_C' => [
             'type' => 'alias',
             'name' => 'degs_C',
-            'def' => '℃'
+            'def' => 'celsius'
         ],
         'degC' => [
             'type' => 'alias',
             'name' => 'degC',
-            'def' => '℃'
+            'def' => 'celsius'
         ],
         'degsC' => [
             'type' => 'alias',
             'name' => 'degsC',
-            'def' => '℃'
+            'def' => 'celsius'
         ],
-        '℃' => [
+        'celsius' => [
             'type' => 'unit',
-            'name' => '℃',
+            'name' => 'celsius',
             'definition' => 'unit of temperature, synonym for \'K @ 273.15\' (degree_Celsius)',
             'def' => 'degree_Celsius',
             'comment' => 'Synonym for SI unit'
@@ -998,11 +1009,6 @@ return [
             'definition' => 'unit of angle in a plane signifying a full 360-degree circle',
             'def' => '2 pi rad'
         ],
-        'degrees_north' => [
-            'type' => 'alias',
-            'name' => 'degrees_north',
-            'def' => 'degree_north'
-        ],
         'degree_N' => [
             'type' => 'alias',
             'name' => 'degree_N',
@@ -1087,12 +1093,13 @@ return [
             'type' => 'unit',
             'name' => 'degree_north',
             'definition' => 'unit of angle on a sphere',
+            'plural' => 'degrees_north',
             'def' => 'arc_degree'
         ],
-        'degrees_west' => [
+        'degrees_north' => [
             'type' => 'alias',
-            'name' => 'degrees_west',
-            'def' => 'degree_west'
+            'name' => 'degrees_north',
+            'def' => 'degree_north'
         ],
         'degree_W' => [
             'type' => 'alias',
@@ -1118,7 +1125,13 @@ return [
             'type' => 'unit',
             'name' => 'degree_west',
             'definition' => 'unit of angle on a sphere (units for negative direction)',
+            'plural' => 'degrees_west',
             'def' => '-1 degree_east'
+        ],
+        'degrees_west' => [
+            'type' => 'alias',
+            'name' => 'degrees_west',
+            'def' => 'degree_west'
         ],
         'assay_ton' => [
             'type' => 'unit',
@@ -1132,14 +1145,14 @@ return [
             'definition' => 'unit of mass equal to 1/16 avoirdupois pound, commonly used in the United States (16 oz = 1 pound = 7000 grains)',
             'def' => '2.834952e-2 kg'
         ],
-        'pound' => [
-            'type' => 'alias',
-            'name' => 'pound',
-            'def' => 'avoirdupois_pound'
-        ],
         'lb' => [
             'type' => 'alias',
             'name' => 'lb',
+            'def' => 'avoirdupois_pound'
+        ],
+        'pound' => [
+            'type' => 'alias',
+            'name' => 'pound',
             'def' => 'avoirdupois_pound'
         ],
         'avoirdupois_pound' => [
@@ -1329,16 +1342,17 @@ return [
             'definition' => 'unit of length in the US Customary System, equal to 6,076 feet; typically used for air and sea navigation',
             'def' => 'nautical_mile'
         ],
-        'US_survey_feet' => [
-            'type' => 'alias',
-            'name' => 'US_survey_feet',
-            'def' => 'US_survey_foot'
-        ],
         'US_survey_foot' => [
             'type' => 'unit',
             'name' => 'US_survey_foot',
             'definition' => 'unit of length used for earlier survey data in some countries, slightly different than the current international foot',
+            'plural' => 'US_survey_feet',
             'def' => '(1200/3937) m'
+        ],
+        'US_survey_feet' => [
+            'type' => 'alias',
+            'name' => 'US_survey_feet',
+            'def' => 'US_survey_foot'
         ],
         'US_survey_yard' => [
             'type' => 'unit',
@@ -1385,14 +1399,14 @@ return [
             'definition' => 'unit of length equal to 6 feet in the imperial and US customary systems, typically used for measuring depth of water',
             'def' => '6 US_survey_feet'
         ],
-        'inch' => [
-            'type' => 'alias',
-            'name' => 'inch',
-            'def' => 'international_inch'
-        ],
         'in' => [
             'type' => 'alias',
             'name' => 'in',
+            'def' => 'international_inch'
+        ],
+        'inch' => [
+            'type' => 'alias',
+            'name' => 'inch',
             'def' => 'international_inch'
         ],
         'international_inch' => [
@@ -1401,9 +1415,9 @@ return [
             'definition' => 'unit of length equal to 25.4 mm by definition, used in imperial and US customary systems',
             'def' => '2.54 cm'
         ],
-        'international_feet' => [
+        'ft' => [
             'type' => 'alias',
-            'name' => 'international_feet',
+            'name' => 'ft',
             'def' => 'international_foot'
         ],
         'foot' => [
@@ -1416,25 +1430,26 @@ return [
             'name' => 'feet',
             'def' => 'international_foot'
         ],
-        'ft' => [
-            'type' => 'alias',
-            'name' => 'ft',
-            'def' => 'international_foot'
-        ],
         'international_foot' => [
             'type' => 'unit',
             'name' => 'international_foot',
             'definition' => 'unit of length equal to 12 international inches, in the imperial and US customary systems; primarily used in the United States',
+            'plural' => 'international_feet',
             'def' => '12 international_inches'
         ],
-        'yard' => [
+        'international_feet' => [
             'type' => 'alias',
-            'name' => 'yard',
-            'def' => 'international_yard'
+            'name' => 'international_feet',
+            'def' => 'international_foot'
         ],
         'yd' => [
             'type' => 'alias',
             'name' => 'yd',
+            'def' => 'international_yard'
+        ],
+        'yard' => [
+            'type' => 'alias',
+            'name' => 'yard',
             'def' => 'international_yard'
         ],
         'international_yard' => [
@@ -1443,14 +1458,14 @@ return [
             'definition' => 'unit of length equal to 3 international feet, in the imperial and US customary systems; primarily used in the United States',
             'def' => '3 international_feet'
         ],
-        'mile' => [
-            'type' => 'alias',
-            'name' => 'mile',
-            'def' => 'international_mile'
-        ],
         'mi' => [
             'type' => 'alias',
             'name' => 'mi',
+            'def' => 'international_mile'
+        ],
+        'mile' => [
+            'type' => 'alias',
+            'name' => 'mile',
             'def' => 'international_mile'
         ],
         'international_mile' => [
@@ -1477,11 +1492,6 @@ return [
             'definition' => 'unit of length in French regions; a linear arpent is of length 10 perch (10 rod)',
             'def' => '191.835 foot'
         ],
-        'rotations_per_second' => [
-            'type' => 'alias',
-            'name' => 'rotations_per_second',
-            'def' => 'rotation_per_second'
-        ],
         'rps' => [
             'type' => 'alias',
             'name' => 'rps',
@@ -1496,8 +1506,14 @@ return [
             'type' => 'unit',
             'name' => 'rotation_per_second',
             'definition' => 'unit of angular velocity',
+            'plural' => 'rotations_per_second',
             'def' => 'rotation/second',
             'comment' => 'exact'
+        ],
+        'rotations_per_second' => [
+            'type' => 'alias',
+            'name' => 'rotations_per_second',
+            'def' => 'rotation_per_second'
         ],
         'rpm' => [
             'type' => 'unit',
@@ -1519,27 +1535,29 @@ return [
             'def' => '1e-6 kg/m',
             'comment' => 'exact'
         ],
+        'perm_0C' => [
+            'type' => 'unit',
+            'name' => 'perm_0C',
+            'definition' => 'unit of mass per unit time (includes flow) for how fast water vapor flows through substance, or permeance; equals 1 gram of water vapor per hour, per square meter, per millimeter of mercury at 0 degrees C',
+            'plural' => 'perms_0C',
+            'def' => '5.72135e-11 kg/(Pa.s.m^2)'
+        ],
         'perms_0C' => [
             'type' => 'alias',
             'name' => 'perms_0C',
             'def' => 'perm_0C'
         ],
-        'perm_0C' => [
+        'perm_23C' => [
             'type' => 'unit',
-            'name' => 'perm_0C',
-            'definition' => 'unit of mass per unit time (includes flow) for how fast water vapor flows through substance, or permeance; equals 1 gram of water vapor per hour, per square meter, per millimeter of mercury at 0 degrees C',
-            'def' => '5.72135e-11 kg/(Pa.s.m^2)'
+            'name' => 'perm_23C',
+            'definition' => 'unit of mass per unit time for how fast water vapor flows through substance, or permeance; equals 1 gram of water vapor per hour, per square meter, per millimeter of mercury at 23 degrees C',
+            'plural' => 'perms_23C',
+            'def' => '5.74525e-11 kg/(Pa.s.m^2)'
         ],
         'perms_23C' => [
             'type' => 'alias',
             'name' => 'perms_23C',
             'def' => 'perm_23C'
-        ],
-        'perm_23C' => [
-            'type' => 'unit',
-            'name' => 'perm_23C',
-            'definition' => 'unit of mass per unit time for how fast water vapor flows through substance, or permeance; equals 1 gram of water vapor per hour, per square meter, per millimeter of mercury at 23 degrees C',
-            'def' => '5.74525e-11 kg/(Pa.s.m^2)'
         ],
         'circular_mil' => [
             'type' => 'unit',
@@ -1561,28 +1579,30 @@ return [
             'def' => '160 rod^2',
             'comment' => 'exact'
         ],
+        'acre_foot' => [
+            'type' => 'unit',
+            'name' => 'acre_foot',
+            'definition' => 'unit of volume used to describe large-scale water resources in the United State; equal to the volume of one acre of surface area with one foot of depth depth',
+            'plural' => 'acre_feet',
+            'def' => '1.233489e3 m^3',
+            'comment' => 'An "acre.foot", however, is 1233.4867714897 m^3.  Odd.'
+        ],
         'acre_feet' => [
             'type' => 'alias',
             'name' => 'acre_feet',
             'def' => 'acre_foot'
         ],
-        'acre_foot' => [
+        'board_foot' => [
             'type' => 'unit',
-            'name' => 'acre_foot',
-            'definition' => 'unit of volume used to describe large-scale water resources in the United State; equal to the volume of one acre of surface area with one foot of depth depth',
-            'def' => '1.233489e3 m^3',
-            'comment' => 'An "acre.foot", however, is 1233.4867714897 m^3.  Odd.'
+            'name' => 'board_foot',
+            'definition' => 'unit of volume equal to the cubic contents of a piece of lumber one foot square and one inch thick, used in measuring logs and lumber in the United States and Canada',
+            'plural' => 'board_feet',
+            'def' => '2.359737e-3 m^3'
         ],
         'board_feet' => [
             'type' => 'alias',
             'name' => 'board_feet',
             'def' => 'board_foot'
-        ],
-        'board_foot' => [
-            'type' => 'unit',
-            'name' => 'board_foot',
-            'definition' => 'unit of volume equal to the cubic contents of a piece of lumber one foot square and one inch thick, used in measuring logs and lumber in the United States and Canada',
-            'def' => '2.359737e-3 m^3'
         ],
         'bu' => [
             'type' => 'alias',
@@ -1716,6 +1736,11 @@ return [
             'def' => 'US_liquid_gallon/4',
             'comment' => 'exact'
         ],
+        'pt' => [
+            'type' => 'alias',
+            'name' => 'pt',
+            'def' => 'US_liquid_pint'
+        ],
         'liquid_pint' => [
             'type' => 'alias',
             'name' => 'liquid_pint',
@@ -1724,11 +1749,6 @@ return [
         'pint' => [
             'type' => 'alias',
             'name' => 'pint',
-            'def' => 'US_liquid_pint'
-        ],
-        'pt' => [
-            'type' => 'alias',
-            'name' => 'pt',
             'def' => 'US_liquid_pint'
         ],
         'US_liquid_pint' => [
@@ -1772,6 +1792,16 @@ return [
             'def' => 'US_liquid_gallon/32',
             'comment' => 'exact'
         ],
+        'oz' => [
+            'type' => 'alias',
+            'name' => 'oz',
+            'def' => 'US_fluid_ounce'
+        ],
+        'floz' => [
+            'type' => 'alias',
+            'name' => 'floz',
+            'def' => 'US_fluid_ounce'
+        ],
         'US_liquid_ounce' => [
             'type' => 'alias',
             'name' => 'US_liquid_ounce',
@@ -1785,16 +1815,6 @@ return [
         'liquid_ounce' => [
             'type' => 'alias',
             'name' => 'liquid_ounce',
-            'def' => 'US_fluid_ounce'
-        ],
-        'oz' => [
-            'type' => 'alias',
-            'name' => 'oz',
-            'def' => 'US_fluid_ounce'
-        ],
-        'floz' => [
-            'type' => 'alias',
-            'name' => 'floz',
             'def' => 'US_fluid_ounce'
         ],
         'US_fluid_ounce' => [
@@ -1943,14 +1963,14 @@ return [
             'definition' => 'unit of time for the earth to make one complete revolution around the sun, relative to the fixed stars',
             'def' => '3.155815e7 s'
         ],
-        'year' => [
-            'type' => 'alias',
-            'name' => 'year',
-            'def' => 'tropical_year'
-        ],
         'yr' => [
             'type' => 'alias',
             'name' => 'yr',
+            'def' => 'tropical_year'
+        ],
+        'year' => [
+            'type' => 'alias',
+            'name' => 'year',
             'def' => 'tropical_year'
         ],
         'tropical_year' => [
@@ -2053,11 +2073,6 @@ return [
             'def' => 'standard_free_fall',
             'comment' => 'should be local'
         ],
-        'water' => [
-            'type' => 'alias',
-            'name' => 'water',
-            'def' => 'conventional_water'
-        ],
         'H2O' => [
             'type' => 'alias',
             'name' => 'H2O',
@@ -2068,17 +2083,17 @@ return [
             'name' => 'h2o',
             'def' => 'conventional_water'
         ],
+        'water' => [
+            'type' => 'alias',
+            'name' => 'water',
+            'def' => 'conventional_water'
+        ],
         'conventional_water' => [
             'type' => 'unit',
             'name' => 'conventional_water',
             'definition' => 'specifies the acceleration at the earth\'s surface of a substance with the density of water',
             'def' => 'gravity 1000 kg/m^3',
             'comment' => 'exact'
-        ],
-        'waters_4C' => [
-            'type' => 'alias',
-            'name' => 'waters_4C',
-            'def' => 'water_4C'
         ],
         'water_39F' => [
             'type' => 'alias',
@@ -2094,22 +2109,29 @@ return [
             'type' => 'unit',
             'name' => 'water_4C',
             'definition' => 'specifies the acceleration at the earth\'s surface of a substance with the density of water at 4 degrees C',
+            'plural' => 'waters_4C',
             'def' => 'gravity 999.972 kg/m^3'
+        ],
+        'waters_4C' => [
+            'type' => 'alias',
+            'name' => 'waters_4C',
+            'def' => 'water_4C'
+        ],
+        'water_60F' => [
+            'type' => 'unit',
+            'name' => 'water_60F',
+            'definition' => 'specifies the acceleration at the earth\'s surface of a substance with the density of water at 60 degrees F',
+            'plural' => 'waters_60F',
+            'def' => 'gravity 999.001 kg/m^3'
         ],
         'waters_60F' => [
             'type' => 'alias',
             'name' => 'waters_60F',
             'def' => 'water_60F'
         ],
-        'water_60F' => [
-            'type' => 'unit',
-            'name' => 'water_60F',
-            'definition' => 'specifies the acceleration at the earth\'s surface of a substance with the density of water at 60 degrees F',
-            'def' => 'gravity 999.001 kg/m^3'
-        ],
-        'mercuries_0C' => [
+        'Hg' => [
             'type' => 'alias',
-            'name' => 'mercuries_0C',
+            'name' => 'Hg',
             'def' => 'mercury_0C'
         ],
         'mercury_32F' => [
@@ -2132,27 +2154,29 @@ return [
             'name' => 'conventional_mercuries',
             'def' => 'mercury_0C'
         ],
-        'Hg' => [
-            'type' => 'alias',
-            'name' => 'Hg',
-            'def' => 'mercury_0C'
-        ],
         'mercury_0C' => [
             'type' => 'unit',
             'name' => 'mercury_0C',
             'definition' => 'specifies the acceleration at the earth\'s surface of a substance with the density of mercury at 0 degrees C',
+            'plural' => 'mercuries_0C',
             'def' => 'gravity 13595.10 kg/m^3'
         ],
-        'mercuries_60F' => [
+        'mercuries_0C' => [
             'type' => 'alias',
-            'name' => 'mercuries_60F',
-            'def' => 'mercury_60F'
+            'name' => 'mercuries_0C',
+            'def' => 'mercury_0C'
         ],
         'mercury_60F' => [
             'type' => 'unit',
             'name' => 'mercury_60F',
             'definition' => 'specifies the acceleration at the earth\'s surface of a substance with the density of mercury at 60 degrees F',
+            'plural' => 'mercuries_60F',
             'def' => 'gravity 13556.8 kg/m^3'
+        ],
+        'mercuries_60F' => [
+            'type' => 'alias',
+            'name' => 'mercuries_60F',
+            'def' => 'mercury_60F'
         ],
         'force' => [
             'type' => 'unit',
@@ -2174,6 +2198,11 @@ return [
             'def' => '9.806650e-3 N',
             'comment' => 'exact'
         ],
+        'kgf' => [
+            'type' => 'alias',
+            'name' => 'kgf',
+            'def' => 'force_kilogram'
+        ],
         'kilogram_force' => [
             'type' => 'alias',
             'name' => 'kilogram_force',
@@ -2184,17 +2213,17 @@ return [
             'name' => 'kilograms_force',
             'def' => 'force_kilogram'
         ],
-        'kgf' => [
-            'type' => 'alias',
-            'name' => 'kgf',
-            'def' => 'force_kilogram'
-        ],
         'force_kilogram' => [
             'type' => 'unit',
             'name' => 'force_kilogram',
             'definition' => 'unit of force, equal to the magnitude of the force exerted by one kilogram of mass in a 9.80665 m/s2 gravitational field',
             'def' => '9.806650 N',
             'comment' => 'exact'
+        ],
+        'ozf' => [
+            'type' => 'alias',
+            'name' => 'ozf',
+            'def' => 'force_ounce'
         ],
         'ounce_force' => [
             'type' => 'alias',
@@ -2206,17 +2235,17 @@ return [
             'name' => 'ounces_force',
             'def' => 'force_ounce'
         ],
-        'ozf' => [
-            'type' => 'alias',
-            'name' => 'ozf',
-            'def' => 'force_ounce'
-        ],
         'force_ounce' => [
             'type' => 'unit',
             'name' => 'force_ounce',
             'definition' => 'unit of force, equal to the magnitude of the force exerted by one ounce of mass in a 9.80665 m/s2 gravitational field',
             'def' => '2.780139e-1 N',
             'comment' => 'exact'
+        ],
+        'lbf' => [
+            'type' => 'alias',
+            'name' => 'lbf',
+            'def' => 'force_pound'
         ],
         'pound_force' => [
             'type' => 'alias',
@@ -2226,11 +2255,6 @@ return [
         'pounds_force' => [
             'type' => 'alias',
             'name' => 'pounds_force',
-            'def' => 'force_pound'
-        ],
-        'lbf' => [
-            'type' => 'alias',
-            'name' => 'lbf',
             'def' => 'force_pound'
         ],
         'force_pound' => [
@@ -2247,9 +2271,9 @@ return [
             'def' => '1.382550e-1 N',
             'comment' => 'exact'
         ],
-        'grams_force' => [
+        'gf' => [
             'type' => 'alias',
-            'name' => 'grams_force',
+            'name' => 'gf',
             'def' => 'gram_force'
         ],
         'force_gram' => [
@@ -2257,17 +2281,18 @@ return [
             'name' => 'force_gram',
             'def' => 'gram_force'
         ],
-        'gf' => [
-            'type' => 'alias',
-            'name' => 'gf',
-            'def' => 'gram_force'
-        ],
         'gram_force' => [
             'type' => 'unit',
             'name' => 'gram_force',
             'definition' => 'unit of force, equal to the magnitude of the force exerted by one gram of mass in a 9.80665 m/s2 gravitational field',
+            'plural' => 'grams_force',
             'def' => 'gram force',
             'comment' => 'exact'
+        ],
+        'grams_force' => [
+            'type' => 'alias',
+            'name' => 'grams_force',
+            'def' => 'gram_force'
         ],
         'ton_force' => [
             'type' => 'alias',
@@ -2293,14 +2318,14 @@ return [
             'def' => '1000 lbf',
             'comment' => 'exact'
         ],
-        'atmosphere' => [
-            'type' => 'alias',
-            'name' => 'atmosphere',
-            'def' => 'standard_atmosphere'
-        ],
         'atm' => [
             'type' => 'alias',
             'name' => 'atm',
+            'def' => 'standard_atmosphere'
+        ],
+        'atmosphere' => [
+            'type' => 'alias',
+            'name' => 'atmosphere',
             'def' => 'standard_atmosphere'
         ],
         'standard_atmosphere' => [
@@ -2333,16 +2358,25 @@ return [
             'definition' => 'unit of pressure derived from pressure head calculations using metrology; represents the pressure exerted by a column of water of 1 cm height at 4 degrees C',
             'def' => 'cm H2O'
         ],
+        'inch_H2O_39F' => [
+            'type' => 'unit',
+            'name' => 'inch_H2O_39F',
+            'definition' => 'unit of pressure representing the pressure exerted by a column of water of 1 inch height at 39 degrees F',
+            'plural' => 'inches_H2O_39F',
+            'def' => 'inch water_39F',
+            'comment' => 'exact'
+        ],
         'inches_H2O_39F' => [
             'type' => 'alias',
             'name' => 'inches_H2O_39F',
             'def' => 'inch_H2O_39F'
         ],
-        'inch_H2O_39F' => [
+        'inch_H2O_60F' => [
             'type' => 'unit',
-            'name' => 'inch_H2O_39F',
-            'definition' => 'unit of pressure representing the pressure exerted by a column of water of 1 inch height at 39 degrees F',
-            'def' => 'inch water_39F',
+            'name' => 'inch_H2O_60F',
+            'definition' => 'unit of pressure representing the pressure exerted by a column of water of 1 inch height at 60 degrees F',
+            'plural' => 'inches_H2O_60F',
+            'def' => 'inch water_60F',
             'comment' => 'exact'
         ],
         'inches_H2O_60F' => [
@@ -2350,16 +2384,14 @@ return [
             'name' => 'inches_H2O_60F',
             'def' => 'inch_H2O_60F'
         ],
-        'inch_H2O_60F' => [
-            'type' => 'unit',
-            'name' => 'inch_H2O_60F',
-            'definition' => 'unit of pressure representing the pressure exerted by a column of water of 1 inch height at 60 degrees F',
-            'def' => 'inch water_60F',
-            'comment' => 'exact'
-        ],
-        'feet_water' => [
+        'ftH2O' => [
             'type' => 'alias',
-            'name' => 'feet_water',
+            'name' => 'ftH2O',
+            'def' => 'foot_water'
+        ],
+        'fth2o' => [
+            'type' => 'alias',
+            'name' => 'fth2o',
             'def' => 'foot_water'
         ],
         'foot_H2O' => [
@@ -2382,21 +2414,17 @@ return [
             'name' => 'feetH2O',
             'def' => 'foot_water'
         ],
-        'ftH2O' => [
-            'type' => 'alias',
-            'name' => 'ftH2O',
-            'def' => 'foot_water'
-        ],
-        'fth2o' => [
-            'type' => 'alias',
-            'name' => 'fth2o',
-            'def' => 'foot_water'
-        ],
         'foot_water' => [
             'type' => 'unit',
             'name' => 'foot_water',
             'definition' => 'unit of pressure representing the pressure exerted by a column of water of 1 foot height at 4 degrees C',
+            'plural' => 'feet_water',
             'def' => 'foot water'
+        ],
+        'feet_water' => [
+            'type' => 'alias',
+            'name' => 'feet_water',
+            'def' => 'foot_water'
         ],
         'cmHg' => [
             'type' => 'alias',
@@ -2409,16 +2437,25 @@ return [
             'definition' => 'unit of pressure representing the pressure exerted by a column of mercury of 1 cm height at 0 degrees C',
             'def' => 'cm Hg'
         ],
+        'millimeter_Hg_0C' => [
+            'type' => 'unit',
+            'name' => 'millimeter_Hg_0C',
+            'definition' => 'unit of pressure representing the pressure exerted by a column of mercury of 1 mm height at 0 degrees C',
+            'plural' => 'millimeters_Hg_0C',
+            'def' => 'mm mercury_0C',
+            'comment' => 'exact'
+        ],
         'millimeters_Hg_0C' => [
             'type' => 'alias',
             'name' => 'millimeters_Hg_0C',
             'def' => 'millimeter_Hg_0C'
         ],
-        'millimeter_Hg_0C' => [
+        'inch_Hg_32F' => [
             'type' => 'unit',
-            'name' => 'millimeter_Hg_0C',
-            'definition' => 'unit of pressure representing the pressure exerted by a column of mercury of 1 mm height at 0 degrees C',
-            'def' => 'mm mercury_0C',
+            'name' => 'inch_Hg_32F',
+            'definition' => 'unit of pressure representing the pressure exerted by a column of mercury of 1 inch height at 32 degrees F',
+            'plural' => 'inches_Hg_32F',
+            'def' => 'inch mercury_32F',
             'comment' => 'exact'
         ],
         'inches_Hg_32F' => [
@@ -2426,34 +2463,18 @@ return [
             'name' => 'inches_Hg_32F',
             'def' => 'inch_Hg_32F'
         ],
-        'inch_Hg_32F' => [
+        'inch_Hg_60F' => [
             'type' => 'unit',
-            'name' => 'inch_Hg_32F',
-            'definition' => 'unit of pressure representing the pressure exerted by a column of mercury of 1 inch height at 32 degrees F',
-            'def' => 'inch mercury_32F',
+            'name' => 'inch_Hg_60F',
+            'definition' => 'unit of pressure representing the pressure exerted by a column of mercury of 1 inch height at 60 degrees F',
+            'plural' => 'inches_Hg_60F',
+            'def' => 'inch mercury_60F',
             'comment' => 'exact'
         ],
         'inches_Hg_60F' => [
             'type' => 'alias',
             'name' => 'inches_Hg_60F',
             'def' => 'inch_Hg_60F'
-        ],
-        'inch_Hg_60F' => [
-            'type' => 'unit',
-            'name' => 'inch_Hg_60F',
-            'definition' => 'unit of pressure representing the pressure exerted by a column of mercury of 1 inch height at 60 degrees F',
-            'def' => 'inch mercury_60F',
-            'comment' => 'exact'
-        ],
-        'millimeters_Hg' => [
-            'type' => 'alias',
-            'name' => 'millimeters_Hg',
-            'def' => 'millimeter_Hg'
-        ],
-        'torr' => [
-            'type' => 'alias',
-            'name' => 'torr',
-            'def' => 'millimeter_Hg'
         ],
         'mm_Hg' => [
             'type' => 'alias',
@@ -2475,16 +2496,22 @@ return [
             'name' => 'mmhg',
             'def' => 'millimeter_Hg'
         ],
+        'torr' => [
+            'type' => 'alias',
+            'name' => 'torr',
+            'def' => 'millimeter_Hg'
+        ],
         'millimeter_Hg' => [
             'type' => 'unit',
             'name' => 'millimeter_Hg',
             'definition' => 'unit of pressure representing the pressure exerted by a column of mercury of 1 mm height at 0 degrees C; approximately (within 0.000015%, generally below measurement error) 1 Torr, which is 1/760 standard atmospheric pressure',
+            'plural' => 'millimeters_Hg',
             'def' => 'mm Hg'
         ],
-        'inches_Hg' => [
+        'millimeters_Hg' => [
             'type' => 'alias',
-            'name' => 'inches_Hg',
-            'def' => 'inch_Hg'
+            'name' => 'millimeters_Hg',
+            'def' => 'millimeter_Hg'
         ],
         'in_Hg' => [
             'type' => 'alias',
@@ -2500,7 +2527,13 @@ return [
             'type' => 'unit',
             'name' => 'inch_Hg',
             'definition' => 'unit of pressure representing the pressure exerted by a column of mercury of 1 inch height at 0 degrees C',
+            'plural' => 'inches_Hg',
             'def' => 'inch Hg'
+        ],
+        'inches_Hg' => [
+            'type' => 'alias',
+            'name' => 'inches_Hg',
+            'def' => 'inch_Hg'
         ],
         'psi' => [
             'type' => 'unit',
@@ -2561,11 +2594,6 @@ return [
             'def' => '1e-7 J',
             'comment' => 'exact'
         ],
-        'IT_Btus' => [
-            'type' => 'alias',
-            'name' => 'IT_Btus',
-            'def' => 'IT_Btu'
-        ],
         'Btu' => [
             'type' => 'alias',
             'name' => 'Btu',
@@ -2580,8 +2608,14 @@ return [
             'type' => 'unit',
             'name' => 'IT_Btu',
             'definition' => 'unit of energy, equal to the energy needed to cool or heat one pound of water by one degree F; this uses the International Steam Table (IT) calorie , defined by the Fifth International Conference on the properties of Steam (1956)',
+            'plural' => 'IT_Btus',
             'def' => '1.05505585262e3 J',
             'comment' => 'exact'
+        ],
+        'IT_Btus' => [
+            'type' => 'alias',
+            'name' => 'IT_Btus',
+            'def' => 'IT_Btu'
         ],
         'EC_therm' => [
             'type' => 'unit',
@@ -2597,14 +2631,14 @@ return [
             'def' => '4.184000 J',
             'comment' => 'exact'
         ],
-        'calorie' => [
-            'type' => 'alias',
-            'name' => 'calorie',
-            'def' => 'IT_calorie'
-        ],
         'cal' => [
             'type' => 'alias',
             'name' => 'cal',
+            'def' => 'IT_calorie'
+        ],
+        'calorie' => [
+            'type' => 'alias',
+            'name' => 'calorie',
             'def' => 'IT_calorie'
         ],
         'IT_calorie' => [
@@ -2621,26 +2655,27 @@ return [
             'def' => '4.184 MJ/kg',
             'comment' => 'by definition'
         ],
+        'ton_TNT' => [
+            'type' => 'unit',
+            'name' => 'ton_TNT',
+            'definition' => 'unit of energy; approximately the energy released by the detonation of a 1000 kilograms of TNT',
+            'plural' => 'tons_TNT',
+            'def' => '4.184e9 J',
+            'comment' => 'by definition'
+        ],
         'tons_TNT' => [
             'type' => 'alias',
             'name' => 'tons_TNT',
             'def' => 'ton_TNT'
         ],
-        'ton_TNT' => [
-            'type' => 'unit',
-            'name' => 'ton_TNT',
-            'definition' => 'unit of energy; approximately the energy released by the detonation of a 1000 kilograms of TNT',
-            'def' => '4.184e9 J',
-            'comment' => 'by definition'
+        'thm' => [
+            'type' => 'alias',
+            'name' => 'thm',
+            'def' => 'US_therm'
         ],
         'therm' => [
             'type' => 'alias',
             'name' => 'therm',
-            'def' => 'US_therm'
-        ],
-        'thm' => [
-            'type' => 'alias',
-            'name' => 'thm',
             'def' => 'US_therm'
         ],
         'US_therm' => [
@@ -2682,14 +2717,14 @@ return [
             'definition' => 'unit of power equal to the power required to evaporate 34.5 lb of fresh water at 212 degrees F in one hour; describes a boiler\'s capacity to deliver steam to a steam engine',
             'def' => '9.80950e3 W'
         ],
-        'horsepower' => [
-            'type' => 'alias',
-            'name' => 'horsepower',
-            'def' => 'shaft_horsepower'
-        ],
         'hp' => [
             'type' => 'alias',
             'name' => 'hp',
+            'def' => 'shaft_horsepower'
+        ],
+        'horsepower' => [
+            'type' => 'alias',
+            'name' => 'horsepower',
             'def' => 'shaft_horsepower'
         ],
         'shaft_horsepower' => [
@@ -2908,125 +2943,126 @@ return [
             'definition' => 'unit of electricity/magnetism',
             'def' => '1.256637e-7 Wb'
         ],
-        'degree_rankine' => [
+        '°R' => [
             'type' => 'alias',
-            'name' => 'degree_rankine',
-            'def' => '°R'
-        ],
-        'degrees_rankine' => [
-            'type' => 'alias',
-            'name' => 'degrees_rankine',
-            'def' => '°R'
+            'name' => '°R',
+            'def' => 'degree_rankine'
         ],
         'degreeR' => [
             'type' => 'alias',
             'name' => 'degreeR',
-            'def' => '°R'
+            'def' => 'degree_rankine'
         ],
         'degreesR' => [
             'type' => 'alias',
             'name' => 'degreesR',
-            'def' => '°R'
+            'def' => 'degree_rankine'
         ],
         'degree_R' => [
             'type' => 'alias',
             'name' => 'degree_R',
-            'def' => '°R'
+            'def' => 'degree_rankine'
         ],
         'degrees_R' => [
             'type' => 'alias',
             'name' => 'degrees_R',
-            'def' => '°R'
+            'def' => 'degree_rankine'
         ],
         'degR' => [
             'type' => 'alias',
             'name' => 'degR',
-            'def' => '°R'
+            'def' => 'degree_rankine'
         ],
         'degsR' => [
             'type' => 'alias',
             'name' => 'degsR',
-            'def' => '°R'
+            'def' => 'degree_rankine'
         ],
         'deg_R' => [
             'type' => 'alias',
             'name' => 'deg_R',
-            'def' => '°R'
+            'def' => 'degree_rankine'
         ],
         'degs_R' => [
             'type' => 'alias',
             'name' => 'degs_R',
-            'def' => '°R'
+            'def' => 'degree_rankine'
         ],
-        '°R' => [
+        'degree_rankine' => [
             'type' => 'unit',
-            'name' => '°R',
+            'name' => 'degree_rankine',
             'definition' => 'unit of thermodynamic temperature',
+            'plural' => 'degrees_rankine',
             'def' => 'K/1.8'
+        ],
+        'degrees_rankine' => [
+            'type' => 'alias',
+            'name' => 'degrees_rankine',
+            'def' => 'degree_rankine'
+        ],
+        '°F' => [
+            'type' => 'alias',
+            'name' => '°F',
+            'def' => 'fahrenheit'
         ],
         '℉' => [
             'type' => 'alias',
             'name' => '℉',
-            'def' => '°F'
-        ],
-        'fahrenheit' => [
-            'type' => 'alias',
-            'name' => 'fahrenheit',
-            'def' => '°F'
+            'def' => 'fahrenheit'
         ],
         'degree_fahrenheit' => [
             'type' => 'alias',
             'name' => 'degree_fahrenheit',
-            'def' => '°F'
+            'def' => 'fahrenheit'
         ],
         'degrees_fahrenheit' => [
             'type' => 'alias',
             'name' => 'degrees_fahrenheit',
-            'def' => '°F'
+            'def' => 'fahrenheit'
         ],
         'degreeF' => [
             'type' => 'alias',
             'name' => 'degreeF',
-            'def' => '°F'
+            'def' => 'fahrenheit'
         ],
         'degreesF' => [
             'type' => 'alias',
             'name' => 'degreesF',
-            'def' => '°F'
+            'def' => 'fahrenheit'
         ],
         'degree_F' => [
             'type' => 'alias',
             'name' => 'degree_F',
-            'def' => '°F'
+            'def' => 'fahrenheit'
         ],
         'degrees_F' => [
             'type' => 'alias',
             'name' => 'degrees_F',
-            'def' => '°F'
+            'def' => 'fahrenheit'
         ],
         'degF' => [
             'type' => 'alias',
             'name' => 'degF',
-            'def' => '°F'
+            'def' => 'fahrenheit'
         ],
         'degsF' => [
             'type' => 'alias',
             'name' => 'degsF',
-            'def' => '°F'
+            'def' => 'fahrenheit'
         ],
         'deg_F' => [
             'type' => 'alias',
             'name' => 'deg_F',
-            'def' => '°F'
+            'def' => 'fahrenheit'
         ],
         'degs_F' => [
             'type' => 'alias',
             'name' => 'degs_F',
-            'def' => '°F'
+            'def' => 'fahrenheit'
         ],
-        '°F' => [
+        'fahrenheit' => [
             'type' => 'unit',
-            'name' => '°F',
+            'name' => 'fahrenheit',
             'definition' => 'unit of thermodynamic temperature',
             'def' => '°R @ 459.67'
         ],
@@ -3112,14 +3148,14 @@ return [
             'def' => '100/m',
             'comment' => 'exact'
         ],
-        'dynamic' => [
-            'type' => 'alias',
-            'name' => 'dynamic',
-            'def' => 'geopotential'
-        ],
         'gp' => [
             'type' => 'alias',
             'name' => 'gp',
+            'def' => 'geopotential'
+        ],
+        'dynamic' => [
+            'type' => 'alias',
+            'name' => 'dynamic',
             'def' => 'geopotential'
         ],
         'geopotential' => [
@@ -3209,6 +3245,1301 @@ return [
             'name' => 'molecule',
             'definition' => '',
             'def' => '1/avogadro_constant'
+        ],
+        'metres' => [
+            'type' => 'alias',
+            'name' => 'metres',
+            'def' => 'meter'
+        ],
+        'meters' => [
+            'type' => 'alias',
+            'name' => 'meters',
+            'def' => 'meter'
+        ],
+        'kilograms' => [
+            'type' => 'alias',
+            'name' => 'kilograms',
+            'def' => 'kilogram'
+        ],
+        'seconds' => [
+            'type' => 'alias',
+            'name' => 'seconds',
+            'def' => 'second'
+        ],
+        'amperes' => [
+            'type' => 'alias',
+            'name' => 'amperes',
+            'def' => 'ampere'
+        ],
+        'kelvins' => [
+            'type' => 'alias',
+            'name' => 'kelvins',
+            'def' => 'kelvin'
+        ],
+        'moles' => [
+            'type' => 'alias',
+            'name' => 'moles',
+            'def' => 'mole'
+        ],
+        'candelas' => [
+            'type' => 'alias',
+            'name' => 'candelas',
+            'def' => 'candela'
+        ],
+        'radians' => [
+            'type' => 'alias',
+            'name' => 'radians',
+            'def' => 'radian'
+        ],
+        'steradians' => [
+            'type' => 'alias',
+            'name' => 'steradians',
+            'def' => 'steradian'
+        ],
+        'hertzes' => [
+            'type' => 'alias',
+            'name' => 'hertzes',
+            'def' => 'hertz'
+        ],
+        'grams' => [
+            'type' => 'alias',
+            'name' => 'grams',
+            'def' => 'gram'
+        ],
+        'newtons' => [
+            'type' => 'alias',
+            'name' => 'newtons',
+            'def' => 'newton'
+        ],
+        'pascals' => [
+            'type' => 'alias',
+            'name' => 'pascals',
+            'def' => 'pascal'
+        ],
+        'joules' => [
+            'type' => 'alias',
+            'name' => 'joules',
+            'def' => 'joule'
+        ],
+        'watts' => [
+            'type' => 'alias',
+            'name' => 'watts',
+            'def' => 'watt'
+        ],
+        'coulombs' => [
+            'type' => 'alias',
+            'name' => 'coulombs',
+            'def' => 'coulomb'
+        ],
+        'volts' => [
+            'type' => 'alias',
+            'name' => 'volts',
+            'def' => 'volt'
+        ],
+        'farads' => [
+            'type' => 'alias',
+            'name' => 'farads',
+            'def' => 'farad'
+        ],
+        'ohms' => [
+            'type' => 'alias',
+            'name' => 'ohms',
+            'def' => 'ohm'
+        ],
+        'siemenses' => [
+            'type' => 'alias',
+            'name' => 'siemenses',
+            'def' => 'siemens'
+        ],
+        'webers' => [
+            'type' => 'alias',
+            'name' => 'webers',
+            'def' => 'weber'
+        ],
+        'teslas' => [
+            'type' => 'alias',
+            'name' => 'teslas',
+            'def' => 'tesla'
+        ],
+        'henries' => [
+            'type' => 'alias',
+            'name' => 'henries',
+            'def' => 'henry'
+        ],
+        'lumens' => [
+            'type' => 'alias',
+            'name' => 'lumens',
+            'def' => 'lumen'
+        ],
+        'luxes' => [
+            'type' => 'alias',
+            'name' => 'luxes',
+            'def' => 'lux'
+        ],
+        'katals' => [
+            'type' => 'alias',
+            'name' => 'katals',
+            'def' => 'katal'
+        ],
+        'becquerels' => [
+            'type' => 'alias',
+            'name' => 'becquerels',
+            'def' => 'becquerel'
+        ],
+        'grays' => [
+            'type' => 'alias',
+            'name' => 'grays',
+            'def' => 'gray'
+        ],
+        'sieverts' => [
+            'type' => 'alias',
+            'name' => 'sieverts',
+            'def' => 'sievert'
+        ],
+        'minutes' => [
+            'type' => 'alias',
+            'name' => 'minutes',
+            'def' => 'minute'
+        ],
+        'hours' => [
+            'type' => 'alias',
+            'name' => 'hours',
+            'def' => 'hour'
+        ],
+        'days' => [
+            'type' => 'alias',
+            'name' => 'days',
+            'def' => 'day'
+        ],
+        'angular_degrees' => [
+            'type' => 'alias',
+            'name' => 'angular_degrees',
+            'def' => 'arc_degree'
+        ],
+        'degrees' => [
+            'type' => 'alias',
+            'name' => 'degrees',
+            'def' => 'arc_degree'
+        ],
+        'arcdegs' => [
+            'type' => 'alias',
+            'name' => 'arcdegs',
+            'def' => 'arc_degree'
+        ],
+        'arc_degrees' => [
+            'type' => 'alias',
+            'name' => 'arc_degrees',
+            'def' => 'arc_degree'
+        ],
+        'angular_minutes' => [
+            'type' => 'alias',
+            'name' => 'angular_minutes',
+            'def' => 'arc_minute'
+        ],
+        'arcminutes' => [
+            'type' => 'alias',
+            'name' => 'arcminutes',
+            'def' => 'arc_minute'
+        ],
+        'arcmins' => [
+            'type' => 'alias',
+            'name' => 'arcmins',
+            'def' => 'arc_minute'
+        ],
+        'arc_minutes' => [
+            'type' => 'alias',
+            'name' => 'arc_minutes',
+            'def' => 'arc_minute'
+        ],
+        'angular_seconds' => [
+            'type' => 'alias',
+            'name' => 'angular_seconds',
+            'def' => 'arc_second'
+        ],
+        'arcseconds' => [
+            'type' => 'alias',
+            'name' => 'arcseconds',
+            'def' => 'arc_second'
+        ],
+        'arcsecs' => [
+            'type' => 'alias',
+            'name' => 'arcsecs',
+            'def' => 'arc_second'
+        ],
+        'arc_seconds' => [
+            'type' => 'alias',
+            'name' => 'arc_seconds',
+            'def' => 'arc_second'
+        ],
+        'litres' => [
+            'type' => 'alias',
+            'name' => 'litres',
+            'def' => 'liter'
+        ],
+        'liters' => [
+            'type' => 'alias',
+            'name' => 'liters',
+            'def' => 'liter'
+        ],
+        'tonnes' => [
+            'type' => 'alias',
+            'name' => 'tonnes',
+            'def' => 'metric_ton'
+        ],
+        'metric_tons' => [
+            'type' => 'alias',
+            'name' => 'metric_tons',
+            'def' => 'metric_ton'
+        ],
+        'electron_volts' => [
+            'type' => 'alias',
+            'name' => 'electron_volts',
+            'def' => 'electronvolt'
+        ],
+        'electronvolts' => [
+            'type' => 'alias',
+            'name' => 'electronvolts',
+            'def' => 'electronvolt'
+        ],
+        'atomic_mass_units' => [
+            'type' => 'alias',
+            'name' => 'atomic_mass_units',
+            'def' => 'unified_atomic_mass_unit'
+        ],
+        'atomicmassunits' => [
+            'type' => 'alias',
+            'name' => 'atomicmassunits',
+            'def' => 'unified_atomic_mass_unit'
+        ],
+        'unified_atomic_mass_units' => [
+            'type' => 'alias',
+            'name' => 'unified_atomic_mass_units',
+            'def' => 'unified_atomic_mass_unit'
+        ],
+        'astronomical_units' => [
+            'type' => 'alias',
+            'name' => 'astronomical_units',
+            'def' => 'astronomical_unit'
+        ],
+        'nautical_miles' => [
+            'type' => 'alias',
+            'name' => 'nautical_miles',
+            'def' => 'nautical_mile'
+        ],
+        'knot_internationals' => [
+            'type' => 'alias',
+            'name' => 'knot_internationals',
+            'def' => 'international_knot'
+        ],
+        'knots' => [
+            'type' => 'alias',
+            'name' => 'knots',
+            'def' => 'international_knot'
+        ],
+        'international_knots' => [
+            'type' => 'alias',
+            'name' => 'international_knots',
+            'def' => 'international_knot'
+        ],
+        'angstroms' => [
+            'type' => 'alias',
+            'name' => 'angstroms',
+            'def' => 'angstrom'
+        ],
+        'ares' => [
+            'type' => 'alias',
+            'name' => 'ares',
+            'def' => 'are'
+        ],
+        'hectares' => [
+            'type' => 'alias',
+            'name' => 'hectares',
+            'def' => 'hectare'
+        ],
+        'barns' => [
+            'type' => 'alias',
+            'name' => 'barns',
+            'def' => 'barn'
+        ],
+        'bars' => [
+            'type' => 'alias',
+            'name' => 'bars',
+            'def' => 'bar'
+        ],
+        'gals' => [
+            'type' => 'alias',
+            'name' => 'gals',
+            'def' => 'gal'
+        ],
+        'curies' => [
+            'type' => 'alias',
+            'name' => 'curies',
+            'def' => 'curie'
+        ],
+        'roentgens' => [
+            'type' => 'alias',
+            'name' => 'roentgens',
+            'def' => 'roentgen'
+        ],
+        'rems' => [
+            'type' => 'alias',
+            'name' => 'rems',
+            'def' => 'rem'
+        ],
+        'secs' => [
+            'type' => 'alias',
+            'name' => 'secs',
+            'def' => 'sec'
+        ],
+        'amps' => [
+            'type' => 'alias',
+            'name' => 'amps',
+            'def' => 'amp'
+        ],
+        'candles' => [
+            'type' => 'alias',
+            'name' => 'candles',
+            'def' => 'candle'
+        ],
+        'einsteins' => [
+            'type' => 'alias',
+            'name' => 'einsteins',
+            'def' => 'einstein'
+        ],
+        'bauds' => [
+            'type' => 'alias',
+            'name' => 'bauds',
+            'def' => 'baud'
+        ],
+        'celsiuses' => [
+            'type' => 'alias',
+            'name' => 'celsiuses',
+            'def' => 'celsius'
+        ],
+        'grades' => [
+            'type' => 'alias',
+            'name' => 'grades',
+            'def' => 'grade'
+        ],
+        'cycles' => [
+            'type' => 'alias',
+            'name' => 'cycles',
+            'def' => 'circle'
+        ],
+        'turns' => [
+            'type' => 'alias',
+            'name' => 'turns',
+            'def' => 'circle'
+        ],
+        'revolutions' => [
+            'type' => 'alias',
+            'name' => 'revolutions',
+            'def' => 'circle'
+        ],
+        'rotations' => [
+            'type' => 'alias',
+            'name' => 'rotations',
+            'def' => 'circle'
+        ],
+        'circles' => [
+            'type' => 'alias',
+            'name' => 'circles',
+            'def' => 'circle'
+        ],
+        'assay_tons' => [
+            'type' => 'alias',
+            'name' => 'assay_tons',
+            'def' => 'assay_ton'
+        ],
+        'avoirdupois_ounces' => [
+            'type' => 'alias',
+            'name' => 'avoirdupois_ounces',
+            'def' => 'avoirdupois_ounce'
+        ],
+        'pounds' => [
+            'type' => 'alias',
+            'name' => 'pounds',
+            'def' => 'avoirdupois_pound'
+        ],
+        'avoirdupois_pounds' => [
+            'type' => 'alias',
+            'name' => 'avoirdupois_pounds',
+            'def' => 'avoirdupois_pound'
+        ],
+        'carats' => [
+            'type' => 'alias',
+            'name' => 'carats',
+            'def' => 'carat'
+        ],
+        'grains' => [
+            'type' => 'alias',
+            'name' => 'grains',
+            'def' => 'grain'
+        ],
+        'long_hundredweights' => [
+            'type' => 'alias',
+            'name' => 'long_hundredweights',
+            'def' => 'long_hundredweight'
+        ],
+        'pennyweights' => [
+            'type' => 'alias',
+            'name' => 'pennyweights',
+            'def' => 'pennyweight'
+        ],
+        'short_hundredweights' => [
+            'type' => 'alias',
+            'name' => 'short_hundredweights',
+            'def' => 'short_hundredweight'
+        ],
+        'slugs' => [
+            'type' => 'alias',
+            'name' => 'slugs',
+            'def' => 'slug'
+        ],
+        'apothecary_ounces' => [
+            'type' => 'alias',
+            'name' => 'apothecary_ounces',
+            'def' => 'troy_ounce'
+        ],
+        'troy_ounces' => [
+            'type' => 'alias',
+            'name' => 'troy_ounces',
+            'def' => 'troy_ounce'
+        ],
+        'apothecary_pounds' => [
+            'type' => 'alias',
+            'name' => 'apothecary_pounds',
+            'def' => 'troy_pound'
+        ],
+        'troy_pounds' => [
+            'type' => 'alias',
+            'name' => 'troy_pounds',
+            'def' => 'troy_pound'
+        ],
+        'scruples' => [
+            'type' => 'alias',
+            'name' => 'scruples',
+            'def' => 'scruple'
+        ],
+        'apdrams' => [
+            'type' => 'alias',
+            'name' => 'apdrams',
+            'def' => 'apdram'
+        ],
+        'drams' => [
+            'type' => 'alias',
+            'name' => 'drams',
+            'def' => 'dram'
+        ],
+        'apounces' => [
+            'type' => 'alias',
+            'name' => 'apounces',
+            'def' => 'apounce'
+        ],
+        'appounds' => [
+            'type' => 'alias',
+            'name' => 'appounds',
+            'def' => 'appound'
+        ],
+        'bags' => [
+            'type' => 'alias',
+            'name' => 'bags',
+            'def' => 'bag'
+        ],
+        'tons' => [
+            'type' => 'alias',
+            'name' => 'tons',
+            'def' => 'short_ton'
+        ],
+        'short_tons' => [
+            'type' => 'alias',
+            'name' => 'short_tons',
+            'def' => 'short_ton'
+        ],
+        'long_tons' => [
+            'type' => 'alias',
+            'name' => 'long_tons',
+            'def' => 'long_ton'
+        ],
+        'fermis' => [
+            'type' => 'alias',
+            'name' => 'fermis',
+            'def' => 'fermi'
+        ],
+        'light_years' => [
+            'type' => 'alias',
+            'name' => 'light_years',
+            'def' => 'light_year'
+        ],
+        'microns' => [
+            'type' => 'alias',
+            'name' => 'microns',
+            'def' => 'micron'
+        ],
+        'mils' => [
+            'type' => 'alias',
+            'name' => 'mils',
+            'def' => 'mil'
+        ],
+        'parsecs' => [
+            'type' => 'alias',
+            'name' => 'parsecs',
+            'def' => 'parsec'
+        ],
+        'printers_points' => [
+            'type' => 'alias',
+            'name' => 'printers_points',
+            'def' => 'printers_point'
+        ],
+        'chains' => [
+            'type' => 'alias',
+            'name' => 'chains',
+            'def' => 'chain'
+        ],
+        'picas' => [
+            'type' => 'alias',
+            'name' => 'picas',
+            'def' => 'printers_pica'
+        ],
+        'printers_picas' => [
+            'type' => 'alias',
+            'name' => 'printers_picas',
+            'def' => 'printers_pica'
+        ],
+        'nmiles' => [
+            'type' => 'alias',
+            'name' => 'nmiles',
+            'def' => 'nmile'
+        ],
+        'poles' => [
+            'type' => 'alias',
+            'name' => 'poles',
+            'def' => 'rod'
+        ],
+        'perches' => [
+            'type' => 'alias',
+            'name' => 'perches',
+            'def' => 'rod'
+        ],
+        'rods' => [
+            'type' => 'alias',
+            'name' => 'rods',
+            'def' => 'rod'
+        ],
+        'furlongs' => [
+            'type' => 'alias',
+            'name' => 'furlongs',
+            'def' => 'furlong'
+        ],
+        'fathoms' => [
+            'type' => 'alias',
+            'name' => 'fathoms',
+            'def' => 'fathom'
+        ],
+        'inches' => [
+            'type' => 'alias',
+            'name' => 'inches',
+            'def' => 'international_inch'
+        ],
+        'international_inches' => [
+            'type' => 'alias',
+            'name' => 'international_inches',
+            'def' => 'international_inch'
+        ],
+        'yards' => [
+            'type' => 'alias',
+            'name' => 'yards',
+            'def' => 'international_yard'
+        ],
+        'international_yards' => [
+            'type' => 'alias',
+            'name' => 'international_yards',
+            'def' => 'international_yard'
+        ],
+        'miles' => [
+            'type' => 'alias',
+            'name' => 'miles',
+            'def' => 'international_mile'
+        ],
+        'international_miles' => [
+            'type' => 'alias',
+            'name' => 'international_miles',
+            'def' => 'international_mile'
+        ],
+        'big_points' => [
+            'type' => 'alias',
+            'name' => 'big_points',
+            'def' => 'big_point'
+        ],
+        'barleycorns' => [
+            'type' => 'alias',
+            'name' => 'barleycorns',
+            'def' => 'barleycorn'
+        ],
+        'arpentlins' => [
+            'type' => 'alias',
+            'name' => 'arpentlins',
+            'def' => 'arpentlin'
+        ],
+        'deniers' => [
+            'type' => 'alias',
+            'name' => 'deniers',
+            'def' => 'denier'
+        ],
+        'texes' => [
+            'type' => 'alias',
+            'name' => 'texes',
+            'def' => 'tex'
+        ],
+        'circular_mils' => [
+            'type' => 'alias',
+            'name' => 'circular_mils',
+            'def' => 'circular_mil'
+        ],
+        'darcies' => [
+            'type' => 'alias',
+            'name' => 'darcies',
+            'def' => 'darcy'
+        ],
+        'acres' => [
+            'type' => 'alias',
+            'name' => 'acres',
+            'def' => 'acre'
+        ],
+        'bushels' => [
+            'type' => 'alias',
+            'name' => 'bushels',
+            'def' => 'bushel'
+        ],
+        'pecks' => [
+            'type' => 'alias',
+            'name' => 'pecks',
+            'def' => 'peck'
+        ],
+        'steres' => [
+            'type' => 'alias',
+            'name' => 'steres',
+            'def' => 'stere'
+        ],
+        'register_tons' => [
+            'type' => 'alias',
+            'name' => 'register_tons',
+            'def' => 'register_ton'
+        ],
+        'dry_quarts' => [
+            'type' => 'alias',
+            'name' => 'dry_quarts',
+            'def' => 'US_dry_quart'
+        ],
+        'dry_pints' => [
+            'type' => 'alias',
+            'name' => 'dry_pints',
+            'def' => 'US_dry_pint'
+        ],
+        'liquid_gallons' => [
+            'type' => 'alias',
+            'name' => 'liquid_gallons',
+            'def' => 'US_liquid_gallon'
+        ],
+        'gallons' => [
+            'type' => 'alias',
+            'name' => 'gallons',
+            'def' => 'US_liquid_gallon'
+        ],
+        'barrels' => [
+            'type' => 'alias',
+            'name' => 'barrels',
+            'def' => 'barrel'
+        ],
+        'firkins' => [
+            'type' => 'alias',
+            'name' => 'firkins',
+            'def' => 'firkin'
+        ],
+        'liquid_quarts' => [
+            'type' => 'alias',
+            'name' => 'liquid_quarts',
+            'def' => 'US_liquid_quart'
+        ],
+        'quarts' => [
+            'type' => 'alias',
+            'name' => 'quarts',
+            'def' => 'US_liquid_quart'
+        ],
+        'liquid_pints' => [
+            'type' => 'alias',
+            'name' => 'liquid_pints',
+            'def' => 'US_liquid_pint'
+        ],
+        'pints' => [
+            'type' => 'alias',
+            'name' => 'pints',
+            'def' => 'US_liquid_pint'
+        ],
+        'liquid_cups' => [
+            'type' => 'alias',
+            'name' => 'liquid_cups',
+            'def' => 'US_liquid_cup'
+        ],
+        'cups' => [
+            'type' => 'alias',
+            'name' => 'cups',
+            'def' => 'US_liquid_cup'
+        ],
+        'liquid_gills' => [
+            'type' => 'alias',
+            'name' => 'liquid_gills',
+            'def' => 'US_liquid_gill'
+        ],
+        'gills' => [
+            'type' => 'alias',
+            'name' => 'gills',
+            'def' => 'US_liquid_gill'
+        ],
+        'fluid_ounces' => [
+            'type' => 'alias',
+            'name' => 'fluid_ounces',
+            'def' => 'US_fluid_ounce'
+        ],
+        'liquid_ounces' => [
+            'type' => 'alias',
+            'name' => 'liquid_ounces',
+            'def' => 'US_fluid_ounce'
+        ],
+        'tablespoons' => [
+            'type' => 'alias',
+            'name' => 'tablespoons',
+            'def' => 'tablespoon'
+        ],
+        'fluid_drams' => [
+            'type' => 'alias',
+            'name' => 'fluid_drams',
+            'def' => 'fluid_dram'
+        ],
+        'teaspoons' => [
+            'type' => 'alias',
+            'name' => 'teaspoons',
+            'def' => 'teaspoon'
+        ],
+        'shakes' => [
+            'type' => 'alias',
+            'name' => 'shakes',
+            'def' => 'shake'
+        ],
+        'sidereal_days' => [
+            'type' => 'alias',
+            'name' => 'sidereal_days',
+            'def' => 'sidereal_day'
+        ],
+        'sidereal_hours' => [
+            'type' => 'alias',
+            'name' => 'sidereal_hours',
+            'def' => 'sidereal_hour'
+        ],
+        'sidereal_minutes' => [
+            'type' => 'alias',
+            'name' => 'sidereal_minutes',
+            'def' => 'sidereal_minute'
+        ],
+        'sidereal_seconds' => [
+            'type' => 'alias',
+            'name' => 'sidereal_seconds',
+            'def' => 'sidereal_second'
+        ],
+        'sidereal_years' => [
+            'type' => 'alias',
+            'name' => 'sidereal_years',
+            'def' => 'sidereal_year'
+        ],
+        'years' => [
+            'type' => 'alias',
+            'name' => 'years',
+            'def' => 'tropical_year'
+        ],
+        'tropical_years' => [
+            'type' => 'alias',
+            'name' => 'tropical_years',
+            'def' => 'tropical_year'
+        ],
+        'lunar_months' => [
+            'type' => 'alias',
+            'name' => 'lunar_months',
+            'def' => 'lunar_month'
+        ],
+        'common_years' => [
+            'type' => 'alias',
+            'name' => 'common_years',
+            'def' => 'common_year'
+        ],
+        'leap_years' => [
+            'type' => 'alias',
+            'name' => 'leap_years',
+            'def' => 'leap_year'
+        ],
+        'sidereal_months' => [
+            'type' => 'alias',
+            'name' => 'sidereal_months',
+            'def' => 'sidereal_month'
+        ],
+        'tropical_months' => [
+            'type' => 'alias',
+            'name' => 'tropical_months',
+            'def' => 'tropical_month'
+        ],
+        'fortnights' => [
+            'type' => 'alias',
+            'name' => 'fortnights',
+            'def' => 'fortnight'
+        ],
+        'weeks' => [
+            'type' => 'alias',
+            'name' => 'weeks',
+            'def' => 'week'
+        ],
+        'jiffies' => [
+            'type' => 'alias',
+            'name' => 'jiffies',
+            'def' => 'jiffy'
+        ],
+        'eons' => [
+            'type' => 'alias',
+            'name' => 'eons',
+            'def' => 'eon'
+        ],
+        'months' => [
+            'type' => 'alias',
+            'name' => 'months',
+            'def' => 'month'
+        ],
+        'sverdrups' => [
+            'type' => 'alias',
+            'name' => 'sverdrups',
+            'def' => 'sverdrup'
+        ],
+        'standard_free_falls' => [
+            'type' => 'alias',
+            'name' => 'standard_free_falls',
+            'def' => 'standard_free_fall'
+        ],
+        'gravities' => [
+            'type' => 'alias',
+            'name' => 'gravities',
+            'def' => 'gravity'
+        ],
+        'waters' => [
+            'type' => 'alias',
+            'name' => 'waters',
+            'def' => 'conventional_water'
+        ],
+        'conventional_waters' => [
+            'type' => 'alias',
+            'name' => 'conventional_waters',
+            'def' => 'conventional_water'
+        ],
+        'forces' => [
+            'type' => 'alias',
+            'name' => 'forces',
+            'def' => 'force'
+        ],
+        'dynes' => [
+            'type' => 'alias',
+            'name' => 'dynes',
+            'def' => 'dyne'
+        ],
+        'ponds' => [
+            'type' => 'alias',
+            'name' => 'ponds',
+            'def' => 'pond'
+        ],
+        'force_kilograms' => [
+            'type' => 'alias',
+            'name' => 'force_kilograms',
+            'def' => 'force_kilogram'
+        ],
+        'force_ounces' => [
+            'type' => 'alias',
+            'name' => 'force_ounces',
+            'def' => 'force_ounce'
+        ],
+        'force_pounds' => [
+            'type' => 'alias',
+            'name' => 'force_pounds',
+            'def' => 'force_pound'
+        ],
+        'poundals' => [
+            'type' => 'alias',
+            'name' => 'poundals',
+            'def' => 'poundal'
+        ],
+        'force_grams' => [
+            'type' => 'alias',
+            'name' => 'force_grams',
+            'def' => 'gram_force'
+        ],
+        'force_tons' => [
+            'type' => 'alias',
+            'name' => 'force_tons',
+            'def' => 'force_ton'
+        ],
+        'kips' => [
+            'type' => 'alias',
+            'name' => 'kips',
+            'def' => 'kip'
+        ],
+        'atmospheres' => [
+            'type' => 'alias',
+            'name' => 'atmospheres',
+            'def' => 'standard_atmosphere'
+        ],
+        'standard_atmospheres' => [
+            'type' => 'alias',
+            'name' => 'standard_atmospheres',
+            'def' => 'standard_atmosphere'
+        ],
+        'technical_atmospheres' => [
+            'type' => 'alias',
+            'name' => 'technical_atmospheres',
+            'def' => 'technical_atmosphere'
+        ],
+        'torrs' => [
+            'type' => 'alias',
+            'name' => 'torrs',
+            'def' => 'millimeter_Hg'
+        ],
+        'baryes' => [
+            'type' => 'alias',
+            'name' => 'baryes',
+            'def' => 'barie'
+        ],
+        'baries' => [
+            'type' => 'alias',
+            'name' => 'baries',
+            'def' => 'barie'
+        ],
+        'poises' => [
+            'type' => 'alias',
+            'name' => 'poises',
+            'def' => 'poise'
+        ],
+        'stokeses' => [
+            'type' => 'alias',
+            'name' => 'stokeses',
+            'def' => 'stokes'
+        ],
+        'rhes' => [
+            'type' => 'alias',
+            'name' => 'rhes',
+            'def' => 'rhe'
+        ],
+        'ergs' => [
+            'type' => 'alias',
+            'name' => 'ergs',
+            'def' => 'erg'
+        ],
+        'thermochemical_calories' => [
+            'type' => 'alias',
+            'name' => 'thermochemical_calories',
+            'def' => 'thermochemical_calorie'
+        ],
+        'calories' => [
+            'type' => 'alias',
+            'name' => 'calories',
+            'def' => 'IT_calorie'
+        ],
+        'therms' => [
+            'type' => 'alias',
+            'name' => 'therms',
+            'def' => 'US_therm'
+        ],
+        'watthours' => [
+            'type' => 'alias',
+            'name' => 'watthours',
+            'def' => 'watthour'
+        ],
+        'voltamperes' => [
+            'type' => 'alias',
+            'name' => 'voltamperes',
+            'def' => 'voltampere'
+        ],
+        'boiler_horsepowers' => [
+            'type' => 'alias',
+            'name' => 'boiler_horsepowers',
+            'def' => 'boiler_horsepower'
+        ],
+        'horsepowers' => [
+            'type' => 'alias',
+            'name' => 'horsepowers',
+            'def' => 'shaft_horsepower'
+        ],
+        'shaft_horsepowers' => [
+            'type' => 'alias',
+            'name' => 'shaft_horsepowers',
+            'def' => 'shaft_horsepower'
+        ],
+        'metric_horsepowers' => [
+            'type' => 'alias',
+            'name' => 'metric_horsepowers',
+            'def' => 'metric_horsepower'
+        ],
+        'electric_horsepowers' => [
+            'type' => 'alias',
+            'name' => 'electric_horsepowers',
+            'def' => 'electric_horsepower'
+        ],
+        'water_horsepowers' => [
+            'type' => 'alias',
+            'name' => 'water_horsepowers',
+            'def' => 'water_horsepower'
+        ],
+        'refrigeration_tons' => [
+            'type' => 'alias',
+            'name' => 'refrigeration_tons',
+            'def' => 'refrigeration_ton'
+        ],
+        'clos' => [
+            'type' => 'alias',
+            'name' => 'clos',
+            'def' => 'clo'
+        ],
+        'abamperes' => [
+            'type' => 'alias',
+            'name' => 'abamperes',
+            'def' => 'abampere'
+        ],
+        'gilberts' => [
+            'type' => 'alias',
+            'name' => 'gilberts',
+            'def' => 'gilbert'
+        ],
+        'statamperes' => [
+            'type' => 'alias',
+            'name' => 'statamperes',
+            'def' => 'statampere'
+        ],
+        'biots' => [
+            'type' => 'alias',
+            'name' => 'biots',
+            'def' => 'biot'
+        ],
+        'abfarads' => [
+            'type' => 'alias',
+            'name' => 'abfarads',
+            'def' => 'abfarad'
+        ],
+        'abhenries' => [
+            'type' => 'alias',
+            'name' => 'abhenries',
+            'def' => 'abhenry'
+        ],
+        'abmhos' => [
+            'type' => 'alias',
+            'name' => 'abmhos',
+            'def' => 'abmho'
+        ],
+        'abohms' => [
+            'type' => 'alias',
+            'name' => 'abohms',
+            'def' => 'abohm'
+        ],
+        'abvolts' => [
+            'type' => 'alias',
+            'name' => 'abvolts',
+            'def' => 'abvolt'
+        ],
+        'chemical_faradays' => [
+            'type' => 'alias',
+            'name' => 'chemical_faradays',
+            'def' => 'chemical_faraday'
+        ],
+        'physical_faradays' => [
+            'type' => 'alias',
+            'name' => 'physical_faradays',
+            'def' => 'physical_faraday'
+        ],
+        'faradays' => [
+            'type' => 'alias',
+            'name' => 'faradays',
+            'def' => 'C12_faraday'
+        ],
+        'gammas' => [
+            'type' => 'alias',
+            'name' => 'gammas',
+            'def' => 'gamma'
+        ],
+        'gausses' => [
+            'type' => 'alias',
+            'name' => 'gausses',
+            'def' => 'gauss'
+        ],
+        'maxwells' => [
+            'type' => 'alias',
+            'name' => 'maxwells',
+            'def' => 'maxwell'
+        ],
+        'oersteds' => [
+            'type' => 'alias',
+            'name' => 'oersteds',
+            'def' => 'oersted'
+        ],
+        'statcoulombs' => [
+            'type' => 'alias',
+            'name' => 'statcoulombs',
+            'def' => 'statcoulomb'
+        ],
+        'statfarads' => [
+            'type' => 'alias',
+            'name' => 'statfarads',
+            'def' => 'statfarad'
+        ],
+        'stathenries' => [
+            'type' => 'alias',
+            'name' => 'stathenries',
+            'def' => 'stathenry'
+        ],
+        'statmhos' => [
+            'type' => 'alias',
+            'name' => 'statmhos',
+            'def' => 'statmho'
+        ],
+        'statohms' => [
+            'type' => 'alias',
+            'name' => 'statohms',
+            'def' => 'statohm'
+        ],
+        'statvolts' => [
+            'type' => 'alias',
+            'name' => 'statvolts',
+            'def' => 'statvolt'
+        ],
+        'unit_poles' => [
+            'type' => 'alias',
+            'name' => 'unit_poles',
+            'def' => 'unit_pole'
+        ],
+        'fahrenheits' => [
+            'type' => 'alias',
+            'name' => 'fahrenheits',
+            'def' => 'fahrenheit'
+        ],
+        'footcandles' => [
+            'type' => 'alias',
+            'name' => 'footcandles',
+            'def' => 'footcandle'
+        ],
+        'footlamberts' => [
+            'type' => 'alias',
+            'name' => 'footlamberts',
+            'def' => 'footlambert'
+        ],
+        'lamberts' => [
+            'type' => 'alias',
+            'name' => 'lamberts',
+            'def' => 'lambert'
+        ],
+        'stilbs' => [
+            'type' => 'alias',
+            'name' => 'stilbs',
+            'def' => 'stilb'
+        ],
+        'phots' => [
+            'type' => 'alias',
+            'name' => 'phots',
+            'def' => 'phot'
+        ],
+        'nits' => [
+            'type' => 'alias',
+            'name' => 'nits',
+            'def' => 'nit'
+        ],
+        'langleys' => [
+            'type' => 'alias',
+            'name' => 'langleys',
+            'def' => 'langley'
+        ],
+        'apostilbs' => [
+            'type' => 'alias',
+            'name' => 'apostilbs',
+            'def' => 'blondel'
+        ],
+        'blondels' => [
+            'type' => 'alias',
+            'name' => 'blondels',
+            'def' => 'blondel'
+        ],
+        'kaysers' => [
+            'type' => 'alias',
+            'name' => 'kaysers',
+            'def' => 'kayser'
+        ],
+        'dynamics' => [
+            'type' => 'alias',
+            'name' => 'dynamics',
+            'def' => 'geopotential'
+        ],
+        'geopotentials' => [
+            'type' => 'alias',
+            'name' => 'geopotentials',
+            'def' => 'geopotential'
+        ],
+        'work_years' => [
+            'type' => 'alias',
+            'name' => 'work_years',
+            'def' => 'work_year'
+        ],
+        'work_months' => [
+            'type' => 'alias',
+            'name' => 'work_months',
+            'def' => 'work_month'
+        ],
+        'potential_vorticity_units' => [
+            'type' => 'alias',
+            'name' => 'potential_vorticity_units',
+            'def' => 'potential_vorticity_unit'
+        ],
+        'counts' => [
+            'type' => 'alias',
+            'name' => 'counts',
+            'def' => 'count'
+        ],
+        'bits' => [
+            'type' => 'alias',
+            'name' => 'bits',
+            'def' => 'bit'
+        ],
+        'bytes' => [
+            'type' => 'alias',
+            'name' => 'bytes',
+            'def' => 'octet'
+        ],
+        'octets' => [
+            'type' => 'alias',
+            'name' => 'octets',
+            'def' => 'octet'
+        ],
+        'dobsons' => [
+            'type' => 'alias',
+            'name' => 'dobsons',
+            'def' => 'dobson'
+        ],
+        'molecs' => [
+            'type' => 'alias',
+            'name' => 'molecs',
+            'def' => 'molecule'
+        ],
+        'nucleons' => [
+            'type' => 'alias',
+            'name' => 'nucleons',
+            'def' => 'molecule'
+        ],
+        'nucs' => [
+            'type' => 'alias',
+            'name' => 'nucs',
+            'def' => 'molecule'
+        ],
+        'molecules' => [
+            'type' => 'alias',
+            'name' => 'molecules',
+            'def' => 'molecule'
         ]
     ],
     'base' => [

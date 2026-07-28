@@ -184,7 +184,8 @@ Remaining work:
 
 - Make registry composition a real API.
 - Make user-defined units possible without subclassing `UnitRegistry`.
-- Use generated plural metadata instead of simple suffix stripping alone.
+- Generated plural aliases are now authoritative; explicit plurals and `<noplural>` are honored, symbols remain exact,
+  and runtime lookup performs no suffix stripping.
 - Decide case-sensitivity policy.
 - Decide whether symbols and canonical names are both first-class metadata.
 - Expose catalog introspection: names, aliases, prefixes, symbols, comments, supported/unsupported reason.
@@ -411,12 +412,12 @@ Recommendation: Build a small formatter now, not a Pint-sized formatter. Aim for
 
 Status: Partial Importance: P1 Difficulty to finish: M
 
-Yumemi currently resolves generated aliases and prefixes, and uses simple plural stripping. That is enough for common
-examples, but it will surprise users on edge cases.
+Yumemi currently resolves generated aliases, generated plurals, and prefixes through exact catalog records. Runtime
+lookup performs no plural morphology, which keeps the PHPStan trust boundary fail-closed.
 
 Remaining work:
 
-- Use generated plural aliases from UDUNITS2.
+- Generated plural aliases from UDUNITS2 names are authoritative. **Done.**
 - Keep longest-prefix-first behavior.
 - Decide whether symbols are preferred for output.
 - Decide if lookup is case-sensitive by default.

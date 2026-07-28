@@ -65,8 +65,11 @@ final class UnitResolverTest extends TestCase
         $resolver = new UnitResolver(new Udunits2UnitRegistry());
 
         $this->assertSame('meter', $resolver->resolveOrFail('meters')->toString());
+        $this->assertSame('meter', $resolver->resolveOrFail('metres')->toString());
         $this->assertSame('second', $resolver->resolveOrFail('seconds')->toString());
         $this->assertSame('international_inch', $resolver->resolveOrFail('inches')->toString());
+        $this->assertSame('international_foot', $resolver->resolveOrFail('feet')->toString());
+        $this->assertSame('hertz', $resolver->resolveOrFail('hertzes')->toString());
         $this->assertSame('kilogram', $resolver->resolveOrFail('kilograms')->toString());
     }
 
@@ -100,6 +103,9 @@ final class UnitResolverTest extends TestCase
             ['METER'],
             ['gas'],
             ['lass'],
+            ['percents'],
+            ['avogadro_constants'],
+            ['pis'],
         ];
     }
 
