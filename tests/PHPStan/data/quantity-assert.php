@@ -115,16 +115,25 @@ assertType("Quantity<'international_foot'>", $m->to('foot'));
 assertType("unit_int<'international_foot'>", $m->intValueIn('foot'));
 assertType("unit_int<'meter'>", $m->exactIntValueIn('meter'));
 assertType('jbboehr\\Yumemi\\Number\\Rational', $m->valueIn('foot'));
+assertType('string', $m->decimalValueIn('foot', 2, \RoundingMode::HalfEven));
+assertType('string', $m->exactDecimalValueIn('meter'));
+assertType("unit_float<'international_foot'>", $m->floatValueIn('foot'));
 assertType('*ERROR*', $m->to('second'));
 assertType('*ERROR*', $m->valueIn('second'));
 assertType('*ERROR*', $m->intValueIn('second'));
 assertType('*ERROR*', $m->exactIntValueIn('second'));
+assertType('*ERROR*', $m->decimalValueIn('second', 2, \RoundingMode::HalfEven));
+assertType('*ERROR*', $m->exactDecimalValueIn('second'));
+assertType('*ERROR*', $m->floatValueIn('second'));
 
 // Unknown constant targets are invalid in the authoritative PHPStan registry.
 assertType('*ERROR*', $m->to('not_a_real_unit_xyz'));
 assertType('*ERROR*', $m->valueIn('not_a_real_unit_xyz'));
 assertType('*ERROR*', $m->intValueIn('not_a_real_unit_xyz'));
 assertType('*ERROR*', $m->exactIntValueIn('not_a_real_unit_xyz'));
+assertType('*ERROR*', $m->decimalValueIn('not_a_real_unit_xyz', 2, \RoundingMode::HalfEven));
+assertType('*ERROR*', $m->exactDecimalValueIn('not_a_real_unit_xyz'));
+assertType('*ERROR*', $m->floatValueIn('not_a_real_unit_xyz'));
 
 // An invalid conversion result is ErrorType: the diagnostic is emitted once at the offending call.
 // Reusing it fails open — chained calls degrade to mixed rather than branding a bogus unit or crashing.
@@ -141,6 +150,9 @@ function finiteConversionTargets(Units $units, string $unit): void
     assertType("unit_int<'international_foot'>|unit_int<'meter'>", $meters->intValueIn($unit));
     assertType("unit_int<'international_foot'>|unit_int<'meter'>", $meters->exactIntValueIn($unit));
     assertType('jbboehr\\Yumemi\\Number\\Rational', $meters->valueIn($unit));
+    assertType('string', $meters->decimalValueIn($unit, 2, \RoundingMode::HalfEven));
+    assertType('string', $meters->exactDecimalValueIn($unit));
+    assertType("unit_float<'international_foot'>|unit_float<'meter'>", $meters->floatValueIn($unit));
 }
 
 /** @param 'meter'|'second' $unit */
@@ -151,6 +163,9 @@ function partlyIncompatibleConversionTargets(Units $units, string $unit): void
     assertType('*ERROR*', $meters->valueIn($unit));
     assertType('*ERROR*', $meters->intValueIn($unit));
     assertType('*ERROR*', $meters->exactIntValueIn($unit));
+    assertType('*ERROR*', $meters->decimalValueIn($unit, 2, \RoundingMode::HalfEven));
+    assertType('*ERROR*', $meters->exactDecimalValueIn($unit));
+    assertType('*ERROR*', $meters->floatValueIn($unit));
 }
 
 // normalize() rebrands to the catalog-normalized form
@@ -190,6 +205,9 @@ function extractDynamic(\jbboehr\Yumemi\Quantity $q, string $unit): void
     assertType('int', $q->intValueIn($unit));
     assertType('int', $q->exactIntValueIn($unit));
     assertType('jbboehr\\Yumemi\\Number\\Rational', $q->valueIn($unit));
+    assertType('string', $q->decimalValueIn($unit, 2, \RoundingMode::HalfEven));
+    assertType('string', $q->exactDecimalValueIn($unit));
+    assertType('float', $q->floatValueIn($unit));
 }
 
 function extractKnownFromUnbranded(\jbboehr\Yumemi\Quantity $q): void
@@ -198,6 +216,9 @@ function extractKnownFromUnbranded(\jbboehr\Yumemi\Quantity $q): void
     assertType("unit_int<'international_foot'>", $q->intValueIn('foot'));
     assertType("unit_int<'meter'>", $q->exactIntValueIn('meter'));
     assertType('jbboehr\\Yumemi\\Number\\Rational', $q->valueIn('foot'));
+    assertType('string', $q->decimalValueIn('foot', 2, \RoundingMode::HalfEven));
+    assertType('string', $q->exactDecimalValueIn('meter'));
+    assertType("unit_float<'international_foot'>", $q->floatValueIn('foot'));
 }
 
 /** @param 'meter'|'foot' $unit */
@@ -207,6 +228,9 @@ function extractFiniteFromUnbranded(\jbboehr\Yumemi\Quantity $q, string $unit): 
     assertType("unit_int<'international_foot'>|unit_int<'meter'>", $q->intValueIn($unit));
     assertType("unit_int<'international_foot'>|unit_int<'meter'>", $q->exactIntValueIn($unit));
     assertType('jbboehr\\Yumemi\\Number\\Rational', $q->valueIn($unit));
+    assertType('string', $q->decimalValueIn($unit, 2, \RoundingMode::HalfEven));
+    assertType('string', $q->exactDecimalValueIn($unit));
+    assertType("unit_float<'international_foot'>|unit_float<'meter'>", $q->floatValueIn($unit));
 }
 
 function extractBrandedDynamic(\jbboehr\Yumemi\Units $units, string $unit): void
@@ -216,4 +240,7 @@ function extractBrandedDynamic(\jbboehr\Yumemi\Units $units, string $unit): void
     assertType('int', $meters->intValueIn($unit));
     assertType('int', $meters->exactIntValueIn($unit));
     assertType('jbboehr\\Yumemi\\Number\\Rational', $meters->valueIn($unit));
+    assertType('string', $meters->decimalValueIn($unit, 2, \RoundingMode::HalfEven));
+    assertType('string', $meters->exactDecimalValueIn($unit));
+    assertType('float', $meters->floatValueIn($unit));
 }

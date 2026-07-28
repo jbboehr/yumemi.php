@@ -51,7 +51,15 @@ use PHPStan\Type\ErrorType;
  */
 final class InvalidQuantityConversionRule implements Rule
 {
-    private const SUPPORTED = ['to', 'valueIn', 'intValueIn', 'exactIntValueIn'];
+    private const SUPPORTED = [
+        'to',
+        'valueIn',
+        'intValueIn',
+        'exactIntValueIn',
+        'decimalValueIn',
+        'exactDecimalValueIn',
+        'floatValueIn',
+    ];
 
     public function __construct(
         private readonly QuantityMethodReturnTypeExtension $extension,

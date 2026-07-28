@@ -570,6 +570,82 @@ final class QuantityTest extends TestCase
         $this->assertSame('25/1143 / second', $quantity->toString());
     }
 
+    public function testReturnsRoundedDecimalValueInCompatibleUnit(): void
+    {
+        $quantity = Units::default()->quantity(1, 'meter');
+
+        $this->assertSame('3.281', $quantity->decimalValueIn('foot', 3, \RoundingMode::HalfEven));
+    }
+
+    public function testReturnsExactDecimalValueInCompatibleUnit(): void
+    {
+        $quantity = Units::default()->quantity(1, 'foot');
+
+        $this->assertSame('0.3048', $quantity->exactDecimalValueIn('meter'));
+    }
+
+    public function testExactDecimalValueRejectsNonTerminatingConversion(): void
+    {
+        $quantity = Units::default()->quantity(1, 'meter');
+
+        $this->expectException(\UnexpectedValueException::class);
+
+        $quantity->exactDecimalValueIn('foot');
+    }
+
+    public function testReturnsFloatValueInCompatibleUnit(): void
+    {
+        $quantity = Units::default()->quantity(1, 'foot');
+
+        $this->assertSame(0.3048, $quantity->floatValueIn('meter'));
+    }
+
+    #[DataProvider('nativeValueExtractionProvider')]
+    public function testNativeValueExtractionRejectsIncompatibleUnit(\Closure $extract): void
+    {
+        $quantity = Units::default()->quantity(1, 'meter');
+
+        $this->expectException(IncompatibleUnitException::class);
+
+        $extract($quantity);
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(Quantity): mixed}>
+     */
+    public static function nativeValueExtractionProvider(): iterable
+    {
+        yield 'decimal' => [
+            static fn (Quantity $quantity): string => $quantity->decimalValueIn(
+                'second',
+                2,
+                \RoundingMode::HalfEven,
+            ),
+        ];
+        yield 'exact decimal' => [
+            static fn (Quantity $quantity): string => $quantity->exactDecimalValueIn('second'),
+        ];
+        yield 'float' => [static fn (Quantity $quantity): float => $quantity->floatValueIn('second')];
+    }
+
+    public function testFloatValueRejectsOverflowAfterConversion(): void
+    {
+        $quantity = Units::default()->quantity(new Rational(gmp_pow(2, 1024)), 'meter');
+
+        $this->expectException(\OverflowException::class);
+
+        $quantity->floatValueIn('meter');
+    }
+
+    public function testFloatValueRejectsUnderflowAfterConversion(): void
+    {
+        $quantity = Units::default()->quantity(new Rational(1, gmp_pow(2, 1075)), 'meter');
+
+        $this->expectException(\UnderflowException::class);
+
+        $quantity->floatValueIn('meter');
+    }
+
     public function testAccessorsExposeStoredValueAndUnit(): void
     {
         $units = Units::default();

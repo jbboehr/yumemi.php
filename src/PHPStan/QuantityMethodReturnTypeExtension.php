@@ -82,8 +82,8 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
     {
         return in_array($methodReflection->getName(), [
             'mul', 'div', 'pow', 'neg', 'add', 'sub', 'addWithSameUnit', 'subWithSameUnit', 'to', 'valueIn',
-            'intValueIn', 'exactIntValueIn', 'normalize', 'simplify', 'compareTo', 'equals', 'lessThan',
-            'lessThanOrEqual', 'greaterThan', 'greaterThanOrEqual',
+            'intValueIn', 'exactIntValueIn', 'decimalValueIn', 'exactDecimalValueIn', 'floatValueIn', 'normalize',
+            'simplify', 'compareTo', 'equals', 'lessThan', 'lessThanOrEqual', 'greaterThan', 'greaterThanOrEqual',
         ], true);
     }
 
@@ -104,7 +104,15 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
         $receiver = $scope->getType($methodCall->var);
         $args = $methodCall->getArgs();
 
-        if (in_array($methodName, ['to', 'valueIn', 'intValueIn', 'exactIntValueIn'], true)) {
+        if (in_array($methodName, [
+            'to',
+            'valueIn',
+            'intValueIn',
+            'exactIntValueIn',
+            'decimalValueIn',
+            'exactDecimalValueIn',
+            'floatValueIn',
+        ], true)) {
             if (!$receiver instanceof QuantityType && !$this->isUnbrandedQuantity($receiver)) {
                 return null;
             }
@@ -327,7 +335,11 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
                 static fn (UnitExpression $targetUnit): UnitIntegerType => new UnitIntegerType($targetUnit),
                 $targetUnits,
             )),
-            // valueIn() retains its native Rational return after validation.
+            'floatValueIn' => TypeCombinator::union(...array_map(
+                static fn (UnitExpression $targetUnit): UnitFloatType => new UnitFloatType($targetUnit),
+                $targetUnits,
+            )),
+            // Rational and decimal-string extractions retain their native returns after validation.
             default => null,
         };
     }

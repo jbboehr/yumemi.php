@@ -17,10 +17,10 @@
     "require": {
         "php": "^8.2",
         "ext-gmp": "*",
-        "doctrine/lexer": "^3.0"
+        "doctrine/lexer": "^3.0",
+        "symfony/polyfill-php84": "^1.34"
     },
     "suggest": {
-        "ext-bcmath": "Enables decimal conversion output when exact integer conversion is not possible.",
         "phpstan/phpstan": "Enables the bundled Yumemi unit types extension (extension.neon; develop against PHPStan 2.x)."
     },
     "autoload": {
@@ -35,7 +35,6 @@
         ]
     },
     "require-dev": {
-        "ext-bcmath": "*",
         "ext-dom": "*",
         "brick/varexporter": "^0.6",
         "friendsofphp/php-cs-fixer": "^3",

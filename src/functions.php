@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi;
 
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
+use jbboehr\Yumemi\Number\Rational;
 
 /**
  * Brand a native int/float with a unit for static analysis (and light runtime checks).
@@ -95,8 +96,9 @@ function unit_to(int|float $value, string $from, string $to): float
         );
     }
 
-    $numerator = (float) gmp_strval($factor->numerator);
-    $denominator = (float) gmp_strval($factor->denominator);
+    if (is_int($value)) {
+        return $factor->mul(new Rational($value))->toFloat();
+    }
 
-    return ((float) $value) * ($numerator / $denominator);
+    return $value * $factor->toFloat();
 }

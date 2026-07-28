@@ -77,12 +77,24 @@ final class InvalidQuantityConversionRuleTest extends RuleTestCase
                 13,
             ],
             [
-                'Unit not found: not_a_real_unit_xyz.',
+                'Cannot call Quantity::decimalValueIn() with dimensionally incompatible units meter (length) and second (time).',
                 14,
             ],
             [
+                'Cannot call Quantity::exactDecimalValueIn() with dimensionally incompatible units meter (length) and second (time).',
+                15,
+            ],
+            [
+                'Cannot call Quantity::floatValueIn() with dimensionally incompatible units meter (length) and second (time).',
+                16,
+            ],
+            [
+                'Unit not found: not_a_real_unit_xyz.',
+                17,
+            ],
+            [
                 'Cannot call Quantity::to() with dimensionally incompatible units meter (length) and second (time).',
-                22,
+                25,
             ],
         ]);
     }

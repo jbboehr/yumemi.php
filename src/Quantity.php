@@ -165,9 +165,24 @@ final class Quantity
         return $this->compareTo($other) >= 0;
     }
 
+    public function decimalValueIn(Expr|string $unit, int $scale, \RoundingMode $mode): string
+    {
+        return $this->valueIn($unit)->toDecimal($scale, $mode);
+    }
+
     public function exactIntValueIn(Expr|string $unit): int
     {
         return $this->valueIn($unit)->toIntExact();
+    }
+
+    public function exactDecimalValueIn(Expr|string $unit): string
+    {
+        return $this->valueIn($unit)->toDecimalExact();
+    }
+
+    public function floatValueIn(Expr|string $unit): float
+    {
+        return $this->valueIn($unit)->toFloat();
     }
 
     public function intValueIn(Expr|string $unit): int

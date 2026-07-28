@@ -173,6 +173,14 @@ final class UnitFunctionTest extends TestCase
         $this->assertEqualsWithDelta($this->expectedConvertedFloat(3.0, 'foot', 'meter'), $meters, 1e-12);
     }
 
+    public function testUnitToHandlesBalancedConversionFactorBeyondFloatRange(): void
+    {
+        $powerOfTen = '1' . str_repeat('0', 400);
+        $slightlyLarger = gmp_strval(gmp_add(gmp_init($powerOfTen), 1));
+
+        $this->assertSame(1.0, unit_to(1, $slightlyLarger . ' * meter', $powerOfTen . ' * meter'));
+    }
+
     private function expectedConvertedFloat(int|float $value, string $from, string $to): float
     {
         $factor = Units::default()->conversionFactor($from, $to);

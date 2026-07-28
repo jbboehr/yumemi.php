@@ -258,6 +258,24 @@ assert($length->toString() === '124 * foot');
 assert($length->valueIn('inch')->toString() === '1488');
 ```
 
+`valueIn()` keeps the converted magnitude exact as a `Rational`. Native output is explicit: decimal output uses a fixed
+number of places and a required PHP 8.4 `RoundingMode` (polyfilled on PHP 8.2 and 8.3), exact decimal output rejects
+non-terminating representations, and float output rejects overflow or nonzero values that underflow to zero.
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+use jbboehr\Yumemi\Units;
+
+$length = Units::default()->quantity(1, 'foot');
+
+assert($length->exactDecimalValueIn('meter') === '0.3048');
+assert($length->decimalValueIn('meter', 2, \RoundingMode::HalfEven) === '0.30');
+assert($length->floatValueIn('meter') === 0.3048);
+```
+
 Catalog introspection preserves the difference between canonical names, aliases, symbols, and plurals without
 normalizing the unit into an equivalent base-unit expression:
 

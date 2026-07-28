@@ -183,6 +183,122 @@ final class Rational
         return gmp_strval($this->numerator) . '/' . gmp_strval($this->denominator);
     }
 
+    public function toDecimal(int $scale, \RoundingMode $mode): string
+    {
+        if ($scale < 0) {
+            throw new \InvalidArgumentException('Decimal scale must not be negative.');
+        }
+
+        $negative = gmp_sign($this->numerator) < 0;
+        $scaledNumerator = gmp_mul(gmp_abs($this->numerator), gmp_pow(10, $scale));
+        $rounded = self::roundedQuotient($scaledNumerator, $this->denominator, $negative, $mode);
+
+        return self::formatDecimal($rounded, $scale, $negative);
+    }
+
+    public function toDecimalExact(): string
+    {
+        if (gmp_cmp($this->numerator, 0) === 0) {
+            return '0';
+        }
+
+        $denominator = $this->denominator;
+        $twos = 0;
+        $fives = 0;
+
+        while (gmp_cmp(gmp_mod($denominator, 2), 0) === 0) {
+            $denominator = gmp_div_q($denominator, 2);
+            ++$twos;
+        }
+
+        while (gmp_cmp(gmp_mod($denominator, 5), 0) === 0) {
+            $denominator = gmp_div_q($denominator, 5);
+            ++$fives;
+        }
+
+        if (gmp_cmp($denominator, 1) !== 0) {
+            throw new \UnexpectedValueException(
+                'Rational value does not have a terminating decimal representation: ' . $this->toString(),
+            );
+        }
+
+        $scale = max($twos, $fives);
+        $magnitude = gmp_abs($this->numerator);
+
+        if ($twos < $scale) {
+            $magnitude = gmp_mul($magnitude, gmp_pow(2, $scale - $twos));
+        }
+
+        if ($fives < $scale) {
+            $magnitude = gmp_mul($magnitude, gmp_pow(5, $scale - $fives));
+        }
+
+        return self::formatDecimal($magnitude, $scale, gmp_sign($this->numerator) < 0);
+    }
+
+    public function toFloat(): float
+    {
+        $sign = gmp_sign($this->numerator);
+
+        if ($sign === 0) {
+            return 0.0;
+        }
+
+        $numerator = gmp_abs($this->numerator);
+        $denominator = $this->denominator;
+        $exponent = self::binaryExponent($numerator, $denominator);
+
+        if ($exponent > 1023) {
+            throw new \OverflowException('Rational value does not fit in a finite float: ' . $this->toString());
+        }
+
+        if ($exponent < -1075) {
+            throw new \UnderflowException('Non-zero rational value rounds to zero as a float: ' . $this->toString());
+        }
+
+        if ($exponent < -1022) {
+            $significand = self::roundedQuotient(
+                gmp_mul($numerator, gmp_pow(2, 1074)),
+                $denominator,
+                false,
+                \RoundingMode::HalfEven,
+            );
+
+            if (gmp_cmp($significand, 0) === 0) {
+                throw new \UnderflowException(
+                    'Non-zero rational value rounds to zero as a float: ' . $this->toString(),
+                );
+            }
+
+            $value = (float) gmp_strval($significand) * (2.0 ** -1074);
+
+            return $sign < 0 ? -$value : $value;
+        }
+
+        $shift = 52 - $exponent;
+        $scaledNumerator = $shift >= 0 ? gmp_mul($numerator, gmp_pow(2, $shift)) : $numerator;
+        $scaledDenominator = $shift < 0 ? gmp_mul($denominator, gmp_pow(2, -$shift)) : $denominator;
+        $significand = self::roundedQuotient(
+            $scaledNumerator,
+            $scaledDenominator,
+            false,
+            \RoundingMode::HalfEven,
+        );
+
+        if (gmp_cmp($significand, gmp_pow(2, 53)) === 0) {
+            $significand = gmp_div_q($significand, 2);
+            ++$exponent;
+
+            if ($exponent > 1023) {
+                throw new \OverflowException('Rational value does not fit in a finite float: ' . $this->toString());
+            }
+        }
+
+        $value = (float) gmp_strval($significand) * (2.0 ** ($exponent - 52));
+
+        return $sign < 0 ? -$value : $value;
+    }
+
     public function toInt(): int
     {
         return self::nativeInt(gmp_div_q($this->numerator, $this->denominator, GMP_ROUND_ZERO));
@@ -204,5 +320,65 @@ final class Rational
         }
 
         return gmp_intval($value);
+    }
+
+    private static function binaryExponent(GMP $numerator, GMP $denominator): int
+    {
+        $exponent = strlen(gmp_strval($numerator, 2)) - strlen(gmp_strval($denominator, 2));
+
+        if ($exponent >= 0) {
+            if (gmp_cmp($numerator, gmp_mul($denominator, gmp_pow(2, $exponent))) < 0) {
+                --$exponent;
+            }
+        } elseif (gmp_cmp(gmp_mul($numerator, gmp_pow(2, -$exponent)), $denominator) < 0) {
+            --$exponent;
+        }
+
+        return $exponent;
+    }
+
+    private static function formatDecimal(GMP $magnitude, int $scale, bool $negative): string
+    {
+        $digits = gmp_strval($magnitude);
+        $sign = $negative && gmp_cmp($magnitude, 0) !== 0 ? '-' : '';
+
+        if ($scale === 0) {
+            return $sign . $digits;
+        }
+
+        $digits = str_pad($digits, $scale + 1, '0', STR_PAD_LEFT);
+        $integerLength = strlen($digits) - $scale;
+
+        return $sign . substr($digits, 0, $integerLength) . '.' . substr($digits, $integerLength);
+    }
+
+    private static function roundedQuotient(
+        GMP $numerator,
+        GMP $denominator,
+        bool $negative,
+        \RoundingMode $mode,
+    ): GMP {
+        $quotient = gmp_div_q($numerator, $denominator, GMP_ROUND_ZERO);
+        $remainder = gmp_mod($numerator, $denominator);
+
+        if (gmp_cmp($remainder, 0) === 0) {
+            return $quotient;
+        }
+
+        $halfComparison = gmp_cmp(gmp_mul($remainder, 2), $denominator);
+        $increment = match ($mode) {
+            \RoundingMode::TowardsZero => false,
+            \RoundingMode::AwayFromZero => true,
+            \RoundingMode::NegativeInfinity => $negative,
+            \RoundingMode::PositiveInfinity => !$negative,
+            \RoundingMode::HalfAwayFromZero => $halfComparison >= 0,
+            \RoundingMode::HalfTowardsZero => $halfComparison > 0,
+            \RoundingMode::HalfEven => $halfComparison > 0
+                || ($halfComparison === 0 && gmp_testbit($quotient, 0)),
+            \RoundingMode::HalfOdd => $halfComparison > 0
+                || ($halfComparison === 0 && !gmp_testbit($quotient, 0)),
+        };
+
+        return $increment ? gmp_add($quotient, 1) : $quotient;
     }
 }

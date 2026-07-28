@@ -12,6 +12,10 @@
 parameters:
     yumemi:
         registryFactory: null
+    # Symfony's conditional classmap stub also contains its pre-enum integer fallback. Scan the
+    # native shape explicitly so PHPStan sees enum cases on every PHP version Yumemi supports.
+    scanFiles:
+        - stubs/RoundingMode.php
 
 parametersSchema:
     yumemi: structure([

@@ -139,4 +139,161 @@ final class RationalTest extends TestCase
 
         (new Rational(gmp_sub(PHP_INT_MIN, 1)))->toIntExact();
     }
+
+    #[DataProvider('roundedDecimalProvider')]
+    public function testFormatsRoundedDecimal(
+        Rational $rational,
+        int $scale,
+        \RoundingMode $mode,
+        string $expected,
+    ): void {
+        $this->assertSame($expected, $rational->toDecimal($scale, $mode));
+    }
+
+    /**
+     * @return iterable<string, array{Rational, int, \RoundingMode, string}>
+     */
+    public static function roundedDecimalProvider(): iterable
+    {
+        yield 'half away from zero positive tie' => [
+            new Rational(5, 2),
+            0,
+            \RoundingMode::HalfAwayFromZero,
+            '3',
+        ];
+        yield 'half away from zero negative tie' => [
+            new Rational(-5, 2),
+            0,
+            \RoundingMode::HalfAwayFromZero,
+            '-3',
+        ];
+        yield 'half towards zero positive tie' => [
+            new Rational(5, 2),
+            0,
+            \RoundingMode::HalfTowardsZero,
+            '2',
+        ];
+        yield 'half towards zero negative tie' => [
+            new Rational(-5, 2),
+            0,
+            \RoundingMode::HalfTowardsZero,
+            '-2',
+        ];
+        yield 'half even rounds even down' => [new Rational(5, 2), 0, \RoundingMode::HalfEven, '2'];
+        yield 'half even rounds odd up' => [new Rational(7, 2), 0, \RoundingMode::HalfEven, '4'];
+        yield 'half odd rounds even up' => [new Rational(5, 2), 0, \RoundingMode::HalfOdd, '3'];
+        yield 'half odd leaves odd down' => [new Rational(7, 2), 0, \RoundingMode::HalfOdd, '3'];
+        yield 'towards zero positive' => [new Rational(21, 10), 0, \RoundingMode::TowardsZero, '2'];
+        yield 'towards zero negative' => [new Rational(-21, 10), 0, \RoundingMode::TowardsZero, '-2'];
+        yield 'away from zero positive' => [new Rational(21, 10), 0, \RoundingMode::AwayFromZero, '3'];
+        yield 'away from zero negative' => [new Rational(-21, 10), 0, \RoundingMode::AwayFromZero, '-3'];
+        yield 'positive infinity positive' => [new Rational(21, 10), 0, \RoundingMode::PositiveInfinity, '3'];
+        yield 'positive infinity negative' => [new Rational(-21, 10), 0, \RoundingMode::PositiveInfinity, '-2'];
+        yield 'negative infinity positive' => [new Rational(21, 10), 0, \RoundingMode::NegativeInfinity, '2'];
+        yield 'negative infinity negative' => [new Rational(-21, 10), 0, \RoundingMode::NegativeInfinity, '-3'];
+        yield 'half mode above tie' => [new Rational(26, 10), 0, \RoundingMode::HalfTowardsZero, '3'];
+        yield 'fixed decimal places' => [new Rational(1, 8), 4, \RoundingMode::HalfEven, '0.1250'];
+        yield 'rounding carries into integer' => [new Rational(9999, 1000), 2, \RoundingMode::HalfEven, '10.00'];
+        yield 'rounded zero has no negative sign' => [new Rational(-1, 10), 0, \RoundingMode::TowardsZero, '0'];
+    }
+
+    public function testRoundedDecimalRejectsNegativeScale(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        (new Rational(1, 2))->toDecimal(-1, \RoundingMode::HalfEven);
+    }
+
+    #[DataProvider('exactDecimalProvider')]
+    public function testFormatsTerminatingDecimalExactly(Rational $rational, string $expected): void
+    {
+        $this->assertSame($expected, $rational->toDecimalExact());
+    }
+
+    /**
+     * @return iterable<string, array{Rational, string}>
+     */
+    public static function exactDecimalProvider(): iterable
+    {
+        yield 'zero' => [new Rational(0), '0'];
+        yield 'integer' => [new Rational(42), '42'];
+        yield 'negative integer' => [new Rational(-42), '-42'];
+        yield 'half' => [new Rational(1, 2), '0.5'];
+        yield 'negative eighth' => [new Rational(-1, 8), '-0.125'];
+        yield 'mixed factors' => [new Rational(1, 40), '0.025'];
+        yield 'improper fraction' => [new Rational(3, 2), '1.5'];
+        yield 'normalized trailing zero' => [new Rational(50, 100), '0.5'];
+        yield 'large exact decimal' => [
+            new Rational(gmp_init('123456789012345678901'), gmp_pow(10, 20)),
+            '1.23456789012345678901',
+        ];
+    }
+
+    public function testExactDecimalRejectsNonTerminatingRepresentation(): void
+    {
+        $this->expectException(\UnexpectedValueException::class);
+        $this->expectExceptionMessage('does not have a terminating decimal representation');
+
+        (new Rational(1, 3))->toDecimalExact();
+    }
+
+    #[DataProvider('floatProvider')]
+    public function testConvertsToNearestFloat(Rational $rational, float $expected): void
+    {
+        $this->assertSame($expected, $rational->toFloat());
+    }
+
+    /**
+     * @return iterable<string, array{Rational, float}>
+     */
+    public static function floatProvider(): iterable
+    {
+        $largePower = gmp_pow(2, 2000);
+        $maximumFiniteNumerator = gmp_mul(gmp_sub(gmp_pow(2, 53), 1), gmp_pow(2, 971));
+        $overflowMidpoint = gmp_mul(gmp_sub(gmp_pow(2, 54), 1), gmp_pow(2, 970));
+
+        yield 'zero' => [new Rational(0), 0.0];
+        yield 'positive exact' => [new Rational(3, 2), 1.5];
+        yield 'negative exact' => [new Rational(-3, 2), -1.5];
+        yield 'balanced operands beyond float range' => [
+            new Rational(gmp_add($largePower, 1), $largePower),
+            1.0,
+        ];
+        yield 'normal tie rounds down to even' => [
+            new Rational(gmp_add(gmp_pow(2, 53), 1), gmp_pow(2, 53)),
+            1.0,
+        ];
+        yield 'normal tie rounds up to even' => [
+            new Rational(gmp_add(gmp_pow(2, 53), 3), gmp_pow(2, 53)),
+            1.0 + (2.0 ** -51),
+        ];
+        yield 'maximum finite' => [new Rational($maximumFiniteNumerator), PHP_FLOAT_MAX];
+        yield 'below overflow midpoint' => [new Rational(gmp_sub($overflowMidpoint, 1)), PHP_FLOAT_MAX];
+        yield 'minimum normal' => [new Rational(1, gmp_pow(2, 1022)), 2.0 ** -1022];
+        yield 'minimum subnormal' => [new Rational(1, gmp_pow(2, 1074)), 2.0 ** -1074];
+        yield 'subnormal rounds up' => [new Rational(3, gmp_pow(2, 1076)), 2.0 ** -1074];
+    }
+
+    public function testFloatConversionRejectsOverflow(): void
+    {
+        $this->expectException(\OverflowException::class);
+
+        (new Rational(gmp_pow(2, 1024)))->toFloat();
+    }
+
+    public function testFloatConversionRejectsValueAtOverflowMidpoint(): void
+    {
+        $midpoint = gmp_mul(gmp_sub(gmp_pow(2, 54), 1), gmp_pow(2, 970));
+
+        $this->expectException(\OverflowException::class);
+
+        (new Rational($midpoint))->toFloat();
+    }
+
+    public function testFloatConversionRejectsUnderflowToZero(): void
+    {
+        $this->expectException(\UnderflowException::class);
+
+        (new Rational(1, gmp_pow(2, 1075)))->toFloat();
+    }
 }

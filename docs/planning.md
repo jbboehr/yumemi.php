@@ -61,7 +61,10 @@ registration.
 Already implemented:
 
 - Composer/Nix/project scaffold
-- Exact `Rational` number type
+- Exact `Rational` number type:
+  - fixed-scale decimal output with all PHP 8.4 rounding modes
+  - minimal exact decimal output for terminating rationals
+  - correctly rounded binary64 output with strict overflow and underflow detection
 - Core expression model:
   - `Expr`
   - `Expr\Constant`
@@ -125,6 +128,7 @@ Already implemented:
   - symbolic unit storage for display/chosen syntax
   - resolved unit storage for catalog-aware conversion
   - `to()` and `valueIn()` explicit conversion
+  - explicit integer, fixed-scale decimal, exact decimal, and float extraction in a requested unit
   - `add()` and `sub()` with exact conversion of compatible right operands into the left unit
   - `addWithSameUnit()` and `subWithSameUnit()` for normalized-equivalent units without conversion
   - `mul()` and `div()` for unit arithmetic
@@ -168,7 +172,7 @@ Implemented PHPStan behavior:
 - `Units::quantity()` and all current unit-bearing `Quantity` methods preserve or transform the static unit brand.
 - Quantity arithmetic, conversion, extraction, and comparisons receive standalone diagnostics even when an invalid
   result is unused.
-- Finite literal-string target unions are preserved for Quantity construction, conversion, and integer extraction.
+- Finite literal-string target unions are preserved for Quantity construction, conversion, and native extraction.
 - One configured registry is authoritative for a PHPStan run and is fingerprinted for result-cache invalidation.
 
 Stable rule identifiers currently include:
@@ -249,6 +253,9 @@ Current `Quantity` methods:
 - `valueIn(Expr|string $unit): Rational`
 - `intValueIn(Expr|string $unit): int`
 - `exactIntValueIn(Expr|string $unit): int`
+- `decimalValueIn(Expr|string $unit, int $scale, RoundingMode $mode): string`
+- `exactDecimalValueIn(Expr|string $unit): string`
+- `floatValueIn(Expr|string $unit): float`
 - `add(self $other): self`
 - `sub(self $other): self`
 - `addWithSameUnit(self $other): self`
@@ -345,6 +352,23 @@ An initial `root(int $degree)` should require both an exact rational magnitude r
 by the degree, keeping the resulting unit powers integral. This is useful but not currently on the near-term roadmap;
 `pow(int)` remains the supported API until the exact-root semantics and symbolic-unit display policy are designed.
 
+## Numeric Output Policy
+
+Exact `Rational` storage remains authoritative. Converting a rational to a native representation is always explicit:
+
+- `toDecimal($scale, $mode)` returns fixed decimal places and requires a `RoundingMode`.
+- `toDecimalExact()` returns a minimal plain decimal or throws when the denominator has factors other than 2 and 5.
+- `toFloat()` rounds to the nearest binary64 value with ties to even. It accepts representable subnormals, throws
+  `OverflowException` instead of returning infinity, and throws `UnderflowException` when a nonzero value rounds to
+  zero.
+
+The corresponding `Quantity` methods convert to the requested compatible unit before extraction. PHPStan validates
+constant target units, and `floatValueIn()` returns a `unit_float<'target'>` brand when the target is known.
+
+Future formatting work should add significant-digit and scientific-notation APIs separately rather than overloading
+fixed-scale semantics. A future policy API may also allow callers to request IEEE infinity or zero on float range loss;
+the default exact-to-native boundary should remain strict.
+
 ## Design Choices
 
 Prefer unit strings over one PHP class per unit.
@@ -424,7 +448,6 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
 - Extend catalog introspection to explain dynamically prefixed names and catalog entries omitted for unsupported
   semantics.
 - Improve parser errors with token locations/source spans and map those spans into PHPStan diagnostics.
-- Define stable decimal and float output APIs with explicit precision and rounding; keep exact `Rational` storage.
 - Add small formatting policies for canonical names versus symbols, ASCII versus Unicode, and dimensionless output.
 - Split broad PHPStan diagnostic identifiers only where users need more precise suppression.
 - Decide whether user-defined base dimensions justify replacing or extending the fixed seven-axis `Dimension` vector.
@@ -459,6 +482,8 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
 - Offset and affine units, especially absolute versus delta temperatures
 - Logarithmic units
 - Exact rational powers and roots; approximate results require explicit precision and rounding
+- Significant-digit and scientific-notation numeric formatting
+- Configurable float overflow and underflow policies; current exact-to-float conversion is deliberately strict
 - GNU Units import
 - Formula interpolation
 - Preferred/compact unit selection and broader formatting presets
