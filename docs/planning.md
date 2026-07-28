@@ -454,6 +454,11 @@ semantics are stable enough that formula strings can share the same runtime/stat
 The multiplicative runtime and the PHPStan native/Quantity paths are usable. Remaining work is mostly release-facing
 documentation, API polish, catalog semantics beyond multiplication, and explicitly deferred advanced features.
 
+### Pre-Release Checklist
+
+- Before creating the first release tag, remove `:dev-master` from the README installation command; after Packagist
+  imports the tag, verify that the unqualified command installs the tagged release.
+
 ### Near-Term Work
 
 - Publish focused references for unit syntax, case sensitivity, generated catalog regeneration, runtime guarantees, and

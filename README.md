@@ -24,7 +24,7 @@ Architecture, implementation status, and roadmap: [docs/planning.md](docs/planni
 ## Installation
 
 ```text
-composer require jbboehr/yumemi
+composer require jbboehr/yumemi:dev-master
 ```
 
 With [`phpstan/extension-installer`](https://github.com/phpstan/extension-installer) the analysis rules register

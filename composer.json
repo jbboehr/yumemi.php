@@ -52,6 +52,7 @@
     "scripts": {
         "cs": "php-cs-fixer fix --config=.php-cs-fixer.dist.php --dry-run --diff",
         "cs:fix": "php-cs-fixer fix --config=.php-cs-fixer.dist.php",
+        "generate-catalog": "make generate-catalog",
         "generate-parser": [
             "bison -S vendor/mrsuh/php-bison-skeleton/src/php-skel.m4 -o src/Parser/Parser.php src/Parser/grammar.y",
             "sed -i \"s/__DOLLAR__/$/g\" src/Parser/Parser.php"
