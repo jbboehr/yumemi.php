@@ -36,29 +36,49 @@
 
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
-use PHPStan\Testing\TypeInferenceTestCase;
-
-// The @yumemi-return functions must exist in the process for native function reflection to resolve
-// them: TypeInferenceTestCase does not index functions declared in the analysed data fixture.
-require_once __DIR__ . '/Fixtures/YumemiTagReturnFunctions.php';
+use PhpParser\Node;
+use PHPStan\Analyser\Scope;
+use PHPStan\Rules\Rule;
 
 /**
- * Type-inference and end-to-end coverage for parser-level @yumemi-* promotion.
+ * Fans a single {@see Rule} registration out to many rules, dispatching each by its own node type.
+ *
+ * `RuleTestCase` analyses through exactly one rule; wrapping the full extension rule set (plus a few
+ * named core rules) in this composite lets the in-process harness reproduce a real, multi-rule analysis
+ * — error counts, cross-rule interactions, and "no errors" all behave as they do on the CLI.
+ *
+ * @implements Rule<Node>
  */
-final class YumemiReturnTagExtensionTest extends TypeInferenceTestCase
+final class CompositeRule implements Rule
 {
-    use AssertsFixtureUnderCoverage;
-
-    public static function getAdditionalConfigFiles(): array
-    {
-        return [
-            __DIR__ . '/../../extension.neon',
-            __DIR__ . '/../../yumemi-tags.neon',
-        ];
+    /**
+     * @param list<Rule<Node>> $rules
+     */
+    public function __construct(
+        private readonly array $rules,
+    ) {
     }
 
-    public function testFileAsserts(): void
+    public function getNodeType(): string
     {
-        $this->assertFixtureUnderCoverage(__DIR__ . '/data/yumemi-tag-return.php');
+        return Node::class;
+    }
+
+    public function processNode(Node $node, Scope $scope): array
+    {
+        $errors = [];
+
+        foreach ($this->rules as $rule) {
+            $nodeType = $rule->getNodeType();
+            if (!$node instanceof $nodeType) {
+                continue;
+            }
+
+            foreach ($rule->processNode($node, $scope) as $error) {
+                $errors[] = $error;
+            }
+        }
+
+        return $errors;
     }
 }

@@ -1,0 +1,3 @@
+parameters:
+    yumemi:
+        registryFactory: jbboehr\Yumemi\Tests\PHPStan\Fixtures\ConfiguredUnitRegistryFactory

@@ -36,29 +36,22 @@
 
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
-use PHPStan\Testing\TypeInferenceTestCase;
-
-// The @yumemi-return functions must exist in the process for native function reflection to resolve
-// them: TypeInferenceTestCase does not index functions declared in the analysed data fixture.
-require_once __DIR__ . '/Fixtures/YumemiTagReturnFunctions.php';
-
 /**
- * Type-inference and end-to-end coverage for parser-level @yumemi-* promotion.
+ * Full-analysis integration confirming a configured `parameters.yumemi.registryFactory` is used across
+ * every extension path, in-process instead of via a phpstan subprocess.
  */
-final class YumemiReturnTagExtensionTest extends TypeInferenceTestCase
+final class ConfiguredRegistryAnalysisTest extends InProcessAnalysisTestCase
 {
-    use AssertsFixtureUnderCoverage;
-
     public static function getAdditionalConfigFiles(): array
     {
         return [
             __DIR__ . '/../../extension.neon',
-            __DIR__ . '/../../yumemi-tags.neon',
+            __DIR__ . '/data/configured-registry.neon',
         ];
     }
 
-    public function testFileAsserts(): void
+    public function testConfiguredRegistryResolvesCustomUnitsWithoutErrors(): void
     {
-        $this->assertFixtureUnderCoverage(__DIR__ . '/data/yumemi-tag-return.php');
+        $this->analyse([__DIR__ . '/data/configured-unit-registry.php'], []);
     }
 }

@@ -36,29 +36,22 @@
 
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
-use PHPStan\Testing\TypeInferenceTestCase;
-
-// The @yumemi-return functions must exist in the process for native function reflection to resolve
-// them: TypeInferenceTestCase does not index functions declared in the analysed data fixture.
-require_once __DIR__ . '/Fixtures/YumemiTagReturnFunctions.php';
-
 /**
- * Type-inference and end-to-end coverage for parser-level @yumemi-* promotion.
+ * Counterpart to {@see YumemiTagStubAnalysisTest}: without the opt-in yumemi-tags.neon, @yumemi-* tags in
+ * a stub file stay inert (the parameter keeps its native type), so a bare int argument is accepted.
  */
-final class YumemiReturnTagExtensionTest extends TypeInferenceTestCase
+final class YumemiTagStubIgnoredAnalysisTest extends InProcessAnalysisTestCase
 {
-    use AssertsFixtureUnderCoverage;
-
     public static function getAdditionalConfigFiles(): array
     {
         return [
             __DIR__ . '/../../extension.neon',
-            __DIR__ . '/../../yumemi-tags.neon',
+            __DIR__ . '/data/yumemi-tag-stub.neon',
         ];
     }
 
-    public function testFileAsserts(): void
+    public function testStubTagsRemainIgnoredWithoutTheOptInConfig(): void
     {
-        $this->assertFixtureUnderCoverage(__DIR__ . '/data/yumemi-tag-return.php');
+        $this->analyse([__DIR__ . '/data/yumemi-tag-stub.php'], []);
     }
 }

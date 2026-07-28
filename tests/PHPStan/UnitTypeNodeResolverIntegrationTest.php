@@ -36,130 +36,83 @@
 
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
-use jbboehr\Yumemi\Tests\PHPStan\Fixtures\ConfiguredUnitRegistryFactory;
-use PHPUnit\Framework\TestCase;
+// Fixtures declare and call their own sink functions; native function reflection only resolves them if
+// they exist in the process (the in-process analyser does not index functions from the analysed file).
+require_once __DIR__ . '/data/unit-real-world-native.php';
+require_once __DIR__ . '/data/yumemi-tag-no-extension.php';
 
 /**
- * Integration: run PHPStan on fixture files with the Yumemi extension loaded.
+ * Full-analysis integration: runs the Yumemi extension over fixtures in-process (see
+ * {@see InProcessAnalysisTestCase}) instead of spawning a phpstan subprocess per case.
  */
-final class UnitTypeNodeResolverIntegrationTest extends TestCase
+final class UnitTypeNodeResolverIntegrationTest extends InProcessAnalysisTestCase
 {
     public function testValidUnitPhpDocHasNoErrors(): void
     {
-        $output = $this->analyse('unit-phpdoc-valid.php');
-
-        $this->assertStringContainsString('[OK] No errors', $output, $output);
+        $this->analyse([__DIR__ . '/data/unit-phpdoc-valid.php'], []);
     }
 
-    public function testInvalidUnitPhpDocReportsErrors(): void
+    public function testInvalidUnitPhpDocReportsUnresolvableType(): void
     {
-        $output = $this->analyse('unit-phpdoc-invalid.php');
-
-        $this->assertStringNotContainsString('[OK] No errors', $output, $output);
-        $this->assertStringContainsString('mass', $output);
-        $this->assertTrue(
-            str_contains($output, 'Unit not found')
-            || str_contains($output, 'ERROR')
-            || str_contains($output, 'invalid type'),
-            $output,
-        );
+        $this->analyse([__DIR__ . '/data/unit-phpdoc-invalid.php'], [
+            [
+                'PHPDoc tag @var for variable $bad contains unresolvable type.',
+                7,
+                'Unit not found: mass. Did you mean: gauss, mols, rads, kats, mins?',
+            ],
+        ]);
     }
 
-    public function testUnitArithmeticFixtureReportsIncompatibleAdd(): void
+    public function testIncompatibleArithmeticReportsBinaryOpErrors(): void
     {
-        $output = $this->analyse('unit-ops.php');
+        $this->analyse([__DIR__ . '/data/unit-ops.php'], [
+            [
+                'Binary operation "+" between unit_int<\'meter\'> and unit_int<\'second\'> results in an error.',
+                25,
+            ],
+            [
+                'Binary operation "%" between unit_float<\'meter\'> and unit_float<\'meter\'> results in an error.',
+                28,
+            ],
+        ]);
+    }
 
-        // PHPStan InvalidBinaryOperationRule reports ErrorType as binaryOp.invalid;
-        // our custom ErrorType reason is not surfaced in the message.
-        $this->assertStringContainsString('binaryOp.invalid', $output, $output);
-        $this->assertStringContainsString("unit_int<'meter'>", $output, $output);
-        $this->assertStringContainsString("unit_int<'second'>", $output, $output);
-        $this->assertStringContainsString("unit_float<'meter'>", $output, $output);
-        $this->assertStringContainsString('Found 2 errors', $output, $output);
+    public function testNativeRealWorldFormulasReportOnlyTheScaleMismatch(): void
+    {
+        $this->analyse([__DIR__ . '/data/unit-real-world-native.php'], self::REAL_WORLD_ERRORS);
+    }
+
+    public function testQuantityBoundaryDiagnosticsHaveStableMessages(): void
+    {
+        $this->analyse([__DIR__ . '/data/quantity-boundary-invalid.php'], [
+            [
+                'Units::quantity() value unit international_foot does not match target unit meter (normalized forms differ).',
+                12,
+            ],
+            [
+                'Cannot call Quantity::to() with dimensionally incompatible units meter (length) and second (time).',
+                15,
+            ],
+        ]);
+    }
+
+    public function testYumemiTagsAreIgnoredWithoutTheOptInConfig(): void
+    {
+        $this->analyse([__DIR__ . '/data/yumemi-tag-no-extension.php'], []);
     }
 
     /**
-     * Real-world formulas with native unit_float types: each result is passed to a
-     * sink whose PHPDoc parameter carries the expected unit (normalized equality).
+     * The fixture feeds each formula result to a sink whose PHPDoc parameter carries the expected unit;
+     * exactly one case is wrong (international_foot is not assignable to meter — same dimension, different
+     * scale after normalize).
      *
-     * Exactly one intentional error: foot is not assignable to meter (same
-     * dimension, different scale after normalize).
+     * @var list<array{0: string, 1: int, 2?: string}>
      */
-    public function testNativeRealWorldFormulasTypecheck(): void
-    {
-        $output = $this->analyse('unit-real-world-native.php');
-
-        $this->assertStringContainsString('argument.type', $output, $output);
-        $this->assertStringContainsString("unit_float<'meter'>", $output, $output);
-        $this->assertTrue(
-            str_contains($output, 'foot') || str_contains($output, 'international_foot'),
-            $output,
-        );
-        $this->assertStringContainsString('normalized forms differ', $output, $output);
-        $this->assertStringContainsString('Found 1 error', $output, $output);
-    }
-
-    public function testConfiguredRegistryIsUsedAcrossPhpStanIntegrations(): void
-    {
-        $output = $this->analyse('configured-unit-registry.php', ConfiguredUnitRegistryFactory::class);
-
-        $this->assertStringContainsString('[OK] No errors', $output, $output);
-    }
-
-    public function testInvalidConfiguredRegistryFactoryFailsAtStartup(): void
-    {
-        $output = $this->analyse('unit-phpdoc-valid.php', \stdClass::class);
-
-        $this->assertStringContainsString('parameters.yumemi.registryFactory', $output, $output);
-        $this->assertStringContainsString('must name a class implementing', $output, $output);
-    }
-
-    public function testQuantityBoundaryDiagnosticsHaveStableIdentifiers(): void
-    {
-        $output = $this->analyse('quantity-boundary-invalid.php');
-
-        $this->assertStringContainsString('yumemi.invalidQuantityConstruction', $output, $output);
-        $this->assertStringContainsString('yumemi.invalidQuantityConversion', $output, $output);
-        $this->assertStringContainsString('Found 2 errors', $output, $output);
-    }
-
-    private function analyse(string $fixture, ?string $registryFactory = null): string
-    {
-        $fixturePath = __DIR__ . '/data/' . $fixture;
-        $this->assertFileExists($fixturePath);
-
-        $config = sys_get_temp_dir() . '/yumemi-phpstan-' . md5($fixture) . '.neon';
-        $extension = realpath(__DIR__ . '/../../extension.neon');
-        $this->assertNotFalse($extension);
-
-        $yumemi = $registryFactory === null ? '' : <<<NEON
-    yumemi:
-        registryFactory: {$registryFactory}
-NEON;
-
-        $neon = <<<NEON
-includes:
-    - {$extension}
-parameters:
-    level: max
-    paths:
-        - {$fixturePath}
-    reportUnmatchedIgnoredErrors: false
-{$yumemi}
-NEON;
-        file_put_contents($config, $neon);
-
-        $phpstan = realpath(__DIR__ . '/../../vendor/bin/phpstan');
-        $this->assertNotFalse($phpstan);
-
-        $command = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($phpstan)
-            . ' analyse --no-progress --memory-limit=512M --error-format=table '
-            . escapeshellarg('-c') . ' ' . escapeshellarg($config)
-            . ' 2>&1';
-
-        $output = shell_exec($command);
-        @unlink($config);
-
-        return is_string($output) ? $output : '';
-    }
+    private const REAL_WORLD_ERRORS = [
+        [
+            'Parameter #1 $length of function expectMetersOnly expects unit_float<\'meter\'>, unit_float<\'international_foot\'> given.',
+            504,
+            'Unit unit_float<\'international_foot\'> is not assignable to unit_float<\'meter\'> (normalized forms differ).',
+        ],
+    ];
 }

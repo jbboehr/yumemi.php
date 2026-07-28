@@ -36,29 +36,37 @@
 
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
-use PHPStan\Testing\TypeInferenceTestCase;
-
-// The @yumemi-return functions must exist in the process for native function reflection to resolve
-// them: TypeInferenceTestCase does not index functions declared in the analysed data fixture.
-require_once __DIR__ . '/Fixtures/YumemiTagReturnFunctions.php';
+use PhpParser\Node;
+use PHPStan\Rules\Rule;
+use PHPStan\Testing\RuleTestCase;
 
 /**
- * Type-inference and end-to-end coverage for parser-level @yumemi-* promotion.
+ * In-process replacement for the old `shell_exec`-based PHPStan integration tests.
+ *
+ * `RuleTestCase` analyses through a single rule; this base composes the whole Yumemi extension rule set
+ * (everything tagged `phpstan.rules.rule` in the configured container) with any named core PHPStan rules
+ * a subclass needs, so `analyse()` runs a faithful multi-rule analysis in the current process instead of
+ * booting a fresh `phpstan` subprocess per test. Subclasses declare their config via
+ * {@see getAdditionalConfigFiles()} and the extra core rules via {@see coreRuleClasses()}.
+ *
+ * @extends RuleTestCase<Rule<Node>>
  */
-final class YumemiReturnTagExtensionTest extends TypeInferenceTestCase
+abstract class InProcessAnalysisTestCase extends RuleTestCase
 {
-    use AssertsFixtureUnderCoverage;
+    protected function getRule(): Rule
+    {
+        // The configured container registers the full level-max rule set (Yumemi's rules plus every core
+        // PHPStan rule); composing them all reproduces a real CLI analysis in-process.
+        /** @var list<Rule<Node>> $rules */
+        $rules = array_values(self::getContainer()->getServicesByTag('phpstan.rules.rule'));
+
+        return new CompositeRule($rules);
+    }
 
     public static function getAdditionalConfigFiles(): array
     {
         return [
             __DIR__ . '/../../extension.neon',
-            __DIR__ . '/../../yumemi-tags.neon',
         ];
-    }
-
-    public function testFileAsserts(): void
-    {
-        $this->assertFixtureUnderCoverage(__DIR__ . '/data/yumemi-tag-return.php');
     }
 }

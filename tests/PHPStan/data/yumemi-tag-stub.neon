@@ -1,0 +1,5 @@
+parameters:
+    stubFiles:
+        - yumemi-tag-stub.stub
+    bootstrapFiles:
+        - ../Fixtures/YumemiTagStubFunctions.php

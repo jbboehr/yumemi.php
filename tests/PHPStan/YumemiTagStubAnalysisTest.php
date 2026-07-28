@@ -36,29 +36,33 @@
 
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
-use PHPStan\Testing\TypeInferenceTestCase;
-
-// The @yumemi-return functions must exist in the process for native function reflection to resolve
-// them: TypeInferenceTestCase does not index functions declared in the analysed data fixture.
-require_once __DIR__ . '/Fixtures/YumemiTagReturnFunctions.php';
-
 /**
- * Type-inference and end-to-end coverage for parser-level @yumemi-* promotion.
+ * Full-analysis integration: with the opt-in config, @yumemi-* tags inside a stub file are promoted and
+ * the stub's branded parameter is enforced. In-process rather than via a phpstan subprocess.
+ * The inert-without-opt-in counterpart lives in {@see YumemiTagStubIgnoredAnalysisTest}.
  */
-final class YumemiReturnTagExtensionTest extends TypeInferenceTestCase
+final class YumemiTagStubAnalysisTest extends InProcessAnalysisTestCase
 {
-    use AssertsFixtureUnderCoverage;
-
     public static function getAdditionalConfigFiles(): array
     {
         return [
             __DIR__ . '/../../extension.neon',
             __DIR__ . '/../../yumemi-tags.neon',
+            __DIR__ . '/data/yumemi-tag-stub.neon',
         ];
     }
 
-    public function testFileAsserts(): void
+    public function testStubParserPromotesTags(): void
     {
-        $this->assertFixtureUnderCoverage(__DIR__ . '/data/yumemi-tag-return.php');
+        $this->analyse([__DIR__ . '/data/yumemi-tag-stub.php'], self::STUB_PROMOTED_ERRORS);
     }
+
+    /** @var list<array{0: string, 1: int, 2?: string}> */
+    private const STUB_PROMOTED_ERRORS = [
+        [
+            'Parameter #1 $length of function YumemiStubFixture\\acceptsMeters expects unit_int<\'meter\'>, int given.',
+            5,
+            'Bare int is not assignable to unit_int<\'meter\'>; keep the unit annotation.',
+        ],
+    ];
 }

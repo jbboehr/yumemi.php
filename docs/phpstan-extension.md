@@ -344,9 +344,10 @@ PHPStan major version in use).
 > call reuses them and the parse-/PHPDoc-time extensions never re-execute. The fix used here is the
 > `AssertsFixtureUnderCoverage` trait: each fixture is analysed once from the **test body** (no `#[DataProvider]`),
 > keeping the caches cold so dynamic return types, type-node resolution, and tag promotion are all recorded while every
-> `assertType` is still validated. The `shell_exec`-based integration tests (`UnitTypeNodeResolverIntegrationTest`, and
-> the enforcement tests in `YumemiReturnTagExtensionTest`) spawn the real `phpstan` binary in a child process and remain
-> genuinely unmeasured — merging that coverage stream is not worth it. For pure, container-free logic
+> `assertType` is still validated. Full-analysis integration tests (invalid-PHPDoc errors, operator diagnostics, tag
+> enforcement, configured registries, stub promotion) run in-process too, via `InProcessAnalysisTestCase`: it composes
+> the container's whole level-max rule set through a single `CompositeRule` so `RuleTestCase::analyse()` reproduces a
+> real CLI analysis without a `phpstan` subprocess — faster and coverage-measured. For pure, container-free logic
 > (`UnitExpressionAlgebra`, the branded `QuantityType` / `UnitIntegerType` / `UnitFloatType` semantics) prefer a direct
 > in-process `TestCase` / `PHPStanTestCase` unit test so the behavior is both asserted and measured.
 
