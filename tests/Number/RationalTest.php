@@ -47,6 +47,31 @@ final class RationalTest extends TestCase
         $this->assertSame('5/6', (new Rational(1, 2))->add(new Rational(1, 3))->toString());
     }
 
+    #[DataProvider('comparisonProvider')]
+    public function testComparesRationalsExactly(Rational $left, Rational $right, int $expected): void
+    {
+        $this->assertSame($expected, $left->compareTo($right));
+        $this->assertSame(-$expected, $right->compareTo($left));
+        $this->assertSame($expected === 0, $left->equals($right));
+    }
+
+    /**
+     * @return iterable<string, array{Rational, Rational, -1|0|1}>
+     */
+    public static function comparisonProvider(): iterable
+    {
+        yield 'equivalent fractions' => [new Rational(2, 4), new Rational(1, 2), 0];
+        yield 'positive less than' => [new Rational(1, 3), new Rational(1, 2), -1];
+        yield 'positive greater than' => [new Rational(3, 2), new Rational(4, 3), 1];
+        yield 'negative less than' => [new Rational(-1, 2), new Rational(-1, 3), -1];
+        yield 'zero greater than negative' => [new Rational(0), new Rational(-1), 1];
+        yield 'beyond native integer range' => [
+            new Rational(gmp_add(PHP_INT_MAX, 1)),
+            new Rational(PHP_INT_MAX),
+            1,
+        ];
+    }
+
     #[DataProvider('decimalStringProvider')]
     public function testParsesDecimalStringsExactly(string $input, string $expected): void
     {

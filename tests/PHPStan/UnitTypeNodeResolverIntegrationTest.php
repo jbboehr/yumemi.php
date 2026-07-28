@@ -123,6 +123,14 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $this->assertStringContainsString('Found 2 errors', $output, $output);
     }
 
+    public function testQuantityComparisonDiagnosticsHaveStableIdentifier(): void
+    {
+        $output = $this->analyse('quantity-comparison-invalid.php');
+
+        $this->assertStringContainsString('yumemi.invalidQuantityComparison', $output, $output);
+        $this->assertStringContainsString('Found 6 errors', $output, $output);
+    }
+
     private function analyse(string $fixture, ?string $registryFactory = null): string
     {
         $fixturePath = __DIR__ . '/data/' . $fixture;

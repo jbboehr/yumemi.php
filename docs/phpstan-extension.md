@@ -521,6 +521,16 @@ parser-promotion implementation below replaces all of those components and seman
   `unit_to()` has independent source and target unions: blindly forming their Cartesian product loses value correlation
   and makes it unclear whether validation should require every pair or merely one pair.
 
+### Piece 15 — exact `Quantity` comparisons (done)
+
+- Runtime `Quantity::compareTo()` converts the right operand exactly into the left unit; `equals()`, `lessThan()`,
+  `lessThanOrEqual()`, `greaterThan()`, and `greaterThanOrEqual()` delegate to that primitive.
+- Branded comparisons accept different units with compatible dimensions and retain their native `-1|0|1` or `bool`
+  return types.
+- `InvalidQuantityComparisonRule` reports incompatible branded dimensions as `yumemi.invalidQuantityComparison`,
+  including when the comparison result is unused; unbranded operands fail open.
+- PHP object comparison operators and strict same-unit comparison variants remain outside this piece.
+
 ### Next pieces
 
 1. **Bundled stubs for selected third-party libraries** — these should normally use standard PHPStan tags containing

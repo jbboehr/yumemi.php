@@ -174,8 +174,16 @@ Current `Quantity` methods:
 - `sub(self $other): self`
 - `addWithSameUnit(self $other): self`
 - `subWithSameUnit(self $other): self`
+- `compareTo(self $other): int`
+- `equals(self $other): bool`
+- `lessThan(self $other): bool`
+- `lessThanOrEqual(self $other): bool`
+- `greaterThan(self $other): bool`
+- `greaterThanOrEqual(self $other): bool`
 - `mul(self|int|Rational $other): self`
 - `div(self|int|Rational $other): self`
+- `neg(): self`
+- `pow(int $power): self`
 - `normalize(): self`
 - `simplify(): self`
 - `valueToString(): string`
@@ -186,6 +194,9 @@ Important runtime rule:
 
 > Quantity addition and subtraction convert the right operand into the left operand's unit and preserve the left unit.
 > The explicit `*WithSameUnit()` variants reject operands that would require conversion.
+
+Quantity comparisons likewise convert compatible right operands exactly into the left unit. They return only a scalar
+comparison result, so strict `*WithSameUnit()` comparison variants are deferred until a concrete use case needs them.
 
 For example, `(meter / second) * second` reduces to `meter`, but `centimeter / second / foot` stays in chosen symbolic
 units until the caller explicitly asks for conversion or simplification.

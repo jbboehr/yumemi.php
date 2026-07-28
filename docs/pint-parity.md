@@ -546,27 +546,34 @@ catalog says they are exact.
 
 ### 19. Comparisons, Equality, And Predicates
 
-Status: Absent/partial Importance: P1 Difficulty: M
+Status: Partial Importance: P1 Difficulty: M
 
 Pint quantities can participate in many mathematical and comparison operations. PHP cannot overload operators, but
 Yumemi can still provide explicit methods.
 
-Useful API:
+Implemented API:
 
 ```php
 $a->equals($b);
 $a->compareTo($b);
+$a->lessThan($b);
+$a->lessThanOrEqual($b);
+$a->greaterThan($b);
+$a->greaterThanOrEqual($b);
+```
+
+These methods convert compatible right operands exactly into the left unit. Incompatible dimensions throw, and the
+PHPStan extension reports them statically when both quantities are branded.
+
+Still useful later:
+
+```php
 $a->isCompatibleWith($b);
 $q->isDimensionless();
 $q->isZero();
 ```
 
-Design question:
-
-- Should `equals()` auto-convert compatible units, or require exact same symbolic unit?
-
-Recommendation: Add explicit methods with clear names. For example, `equalsQuantity()` can convert, while
-`sameStoredUnit()` can be exact.
+Strict same-unit comparison variants remain deferred because comparisons do not produce a unit-bearing result.
 
 ### 20. Math Functions
 
@@ -847,7 +854,7 @@ Recommendation: Keep the current setup. Do not spend more time here until featur
 | Unit systems                   | Absent           | P2         | L          | Later             |
 | Preferred/compact units        | Absent           | P2         | M/L        | Later             |
 | Constants                      | Partial          | P2         | M          | Later             |
-| Comparisons/predicates         | Absent/partial   | P1         | M          | Soon              |
+| Comparisons/predicates         | Partial          | P1         | M          | Soon              |
 | Math functions                 | Absent           | P2         | L          | Later             |
 | PHPStan unit types             | Partial (native) | P0         | XL         | Now               |
 | Function boundary checking     | Absent           | P1/P2      | M/L        | After PHPStan MVP |
@@ -874,7 +881,7 @@ Work:
 - Add expression equality helpers.
 - Improve incompatible-unit and parse errors.
 - Tighten plural/alias/canonical-name behavior.
-- Add public comparison methods.
+- ~~Add public comparison methods.~~ **Done for exact, dimension-compatible quantity comparisons.**
 - Add minimal formatter options.
 - Decide numeric input/output policy.
 

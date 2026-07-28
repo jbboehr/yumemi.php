@@ -105,6 +105,19 @@ final class Rational
         );
     }
 
+    /**
+     * Compare this value with another rational.
+     *
+     * @return -1|0|1 Negative when this value is smaller, positive when it is greater.
+     */
+    public function compareTo(self $other): int
+    {
+        return gmp_cmp(
+            gmp_mul($this->numerator, $other->denominator),
+            gmp_mul($other->numerator, $this->denominator),
+        ) <=> 0;
+    }
+
     public function div(self $other): self
     {
         return new self(
@@ -120,8 +133,7 @@ final class Rational
 
     public function equals(self $other): bool
     {
-        return gmp_cmp($this->numerator, $other->numerator) === 0
-            && gmp_cmp($this->denominator, $other->denominator) === 0;
+        return $this->compareTo($other) === 0;
     }
 
     public function mul(self $other): self

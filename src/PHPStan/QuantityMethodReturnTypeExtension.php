@@ -56,10 +56,10 @@ use PHPStan\Type\TypeCombinator;
  * QuantityType whose unit matches the runtime result (see the table in {@see Quantity}):
  * `mul`/`div` combine units via {@see UnitExpressionAlgebra}; `pow` raises by a constant integer;
  * `neg` keeps the left unit; `add`/`sub` accept dimensionally compatible units and keep the left
- * unit; `addWithSameUnit`/`subWithSameUnit` additionally require normalized-equivalent units; `to`
- * rebrands to each possible statically known target unit; `normalize` rebrands to the catalog-normalized
- * form; and `simplify` moves the normalized scale into the magnitude, leaving the normalized unit factors
- * on the type.
+ * unit; `addWithSameUnit`/`subWithSameUnit` additionally require normalized-equivalent units; comparison
+ * methods require compatible dimensions while retaining their native int/bool return types; `to` rebrands
+ * to each possible statically known target unit; `normalize` rebrands to the catalog-normalized form; and
+ * `simplify` moves the normalized scale into the magnitude, leaving the normalized unit factors on the type.
  *
  * An explicit finite target also brands results from an unbranded {@see Quantity}; without a source
  * brand, only the target can be inferred and source compatibility cannot be checked. The configured
@@ -82,7 +82,8 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
     {
         return in_array($methodReflection->getName(), [
             'mul', 'div', 'pow', 'neg', 'add', 'sub', 'addWithSameUnit', 'subWithSameUnit', 'to', 'valueIn',
-            'intValueIn', 'exactIntValueIn', 'normalize', 'simplify',
+            'intValueIn', 'exactIntValueIn', 'normalize', 'simplify', 'compareTo', 'equals', 'lessThan',
+            'lessThanOrEqual', 'greaterThan', 'greaterThanOrEqual',
         ], true);
     }
 
@@ -126,6 +127,12 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
             'neg' => $receiver,
             'add', 'sub' => $this->addSub($receiver, $args, $scope, false, $methodName),
             'addWithSameUnit', 'subWithSameUnit' => $this->addSub($receiver, $args, $scope, true, $methodName),
+            'compareTo', 'equals', 'lessThan', 'lessThanOrEqual', 'greaterThan', 'greaterThanOrEqual' => $this->compare(
+                $receiver,
+                $args,
+                $scope,
+                $methodName,
+            ),
             'mul' => $this->combine($unit, $args, $scope, true),
             'div' => $this->combine($unit, $args, $scope, false),
             'pow' => $this->power($unit, $args, $scope),
@@ -212,6 +219,40 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
 
         // Bare int / Rational scalar: magnitude changes, unit is preserved.
         return new QuantityType($unit);
+    }
+
+    /**
+     * @param array<\PhpParser\Node\Arg> $args
+     */
+    private function compare(
+        QuantityType $receiver,
+        array $args,
+        Scope $scope,
+        string $methodName,
+    ): ?Type {
+        if (count($args) < 1) {
+            return null;
+        }
+
+        $other = $scope->getType($args[0]->value);
+        if (!$other instanceof QuantityType) {
+            return null;
+        }
+
+        $leftUnit = $receiver->getUnitExpression();
+        $rightUnit = $other->getUnitExpression();
+        if ($leftUnit->sameDimension($rightUnit)) {
+            return null;
+        }
+
+        return new ErrorType(sprintf(
+            'Cannot call Quantity::%s() with dimensionally incompatible units %s (%s) and %s (%s).',
+            $methodName,
+            $leftUnit->displayString,
+            $leftUnit->dimension->toString(),
+            $rightUnit->displayString,
+            $rightUnit->dimension->toString(),
+        ));
     }
 
     /**

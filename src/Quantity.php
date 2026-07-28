@@ -105,6 +105,18 @@ final class Quantity
         );
     }
 
+    /**
+     * Compare with a dimensionally compatible quantity after converting it to this quantity's unit.
+     *
+     * @return -1|0|1 Negative when this quantity is smaller, positive when it is greater.
+     */
+    public function compareTo(self $other): int
+    {
+        $this->assertSameContext($other);
+
+        return $this->value->compareTo($other->valueIn($this->resolvedUnit));
+    }
+
     public function div(self|int|Rational $other): self
     {
         if ($other instanceof self) {
@@ -133,9 +145,24 @@ final class Quantity
         return $this->units->dimension($this->resolvedUnit);
     }
 
+    public function equals(self $other): bool
+    {
+        return $this->compareTo($other) === 0;
+    }
+
     public function expr(): Expr
     {
         return (new Constant($this->value))->mul($this->unit);
+    }
+
+    public function greaterThan(self $other): bool
+    {
+        return $this->compareTo($other) > 0;
+    }
+
+    public function greaterThanOrEqual(self $other): bool
+    {
+        return $this->compareTo($other) >= 0;
     }
 
     public function exactIntValueIn(Expr|string $unit): int
@@ -146,6 +173,16 @@ final class Quantity
     public function intValueIn(Expr|string $unit): int
     {
         return $this->valueIn($unit)->toInt();
+    }
+
+    public function lessThan(self $other): bool
+    {
+        return $this->compareTo($other) < 0;
+    }
+
+    public function lessThanOrEqual(self $other): bool
+    {
+        return $this->compareTo($other) <= 0;
     }
 
     public function mul(self|int|Rational $other): self

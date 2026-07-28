@@ -67,6 +67,7 @@ $km = $units->quantity(1, 'kilometer');
 $centimetersPerSecond = $units->quantity(1, 'centimeter / second');
 $newtons = $units->quantity(1, 'newton');
 $percent = $units->quantity(1, 'percent');
+$feet = $units->quantity(1, 'foot');
 
 // mul / div combine units
 assertType("Quantity<'meter * second'>", $m->mul($s));
@@ -86,6 +87,22 @@ assertType("Quantity<'meter'>", $m->add($m));
 assertType("Quantity<'meter'>", $m->sub($m));
 assertType("Quantity<'meter'>", $m->add($units->quantity(1, 'foot')));
 assertType("Quantity<'meter'>", $m->sub($units->quantity(1, 'foot')));
+
+// comparisons convert compatible operands and retain their native result types
+assertType('-1|0|1', $m->compareTo($feet));
+assertType('bool', $m->equals($feet));
+assertType('bool', $m->lessThan($feet));
+assertType('bool', $m->lessThanOrEqual($feet));
+assertType('bool', $m->greaterThan($feet));
+assertType('bool', $m->greaterThanOrEqual($feet));
+
+// incompatible branded comparisons are statically invalid
+assertType('*ERROR*', $m->compareTo($s));
+assertType('*ERROR*', $m->equals($s));
+assertType('*ERROR*', $m->lessThan($s));
+assertType('*ERROR*', $m->lessThanOrEqual($s));
+assertType('*ERROR*', $m->greaterThan($s));
+assertType('*ERROR*', $m->greaterThanOrEqual($s));
 
 // same-unit variants keep the left unit without conversion
 assertType("Quantity<'meter'>", $m->addWithSameUnit($m));
@@ -154,6 +171,18 @@ function combineDynamic(\jbboehr\Yumemi\Quantity $q, \jbboehr\Yumemi\Units $unit
 {
     $m = $units->quantity(1, 'meter');
     assertType('jbboehr\\Yumemi\\Quantity', $m->mul($q));
+}
+
+function compareDynamic(\jbboehr\Yumemi\Quantity $q, \jbboehr\Yumemi\Units $units): void
+{
+    $meters = $units->quantity(1, 'meter');
+
+    assertType('-1|0|1', $meters->compareTo($q));
+    assertType('bool', $meters->equals($q));
+    assertType('bool', $meters->lessThan($q));
+    assertType('bool', $meters->lessThanOrEqual($q));
+    assertType('bool', $meters->greaterThan($q));
+    assertType('bool', $meters->greaterThanOrEqual($q));
 }
 
 function extractDynamic(\jbboehr\Yumemi\Quantity $q, string $unit): void

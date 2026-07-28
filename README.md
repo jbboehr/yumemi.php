@@ -316,6 +316,28 @@ try {
 }
 ```
 
+Comparisons also convert the right operand into the left unit and remain exact. Use the explicit methods rather than
+PHP's object comparison operators, which do not implement Yumemi's unit semantics.
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+use jbboehr\Yumemi\Units;
+
+$units = Units::default();
+$meter = $units->quantity(1, 'meter');
+
+assert($meter->equals($units->quantity(100, 'centimeter')));
+assert($meter->greaterThan($units->quantity(3, 'foot')));
+assert($meter->lessThan($units->quantity(4, 'foot')));
+assert($meter->compareTo($units->quantity(1000, 'millimeter')) === 0);
+```
+
+All comparison methods require compatible dimensions and throw `IncompatibleUnitException` for comparisons such as
+`meter` against `second`.
+
 You can still ask for converted values from a composed quantity when you need the catalog-aware result.
 
 ```php

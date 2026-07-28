@@ -42,6 +42,7 @@ use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Quantity;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
 use jbboehr\Yumemi\Units;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class QuantityTest extends TestCase
@@ -83,6 +84,116 @@ final class QuantityTest extends TestCase
         $this->expectException(\UnexpectedValueException::class);
 
         $units->quantity(5, 'foot')->exactIntValueIn('meter');
+    }
+
+    public function testComparesCompatibleQuantitiesAfterExactConversion(): void
+    {
+        $units = Units::default();
+        $meter = $units->quantity(1, 'meter');
+        $hundredCentimeters = $units->quantity(100, 'centimeter');
+        $threeFeet = $units->quantity(3, 'foot');
+        $fourFeet = $units->quantity(4, 'foot');
+
+        $this->assertSame(0, $meter->compareTo($hundredCentimeters));
+        $this->assertTrue($meter->equals($hundredCentimeters));
+        $this->assertFalse($meter->lessThan($hundredCentimeters));
+        $this->assertTrue($meter->lessThanOrEqual($hundredCentimeters));
+        $this->assertFalse($meter->greaterThan($hundredCentimeters));
+        $this->assertTrue($meter->greaterThanOrEqual($hundredCentimeters));
+
+        $this->assertSame(1, $meter->compareTo($threeFeet));
+        $this->assertFalse($meter->equals($threeFeet));
+        $this->assertFalse($meter->lessThan($threeFeet));
+        $this->assertFalse($meter->lessThanOrEqual($threeFeet));
+        $this->assertTrue($meter->greaterThan($threeFeet));
+        $this->assertTrue($meter->greaterThanOrEqual($threeFeet));
+
+        $this->assertSame(-1, $meter->compareTo($fourFeet));
+        $this->assertFalse($meter->equals($fourFeet));
+        $this->assertTrue($meter->lessThan($fourFeet));
+        $this->assertTrue($meter->lessThanOrEqual($fourFeet));
+        $this->assertFalse($meter->greaterThan($fourFeet));
+        $this->assertFalse($meter->greaterThanOrEqual($fourFeet));
+    }
+
+    public function testComparisonRetainsExactnessBeyondFloatPrecision(): void
+    {
+        $units = Units::default();
+        $scale = gmp_pow(10, 30);
+        $slightlyMoreThanOne = new Rational(gmp_add($scale, 1), $scale);
+
+        $this->assertTrue(
+            $units->quantity($slightlyMoreThanOne, 'meter')->greaterThan($units->quantity(100, 'centimeter')),
+        );
+    }
+
+    public function testComparesDimensionlessAndDefinitionallyEquivalentQuantities(): void
+    {
+        $units = Units::default();
+
+        $this->assertTrue(
+            $units->quantity(1, 'kilometer')->equals($units->quantity(1, '1000 * meter')),
+        );
+        $this->assertTrue(
+            $units->quantity(1, 'percent')->equals($units->quantity(new Rational(1, 100), '1')),
+        );
+    }
+
+    public function testComparisonDoesNotMutateOperands(): void
+    {
+        $units = Units::default();
+        $left = $units->quantity(1, 'meter');
+        $right = $units->quantity(100, 'centimeter');
+
+        $left->compareTo($right);
+
+        $this->assertSame('1', $left->valueToString());
+        $this->assertSame('meter', $left->unitToString());
+        $this->assertSame('100', $right->valueToString());
+        $this->assertSame('centimeter', $right->unitToString());
+    }
+
+    /**
+     * @param \Closure(Quantity, Quantity): (int|bool) $comparison
+     */
+    #[DataProvider('quantityComparisonProvider')]
+    public function testComparisonsRejectIncompatibleDimensions(\Closure $comparison): void
+    {
+        $units = Units::default();
+
+        $this->expectException(IncompatibleUnitException::class);
+
+        $comparison(
+            $units->quantity(1, 'meter'),
+            self::unbrandedQuantity($units, 1, 'second'),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(Quantity, Quantity): (int|bool)}>
+     */
+    public static function quantityComparisonProvider(): iterable
+    {
+        yield 'compareTo' => [static fn (Quantity $left, Quantity $right): int => $left->compareTo($right)];
+        yield 'equals' => [static fn (Quantity $left, Quantity $right): bool => $left->equals($right)];
+        yield 'lessThan' => [static fn (Quantity $left, Quantity $right): bool => $left->lessThan($right)];
+        yield 'lessThanOrEqual' => [
+            static fn (Quantity $left, Quantity $right): bool => $left->lessThanOrEqual($right),
+        ];
+        yield 'greaterThan' => [static fn (Quantity $left, Quantity $right): bool => $left->greaterThan($right)];
+        yield 'greaterThanOrEqual' => [
+            static fn (Quantity $left, Quantity $right): bool => $left->greaterThanOrEqual($right),
+        ];
+    }
+
+    public function testComparisonRejectsDifferentUnitsContexts(): void
+    {
+        $left = new Units(new Udunits2UnitRegistry());
+        $right = new Units(new Udunits2UnitRegistry());
+
+        $this->expectException(IncompatibleQuantityContextException::class);
+
+        $left->quantity(1, 'meter')->compareTo($right->quantity(1, 'meter'));
     }
 
     public function testAddsCompatibleQuantities(): void
