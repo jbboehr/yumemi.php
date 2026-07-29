@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
 use jbboehr\Yumemi\PHPStan\UnitExpressionParser;
+use jbboehr\Yumemi\Registry\UnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
 use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -79,6 +80,38 @@ final class UnitExpressionParserTest extends TestCase
 
         $this->assertFalse($result->isOk());
         $this->assertStringContainsString('Unit not found', $result->errorMessage() ?? '');
+    }
+
+    public function testRejectsMalformedQuantityWithSourceSpan(): void
+    {
+        $result = (new UnitExpressionParser())->parseQuantityUnit('2 meter * / second');
+
+        $this->assertFalse($result->isOk());
+        $span = $result->errorSpan();
+        $this->assertNotNull($span);
+        $this->assertSame(10, $span->start);
+        $this->assertSame(11, $span->end);
+        $this->assertStringStartsWith("Syntax error, unexpected '/'", $result->errorMessage() ?? '');
+    }
+
+    public function testUnexpectedFailuresRetainParsingContext(): void
+    {
+        $units = new Units(new UnitRegistry([], [
+            'orphan' => ['type' => 'alias', 'name' => 'orphan'],
+        ]));
+        $parser = new UnitExpressionParser($units);
+
+        $unit = $parser->parse('orphan');
+        $quantity = $parser->parseQuantityUnit('2 orphan');
+
+        $this->assertSame(
+            'Failed to parse unit expression: Catalog alias is missing target: orphan',
+            $unit->errorMessage(),
+        );
+        $this->assertSame(
+            'Failed to parse quantity expression: Catalog alias is missing target: orphan',
+            $quantity->errorMessage(),
+        );
     }
 
     public function testRejectsEmptyQuantity(): void

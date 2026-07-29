@@ -37,7 +37,6 @@
 namespace jbboehr\Yumemi\PHPStan;
 
 use jbboehr\Yumemi\Analyzer\NormalizedExpr;
-use jbboehr\Yumemi\Formatter\ExprRenderer;
 use jbboehr\Yumemi\Quantity;
 use PhpParser\Node\Expr\MethodCall;
 use PHPStan\Analyser\Scope;
@@ -190,14 +189,7 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
             ));
         }
 
-        return new ErrorType(sprintf(
-            'Cannot call Quantity::%s() with dimensionally incompatible units %s (%s) and %s (%s).',
-            $methodName,
-            $leftUnit->displayString,
-            $leftUnit->dimension->toString(),
-            $rightUnit->displayString,
-            $rightUnit->dimension->toString(),
-        ));
+        return self::incompatibleDimensionError($methodName, $leftUnit, $rightUnit);
     }
 
     /**
@@ -253,14 +245,7 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
             return null;
         }
 
-        return new ErrorType(sprintf(
-            'Cannot call Quantity::%s() with dimensionally incompatible units %s (%s) and %s (%s).',
-            $methodName,
-            $leftUnit->displayString,
-            $leftUnit->dimension->toString(),
-            $rightUnit->displayString,
-            $rightUnit->dimension->toString(),
-        ));
+        return self::incompatibleDimensionError($methodName, $leftUnit, $rightUnit);
     }
 
     /**
@@ -315,14 +300,7 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
                     continue;
                 }
 
-                return new ErrorType(sprintf(
-                    'Cannot call Quantity::%s() with dimensionally incompatible units %s (%s) and %s (%s).',
-                    $methodName,
-                    $sourceUnit->displayString,
-                    $sourceUnit->dimension->toString(),
-                    $targetUnit->displayString,
-                    $targetUnit->dimension->toString(),
-                ));
+                return self::incompatibleDimensionError($methodName, $sourceUnit, $targetUnit);
             }
         }
 
@@ -350,12 +328,7 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
         // Dimension is preserved by normalization, and the normalized expr is its own normal form.
         $normalized = $unit->normalizedExpr;
 
-        return new QuantityType(new UnitExpression(
-            $normalized,
-            ExprRenderer::format($normalized),
-            $unit->dimension,
-            $normalized,
-        ));
+        return new QuantityType(UnitExpression::fromNormalForm($normalized, $unit->dimension));
     }
 
     private function simplify(UnitExpression $unit): QuantityType
@@ -364,11 +337,21 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
         // static unit contains only the remaining normalized factors.
         $simplified = NormalizedExpr::withoutConstant($unit->normalizedExpr);
 
-        return new QuantityType(new UnitExpression(
-            $simplified,
-            ExprRenderer::format($simplified),
-            $unit->dimension,
-            $simplified,
+        return new QuantityType(UnitExpression::fromNormalForm($simplified, $unit->dimension));
+    }
+
+    private static function incompatibleDimensionError(
+        string $methodName,
+        UnitExpression $left,
+        UnitExpression $right,
+    ): ErrorType {
+        return new ErrorType(sprintf(
+            'Cannot call Quantity::%s() with dimensionally incompatible units %s (%s) and %s (%s).',
+            $methodName,
+            $left->displayString,
+            $left->dimension->toString(),
+            $right->displayString,
+            $right->dimension->toString(),
         ));
     }
 

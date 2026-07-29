@@ -36,7 +36,6 @@
 
 namespace jbboehr\Yumemi\Expr;
 
-use jbboehr\Yumemi\Analyzer\ExprReducer;
 use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Util\MathTrait;
@@ -70,10 +69,5 @@ final class Product implements Expr
             static fn (Expr $expr): string => $expr->toString(),
             $this->factors,
         ));
-    }
-
-    public function reduce(): Expr
-    {
-        return ExprReducer::reduce($this);
     }
 }

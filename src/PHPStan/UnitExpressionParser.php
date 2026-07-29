@@ -66,7 +66,7 @@ final class UnitExpressionParser
             return UnitExpressionParseResult::invalid('Unit expression must not be empty.');
         }
 
-        try {
+        return $this->guardParse(function () use ($unitString): UnitExpressionParseResult {
             $expr = $this->units->parse($unitString);
             $dimension = $this->units->dimension($expr);
             $normalized = $this->units->normalize($expr);
@@ -77,28 +77,7 @@ final class UnitExpressionParser
                 $dimension,
                 $normalized,
             ));
-        } catch (UnitNotFoundException $exception) {
-            return UnitExpressionParseResult::invalid($exception->getMessage());
-        } catch (UnsupportedSyntaxException $exception) {
-            return UnitExpressionParseResult::invalid($exception->getMessage());
-        } catch (UnsupportedUnitAlgebraException $exception) {
-            return UnitExpressionParseResult::invalid($exception->getMessage());
-        } catch (UnsupportedUnitConversionException $exception) {
-            return UnitExpressionParseResult::invalid($exception->getMessage());
-        } catch (UnresolvableUnitDimensionException $exception) {
-            return UnitExpressionParseResult::invalid($exception->getMessage());
-        } catch (ParseException $exception) {
-            $message = $exception->getMessage();
-            if ($message === '') {
-                $message = 'Invalid unit expression syntax.';
-            }
-
-            return UnitExpressionParseResult::invalid($message, $exception->getSpan());
-        } catch (\Throwable $exception) {
-            return UnitExpressionParseResult::invalid(
-                'Failed to parse unit expression: ' . $exception->getMessage(),
-            );
-        }
+        }, 'Invalid unit expression syntax.', 'Failed to parse unit expression: ');
     }
 
     public function parseQuantityUnit(string $quantityString): UnitExpressionParseResult
@@ -107,31 +86,40 @@ final class UnitExpressionParser
             return UnitExpressionParseResult::invalid('Quantity expression must not be empty.');
         }
 
-        try {
+        return $this->guardParse(function () use ($quantityString): UnitExpressionParseResult {
             $quantity = $this->units->parseQuantity($quantityString);
 
             return $this->parse(ExprRenderer::format($quantity->unit()));
-        } catch (UnitNotFoundException $exception) {
-            return UnitExpressionParseResult::invalid($exception->getMessage());
-        } catch (UnsupportedSyntaxException $exception) {
-            return UnitExpressionParseResult::invalid($exception->getMessage());
-        } catch (UnsupportedUnitAlgebraException $exception) {
-            return UnitExpressionParseResult::invalid($exception->getMessage());
-        } catch (UnsupportedUnitConversionException $exception) {
-            return UnitExpressionParseResult::invalid($exception->getMessage());
-        } catch (UnresolvableUnitDimensionException $exception) {
+        }, 'Invalid quantity expression syntax.', 'Failed to parse quantity expression: ');
+    }
+
+    /**
+     * @param callable(): UnitExpressionParseResult $parse
+     */
+    private function guardParse(
+        callable $parse,
+        string $syntaxFallback,
+        string $failurePrefix,
+    ): UnitExpressionParseResult {
+        try {
+            return $parse();
+        } catch (
+            UnitNotFoundException
+            | UnsupportedSyntaxException
+            | UnsupportedUnitAlgebraException
+            | UnsupportedUnitConversionException
+            | UnresolvableUnitDimensionException $exception
+        ) {
             return UnitExpressionParseResult::invalid($exception->getMessage());
         } catch (ParseException $exception) {
             $message = $exception->getMessage();
             if ($message === '') {
-                $message = 'Invalid quantity expression syntax.';
+                $message = $syntaxFallback;
             }
 
             return UnitExpressionParseResult::invalid($message, $exception->getSpan());
         } catch (\Throwable $exception) {
-            return UnitExpressionParseResult::invalid(
-                'Failed to parse quantity expression: ' . $exception->getMessage(),
-            );
+            return UnitExpressionParseResult::invalid($failurePrefix . $exception->getMessage());
         }
     }
 }

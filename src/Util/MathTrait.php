@@ -42,6 +42,11 @@ use jbboehr\Yumemi\Expr;
 
 trait MathTrait
 {
+    public function reduce(): Expr
+    {
+        return ExprReducer::reduce($this);
+    }
+
     public function div(Expr $expr): Expr
     {
         return ExprReducer::reduce(new Expr\Product([

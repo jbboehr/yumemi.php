@@ -34,81 +34,64 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\Expr;
+namespace jbboehr\Yumemi\PHPStan;
 
-use jbboehr\Yumemi\Analyzer\DimensionResolver;
-use jbboehr\Yumemi\Analyzer\UnitNormalizer;
-use jbboehr\Yumemi\Dimension;
-use jbboehr\Yumemi\Exception\UnresolvableUnitDimensionException;
-use jbboehr\Yumemi\Expr;
-use jbboehr\Yumemi\Units;
-use jbboehr\Yumemi\Util\MathTrait;
+use PhpParser\Node;
+use PhpParser\Node\Expr\MethodCall;
+use PhpParser\Node\Identifier;
+use PHPStan\Analyser\Scope;
+use PHPStan\Rules\Rule;
+use PHPStan\Rules\RuleErrorBuilder;
+use PHPStan\Type\ErrorType;
 
 /**
- * A named unit leaf in an expression tree.
+ * Shared diagnostic plumbing for statically invalid Quantity method calls.
  *
- * Application code should obtain units via {@see Units::unit()} (or parse/quantity
- * APIs on {@see Units}), not by constructing this class directly.
+ * @implements Rule<MethodCall>
+ * @internal
  */
-final class Unit implements Expr
+abstract class AbstractInvalidQuantityMethodRule implements Rule
 {
-    use MathTrait;
-
-    /** @var \WeakReference<Units>|null */
-    private readonly ?\WeakReference $units;
-
-    /**
-     * @internal Prefer {@see Units::unit()} for application code.
-     *
-     * @param \WeakReference<Units>|null $units Optional catalog context for dimension fallback.
-     */
     public function __construct(
-        public readonly string $name,
-        public readonly ?Expr $definition = null,
-        ?\WeakReference $units = null,
+        private readonly QuantityMethodReturnTypeExtension $extension,
     ) {
-        if ($this->name === '') {
-            throw new \InvalidArgumentException('Unit name must not be empty.');
-        }
+    }
 
-        $this->units = $units;
+    final public function getNodeType(): string
+    {
+        return MethodCall::class;
     }
 
     /**
-     * Bind a Units context used when dimension cannot be derived from the definition tree alone.
+     * @return list<\PHPStan\Rules\IdentifierRuleError>
      */
-    public function withUnits(Units $units): self
+    final public function processNode(Node $node, Scope $scope): array
     {
-        return new self($this->name, $this->definition, \WeakReference::create($units));
-    }
+        if (!$node->name instanceof Identifier) {
+            return [];
+        }
 
-    public function isBase(): bool
-    {
-        return $this->definition === null;
+        $methodName = $node->name->toString();
+        if (!in_array($methodName, $this->supportedMethods(), true)) {
+            return [];
+        }
+
+        $type = $this->extension->inferType($methodName, $node, $scope);
+        if (!$type instanceof ErrorType || $type->getReason() === null) {
+            return [];
+        }
+
+        return [
+            RuleErrorBuilder::message($type->getReason())
+                ->identifier($this->errorIdentifier())
+                ->build(),
+        ];
     }
 
     /**
-     * Dimensional identity of this unit.
-     *
-     * Prefers expanding the attached definition tree (catalog-loaded units). If that fails and a
-     * {@see Units} context is still bound, resolves the unit name through that catalog instead.
+     * @return list<string>
      */
-    public function dimension(): Dimension
-    {
-        try {
-            return (new DimensionResolver(new UnitNormalizer()))->resolve($this);
-        } catch (UnresolvableUnitDimensionException $exception) {
-            $units = $this->units?->get();
-            if ($units !== null) {
-                return $units->dimension($this->name);
-            }
+    abstract protected function supportedMethods(): array;
 
-            throw UnresolvableUnitDimensionException::missingContext($this->name);
-        }
-    }
-
-    public function toString(): string
-    {
-        return $this->name;
-    }
+    abstract protected function errorIdentifier(): string;
 }

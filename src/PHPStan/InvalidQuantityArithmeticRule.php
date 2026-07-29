@@ -36,61 +36,21 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
-use PhpParser\Node;
-use PhpParser\Node\Expr\MethodCall;
-use PhpParser\Node\Identifier;
-use PHPStan\Analyser\Scope;
-use PHPStan\Rules\Rule;
-use PHPStan\Rules\RuleErrorBuilder;
-use PHPStan\Type\ErrorType;
-
 /**
  * Emits standalone diagnostics for statically invalid Quantity addition and subtraction.
- *
- * @implements Rule<MethodCall>
  */
-final class InvalidQuantityArithmeticRule implements Rule
+final class InvalidQuantityArithmeticRule extends AbstractInvalidQuantityMethodRule
 {
-    private const SUPPORTED = ['add', 'sub', 'addWithSameUnit', 'subWithSameUnit'];
-
-    public function __construct(
-        private readonly QuantityMethodReturnTypeExtension $extension,
-    ) {
-    }
-
-    public function getNodeType(): string
-    {
-        return MethodCall::class;
-    }
-
     /**
-     * @return list<\PHPStan\Rules\IdentifierRuleError>
+     * @return list<string>
      */
-    public function processNode(Node $node, Scope $scope): array
+    protected function supportedMethods(): array
     {
-        if (!$node->name instanceof Identifier) {
-            return [];
-        }
+        return ['add', 'sub', 'addWithSameUnit', 'subWithSameUnit'];
+    }
 
-        $methodName = $node->name->toString();
-        if (!in_array($methodName, self::SUPPORTED, true)) {
-            return [];
-        }
-
-        $type = $this->extension->inferType($methodName, $node, $scope);
-        if (!$type instanceof ErrorType) {
-            return [];
-        }
-
-        $reason = $type->getReason();
-        if ($reason === null) {
-            return [];
-        }
-
-        return [
-            RuleErrorBuilder::message($reason)
-                ->identifier('yumemi.invalidQuantityArithmetic')
-                ->build(),
-        ];
+    protected function errorIdentifier(): string
+    {
+        return 'yumemi.invalidQuantityArithmetic';
     }
 }

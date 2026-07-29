@@ -36,7 +36,6 @@
 
 namespace jbboehr\Yumemi\Expr;
 
-use jbboehr\Yumemi\Analyzer\ExprReducer;
 use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Util\MathTrait;
@@ -63,10 +62,5 @@ final class Power implements Expr
         }
 
         return $this->base->toString() . ' ^ ' . $this->exponent;
-    }
-
-    public function reduce(): Expr
-    {
-        return ExprReducer::reduce($this);
     }
 }

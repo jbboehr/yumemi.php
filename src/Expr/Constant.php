@@ -37,7 +37,6 @@
 namespace jbboehr\Yumemi\Expr;
 
 use GMP;
-use jbboehr\Yumemi\Analyzer\ExprReducer;
 use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Number\Rational;
@@ -62,10 +61,5 @@ final class Constant implements Expr
     public function toString(): string
     {
         return $this->value->toString();
-    }
-
-    public function reduce(): Expr
-    {
-        return ExprReducer::reduce($this);
     }
 }

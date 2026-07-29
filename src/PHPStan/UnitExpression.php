@@ -39,6 +39,7 @@ namespace jbboehr\Yumemi\PHPStan;
 use jbboehr\Yumemi\Analyzer\ExprComparer;
 use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\Expr;
+use jbboehr\Yumemi\Formatter\ExprRenderer;
 
 /**
  * A successfully parsed unit expression for PHPStan types.
@@ -59,6 +60,16 @@ final class UnitExpression
         public readonly Dimension $dimension,
         public readonly Expr $normalizedExpr,
     ) {
+    }
+
+    public static function fromNormalForm(Expr $expr, Dimension $dimension): self
+    {
+        return new self(
+            $expr,
+            ExprRenderer::format($expr),
+            $dimension,
+            $expr,
+        );
     }
 
     /**

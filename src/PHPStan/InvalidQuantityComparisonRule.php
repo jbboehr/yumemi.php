@@ -36,63 +36,28 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
-use PhpParser\Node;
-use PhpParser\Node\Expr\MethodCall;
-use PhpParser\Node\Identifier;
-use PHPStan\Analyser\Scope;
-use PHPStan\Rules\Rule;
-use PHPStan\Rules\RuleErrorBuilder;
-use PHPStan\Type\ErrorType;
-
 /**
  * Emits standalone diagnostics for statically incompatible Quantity comparisons.
- *
- * @implements Rule<MethodCall>
  */
-final class InvalidQuantityComparisonRule implements Rule
+final class InvalidQuantityComparisonRule extends AbstractInvalidQuantityMethodRule
 {
-    private const SUPPORTED = [
-        'compareTo',
-        'equals',
-        'lessThan',
-        'lessThanOrEqualTo',
-        'greaterThan',
-        'greaterThanOrEqualTo',
-    ];
-
-    public function __construct(
-        private readonly QuantityMethodReturnTypeExtension $extension,
-    ) {
-    }
-
-    public function getNodeType(): string
-    {
-        return MethodCall::class;
-    }
-
     /**
-     * @return list<\PHPStan\Rules\IdentifierRuleError>
+     * @return list<string>
      */
-    public function processNode(Node $node, Scope $scope): array
+    protected function supportedMethods(): array
     {
-        if (!$node->name instanceof Identifier) {
-            return [];
-        }
-
-        $methodName = $node->name->toString();
-        if (!in_array($methodName, self::SUPPORTED, true)) {
-            return [];
-        }
-
-        $type = $this->extension->inferType($methodName, $node, $scope);
-        if (!$type instanceof ErrorType || $type->getReason() === null) {
-            return [];
-        }
-
         return [
-            RuleErrorBuilder::message($type->getReason())
-                ->identifier('yumemi.invalidQuantityComparison')
-                ->build(),
+            'compareTo',
+            'equals',
+            'lessThan',
+            'lessThanOrEqualTo',
+            'greaterThan',
+            'greaterThanOrEqualTo',
         ];
+    }
+
+    protected function errorIdentifier(): string
+    {
+        return 'yumemi.invalidQuantityComparison';
     }
 }

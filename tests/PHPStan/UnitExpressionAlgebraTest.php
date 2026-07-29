@@ -49,6 +49,18 @@ use PHPUnit\Framework\TestCase;
  */
 final class UnitExpressionAlgebraTest extends TestCase
 {
+    public function testConstructsNormalFormWithSharedExpressionIdentity(): void
+    {
+        $meter = $this->unit('meter');
+
+        $normalForm = UnitExpression::fromNormalForm($meter->expr, $meter->dimension);
+
+        $this->assertSame($meter->expr, $normalForm->expr);
+        $this->assertSame($meter->expr, $normalForm->normalizedExpr);
+        $this->assertSame('meter', $normalForm->displayString);
+        $this->assertSame($meter->dimension, $normalForm->dimension);
+    }
+
     public function testMultiplyCombinesUnitsAndDimensions(): void
     {
         $result = UnitExpressionAlgebra::multiply($this->unit('meter'), $this->unit('second'));
