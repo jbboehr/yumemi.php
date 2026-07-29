@@ -59,6 +59,7 @@
             "sed -i \"s/__DOLLAR__/$/g\" src/Parser/Parser.php"
         ],
         "infection": "infection --no-progress",
+        "infection:ci": "infection --no-progress --min-msi=86 --min-covered-msi=86",
         "infection:core": "infection --no-progress --filter=src/Number/Rational.php,src/Dimension.php,src/Analyzer"
     },
     "config": {

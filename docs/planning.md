@@ -156,8 +156,8 @@ Current verification:
 - PHP-CS-Fixer passes
 - Composer validation passes
 - Nix flake checks pass
-- Infection runs against all handwritten runtime source in report-only CI; the PHPStan adapter and generated parser are
-  excluded
+- Infection runs against all handwritten runtime source in CI with 86% total and covered MSI floors; the PHPStan adapter
+  and generated parser are excluded
 
 ## PHPStan Model And Status
 

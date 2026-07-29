@@ -16,15 +16,21 @@ Run a focused campaign over `Rational`, `Dimension`, and the core analyzer layer
 composer infection:core
 ```
 
-Run the full CI campaign over all configured handwritten runtime source:
+Run the full campaign over all configured handwritten runtime source:
 
 ```console
 composer infection
 ```
 
-Both commands exclude the generated Bison parser and the PHPStan adapter. The generated parser should be tested through
-its grammar and regeneration checks. PHPStan mutation testing is deferred until the PHPUnit-only results have a stable,
-understandable baseline.
+CI runs the same full campaign with minimum total and covered MSI thresholds of 86%:
+
+```console
+composer infection:ci
+```
+
+All three commands exclude the generated Bison parser and the PHPStan adapter. The generated parser should be tested
+through its grammar and regeneration checks. PHPStan mutation testing is deferred until the PHPUnit-only results have a
+stable, understandable baseline.
 
 Infection writes the complete escaped-mutant report to `infection.log` and aggregate counts to `infection-summary.log`.
 These files are ignored by Git and uploaded by the mutation CI job.
@@ -42,8 +48,9 @@ The most useful result categories are:
   this, but repeated unexplained timeouts need investigation.
 
 The mutation score indicator (MSI) is the percentage of all generated mutants that were defeated. Covered MSI ignores
-uncovered mutants and is usually the clearer measure of assertion quality. Neither score is currently enforced in CI;
-the job reports results and fails only for an infrastructure or test-suite failure.
+uncovered mutants and is usually the clearer measure of assertion quality. CI enforces an 86% floor for both scores, so
+it detects regressions in assertion quality as well as mutation coverage. The threshold intentionally remains below the
+current score to allow minor tool and runtime variation.
 
 ## Investigating An Escape
 
