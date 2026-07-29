@@ -92,6 +92,8 @@ Already implemented:
   - generated prefix data
   - exact catalog introspection preserving canonical names, aliases, symbols, plural provenance, comments, and
     documentation
+  - structured support reasons for retained affine and logarithmic definitions
+  - mutable fluent registry construction producing immutable registry snapshots
   - resolver-side prefix handling
   - fail-closed, case-sensitive name resolution without runtime morphology
 - Runtime conversion-factor resolver
@@ -339,8 +341,9 @@ Parsed but unsupported by converter:
 
 This should remain explicit until offsets/affine units are designed.
 
-The parser can read more UDUNITS2 syntax than the runtime chooses to support semantically. The importer currently skips
-logarithmic definitions and the runtime rejects affine syntax such as Celsius offsets.
+The parser can read more UDUNITS2 syntax than the runtime chooses to support semantically. The catalog retains
+logarithmic and affine definitions with explicit support reasons, and resolution rejects them deliberately before
+attempting unsupported evaluation.
 
 ## Rational Powers And Exact Roots
 
@@ -470,8 +473,7 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
 
 ### Near-Term Work
 
-- Extend catalog introspection to explain dynamically prefixed names and catalog entries omitted for unsupported
-  semantics.
+- Extend catalog introspection to explain dynamically prefixed names.
 - Split broad PHPStan diagnostic identifiers only where users need more precise suppression.
 - Decide whether user-defined base dimensions justify replacing or extending the fixed seven-axis `Dimension` vector.
 
@@ -489,7 +491,7 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
 - Lookup is case-sensitive. Short but valid prefix/symbol compositions such as `pa` (pico-are) and `PA` (peta-ampere)
   remain accepted while `Pa` is pascal; Yumemi does not special-case these catalog-valid ambiguities.
 - Catalog introspection currently describes exact unit and prefix entries only. It does not synthesize descriptors for
-  dynamically prefixed names or retain units omitted by the importer.
+  dynamically prefixed names.
 - Syntax errors carry decoded-expression byte spans. Unknown-unit and unsupported-semantic errors occur after parsing
   and remain unspanned because AST nodes do not yet retain source locations.
 - Very large parsed integer exponents may exceed PHP integer range before reaching the expression model.
@@ -511,8 +513,6 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
 - GNU Units import
 - Formula interpolation
 - Preferred/compact unit selection and broader formatting presets
-- Change `UnitRegistryBuilder` fluent methods to mutate the builder in place, avoiding one clone per registered unit or
-  alias while keeping each built `UnitRegistry` immutable.
 - Optimize bulk catalog introspection by pre-grouping canonical aliases, symbols, and plurals during generation, then
   lazily caching an effective index per immutable registry. Composite registries must build a composition-aware index so
   base aliases continue to follow overlay replacements; expression resolution remains in `UnitResolver`.

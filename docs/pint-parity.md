@@ -180,27 +180,25 @@ Yumemi uses generated UDUNITS2 catalog data and resolves aliases and prefixes. T
 inventing definitions and gives immediate coverage across SI, common derived units, US/imperial units, astronomical
 units, and assorted constants.
 
-Remaining work:
+Current behavior:
 
-- Make registry composition a real API.
-- Make user-defined units possible without subclassing `UnitRegistry`.
+- `UnitRegistryBuilder` provides mutable composition, definitions, aliases, and immutable built snapshots.
 - Generated plural aliases are now authoritative; explicit plurals and `<noplural>` are honored, symbols remain exact,
   and runtime lookup performs no suffix stripping.
-- Decide case-sensitivity policy.
-- Decide whether symbols and canonical names are both first-class metadata.
-- Expose catalog introspection: names, aliases, prefixes, symbols, comments, supported/unsupported reason.
+- Lookup is deliberately case-sensitive.
+- Catalog introspection exposes canonical names, aliases, prefixes, symbols, comments, and unsupported reasons.
 
 Recommendation: Do registry extensibility before advanced unit semantics. A usable registry builder will unblock many
 other features.
 
 ### 4. Custom Unit Definitions
 
-Status: Absent Importance: P0/P1 Difficulty to finish: M/L
+Status: Partial Importance: P0/P1 Difficulty to finish: M/L
 
-Pint lets users define units in text files and programmatically. Yumemi can currently construct a `UnitRegistry`, but
-the ergonomics are too low-level for application use.
+Pint lets users define units in text files and programmatically. Yumemi supports programmatic definitions and aliases
+through `UnitRegistryBuilder`; definition-file loading and user-defined base dimensions remain absent.
 
-Current API (immutable build):
+Current API (mutable builder, immutable built registry):
 
 ```php
 use jbboehr\Yumemi\Registry\UnitRegistry;
@@ -452,10 +450,10 @@ are in place.
 
 ### 14. Logarithmic Units
 
-Status: Absent/skipped by importer Importance: P2/P3 Difficulty: XL
+Status: Recognized but not evaluable Importance: P2/P3 Difficulty: XL
 
-Pint supports logarithmic units such as decibels, though its own docs present the feature carefully. Yumemi currently
-skips logarithmic definitions during UDUNITS2 import.
+Pint supports logarithmic units such as decibels, though its own docs present the feature carefully. Yumemi retains and
+identifies logarithmic UDUNITS2 definitions but deliberately rejects their evaluation.
 
 Why it is hard:
 

@@ -37,7 +37,8 @@
 namespace jbboehr\Yumemi\Tests\Registry;
 
 use jbboehr\Yumemi\Analyzer\UnitResolver;
-use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
+use jbboehr\Yumemi\Catalog\UnsupportedUnitReason;
+use jbboehr\Yumemi\Exception\UnsupportedUnitException;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
 use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\TestCase;
@@ -79,7 +80,17 @@ final class Udunits2CatalogSmokeTest extends TestCase
             'celsiuses',
             'fahrenheits',
         ],
-        'logarithmic' => [],
+        'logarithmic' => [
+            'B',
+            'Bz',
+            'BZ',
+            'B_SPL',
+            'BW',
+            'Bm',
+            'BV',
+            'Bv',
+            'BµV',
+        ],
     ];
 
     public function testLooksUpEverySupportedUdunits2CatalogEntry(): void
@@ -205,17 +216,35 @@ final class Udunits2CatalogSmokeTest extends TestCase
         $this->assertSame(self::EXPECTED_UNSUPPORTED_BY_REASON, $unsupported);
     }
 
-    public function testKnownUnsupportedUdunits2DefinitionsFailWithUnsupportedSyntax(): void
+    public function testKnownUnsupportedUdunits2DefinitionsFailDeliberately(): void
     {
         $units = Units::default();
 
-        foreach (self::EXPECTED_UNSUPPORTED_BY_REASON['affine'] as $name) {
-            try {
-                $units->normalize($name);
-                self::fail('Expected unsupported syntax for affine UDUNITS2 unit: ' . $name);
-            } catch (UnsupportedSyntaxException $exception) {
-                $this->assertStringContainsString('@', $exception->getMessage(), $name);
+        foreach (self::EXPECTED_UNSUPPORTED_BY_REASON as $reason => $names) {
+            foreach ($names as $name) {
+                try {
+                    $units->normalize($name);
+                    self::fail('Expected unsupported-unit failure for UDUNITS2 unit: ' . $name);
+                } catch (UnsupportedUnitException $exception) {
+                    $this->assertSame(UnsupportedUnitReason::from($reason), $exception->reason, $name);
+                    $this->assertStringContainsString($reason, $exception->getMessage(), $name);
+                }
             }
+        }
+    }
+
+    public function testDynamicallyPrefixedUnsupportedUnitFailsButIsNotDescribed(): void
+    {
+        $units = Units::default();
+
+        $this->assertNull($units->describe('dB'));
+
+        try {
+            $units->normalize('dB');
+            self::fail('Expected unsupported-unit failure for dB.');
+        } catch (UnsupportedUnitException $exception) {
+            $this->assertSame('B', $exception->unitName);
+            $this->assertSame(UnsupportedUnitReason::Logarithmic, $exception->reason);
         }
     }
 

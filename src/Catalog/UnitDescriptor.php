@@ -56,6 +56,7 @@ final readonly class UnitDescriptor
         public array $symbols = [],
         public array $explicitPlurals = [],
         public array $generatedPlurals = [],
+        public ?UnsupportedUnitReason $unsupportedReason = null,
     ) {
     }
 
@@ -65,5 +66,10 @@ final readonly class UnitDescriptor
     public function plurals(): array
     {
         return [...$this->explicitPlurals, ...$this->generatedPlurals];
+    }
+
+    public function isSupported(): bool
+    {
+        return $this->unsupportedReason === null;
     }
 }

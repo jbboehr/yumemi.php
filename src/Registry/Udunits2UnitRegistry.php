@@ -55,7 +55,15 @@ use jbboehr\Yumemi\Expr\Unit;
  *     plural?: string,
  *     comment?: string
  * }
- * @phpstan-type Udunits2DerivedUnit array{type: 'unit', name: string, def: string, definition?: string, plural?: string, comment?: string}
+ * @phpstan-type Udunits2DerivedUnit array{
+ *     type: 'unit',
+ *     name: string,
+ *     def: string,
+ *     definition?: string,
+ *     plural?: string,
+ *     comment?: string,
+ *     unsupportedReason?: 'affine'|'logarithmic'
+ * }
  * @phpstan-type Udunits2AliasUnit array{
  *     type: 'alias',
  *     name: string,

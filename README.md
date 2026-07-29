@@ -316,7 +316,7 @@ assert($kilo->definitionExpression === '1e3');
 
 `describe()` and `describePrefix()` perform exact catalog lookup. They do not parse unit expressions, substitute unit
 definitions, or synthesize descriptions for dynamically prefixed names. See the [catalog reference](docs/catalog.md) for
-catalog customization, limitations, and regeneration.
+catalog customization, structured reasons for known unsupported affine or logarithmic units, and regeneration.
 
 Formatting policies can canonicalize aliases and generated plurals, select catalog symbols, use Unicode typography, and
 control dimensionless output. Formatting does not normalize or substitute unit definitions:

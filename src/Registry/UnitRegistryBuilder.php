@@ -110,11 +110,10 @@ final class UnitRegistryBuilder
      */
     public function withUdunits2(?string $dataFile = null): self
     {
-        $clone = clone $this;
-        $clone->includeUdunits2 = true;
-        $clone->udunits2DataFile = $dataFile ?? Udunits2UnitRegistry::DATA_FILE;
+        $this->includeUdunits2 = true;
+        $this->udunits2DataFile = $dataFile ?? Udunits2UnitRegistry::DATA_FILE;
 
-        return $clone;
+        return $this;
     }
 
     /**
@@ -129,24 +128,22 @@ final class UnitRegistryBuilder
     {
         [$name, $expression] = self::parseAssignment($definition);
 
-        $clone = clone $this;
-        $clone->assertNameAvailable($name);
-        $clone->records[$name] = [
+        $this->assertNameAvailable($name);
+        $this->records[$name] = [
             'type' => 'unit',
             'name' => $name,
             'def' => $expression,
         ];
 
-        return $clone;
+        return $this;
     }
 
     public function add(Unit $unit): self
     {
-        $clone = clone $this;
-        $clone->assertNameAvailable($unit->name);
-        $clone->units[$unit->name] = $unit;
+        $this->assertNameAvailable($unit->name);
+        $this->units[$unit->name] = $unit;
 
-        return $clone;
+        return $this;
     }
 
     /**
@@ -154,13 +151,25 @@ final class UnitRegistryBuilder
      */
     public function addAll(iterable $units): self
     {
-        $builder = $this;
+        $pending = [];
+        $pendingNames = [];
 
         foreach ($units as $unit) {
-            $builder = $builder->add($unit);
+            $this->assertNameAvailable($unit->name);
+
+            if (isset($pendingNames[$unit->name])) {
+                throw new \InvalidArgumentException('Duplicate unit name in registry builder: ' . $unit->name);
+            }
+
+            $pending[] = $unit;
+            $pendingNames[$unit->name] = true;
         }
 
-        return $builder;
+        foreach ($pending as $unit) {
+            $this->units[$unit->name] = $unit;
+        }
+
+        return $this;
     }
 
     /**
@@ -179,15 +188,14 @@ final class UnitRegistryBuilder
             throw new \InvalidArgumentException('Alias target must not be empty.');
         }
 
-        $clone = clone $this;
-        $clone->assertNameAvailable($name);
-        $clone->records[$name] = [
+        $this->assertNameAvailable($name);
+        $this->records[$name] = [
             'type' => 'alias',
             'name' => $name,
             'def' => $target,
         ];
 
-        return $clone;
+        return $this;
     }
 
     public function build(): UnitRegistry

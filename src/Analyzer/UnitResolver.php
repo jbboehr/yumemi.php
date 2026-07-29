@@ -36,7 +36,9 @@
 
 namespace jbboehr\Yumemi\Analyzer;
 
+use jbboehr\Yumemi\Catalog\UnsupportedUnitReason;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitException;
 use jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Expr\Compound;
 use jbboehr\Yumemi\Expr\Constant;
@@ -196,6 +198,16 @@ final class UnitResolver
      */
     private function exprFromRecord(array $record): Expr
     {
+        if (isset($record['unsupportedReason'])) {
+            throw new UnsupportedUnitException(
+                $record['name'],
+                UnsupportedUnitReason::from($record['unsupportedReason']),
+                $record['def'] ?? throw new \UnexpectedValueException(
+                    'Unsupported catalog unit is missing definition: ' . $record['name'],
+                ),
+            );
+        }
+
         return match ($record['type']) {
             'alias' => $this->resolve($record['def'] ?? throw new \UnexpectedValueException(
                 'Catalog alias is missing target: ' . $record['name'],

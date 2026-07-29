@@ -38,6 +38,7 @@ namespace jbboehr\Yumemi\PHPStan;
 
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitDimensionException;
 use jbboehr\Yumemi\Formatter\ExprRenderer;
 use jbboehr\Yumemi\Parser\ParseException;
@@ -78,6 +79,8 @@ final class UnitExpressionParser
         } catch (UnitNotFoundException $exception) {
             return UnitExpressionParseResult::invalid($exception->getMessage());
         } catch (UnsupportedSyntaxException $exception) {
+            return UnitExpressionParseResult::invalid($exception->getMessage());
+        } catch (UnsupportedUnitException $exception) {
             return UnitExpressionParseResult::invalid($exception->getMessage());
         } catch (UnsupportedUnitDimensionException $exception) {
             return UnitExpressionParseResult::invalid($exception->getMessage());

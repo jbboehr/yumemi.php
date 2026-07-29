@@ -28,6 +28,10 @@ unit_to(3.0, 'foot', 'meter');
 unit(1.0, 'meter * / second');
 unit_to(1.0, 'meter', 'second /');
 
+// Known catalog units with unsupported semantics receive deliberate diagnostics.
+unit(1.0, 'B');
+unit_to(1.0, 'degree_Celsius', 'meter');
+
 // Non-constant unit string — not statically analysable, no diagnostic.
 function dynamicUnit(string $u): void
 {

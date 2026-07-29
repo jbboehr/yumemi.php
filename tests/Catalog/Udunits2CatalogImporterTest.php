@@ -246,11 +246,48 @@ final class Udunits2CatalogImporterTest extends TestCase
         $this->assertSame('100 cm ^ 2', $units['are_ish']['def'] ?? null);
     }
 
-    public function testSkipsLogarithmicUnits(): void
+    public function testRetainsLogarithmicUnitsAsUnsupported(): void
     {
         $units = $this->import(self::SAMPLE)['units'];
 
-        $this->assertArrayNotHasKey('bel', $units);
+        $this->assertSame('unit', $units['bel']['type']);
+        $this->assertSame('lg(re 1 W)', $units['bel']['def']);
+        $this->assertSame('logarithmic', $units['bel']['unsupportedReason'] ?? null);
+    }
+
+    public function testClassifiesAffineUnitsAsUnsupported(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <unit-system>
+              <unit>
+                <name><singular>ordinary_widget</singular></name>
+                <def>2 meter</def>
+              </unit>
+              <unit>
+                <name><singular>absolute_widget_temperature</singular></name>
+                <def>widget_temperature</def>
+              </unit>
+              <unit>
+                <name><singular>widget_temperature</singular></name>
+                <aliases><singular>widget_temp</singular></aliases>
+                <def>degree_widget</def>
+              </unit>
+              <unit>
+                <name><singular>degree_widget</singular></name>
+                <def>kelvin @ 273.15</def>
+              </unit>
+            </unit-system>
+            XML;
+
+        $units = $this->import($xml)['units'];
+
+        $this->assertSame('kelvin @ 273.15', $units['degree_widget']['def'] ?? null);
+        $this->assertSame('affine', $units['degree_widget']['unsupportedReason'] ?? null);
+        $this->assertSame('affine', $units['widget_temperature']['unsupportedReason'] ?? null);
+        $this->assertSame('affine', $units['absolute_widget_temperature']['unsupportedReason'] ?? null);
+        $this->assertArrayNotHasKey('unsupportedReason', $units['widget_temp']);
+        $this->assertArrayNotHasKey('unsupportedReason', $units['ordinary_widget']);
     }
 
     public function testRegistersPrimeSymbolAndApostropheAlias(): void

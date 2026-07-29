@@ -110,13 +110,24 @@ final class UnitExpressionParserTest extends TestCase
         $this->assertStringContainsString('empty', strtolower($result->errorMessage() ?? ''));
     }
 
-    public function testRejectsAffineTemperatureSyntax(): void
+    #[DataProvider('unsupportedUnitProvider')]
+    public function testRejectsKnownUnsupportedCatalogUnits(string $unit, string $reason): void
     {
         $parser = new UnitExpressionParser();
-        $result = $parser->parse('degree_Celsius');
+        $result = $parser->parse($unit);
 
         $this->assertFalse($result->isOk());
-        $this->assertStringContainsString('Unsupported', $result->errorMessage() ?? '');
+        $this->assertStringContainsString('known but uses unsupported ' . $reason . ' semantics', $result->errorMessage() ?? '');
+        $this->assertNull($result->errorSpan());
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function unsupportedUnitProvider(): iterable
+    {
+        yield 'affine' => ['degree_Celsius', 'affine'];
+        yield 'logarithmic' => ['B', 'logarithmic'];
     }
 
     public function testRejectsMalformedSyntaxWithAMessage(): void

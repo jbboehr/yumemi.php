@@ -82,6 +82,10 @@ final class InvalidQuantityConstructionRuleTest extends RuleTestCase
                     . '|         ^',
                 29,
             ],
+            [
+                'Unit "B" is known but uses unsupported logarithmic semantics (definition: lg(re 1)).',
+                30,
+            ],
         ]);
     }
 }

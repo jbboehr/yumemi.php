@@ -181,7 +181,8 @@ final class CompositeUnitRegistryTest extends TestCase
              *     definition?: string,
              *     documentation?: string,
              *     comment?: string,
-             *     plural?: string
+             *     plural?: string,
+             *     unsupportedReason?: 'affine'|'logarithmic'
              * }> $records
              * @param array<string, string> $prefixes
              */

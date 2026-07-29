@@ -63,6 +63,10 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         );
         $this->assertStringContainsString('| meter * / second', $output);
         $this->assertStringContainsString('|         ^', $output);
+        $this->assertStringContainsString(
+            'Unit "B" is known but uses unsupported logarithmic semantics',
+            $output,
+        );
         $this->assertTrue(
             str_contains($output, 'Unit not found')
             || str_contains($output, 'ERROR')

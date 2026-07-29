@@ -38,6 +38,7 @@ namespace jbboehr\Yumemi\Tests\Registry;
 
 use jbboehr\Yumemi\Catalog\CatalogNameKind;
 use jbboehr\Yumemi\Catalog\UnitKind;
+use jbboehr\Yumemi\Catalog\UnsupportedUnitReason;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Unit;
@@ -224,6 +225,35 @@ final class UnitRegistryTest extends TestCase
         $this->assertSame(['widgetses', 'widgetzz'], $descriptor->generatedPlurals);
         $this->assertSame(CatalogNameKind::Symbol, $registry->describe('A')?->matchedAs);
         $this->assertSame(UnitKind::Dimensionless, $registry->describe('radian')?->kind);
+    }
+
+    public function testDescriptionExposesUnsupportedCanonicalMetadataThroughAliases(): void
+    {
+        $registry = new UnitRegistry([], [
+            'degree_widget' => [
+                'type' => 'unit',
+                'name' => 'degree_widget',
+                'def' => 'kelvin @ 273.15',
+                'unsupportedReason' => 'affine',
+            ],
+            'widget_temperature' => [
+                'type' => 'alias',
+                'name' => 'widget_temperature',
+                'def' => 'degree_widget',
+            ],
+        ]);
+
+        $canonical = $registry->describe('degree_widget');
+        $alias = $registry->describe('widget_temperature');
+
+        $this->assertNotNull($canonical);
+        $this->assertNotNull($alias);
+        $this->assertFalse($canonical->isSupported());
+        $this->assertFalse($alias->isSupported());
+        $this->assertSame(UnsupportedUnitReason::Affine, $canonical->unsupportedReason);
+        $this->assertSame(UnsupportedUnitReason::Affine, $alias->unsupportedReason);
+        $this->assertSame('degree_widget', $alias->canonicalName);
+        $this->assertSame(UnitKind::Derived, $alias->kind);
     }
 
     public function testPrebuiltAliasRemainsAvailableToGetAndIntrospection(): void

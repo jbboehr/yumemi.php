@@ -39,6 +39,7 @@ namespace jbboehr\Yumemi\Tests\Registry;
 use jbboehr\Yumemi\Analyzer\UnitResolver;
 use jbboehr\Yumemi\Catalog\CatalogNameKind;
 use jbboehr\Yumemi\Catalog\UnitKind;
+use jbboehr\Yumemi\Catalog\UnsupportedUnitReason;
 use jbboehr\Yumemi\Exception\UnsupportedUnitDimensionException;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
@@ -179,6 +180,26 @@ final class Udunits2UnitRegistryTest extends TestCase
         $this->assertSame(CatalogNameKind::Alias, $descriptor->matchedAs);
         $this->assertSame(UnitKind::Derived, $descriptor->kind);
         $this->assertSame('12 international_inches', $descriptor->definitionExpression);
+    }
+
+    public function testDescribesUnsupportedCanonicalSynonymAndAliasRecords(): void
+    {
+        $registry = new Udunits2UnitRegistry();
+
+        $logarithmic = $registry->describe('Bz');
+        $affineSynonym = $registry->describe('celsius');
+        $affineAlias = $registry->describe('degC');
+
+        $this->assertNotNull($logarithmic);
+        $this->assertNotNull($affineSynonym);
+        $this->assertNotNull($affineAlias);
+        $this->assertSame('BZ', $logarithmic->canonicalName);
+        $this->assertSame(UnsupportedUnitReason::Logarithmic, $logarithmic->unsupportedReason);
+        $this->assertFalse($logarithmic->isSupported());
+        $this->assertSame(UnsupportedUnitReason::Affine, $affineSynonym->unsupportedReason);
+        $this->assertSame('celsius', $affineAlias->canonicalName);
+        $this->assertSame(UnsupportedUnitReason::Affine, $affineAlias->unsupportedReason);
+        $this->assertFalse($affineAlias->isSupported());
     }
 
     public function testDescribesPrefixNamesAndSymbols(): void

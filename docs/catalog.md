@@ -56,7 +56,8 @@ Use `UnitRegistryBuilder::default()` to layer custom definitions and aliases ove
 `UnitRegistryBuilder::empty()` for an isolated catalog.
 
 Definitions use the normal multiplicative unit language and are parsed against the completed registry on first use. The
-builder is immutable: each method returns a new builder.
+builder is mutable: each fluent method updates and returns the same builder. Every `build()` call creates an immutable
+registry snapshot that is unaffected by later builder changes.
 
 ```php
 <?php
@@ -86,12 +87,14 @@ track a separate catalog identity for each value.
 
 ## Unsupported Catalog Semantics
 
-The parser intentionally supports only multiplicative unit algebra with integer powers. Affine definitions such as
-Celsius remain in the generated catalog but throw `UnsupportedSyntaxException` when evaluated. Logarithmic definitions
-containing UDUNITS2 `lg(...)` syntax are currently omitted during import.
+The runtime intentionally supports only multiplicative unit algebra with integer powers. Known affine and logarithmic
+UDUNITS2 definitions remain in the generated catalog with an `UnsupportedUnitReason` exposed by `describe()`. Aliases
+inherit the support status of their canonical entry.
 
-Consequently, `describe()` cannot yet explain every upstream unit that was omitted for unsupported semantics. Retaining
-those entries with explicit unsupported-reason metadata is planned future work.
+Attempting to evaluate one of these units throws `UnsupportedUnitException` before its definition reaches the parser.
+The exception carries the canonical unit name, support reason, and original definition; PHPStan reports the same reason
+for constant unit strings. This makes a known unsupported unit distinct from an unknown or misspelled name without
+claiming support for affine or logarithmic conversion.
 
 ## Regenerating The Catalog
 
@@ -127,4 +130,4 @@ The generator imports the XML, materializes aliases and plural metadata, and exp
 generated header changed.
 
 After regeneration, run the full test suite. The catalog smoke tests resolve every supported definition and pin the
-known unsupported affine set, making source-data drift explicit.
+known unsupported affine and logarithmic sets, making source-data drift explicit.

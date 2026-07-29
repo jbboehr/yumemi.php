@@ -37,8 +37,11 @@
 namespace jbboehr\Yumemi\Tests\Analyzer;
 
 use jbboehr\Yumemi\Analyzer\UnitResolver;
+use jbboehr\Yumemi\Catalog\UnsupportedUnitReason;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitException;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
+use jbboehr\Yumemi\Registry\UnitRegistry;
 use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -164,5 +167,31 @@ final class UnitResolverTest extends TestCase
         $this->assertNull($resolver->resolve('bus'));
         $this->assertSame('bushel', $resolver->resolveOrFail('bushel')->toString());
         $this->assertSame('bushel', $resolver->resolveOrFail('bu')->toString());
+    }
+
+    public function testRejectsKnownUnsupportedUnitsBeforeParsingDefinitions(): void
+    {
+        $registry = new UnitRegistry([], [
+            'bel_widget' => [
+                'type' => 'unit',
+                'name' => 'bel_widget',
+                'def' => 'lg(re 1 widget)',
+                'unsupportedReason' => 'logarithmic',
+            ],
+            'BW' => ['type' => 'alias', 'name' => 'BW', 'def' => 'bel_widget'],
+        ]);
+        $resolver = new UnitResolver($registry);
+
+        foreach (['bel_widget', 'BW'] as $name) {
+            try {
+                $resolver->resolveOrFail($name);
+                self::fail('Expected unsupported-unit failure for ' . $name);
+            } catch (UnsupportedUnitException $exception) {
+                $this->assertSame('bel_widget', $exception->unitName);
+                $this->assertSame(UnsupportedUnitReason::Logarithmic, $exception->reason);
+                $this->assertSame('lg(re 1 widget)', $exception->definition);
+                $this->assertStringContainsString('known but uses unsupported logarithmic semantics', $exception->getMessage());
+            }
+        }
     }
 }

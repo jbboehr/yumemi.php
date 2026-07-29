@@ -40,6 +40,7 @@ use jbboehr\Yumemi\Catalog\CatalogNameKind;
 use jbboehr\Yumemi\Catalog\PrefixDescriptor;
 use jbboehr\Yumemi\Catalog\UnitDescriptor;
 use jbboehr\Yumemi\Catalog\UnitKind;
+use jbboehr\Yumemi\Catalog\UnsupportedUnitReason;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Expr\Compound;
 use jbboehr\Yumemi\Expr\Constant;
@@ -63,7 +64,8 @@ use jbboehr\Yumemi\Expr\Unit;
  *     definition?: string,
  *     documentation?: string,
  *     comment?: string,
- *     plural?: string
+ *     plural?: string,
+ *     unsupportedReason?: 'affine'|'logarithmic'
  * }
  */
 class UnitRegistry
@@ -264,6 +266,9 @@ class UnitRegistry
             definitionExpression: $record['def'] ?? $unit?->definition?->toString(),
             documentation: $record['documentation'] ?? $record['definition'] ?? null,
             comment: $record['comment'] ?? null,
+            unsupportedReason: isset($record['unsupportedReason'])
+                ? UnsupportedUnitReason::from($record['unsupportedReason'])
+                : null,
             aliases: $aliases,
             symbols: $symbols,
             explicitPlurals: $explicitPlurals,

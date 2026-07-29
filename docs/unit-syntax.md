@@ -104,9 +104,9 @@ The parser recognizes a few UDUNITS2 forms that the expression model deliberatel
 - non-integer powers, such as `meter^0.5`;
 - logarithmic unit definitions.
 
-Recognized-but-unsupported syntax throws `UnsupportedSyntaxException`. Affine catalog entries such as `degree_Celsius`
-remain present for name resolution but fail when their definitions are evaluated. Logarithmic entries are currently
-omitted while generating the catalog and consequently behave as unknown names.
+Unsupported syntax written directly in an expression throws `UnsupportedSyntaxException`. Known affine and logarithmic
+catalog entries remain available for exact introspection with structured support reasons, but evaluation throws
+`UnsupportedUnitException` before parsing their definitions. They therefore remain distinct from unknown names.
 
 `Quantity::pow()` and PHPStan's unit exponent inference likewise accept only integer powers. Exact rational roots and
 explicit approximate powers are deferred features; a `float` exponent will not be silently accepted.

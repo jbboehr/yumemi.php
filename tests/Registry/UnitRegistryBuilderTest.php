@@ -84,14 +84,15 @@ final class UnitRegistryBuilderTest extends TestCase
 
         $defaultRegistry = UnitRegistryBuilder::default($catalogFile)->build();
         $emptyBuilder = UnitRegistryBuilder::empty();
-        $optInRegistry = $emptyBuilder->withUdunits2($catalogFile)->build();
+        $this->assertSame($emptyBuilder, $emptyBuilder->withUdunits2($catalogFile));
+        $optInRegistry = $emptyBuilder->build();
 
         foreach ([$defaultRegistry, $optInRegistry] as $registry) {
             $this->assertSame(['type' => 'base', 'name' => 'widget'], $registry->record('widget'));
             $this->assertNull($registry->record('meter'));
         }
 
-        $this->assertSame([], $emptyBuilder->build()->names());
+        $this->assertSame(['widget'], $emptyBuilder->build()->names());
     }
 
     public function testBuilderProducesImmutablePrebuiltRegistry(): void
@@ -108,13 +109,13 @@ final class UnitRegistryBuilderTest extends TestCase
         $this->assertFalse(method_exists($registry, 'register'));
     }
 
-    public function testAddAllPreservesTheOriginalBuilder(): void
+    public function testAddAllMutatesAndReturnsTheBuilder(): void
     {
-        $base = UnitRegistryBuilder::empty();
-        $extended = $base->addAll([new Unit('meter'), new Unit('second')]);
+        $builder = UnitRegistryBuilder::empty();
+        $returned = $builder->addAll([new Unit('meter'), new Unit('second')]);
 
-        $this->assertSame([], $base->build()->names());
-        $this->assertSame(['meter', 'second'], $extended->build()->names());
+        $this->assertSame($builder, $returned);
+        $this->assertSame(['meter', 'second'], $builder->build()->names());
     }
 
     public function testUnitRegistryDefaultsIsBuiltinFixture(): void
@@ -286,19 +287,46 @@ final class UnitRegistryBuilderTest extends TestCase
         UnitRegistryBuilder::empty()->alias('thing', '');
     }
 
-    public function testBuilderIsImmutableFluent(): void
+    public function testBuilderIsMutableFluent(): void
     {
-        $base = UnitRegistryBuilder::empty();
-        $withMeter = $base->add(new Unit('meter'));
-        $withDefinition = $base->define('widget = 1');
-        $withAlias = $withDefinition->alias('thing', 'widget');
+        $builder = UnitRegistryBuilder::empty();
 
-        $this->assertNull($base->build()->lookup('meter'));
-        $this->assertNull($base->build()->record('widget'));
-        $this->assertNotNull($withMeter->build()->lookup('meter'));
-        $this->assertNotNull($withDefinition->build()->record('widget'));
-        $this->assertNull($withDefinition->build()->record('thing'));
-        $this->assertNotNull($withAlias->build()->record('thing'));
+        $this->assertSame($builder, $builder->add(new Unit('meter')));
+        $this->assertSame($builder, $builder->define('widget = 1'));
+        $this->assertSame($builder, $builder->alias('thing', 'widget'));
+
+        $registry = $builder->build();
+        $this->assertNotNull($registry->lookup('meter'));
+        $this->assertNotNull($registry->record('widget'));
+        $this->assertNotNull($registry->record('thing'));
+    }
+
+    public function testBuiltRegistriesAreSnapshotsOfMutableBuilderState(): void
+    {
+        $builder = UnitRegistryBuilder::empty()->add(new Unit('meter'));
+        $first = $builder->build();
+
+        $builder->add(new Unit('second'))->define('widget = meter');
+        $second = $builder->build();
+
+        $this->assertSame(['meter'], $first->names());
+        $this->assertNull($first->record('widget'));
+        $this->assertSame(['meter', 'second', 'widget'], $second->names());
+        $this->assertNotNull($second->record('widget'));
+    }
+
+    public function testAddAllIsTransactional(): void
+    {
+        $builder = UnitRegistryBuilder::empty()->add(new Unit('meter'));
+
+        try {
+            $builder->addAll([new Unit('second'), new Unit('meter')]);
+            self::fail('Expected duplicate unit failure.');
+        } catch (\InvalidArgumentException $exception) {
+            $this->assertStringContainsString('Duplicate unit name', $exception->getMessage());
+        }
+
+        $this->assertSame(['meter'], $builder->build()->names());
     }
 
     public function testOverlayAliasCollectionContinuesPastOtherRecords(): void

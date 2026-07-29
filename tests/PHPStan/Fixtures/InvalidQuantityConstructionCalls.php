@@ -27,3 +27,4 @@ $units->quantity($feet, 'international_foot');
 $units->quantity(unit(2, 'kilometer'), '1000 * meter');
 
 $units->quantity(1, 'meter * / second');
+$units->quantity(1, 'B');

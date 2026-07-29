@@ -34,6 +34,7 @@ $meters->decimalValueIn('foot', 2, \RoundingMode::HalfEven);
 $meters->exactDecimalValueIn('foot');
 $meters->floatValueIn('foot');
 $meters->to('meter * / second');
+$meters->to('degree_Celsius');
 
 // Genuinely dynamic targets fail open, including on an unbranded receiver.
 function convertUnknown(Quantity $quantity, string $unit): void

@@ -81,6 +81,7 @@ final class Udunits2CatalogImporter
         }
 
         $this->materializeImplicitPluralAliases($catalog, $implicitPluralTargets);
+        $this->materializeUnsupportedReasons($catalog);
         $catalog['prefixRegex'] = $this->createPrefixRegex(array_keys($catalog['prefixes']));
 
         /** @phpstan-var Udunits2Catalog $catalog */
@@ -169,10 +170,6 @@ final class Udunits2CatalogImporter
             return;
         }
 
-        if ($def !== null && str_contains($def, 'lg(')) {
-            return;
-        }
-
         $def = $def === null ? null : $this->normalizeDefinition($def);
         $type = 'unit';
         // Guaranteed by the early return above: at least one of name/symbol is non-null.
@@ -199,6 +196,11 @@ final class Udunits2CatalogImporter
 
         if ($def !== null) {
             $unit['def'] = $def;
+
+            $unsupportedReason = self::unsupportedReason($def);
+            if ($unsupportedReason !== null) {
+                $unit['unsupportedReason'] = $unsupportedReason;
+            }
         }
 
         if ($comment !== null) {
@@ -365,6 +367,34 @@ final class Udunits2CatalogImporter
         }
     }
 
+    /**
+     * Propagate support status through exact-name synonym definitions such as
+     * celsius = degree_Celsius. Alias rows inherit status during introspection.
+     *
+     * @phpstan-param MutableUdunits2Catalog $catalog
+     */
+    private function materializeUnsupportedReasons(array &$catalog): void
+    {
+        do {
+            $changed = false;
+
+            foreach ($catalog['units'] as $name => $unit) {
+                $definition = $unit['def'] ?? null;
+                if ($unit['type'] === 'alias' || isset($unit['unsupportedReason']) || !is_string($definition)) {
+                    continue;
+                }
+
+                $target = $catalog['units'][$definition] ?? null;
+                if ($target === null || !isset($target['unsupportedReason'])) {
+                    continue;
+                }
+
+                $catalog['units'][$name]['unsupportedReason'] = $target['unsupportedReason'];
+                $changed = true;
+            }
+        } while ($changed);
+    }
+
     private static function isPluralizableName(string $name): bool
     {
         return strlen($name) >= 3
@@ -464,6 +494,18 @@ final class Udunits2CatalogImporter
     private function normalizeDefinition(string $definition): string
     {
         return str_replace('cm2', 'cm ^ 2', $definition);
+    }
+
+    /**
+     * @return 'affine'|'logarithmic'|null
+     */
+    private static function unsupportedReason(string $definition): ?string
+    {
+        if (str_contains($definition, '@')) {
+            return 'affine';
+        }
+
+        return str_contains($definition, 'lg(') ? 'logarithmic' : null;
     }
 
     /**

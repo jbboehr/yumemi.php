@@ -37,8 +37,8 @@
 namespace jbboehr\Yumemi\Tests;
 
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
-use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitException;
 use jbboehr\Yumemi\Expr\Compound;
 use jbboehr\Yumemi\Expr\Term;
 use jbboehr\Yumemi\Units;
@@ -193,11 +193,12 @@ final class UnitsTest extends TestCase
 
         try {
             $units->normalize('degree_Celsius');
-            self::fail('Expected UnsupportedSyntaxException');
-        } catch (UnsupportedSyntaxException $exception) {
-            $this->assertStringContainsString('@', $exception->getMessage());
-            $this->assertStringContainsString('Affine', $exception->getMessage());
-            $this->assertStringContainsString('@', $exception->expression);
+            self::fail('Expected UnsupportedUnitException');
+        } catch (UnsupportedUnitException $exception) {
+            $this->assertSame('affine', $exception->reason->value);
+            $this->assertSame('degree_Celsius', $exception->unitName);
+            $this->assertStringContainsString('@', $exception->definition);
+            $this->assertStringContainsString('unsupported affine semantics', $exception->getMessage());
         }
     }
 }

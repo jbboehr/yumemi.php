@@ -102,6 +102,10 @@ final class InvalidQuantityConversionRuleTest extends RuleTestCase
                     . '|         ^',
                 36,
             ],
+            [
+                'Unit "degree_Celsius" is known but uses unsupported affine semantics (definition: K @ 273.15).',
+                37,
+            ],
         ]);
     }
 }

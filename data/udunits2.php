@@ -319,6 +319,7 @@ return [
             'definition' => 'unit (and scale) of temperature, with same magnitude as the kelvin and a zero-point offset of 273.15',
             'plural' => 'degrees_Celsius',
             'def' => 'K @ 273.15',
+            'unsupportedReason' => 'affine',
             'comment' => 'SI derived unit'
         ],
         'degrees_Celsius' => [
@@ -986,7 +987,8 @@ return [
             'name' => 'celsius',
             'definition' => 'unit of temperature, synonym for \'K @ 273.15\' (degree_Celsius)',
             'def' => 'degree_Celsius',
-            'comment' => 'Synonym for SI unit'
+            'comment' => 'Synonym for SI unit',
+            'unsupportedReason' => 'affine'
         ],
         'kts' => [
             'type' => 'alias',
@@ -1079,6 +1081,13 @@ return [
             'definition' => 'parts per quadrillion',
             'def' => '1e-15',
             'comment' => 'Constant'
+        ],
+        'B' => [
+            'type' => 'unit',
+            'name' => 'B',
+            'definition' => 'logarithmic unit used to express dimensionless ratios; a value of 0 B (0 dB) corresponds to a ratio of 1',
+            'def' => 'lg(re 1)',
+            'unsupportedReason' => 'logarithmic'
         ],
         'grade' => [
             'type' => 'unit',
@@ -2114,6 +2123,19 @@ return [
             'def' => 'UK_liquid_gallon/160',
             'comment' => 'exact'
         ],
+        'Bz' => [
+            'type' => 'alias',
+            'name' => 'Bz',
+            'def' => 'BZ',
+            'aliasKind' => 'symbol'
+        ],
+        'BZ' => [
+            'type' => 'unit',
+            'name' => 'BZ',
+            'definition' => 'logarithmic unit used to compare the reflectivity (Z) of an unknown remote object, to the reflective return created by a rain with a density of a single drop with a diameter of 1 mm in every 1 m^3 of air; is the base unit for "dBz", which is the typical logarithmic unit for measuring atmospheric radar reflectivity; a value of 0 Bz (0 dBz) corresponds to the return from a single cubic micron; a value of 6 Bz (60 dBz) corresponds to extremely heavy rain.',
+            'def' => 'lg(re (1e-6 m)^3)',
+            'unsupportedReason' => 'logarithmic'
+        ],
         'shake' => [
             'type' => 'unit',
             'name' => 'shake',
@@ -2805,6 +2827,14 @@ return [
             'def' => '0.1 N/m^2',
             'comment' => 'exact'
         ],
+        'B_SPL' => [
+            'type' => 'unit',
+            'name' => 'B_SPL',
+            'definition' => 'logarithmic unit used to compare the sound pressure of an unknown sound to a standard reference sound pressure; is the base unit for "dB_SPL", a more typical logarithmic unit for measuring sound pressure (the SI unit for sound pressure is pascal); the standard reference sound pressure in air or other gases is 20 microPascal, which is usually considered the threshold of human hearing (at 1 kHz)',
+            'def' => 'lg(re 20e-6 Pa)',
+            'unsupportedReason' => 'logarithmic',
+            'comment' => 'sound pressure level'
+        ],
         'poise' => [
             'type' => 'unit',
             'name' => 'poise',
@@ -3033,6 +3063,20 @@ return [
             'definition' => 'unit of power describing the heat-extraction capacity of cooling equipment; defined as the heat absorbed by melting 1 short ton of pure ice at 0 degrees C in 24 hours',
             'def' => '12000 Btu/hr'
         ],
+        'BW' => [
+            'type' => 'unit',
+            'name' => 'BW',
+            'definition' => 'unit of power in decibel scale, referenced to 1 watt; the power in bel-watts is equal to 100 times the base 10 logarithm of the power in watts (making decibel-watt, the more common term, 10 times the base 10 log of the power in watts)',
+            'def' => 'lg(re 1 W)',
+            'unsupportedReason' => 'logarithmic'
+        ],
+        'Bm' => [
+            'type' => 'unit',
+            'name' => 'Bm',
+            'definition' => 'unit of power in decibel scale, referenced to 1 milliwatt; the power in bel-milliwatts is equal to 100 times the base 10 logarithm of the power in milliwatts (making decibel-milliwatt, the more common term, 10 times the base 10 log of the power in milliwatts)',
+            'def' => 'lg(re 1 mW)',
+            'unsupportedReason' => 'logarithmic'
+        ],
         'clo' => [
             'type' => 'unit',
             'name' => 'clo',
@@ -3203,6 +3247,28 @@ return [
             'definition' => 'unit of electricity/magnetism',
             'def' => '1.256637e-7 Wb'
         ],
+        'BV' => [
+            'type' => 'unit',
+            'name' => 'BV',
+            'definition' => 'unit of electricity/magnetism',
+            'def' => 'lg(re 1 V)',
+            'unsupportedReason' => 'logarithmic'
+        ],
+        'Bv' => [
+            'type' => 'unit',
+            'name' => 'Bv',
+            'definition' => 'unit of electricity/magnetism',
+            'def' => 'lg(re 0.775 V)',
+            'unsupportedReason' => 'logarithmic',
+            'comment' => 'rms voltage'
+        ],
+        'BµV' => [
+            'type' => 'unit',
+            'name' => 'BµV',
+            'definition' => 'unit of electricity/magnetism',
+            'def' => 'lg(re 1e-6 V)',
+            'unsupportedReason' => 'logarithmic'
+        ],
         '°R' => [
             'type' => 'alias',
             'name' => '°R',
@@ -3346,7 +3412,8 @@ return [
             'type' => 'unit',
             'name' => 'fahrenheit',
             'definition' => 'unit of thermodynamic temperature',
-            'def' => '°R @ 459.67'
+            'def' => '°R @ 459.67',
+            'unsupportedReason' => 'affine'
         ],
         'footcandle' => [
             'type' => 'unit',
