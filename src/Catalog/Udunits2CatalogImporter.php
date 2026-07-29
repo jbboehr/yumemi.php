@@ -197,7 +197,7 @@ final class Udunits2CatalogImporter
         if ($def !== null) {
             $unit['def'] = $def;
 
-            $unsupportedReason = self::unsupportedReason($def);
+            $unsupportedReason = UnitDefinitionClassifier::unsupportedReason($def)?->value;
             if ($unsupportedReason !== null) {
                 $unit['unsupportedReason'] = $unsupportedReason;
             }
@@ -494,18 +494,6 @@ final class Udunits2CatalogImporter
     private function normalizeDefinition(string $definition): string
     {
         return str_replace('cm2', 'cm ^ 2', $definition);
-    }
-
-    /**
-     * @return 'affine'|'logarithmic'|null
-     */
-    private static function unsupportedReason(string $definition): ?string
-    {
-        if (str_contains($definition, '@')) {
-            return 'affine';
-        }
-
-        return str_contains($definition, 'lg(') ? 'logarithmic' : null;
     }
 
     /**

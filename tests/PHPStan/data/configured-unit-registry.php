@@ -19,6 +19,9 @@ assertType("unit_int<'widget'>", $widgets);
 $meters = unit_to($widget, 'widget', 'meter');
 assertType("unit_float<'meter'>", $meters);
 
+assertType("unit_float<'kelvin'>", unit_to(0, 'degree_widget', 'kelvin'));
+assertType('float', unit_to(100, 'kelvin', 'degree_widget'));
+
 $area = $widget * $widgets;
 assertType("unit_int<'widget ^ 2'>", $area);
 

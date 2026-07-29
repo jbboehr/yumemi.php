@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\Registry;
 
+use jbboehr\Yumemi\Catalog\UnitDefinitionClassifier;
 use jbboehr\Yumemi\Expr\Unit;
 
 /**
@@ -129,11 +130,17 @@ final class UnitRegistryBuilder
         [$name, $expression] = self::parseAssignment($definition);
 
         $this->assertNameAvailable($name);
-        $this->records[$name] = [
+        $record = [
             'type' => 'unit',
             'name' => $name,
             'def' => $expression,
         ];
+        $unsupportedReason = UnitDefinitionClassifier::unsupportedReason($expression);
+        if ($unsupportedReason !== null) {
+            $record['unsupportedReason'] = $unsupportedReason->value;
+        }
+
+        $this->records[$name] = $record;
 
         return $this;
     }

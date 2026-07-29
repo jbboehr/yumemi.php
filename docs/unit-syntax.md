@@ -1,7 +1,8 @@
 # Unit Syntax Reference
 
-Yumemi uses the same unit-expression parser and catalog resolver at runtime and in its PHPStan extension. A unit string
-therefore has the same meaning in `Units::parse()`, `Quantity`, `unit_int<'...'>`, and `unit_float<'...'>`.
+Yumemi uses the same unit-expression parser and catalog resolver at runtime and in its PHPStan extension. Multiplicative
+unit strings therefore have the same meaning in `Units::parse()`, `Quantity`, `unit_int<'...'>`, and
+`unit_float<'...'>`. Explicit conversion APIs additionally understand the affine `@` form described below.
 
 ## Supported Expressions
 
@@ -27,6 +28,11 @@ centimeter / (foot * second)
 
 Decimal and scientific constants are parsed exactly as rational numbers. They are not converted through binary floating
 point.
+
+At explicit conversion boundaries, `identifier @ number` defines an affine coordinate origin. For example,
+`kelvin @ 273.15` maps zero in the new coordinate system to exactly `273.15 kelvin`. This form is accepted by
+`convert()`, `convertFloat()`, `compatible()`, `dimension()`, `conversionFactor()`, `unit_to()`, and custom registry
+definitions. It is not part of ordinary multiplicative expression or quantity algebra.
 
 For example:
 
@@ -100,16 +106,20 @@ Unicode formatter output remains parser-compatible when the dimensionless style 
 
 ## Unsupported Semantics
 
-The parser recognizes a few UDUNITS2 forms that the expression model deliberately does not implement:
+The parser recognizes a few UDUNITS2 forms that the multiplicative expression model deliberately does not implement:
 
 - addition and subtraction inside unit expressions, such as `meter + second`;
-- affine-offset syntax using `@`, such as the catalog definition for Celsius;
+- affine-offset syntax using `@` outside explicit conversion boundaries;
 - non-integer powers, such as `meter^0.5`;
 - logarithmic unit definitions.
 
-Unsupported syntax written directly in an expression throws `UnsupportedSyntaxException`. Known affine and logarithmic
-catalog entries remain available for exact introspection with structured support reasons, but evaluation throws
-`UnsupportedUnitException` before parsing their definitions. They therefore remain distinct from unknown names.
+Unsupported syntax written through an expression API throws `UnsupportedSyntaxException`. Known affine catalog entries
+can be converted as standalone units, but cannot be multiplied, divided, raised to powers, prefixed, branded with
+`unit()`, or stored in `Quantity`. Affine PHPStan targets from `unit_to()` remain plain `float`; a multiplicative target
+such as `kelvin` retains its `unit_float<'kelvin'>` brand.
+
+Known logarithmic catalog entries remain available for exact introspection with structured support reasons, but
+evaluation throws `UnsupportedUnitException`. They therefore remain distinct from unknown names.
 
 `Quantity::pow()` and PHPStan's unit exponent inference likewise accept only integer powers. Exact rational roots and
 explicit approximate powers are deferred features; a `float` exponent will not be silently accepted.

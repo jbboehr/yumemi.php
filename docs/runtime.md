@@ -68,11 +68,46 @@ The `Units` facade exposes expression-level operations:
 - `unit()` resolves one catalog unit name.
 - `dimension()` returns the seven-axis SI dimension vector.
 - `compatible()` checks dimensional compatibility.
-- `conversionFactor()` returns the exact factor between compatible expressions.
-- `convert()` applies that factor to an `int` or `Rational`.
+- `conversionFactor()` returns an exact value-independent factor and throws `NonMultiplicativeConversionException` when
+  the conversion includes an offset.
+- `convert()` applies an exact scale-and-offset conversion to an `int` or `Rational`.
+- `convertFloat()` applies the same conversion to a native `float`.
 - `normalize()` substitutes derived definitions and retains their scale in the expression.
 
 Incompatible conversions throw `IncompatibleUnitException`; unknown names throw `UnitNotFoundException`.
+
+### Affine Conversion
+
+Explicit conversion supports UDUNITS2 affine temperature units and custom `@` definitions. The exact conversion core
+maps each coordinate into canonical base units as `scale * value + offset`; decimal catalog constants remain exact
+`Rational` values:
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+use jbboehr\Yumemi\Units;
+
+use function jbboehr\Yumemi\unit_to;
+
+$units = Units::default();
+
+assert($units->convert(0, 'celsius', 'kelvin')->toString() === '5463/20');
+assert($units->convert(100, 'celsius', 'fahrenheit')->toString() === '212');
+assert($units->convert(-40, 'celsius', 'fahrenheit')->toString() === '-40');
+assert(abs($units->convertFloat(37.0, 'celsius', 'fahrenheit') - 98.6) < 1e-12);
+assert(unit_to(32, 'fahrenheit', 'celsius') === 0.0);
+```
+
+`dimension()` and `compatible()` understand the affine unit's reference dimension. `conversionFactor()` succeeds for an
+identity or another offset-free conversion, such as `celsius` to an equivalent alias, but it cannot represent `celsius`
+to `kelvin` because that result depends on the input value.
+
+Affine support is deliberately confined to explicit conversion boundaries. `parse()`, `parseUnit()`, `unit()`,
+`parseQuantity()`, `quantity()`, normalization, and quantity arithmetic still reject affine units. Multiplication,
+division, powers, and prefixes of affine units are also rejected until absolute and delta-temperature semantics exist.
+Logarithmic definitions remain recognized but unevaluable.
 
 ## Quantity Arithmetic
 

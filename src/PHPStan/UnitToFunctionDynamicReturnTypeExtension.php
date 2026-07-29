@@ -36,16 +36,18 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
+use jbboehr\Yumemi\Units;
 use PhpParser\Node\Expr\FuncCall;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\FunctionReflection;
 use PHPStan\Type\DynamicFunctionReturnTypeExtension;
 use PHPStan\Type\ErrorType;
+use PHPStan\Type\FloatType;
 use PHPStan\Type\Type;
 
 /**
- * Infers unit_float<'to'> from unit_to($value, 'from', 'to') when unit strings are constant
- * and share a dimension (catalog-compatible conversion).
+ * Validates constant unit_to() calls and infers unit_float<'to'> for multiplicative targets.
+ * Affine targets remain plain float because the branded unit model is multiplicative.
  */
 final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionReturnTypeExtension
 {
@@ -53,6 +55,7 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
 
     public function __construct(
         private readonly UnitExpressionParser $parser,
+        private readonly Units $units,
     ) {
     }
 
@@ -74,7 +77,7 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
      *
      * Returns null when the call is not statically analysable, an {@see ErrorType} carrying a
      * reason for an invalid from/to unit, a value/from mismatch, or a dimensional mismatch, or
-     * the branded unit type otherwise.
+     * a branded multiplicative target or plain float for an affine target otherwise.
      */
     public function inferType(FuncCall $functionCall, Scope $scope): ?Type
     {
@@ -83,24 +86,44 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
             return null;
         }
 
-        $fromUnit = $this->constantUnit($scope->getType($args[1]->value), 'from');
-        if ($fromUnit === null) {
+        $fromString = $this->constantString($scope->getType($args[1]->value));
+        if ($fromString === null) {
             return null;
-        }
-        if ($fromUnit instanceof ErrorType) {
-            return $fromUnit;
         }
 
-        $toUnit = $this->constantUnit($scope->getType($args[2]->value), 'to');
-        if ($toUnit === null) {
+        $toString = $this->constantString($scope->getType($args[2]->value));
+        if ($toString === null) {
             return null;
         }
-        if ($toUnit instanceof ErrorType) {
-            return $toUnit;
+
+        try {
+            $compatible = $this->units->compatible($fromString, $toString);
+        } catch (\Throwable $exception) {
+            return new ErrorType($exception->getMessage());
+        }
+
+        $fromResult = $this->parser->parse($fromString);
+        $toResult = $this->parser->parse($toString);
+        $fromUnit = $fromResult->isOk() ? $fromResult->expression() : null;
+        $toUnit = $toResult->isOk() ? $toResult->expression() : null;
+
+        if (!$compatible) {
+            return new ErrorType(sprintf(
+                'Cannot convert with unit_to(): units %s and %s are not dimensionally compatible.',
+                $fromResult->isOk() ? $fromResult->expression()->displayString : $fromString,
+                $toResult->isOk() ? $toResult->expression()->displayString : $toString,
+            ));
         }
 
         $valueType = $scope->getType($args[0]->value);
         if ($valueType instanceof UnitIntegerType || $valueType instanceof UnitFloatType) {
+            if ($fromUnit === null) {
+                return new ErrorType(sprintf(
+                    'unit_to() cannot use a unit-branded value with affine from unit %s.',
+                    $fromString,
+                ));
+            }
+
             $valueUnit = $valueType->getUnitExpression();
             if (!$valueUnit->equivalent($fromUnit)) {
                 return new ErrorType(sprintf(
@@ -111,30 +134,21 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
             }
         }
 
-        if (!$fromUnit->sameDimension($toUnit)) {
-            return new ErrorType(sprintf(
-                "Cannot convert with unit_to(): units %s and %s are not dimensionally compatible.",
-                $fromUnit->displayString,
-                $toUnit->displayString,
-            ));
+        if ($toUnit === null) {
+            return new FloatType();
         }
 
         // Conversion factors are generally non-integral → always unit_float.
         return new UnitFloatType($toUnit);
     }
 
-    private function constantUnit(Type $type, string $role): UnitExpression|ErrorType|null
+    private function constantString(Type $type): ?string
     {
         $constantStrings = $type->getConstantStrings();
         if (count($constantStrings) !== 1) {
             return null;
         }
 
-        $parsed = $this->parser->parse($constantStrings[0]->getValue());
-        if (!$parsed->isOk()) {
-            return new ErrorType($parsed->errorMessage() ?? 'Invalid unit expression.');
-        }
-
-        return $parsed->expression();
+        return $constantStrings[0]->getValue();
     }
 }

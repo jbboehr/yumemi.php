@@ -15,8 +15,8 @@ meaning for `meter / second` whether PHPStan is reading it or your code is compu
   (`unit_int<'…'>` / `unit_float<'…'>`), arithmetic operator inference (`+ - * / ** %`), `unit()` / `unit_to()` helpers,
   invalid-unit-string diagnostics, `Quantity<'…'>` object types with fluent-method inference, and extension-optional
   `@yumemi-param` / `@yumemi-return` / `@yumemi-var` annotations through an opt-in parser integration.
-- **Runtime library:** usable — unit expressions, UDUNITS2 catalog, quantities, exact rational conversion, dimensional
-  checks.
+- **Runtime library:** usable — unit expressions, UDUNITS2 catalog, quantities, exact rational conversion (including
+  Celsius/Fahrenheit affine conversions), and dimensional checks.
 
 Architecture, implementation status, and roadmap: [docs/planning.md](docs/planning.md). Broader feature comparison:
 [docs/pint-parity.md](docs/pint-parity.md).
@@ -126,6 +126,10 @@ $heightInMeters = unit_to(6, 'foot', 'meter');
 assert($height === 6);
 assert($heightInMeters > 1.82 && $heightInMeters < 1.83);
 ```
+
+`unit_to()` also validates affine conversions. A target such as `kelvin` retains its `unit_float<'kelvin'>` brand; an
+affine target such as `celsius` is currently plain `float` because absolute and delta-temperature brands are not yet
+modeled.
 
 Code that opts into the runtime `Quantity` object gets the same checking on the object path:
 `Quantity<'meter / second'>` is a real PHPDoc type, and the fluent methods (`mul`, `div`, `pow`, `to`, `normalize`,
@@ -297,6 +301,22 @@ assert($length->decimalValueIn('meter', 2, \RoundingMode::HalfEven) === '0.30');
 assert($length->floatValueIn('meter') === 0.3048);
 ```
 
+Explicit conversion also supports affine temperature scales without admitting offset units into multiplicative quantity
+algebra:
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+use jbboehr\Yumemi\Units;
+
+$units = Units::default();
+
+assert($units->convert(0, 'celsius', 'kelvin')->toString() === '5463/20');
+assert($units->convert(100, 'celsius', 'fahrenheit')->toString() === '212');
+```
+
 Catalog introspection preserves the difference between canonical names, aliases, symbols, and plurals without
 normalizing the unit into an equivalent base-unit expression:
 
@@ -324,7 +344,8 @@ assert($kilo->definitionExpression === '1e3');
 
 `describe()` and `describePrefix()` perform exact catalog lookup. They do not parse unit expressions, substitute unit
 definitions, or synthesize descriptions for dynamically prefixed names. See the [catalog reference](docs/catalog.md) for
-catalog customization, structured reasons for known unsupported affine or logarithmic units, and regeneration.
+catalog customization, affine conversion boundaries, structured reasons for expression-level affine limitations and
+unsupported logarithmic units, and regeneration.
 
 Formatting policies can canonicalize aliases and generated plurals, select catalog symbols, use Unicode typography, and
 control dimensionless output. Formatting does not normalize or substitute unit definitions:

@@ -55,9 +55,11 @@ That distinction is intentional current behavior, not evidence that `micrometer`
 Use `UnitRegistryBuilder::default()` to layer custom definitions and aliases over UDUNITS2. Use
 `UnitRegistryBuilder::empty()` for an isolated catalog.
 
-Definitions use the normal multiplicative unit language and are parsed against the completed registry on first use. The
-builder is mutable: each fluent method updates and returns the same builder. Every `build()` call creates an immutable
-registry snapshot that is unaffected by later builder changes.
+Definitions use the normal unit language and are parsed against the completed registry on first use. Multiplicative
+definitions work throughout the runtime. An affine definition such as `degree_widget = kelvin @ 100` works at explicit
+conversion boundaries but remains unavailable to expression and quantity algebra. The builder is mutable: each fluent
+method updates and returns the same builder. Every `build()` call creates an immutable registry snapshot that is
+unaffected by later builder changes.
 
 ```php
 <?php
@@ -69,6 +71,7 @@ use jbboehr\Yumemi\Units;
 
 $registry = UnitRegistryBuilder::default()
     ->define('widget = 12 * meter')
+    ->define('degree_widget = kelvin @ 100')
     ->alias('widgets', 'widget')
     ->build();
 
@@ -76,6 +79,7 @@ $units = new Units($registry);
 
 assert($units->quantity(2, 'widgets')->valueIn('meter')->toString() === '24');
 assert($units->describe('widgets')?->canonicalName === 'widget');
+assert($units->convert(0, 'degree_widget', 'kelvin')->toString() === '100');
 ```
 
 An overlay definition wins over a base UDUNITS2 record with the same name. Aliases resolve through the composed
@@ -85,16 +89,21 @@ For PHPStan, configure one `UnitRegistryFactory` that returns the complete regis
 `Units` context from the same registry. PHPStan assumes one authoritative registry for an analysis run and does not
 track a separate catalog identity for each value.
 
-## Unsupported Catalog Semantics
+## Catalog Semantic Support
 
-The runtime intentionally supports only multiplicative unit algebra with integer powers. Known affine and logarithmic
-UDUNITS2 definitions remain in the generated catalog with an `UnsupportedUnitReason` exposed by `describe()`. Aliases
-inherit the support status of their canonical entry.
+The expression and quantity models intentionally support only multiplicative unit algebra with integer powers. Known
+affine and logarithmic UDUNITS2 definitions remain in the generated catalog with an `UnsupportedUnitReason` exposed by
+`describe()`. Aliases inherit the support status of their canonical entry, and direct custom `@` or `lg(...)`
+definitions receive the same classification.
 
-Attempting to evaluate one of these units throws `UnsupportedUnitException` before its definition reaches the parser.
-The exception carries the canonical unit name, support reason, and original definition; PHPStan reports the same reason
-for constant unit strings. This makes a known unsupported unit distinct from an unknown or misspelled name without
-claiming support for affine or logarithmic conversion.
+Affine classification currently means "unsupported by multiplicative `Expr` algebra," not "unsupported everywhere."
+`convert()`, `convertFloat()`, `compatible()`, `dimension()`, and `unit_to()` evaluate affine definitions exactly.
+`conversionFactor()` works only when the composed conversion has no offset. Affine units remain invalid in `parse()`,
+`unit()`, quantities, multiplication, division, powers, and prefixes.
+
+Logarithmic definitions remain unsupported at every execution boundary. Attempting to evaluate one throws
+`UnsupportedUnitException`, which carries the canonical unit name, support reason, and original definition. PHPStan
+reports the same reason for constant unit strings.
 
 ## Regenerating The Catalog
 

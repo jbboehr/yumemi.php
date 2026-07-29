@@ -9,7 +9,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Add exact affine conversion for UDUNITS2 and custom offset units, including `Units::convertFloat()` and PHPStan-aware
+  `unit_to()` results.
+
 ### Changed
+
+- Make `conversionFactor()` reject conversions with a nonzero offset through `NonMultiplicativeConversionException` and
+  expose affine dimensions through `compatible()` and `dimension()`.
 
 ### Deprecated
 

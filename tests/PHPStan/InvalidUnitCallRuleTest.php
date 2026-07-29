@@ -102,6 +102,22 @@ final class InvalidUnitCallRuleTest extends RuleTestCase
                 'Unit "degree_Celsius" is known but uses unsupported affine semantics (definition: K @ 273.15).',
                 33,
             ],
+            [
+                'Cannot convert with unit_to(): units degree_Celsius and meter are not dimensionally compatible.',
+                36,
+            ],
+            [
+                'unit_to() cannot use a unit-branded value with affine from unit celsius.',
+                37,
+            ],
+            [
+                'Affine units cannot be multiplied, divided, or raised to powers: (celsius * meter).',
+                38,
+            ],
+            [
+                'Affine unit "celsius" cannot be prefixed.',
+                39,
+            ],
         ]);
     }
 }

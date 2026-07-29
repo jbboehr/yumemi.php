@@ -34,6 +34,11 @@ assertType("unit_float<'meter ^ 3'>", unit_to(1.0, 'liter', 'meter^3'));
 assertType("unit_float<'gram'>", unit_to(1.0, 'kilogram', 'gram'));
 assertType("unit_float<'meter'>", unit_to(1.0, 'kilometer', 'meter'));
 
+// affine sources can convert into a multiplicative brand; affine targets remain plain float
+assertType("unit_float<'kelvin'>", unit_to(0, 'celsius', 'kelvin'));
+assertType('float', unit_to(273.15, 'kelvin', 'celsius'));
+assertType('float', unit_to(100, 'celsius', 'fahrenheit'));
+
 // factor-1 derived SI still rebrands to the *to* spelling
 assertType("unit_float<'kilogram * meter / second ^ 2'>", unit_to(1.0, 'newton', 'kilogram * meter / second^2'));
 assertType("unit_float<'newton'>", unit_to(1.0, 'kilogram * meter / second^2', 'newton'));
@@ -63,3 +68,4 @@ assertType('*ERROR*', unit_to(1.0, 'not_a_real_unit_xyz', 'meter'));
 // value unit does not match from (normalized forms differ)
 assertType('*ERROR*', unit_to(unit(3.0, 'foot'), 'meter', 'foot'));
 assertType('*ERROR*', unit_to(unit(1.0, 'kilogram'), 'meter', 'kilogram'));
+assertType('*ERROR*', unit_to(unit(0.0, 'kelvin'), 'celsius', 'kelvin'));

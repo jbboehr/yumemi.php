@@ -96,7 +96,7 @@ Already implemented:
   - mutable fluent registry construction producing immutable registry snapshots
   - resolver-side prefix handling
   - fail-closed, case-sensitive name resolution without runtime morphology
-- Runtime conversion-factor resolver
+- Exact conversion resolver for multiplicative and affine scale-and-offset transforms
 - Public `Units` facade with `Expr|string` ergonomics:
   - `unit()`
   - `parse()`
@@ -106,10 +106,17 @@ Already implemented:
   - `compatible()`
   - `conversionFactor()`
   - `convert()`
+  - `convertFloat()`
   - `quantity()`
   - `format()` and reusable registry-aware formatters
   - `describe()`
   - `describePrefix()`
+- Explicit affine conversion support:
+  - exact UDUNITS2 Celsius/Fahrenheit conversion through `Rational` scale and offset transforms
+  - custom affine definitions and chained aliases through `UnitRegistryBuilder`
+  - affine-aware dimensional compatibility and dimension lookup
+  - value-independent `conversionFactor()` rejection through `NonMultiplicativeConversionException`
+  - strict rejection of affine multiplication, division, powers, prefixes, quantities, and ordinary unit brands
 - Ported generated parser from `units.php`:
   - grammar
   - lexer
@@ -188,7 +195,8 @@ Implemented PHPStan behavior:
   requires a constant integer exponent, and modulo requires equivalent `unit_int` operands.
 - Native `+` / `-` require normalized-equivalent units. Merely compatible dimensions are insufficient because native
   arithmetic cannot convert the right magnitude.
-- `unit()` brands a native magnitude and `unit_to()` performs a runtime conversion while returning a branded float.
+- `unit()` brands a native multiplicative magnitude. `unit_to()` performs multiplicative or affine runtime conversion;
+  multiplicative targets return a branded float while affine targets remain plain `float`.
 - `Units::quantity()`, `Units::parseQuantity()`, and all current unit-bearing `Quantity` methods preserve or transform
   the static unit brand.
 - Quantity arithmetic, conversion, extraction, and comparisons receive standalone diagnostics even when an invalid
@@ -338,17 +346,18 @@ Supported by parser and converter now:
 - decimal constants such as `1.25 meter`
 - scientific notation accepted by the lexer
 
-Parsed but unsupported by converter:
+Parsed but unsupported by the multiplicative expression converter:
 
 - `meter + second`
 - `meter - second`
 - `meter @ 2`
 
-This should remain explicit until offsets/affine units are designed.
+The exact conversion resolver separately supports a standalone `identifier @ number` at explicit conversion boundaries
+and in catalog definitions. Affine units still cannot participate in multiplicative expression or quantity algebra.
 
 The parser can read more UDUNITS2 syntax than the runtime chooses to support semantically. The catalog retains
-logarithmic and affine definitions with explicit support reasons, and resolution rejects them deliberately before
-attempting unsupported evaluation.
+logarithmic and affine definitions with explicit support reasons. Affine definitions now execute only through
+conversion, compatibility, and dimension APIs; logarithmic definitions remain unevaluable.
 
 ## Rational Powers And Exact Roots
 
@@ -485,6 +494,10 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
 ### Known Limitations And Risks
 
 - Dynamic unit strings cannot be validated statically and intentionally fall back to native PHPStan return types.
+- Affine units are currently absolute coordinate systems only. Delta-temperature units, affine `Quantity` construction
+  and arithmetic, direct affine PHPDoc brands, and prefixed affine units remain unsupported.
+- `unit_to()` returns plain `float` for affine targets because native affine brands cannot yet express absolute-versus-
+  delta semantics. Affine sources converted to multiplicative targets retain the target brand.
 - PHPStan assumes one authoritative registry. Flow-sensitive tracking of several runtime registry identities is not
   implemented.
 - The opt-in `@yumemi-*` parser integration depends on internal PHPStan parser services and may conflict with another
@@ -510,7 +523,7 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
 
 ### Deferred Features
 
-- Offset and affine units, especially absolute versus delta temperatures
+- Delta-temperature units and affine quantity/arithmetic semantics; exact affine conversion boundaries are implemented
 - Logarithmic units
 - Exact rational powers and roots; approximate results require explicit precision and rounding
 - Significant-digit and scientific-notation numeric formatting
@@ -537,7 +550,8 @@ UnitResolver -> record()/lookup() -> AstConverter (defs/prefixes) -> Expr
 Parser string -> Parser\Ast -> AstConverter (resolving or symbolic) -> Expr
 Expr -> ExprReducer -> reduced Expr
 Expr -> UnitNormalizer -> normalized Expr
-normalized Expr -> ConversionFactorResolver -> Rational factor
+conversion string/Expr -> UnitConversionResolver -> exact scale-and-offset transform
+normalized multiplicative Expr -> ConversionFactorResolver -> Rational factor (low-level API)
 Units facade -> Quantity/runtime expression API
 
 PHPDoc/call site -> UnitTypeNodeResolverExtension/dynamic return extensions/rules

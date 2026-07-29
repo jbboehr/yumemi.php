@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\Tests\Registry;
 
 use jbboehr\Yumemi\Analyzer\UnitResolver;
+use jbboehr\Yumemi\Catalog\UnsupportedUnitReason;
 use jbboehr\Yumemi\Expr\Compound;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Unit;
@@ -158,6 +159,19 @@ final class UnitRegistryBuilderTest extends TestCase
         $units = new Units($registry);
 
         $this->assertSame('25146/125', $units->quantity(1, 'furlong')->valueIn('meter')->toString());
+    }
+
+    public function testDefineClassifiesAffineAndLogarithmicDefinitions(): void
+    {
+        $registry = UnitRegistryBuilder::default()
+            ->define('degree_widget = kelvin @ 100')
+            ->define('bel_widget = lg(re 1)')
+            ->build();
+
+        $this->assertSame('affine', $registry->record('degree_widget')['unsupportedReason'] ?? null);
+        $this->assertSame('logarithmic', $registry->record('bel_widget')['unsupportedReason'] ?? null);
+        $this->assertSame(UnsupportedUnitReason::Affine, $registry->describe('degree_widget')?->unsupportedReason);
+        $this->assertSame(UnsupportedUnitReason::Logarithmic, $registry->describe('bel_widget')?->unsupportedReason);
     }
 
     public function testDefineWorksOnEmptyBuilderWithExplicitUnits(): void

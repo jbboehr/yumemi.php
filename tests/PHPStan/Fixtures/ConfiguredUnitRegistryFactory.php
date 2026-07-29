@@ -46,6 +46,7 @@ final class ConfiguredUnitRegistryFactory implements UnitRegistryFactory
     {
         return UnitRegistryBuilder::default()
             ->define('widget = 12 * meter')
+            ->define('degree_widget = kelvin @ 100')
             ->alias('widgets', 'widget')
             ->build();
     }

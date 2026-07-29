@@ -181,6 +181,13 @@ final class UnitFunctionTest extends TestCase
         $this->assertSame(1.0, unit_to(1, $slightlyLarger . ' * meter', $powerOfTen . ' * meter'));
     }
 
+    public function testUnitToSupportsAffineIntegerAndFloatConversions(): void
+    {
+        $this->assertSame(32.0, unit_to(0, 'celsius', 'fahrenheit'));
+        $this->assertEqualsWithDelta(98.6, unit_to(37.0, 'celsius', 'fahrenheit'), 1e-12);
+        $this->assertSame(0.0, unit_to(32, 'fahrenheit', 'celsius'));
+    }
+
     private function expectedConvertedFloat(int|float $value, string $from, string $to): float
     {
         $factor = Units::default()->conversionFactor($from, $to);

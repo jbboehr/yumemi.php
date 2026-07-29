@@ -37,7 +37,7 @@ services:
         arguments:
             unitRegistry: @yumemiUnitRegistry
         autowired: false
-    -
+    yumemiUnitExpressionParser:
         class: jbboehr\Yumemi\PHPStan\UnitExpressionParser
         arguments:
             units: @yumemiUnits
@@ -65,6 +65,9 @@ services:
             - phpstan.broker.dynamicFunctionReturnTypeExtension
     -
         class: jbboehr\Yumemi\PHPStan\UnitToFunctionDynamicReturnTypeExtension
+        arguments:
+            parser: @yumemiUnitExpressionParser
+            units: @yumemiUnits
         tags:
             - phpstan.broker.dynamicFunctionReturnTypeExtension
     -

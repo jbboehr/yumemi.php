@@ -34,66 +34,19 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi;
-
-use jbboehr\Yumemi\Exception\IncompatibleUnitException;
+namespace jbboehr\Yumemi\Catalog;
 
 /**
- * Brand a native int/float with a unit for static analysis (and light runtime checks).
- *
- * At runtime the magnitude is returned unchanged after validating that {@see $unit}
- * parses in the default catalog. PHPStan infers `unit_int<'…'>` or `unit_float<'…'>`
- * when the unit string is a constant.
- *
- * @param int|float $value
- * @return ($value is int ? int : float)
+ * @internal
  */
-function unit(int|float $value, string $unit): int|float
+final class UnitDefinitionClassifier
 {
-    try {
-        Units::default()->parse($unit);
-    } catch (\Throwable $exception) {
-        throw new \InvalidArgumentException(
-            'Invalid unit expression for unit(): ' . $exception->getMessage(),
-            0,
-            $exception,
-        );
-    }
+    public static function unsupportedReason(string $definition): ?UnsupportedUnitReason
+    {
+        if (str_contains($definition, '@')) {
+            return UnsupportedUnitReason::Affine;
+        }
 
-    return $value;
-}
-
-/**
- * Convert a native magnitude from one unit to another.
- *
- * Use when units share a dimension but not a normalized form (e.g. foot → meter,
- * mile/hour → meter/second). Definitionally identical units (kilometer vs 1000*meter)
- * do not require this for PHPStan assignment; conversion still yields a float.
- *
- * Always returns float. PHPStan brands a multiplicative target as unit_float<'$to'>
- * when both unit strings are constants and compatible; affine targets remain plain float.
- *
- * @param int|float $value
- */
-function unit_to(int|float $value, string $from, string $to): float
-{
-    $units = Units::default();
-
-    try {
-        return is_int($value)
-            ? $units->convert($value, $from, $to)->toFloat()
-            : $units->convertFloat($value, $from, $to);
-    } catch (IncompatibleUnitException $exception) {
-        throw new \InvalidArgumentException(
-            'Cannot convert with unit_to(): ' . $exception->getMessage(),
-            0,
-            $exception,
-        );
-    } catch (\Throwable $exception) {
-        throw new \InvalidArgumentException(
-            'Invalid unit expression for unit_to(): ' . $exception->getMessage(),
-            0,
-            $exception,
-        );
+        return str_contains($definition, 'lg(') ? UnsupportedUnitReason::Logarithmic : null;
     }
 }

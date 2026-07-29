@@ -37,10 +37,9 @@
 namespace jbboehr\Yumemi;
 
 use jbboehr\Yumemi\Analyzer\AstConverter;
-use jbboehr\Yumemi\Analyzer\ConversionFactorResolver;
-use jbboehr\Yumemi\Analyzer\DimensionResolver;
 use jbboehr\Yumemi\Analyzer\ExprReducer;
 use jbboehr\Yumemi\Analyzer\NormalizedExpr;
+use jbboehr\Yumemi\Analyzer\UnitConversionResolver;
 use jbboehr\Yumemi\Analyzer\UnitNormalizer;
 use jbboehr\Yumemi\Analyzer\UnitResolver;
 use jbboehr\Yumemi\Catalog\PrefixDescriptor;
@@ -60,8 +59,7 @@ final class Units
     private static ?self $default = null;
 
     private readonly AstConverter $astConverter;
-    private readonly ConversionFactorResolver $conversionFactorResolver;
-    private readonly DimensionResolver $dimensionResolver;
+    private readonly UnitConversionResolver $unitConversionResolver;
     private readonly ExprFormatter $defaultFormatter;
     private readonly UnitNormalizer $unitNormalizer;
     private readonly UnitResolver $unitResolver;
@@ -72,11 +70,7 @@ final class Units
         $this->unitResolver = new UnitResolver($this->unitRegistry);
         $this->astConverter = new AstConverter($this->unitResolver);
         $this->unitNormalizer = new UnitNormalizer();
-        $this->dimensionResolver = new DimensionResolver($this->unitNormalizer);
-        $this->conversionFactorResolver = new ConversionFactorResolver(
-            $this->unitNormalizer,
-            $this->dimensionResolver,
-        );
+        $this->unitConversionResolver = new UnitConversionResolver($this->unitRegistry);
         $this->defaultFormatter = new ExprFormatter($this->unitRegistry);
     }
 
@@ -94,24 +88,31 @@ final class Units
 
     public function compatible(Expr|string $left, Expr|string $right): bool
     {
-        return $this->conversionFactorResolver->compatible($this->expr($left), $this->expr($right));
+        return $this->unitConversionResolver->compatible($left, $right);
     }
 
     public function conversionFactor(Expr|string $from, Expr|string $to): Rational
     {
-        return $this->conversionFactorResolver->resolve($this->expr($from), $this->expr($to));
+        return $this->unitConversionResolver->conversionFactor($from, $to);
     }
 
     public function convert(int|Rational $value, Expr|string $from, Expr|string $to): Rational
     {
         $value = $value instanceof Rational ? $value : new Rational($value);
 
-        return $value->mul($this->conversionFactor($from, $to));
+        return $this->unitConversionResolver->conversion($from, $to)->apply($value);
+    }
+
+    public function convertFloat(float $value, Expr|string $from, Expr|string $to): float
+    {
+        $conversion = $this->unitConversionResolver->conversion($from, $to);
+
+        return $value * $conversion->scale->toFloat() + $conversion->offset->toFloat();
     }
 
     public function dimension(Expr|string $expr): Dimension
     {
-        return $this->dimensionResolver->resolve($this->expr($expr));
+        return $this->unitConversionResolver->dimension($expr);
     }
 
     public function format(Expr|string $expr, ?FormatOptions $options = null): string

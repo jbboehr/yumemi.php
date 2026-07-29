@@ -91,7 +91,8 @@ Current codebase facts:
 - Exact numeric representation: `Number\Rational`
 - Expression model: `Expr`, `Expr\Constant`, `Expr\Unit`, `Expr\Term`, `Expr\Compound`
 - Parser stack: Bison grammar, lexer, AST nodes, generated parser
-- Runtime analyzers: `ExprReducer`, `UnitNormalizer`, `ConversionFactorResolver`, `UnitResolver`
+- Runtime analyzers: `ExprReducer`, `UnitNormalizer`, `ConversionFactorResolver`, `UnitConversionResolver`,
+  `UnitResolver`
 - Catalog: generated `data/udunits2.php`
 - Generated catalog size at this snapshot:
   - 559 total unit names/aliases
@@ -101,8 +102,8 @@ Current codebase facts:
   - 1 dimensionless unit entry
   - 40 prefixes
 - Catalog smoke tests currently expect 526 supported definitions to normalize.
-- Affine temperature definitions remain intentionally unsupported.
-- Logarithmic definitions are skipped by the importer.
+- Affine temperature definitions support exact explicit conversion but not quantity or multiplicative algebra.
+- Logarithmic definitions are retained and classified but remain unevaluable.
 
 The architecture is good enough to keep:
 
@@ -122,7 +123,7 @@ PHPStan extension -> same parser/registry/reducer/conversion semantics
 
 ### 1. Expression Model And Reduction
 
-Status: Partial Importance: P0 Difficulty to finish: M
+Status: Implemented for multiplicative and affine boundaries Importance: P0 Difficulty to finish: S
 
 Yumemi has the core expression representation and deterministic reduction:
 
@@ -280,18 +281,17 @@ scale-sensitive workflows.
 
 Status: Partial Importance: P0 Difficulty to finish: M
 
-Yumemi can compute conversion factors, convert values, check compatibility, and convert `Quantity` instances to a target
-unit. This is the minimum viable runtime.
+Yumemi computes value-independent conversion factors, converts exact and float values, checks compatibility, and
+converts `Quantity` instances to a multiplicative target. Exact affine conversion supports Celsius, Fahrenheit, and
+custom `@` definitions at explicit boundaries.
 
 Remaining work:
 
-- Expose dimensionality directly.
-- Improve exception messages to show source unit, target unit, and dimensions.
-- Add conversion APIs for floats/decimals once numeric policy is settled.
 - Cache parsed target expressions and normalized dimensions where it matters.
+- Extend affine support into quantities only after absolute-versus-delta semantics are designed.
 
-Recommendation: This is close to good enough for multiplicative units. Polish errors and dimensionality before widening
-scope.
+Recommendation: The explicit conversion boundary is usable. Keep affine arithmetic out of `Quantity` until delta units
+have an explicit model.
 
 ### 8. Normalization, Simplification, Base Units, And Root Units
 
@@ -426,7 +426,7 @@ Recommendation: Tighten this before calling the catalog "UDUNITS2-compatible" in
 
 ### 13. Offset And Affine Units
 
-Status: Absent/unsupported Importance: P1 Difficulty: L/XL
+Status: Partial (exact conversion core implemented) Importance: P1 Difficulty to finish: L/XL
 
 This is the biggest runtime semantic gap for ordinary users. Celsius and Fahrenheit matter in everyday software, and
 Pint supports them with nonmultiplicative conversion rules and delta units.
@@ -437,17 +437,17 @@ Why it is hard:
 - `10 degC + 10 kelvin` is ambiguous unless kelvin is treated as a delta.
 - Multiplication and division involving offset units need restrictions.
 - Static analysis must distinguish absolute temperature from temperature difference.
-- Current `ConversionFactorResolver` assumes compatible units differ by a rational multiplicative factor.
+- Quantity and native branded-unit models currently assume multiplicative unit identity.
 
 Likely model:
 
-- Keep multiplicative units on the current `Expr` path.
-- Introduce converter objects, such as scale-only and affine converters.
+- Keep multiplicative units on the current `Expr` path. **Done.**
+- Resolve exact scale-and-offset transforms outside `Expr`. **Done for explicit conversion.**
 - Add delta units for temperature differences.
 - Reject ambiguous arithmetic by default.
 
-Recommendation: Important, but do not start here. It is safer after registry, dimensions, formatting, and PHPStan MVP
-are in place.
+Recommendation: Preserve the current conversion-only boundary. The next affine phase should begin with delta-unit and
+absolute-temperature semantics, not by allowing offset units into existing multiplication or quantity arithmetic.
 
 ### 14. Logarithmic Units
 
@@ -843,12 +843,12 @@ Recommendation: Keep the current setup. Do not spend more time here until featur
 | Custom unit definitions        | Absent           | P0/P1      | M/L        | Soon              |
 | Quantity creation              | Partial          | P0         | S/M        | Now               |
 | Quantity arithmetic            | Partial          | P0         | M          | Now               |
-| Explicit conversion            | Partial          | P0         | M          | Now               |
+| Explicit conversion            | Implemented      | P0         | S          | Maintain          |
 | Dimensionality API             | Internal/partial | P0/P1      | M          | Soon              |
 | Numeric output policies        | Partial          | P1         | M          | Soon              |
 | Formatting                     | Partial          | P1         | M/L        | Soon              |
 | Prefix/plural/symbol semantics | Partial          | P1         | M          | Soon              |
-| Offset temperature units       | Absent           | P1         | L/XL       | Later             |
+| Offset temperature units       | Conversion only  | P1         | L/XL       | Later             |
 | Logarithmic units              | Absent           | P2/P3      | XL         | Defer             |
 | Contexts                       | Absent           | P2         | XL         | Defer             |
 | Unit systems                   | Absent           | P2         | L          | Later             |
@@ -937,7 +937,7 @@ Goal: cover important nonmultiplicative real-world cases without destabilizing t
 
 Work:
 
-- Offset temperatures and delta temperatures.
+- Delta temperatures and affine quantity arithmetic; explicit offset conversion is implemented.
 - Unit systems.
 - Contexts, if still desired.
 - Logarithmic units only after affine units are solved.
