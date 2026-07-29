@@ -36,12 +36,14 @@
 
 namespace jbboehr\Yumemi\Catalog;
 
-enum CatalogNameKind: string
+/**
+ * Provenance for a unit descriptor synthesized from one prefix and one exact unit spelling.
+ */
+final readonly class PrefixApplicationDescriptor
 {
-    case Canonical = 'canonical';
-    case Alias = 'alias';
-    case Symbol = 'symbol';
-    case ExplicitPlural = 'explicit_plural';
-    case GeneratedPlural = 'generated_plural';
-    case Prefixed = 'prefixed';
+    public function __construct(
+        public PrefixDescriptor $prefix,
+        public UnitDescriptor $unit,
+    ) {
+    }
 }

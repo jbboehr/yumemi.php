@@ -132,7 +132,7 @@ final class Units
     }
 
     /**
-     * Describe an exact unit spelling without parsing expressions or synthesizing prefixed names.
+     * Describe an exact unit spelling or a dynamically prefixed name without parsing compound expressions.
      */
     public function describe(string $name): ?UnitDescriptor
     {

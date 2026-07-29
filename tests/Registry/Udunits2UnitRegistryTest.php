@@ -38,6 +38,7 @@ namespace jbboehr\Yumemi\Tests\Registry;
 
 use jbboehr\Yumemi\Analyzer\UnitResolver;
 use jbboehr\Yumemi\Catalog\CatalogNameKind;
+use jbboehr\Yumemi\Catalog\PrefixApplicationDescriptor;
 use jbboehr\Yumemi\Catalog\UnitKind;
 use jbboehr\Yumemi\Catalog\UnsupportedUnitReason;
 use jbboehr\Yumemi\Exception\UnsupportedUnitDimensionException;
@@ -219,11 +220,101 @@ final class Udunits2UnitRegistryTest extends TestCase
         $this->assertNull($registry->describe('kquark'));
     }
 
+    public function testDescribesDynamicallyPrefixedNamesWithComponentProvenance(): void
+    {
+        $registry = new Udunits2UnitRegistry();
+        $descriptor = $registry->describe('kPa');
+
+        $this->assertNotNull($descriptor);
+        $this->assertSame('kPa', $descriptor->matchedName);
+        $this->assertSame('kilopascal', $descriptor->canonicalName);
+        $this->assertSame(CatalogNameKind::Prefixed, $descriptor->matchedAs);
+        $this->assertSame(UnitKind::Derived, $descriptor->kind);
+        $this->assertSame('1e3 * pascal', $descriptor->definitionExpression);
+        $this->assertSame([], $descriptor->aliases);
+        $this->assertSame([], $descriptor->symbols);
+        $this->assertSame([], $descriptor->plurals());
+        $this->assertTrue($descriptor->isDynamicallyPrefixed());
+        $this->assertTrue($descriptor->isSupported());
+        $this->assertSame($registry->describe('pascal')?->documentation, $descriptor->documentation);
+
+        $application = $descriptor->prefixApplication;
+        $this->assertInstanceOf(PrefixApplicationDescriptor::class, $application);
+        $this->assertSame('k', $application->prefix->matchedName);
+        $this->assertSame('kilo', $application->prefix->canonicalName);
+        $this->assertSame(CatalogNameKind::Symbol, $application->prefix->matchedAs);
+        $this->assertSame('Pa', $application->unit->matchedName);
+        $this->assertSame('pascal', $application->unit->canonicalName);
+        $this->assertSame(CatalogNameKind::Symbol, $application->unit->matchedAs);
+    }
+
+    public function testPrefixedDescriptionPreservesResidualSpellingProvenance(): void
+    {
+        $registry = new Udunits2UnitRegistry();
+
+        $cases = [
+            'kilometer' => [CatalogNameKind::Canonical, CatalogNameKind::Canonical],
+            'kilometre' => [CatalogNameKind::Canonical, CatalogNameKind::Alias],
+            'kilometers' => [CatalogNameKind::Canonical, CatalogNameKind::GeneratedPlural],
+            'km' => [CatalogNameKind::Symbol, CatalogNameKind::Symbol],
+        ];
+
+        foreach ($cases as $name => [$prefixKind, $unitKind]) {
+            $descriptor = $registry->describe($name);
+
+            $this->assertNotNull($descriptor, $name);
+            $this->assertSame('kilometer', $descriptor->canonicalName, $name);
+            $this->assertSame(CatalogNameKind::Prefixed, $descriptor->matchedAs, $name);
+            $this->assertNotNull($descriptor->prefixApplication, $name);
+            $this->assertSame($prefixKind, $descriptor->prefixApplication->prefix->matchedAs, $name);
+            $this->assertSame($unitKind, $descriptor->prefixApplication->unit->matchedAs, $name);
+        }
+    }
+
+    public function testExactNameWinsOverPossiblePrefixDecomposition(): void
+    {
+        $descriptor = (new Udunits2UnitRegistry())->describe('Pa');
+
+        $this->assertNotNull($descriptor);
+        $this->assertSame('pascal', $descriptor->canonicalName);
+        $this->assertSame(CatalogNameKind::Symbol, $descriptor->matchedAs);
+        $this->assertFalse($descriptor->isDynamicallyPrefixed());
+        $this->assertNull($descriptor->prefixApplication);
+    }
+
+    public function testPrefixedUnsupportedUnitsExplainResidualSemantics(): void
+    {
+        $registry = new Udunits2UnitRegistry();
+        $affine = $registry->describe('kilocelsius');
+        $logarithmic = $registry->describe('kBz');
+
+        $this->assertNotNull($affine);
+        $this->assertNotNull($logarithmic);
+        $this->assertSame(UnsupportedUnitReason::Affine, $affine->unsupportedReason);
+        $this->assertSame(UnsupportedUnitReason::Logarithmic, $logarithmic->unsupportedReason);
+        $this->assertFalse($affine->isSupported());
+        $this->assertFalse($logarithmic->isSupported());
+        $this->assertSame('celsius', $affine->prefixApplication?->unit->canonicalName);
+        $this->assertSame('BZ', $logarithmic->prefixApplication?->unit->canonicalName);
+    }
+
+    public function testDynamicDescriptionDoesNotInventNestedPrefixesOrCatalogEntries(): void
+    {
+        $registry = new Udunits2UnitRegistry();
+
+        $this->assertNull($registry->describe('kkmeter'));
+        $this->assertNull($registry->describe('kquark'));
+        $this->assertNull($registry->describe('k'));
+        $this->assertNotContains('kilometer', $registry->names());
+        $this->assertNotNull($registry->describe('kilometer'));
+    }
+
     public function testUnitsFacadeExposesDescriptions(): void
     {
         $units = Units::default();
 
         $this->assertSame('meter', $units->describe('m')?->canonicalName);
+        $this->assertSame('kilometer', $units->describe('km')?->canonicalName);
         $this->assertSame('kilo', $units->describePrefix('k')?->canonicalName);
     }
 

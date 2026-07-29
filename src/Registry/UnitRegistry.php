@@ -36,7 +36,9 @@
 
 namespace jbboehr\Yumemi\Registry;
 
+use jbboehr\Yumemi\Analyzer\UnitNameResolver;
 use jbboehr\Yumemi\Catalog\CatalogNameKind;
+use jbboehr\Yumemi\Catalog\PrefixApplicationDescriptor;
 use jbboehr\Yumemi\Catalog\PrefixDescriptor;
 use jbboehr\Yumemi\Catalog\UnitDescriptor;
 use jbboehr\Yumemi\Catalog\UnitKind;
@@ -77,6 +79,8 @@ class UnitRegistry
      * @var array<string, CatalogRecord>
      */
     private array $records = [];
+
+    private ?UnitNameResolver $unitNameResolver = null;
 
     /**
      * @param iterable<int, Unit>|array<string, Unit> $units
@@ -214,9 +218,40 @@ class UnitRegistry
     }
 
     /**
-     * Describe an exact unit spelling without applying prefix decomposition or unit substitution.
+     * Describe an exact unit spelling or a name synthesized by applying one prefix to an exact spelling.
      */
     public function describe(string $name): ?UnitDescriptor
+    {
+        $exact = $this->describeExact($name);
+        if ($exact !== null) {
+            return $exact;
+        }
+
+        $resolved = $this->unitNameResolver()->resolve($name);
+        if ($resolved === null || !$resolved->isPrefixed()) {
+            return null;
+        }
+
+        $prefix = $this->describePrefix($resolved->prefixName ?? '');
+        $unit = $this->describeExact($resolved->unitName);
+        if ($prefix === null || $unit === null) {
+            return null;
+        }
+
+        return new UnitDescriptor(
+            matchedName: $name,
+            canonicalName: $prefix->canonicalName . $unit->canonicalName,
+            matchedAs: CatalogNameKind::Prefixed,
+            kind: UnitKind::Derived,
+            definitionExpression: $prefix->definitionExpression . ' * ' . $unit->canonicalName,
+            documentation: $unit->documentation,
+            comment: $unit->comment,
+            unsupportedReason: $unit->unsupportedReason,
+            prefixApplication: new PrefixApplicationDescriptor($prefix, $unit),
+        );
+    }
+
+    private function describeExact(string $name): ?UnitDescriptor
     {
         $resolved = $this->resolveCanonicalEntry($name);
         if ($resolved === null) {
@@ -274,6 +309,11 @@ class UnitRegistry
             explicitPlurals: $explicitPlurals,
             generatedPlurals: $generatedPlurals,
         );
+    }
+
+    private function unitNameResolver(): UnitNameResolver
+    {
+        return $this->unitNameResolver ??= new UnitNameResolver($this);
     }
 
     /**

@@ -21,12 +21,13 @@ remaining suffix is an exact unit name. See the [unit syntax reference](unit-syn
 
 ## Introspection
 
-`Units::describe()` describes one exact catalog spelling and follows aliases to its canonical entry.
+`Units::describe()` first describes an exact catalog spelling and follows aliases to its canonical entry. If no exact
+entry exists, it applies the same one-prefix-plus-exact-unit decomposition used by ordinary resolution.
 `Units::describePrefix()` describes one exact prefix name or symbol. Descriptors preserve whether the matched spelling
-was canonical, an alias, a symbol, an explicit plural, or a generated plural.
+was canonical, an alias, a symbol, an explicit plural, a generated plural, or dynamically prefixed.
 
-Introspection does not parse compound expressions or normalize definitions. It also does not currently synthesize a
-descriptor for a dynamically prefixed name, even when normal unit resolution accepts that name:
+Introspection does not parse compound expressions, normalize definitions, or add synthesized spellings to `names()`. A
+dynamically prefixed descriptor exposes its prefix and exact residual unit through `prefixApplication`:
 
 ```php
 <?php
@@ -37,18 +38,30 @@ use jbboehr\Yumemi\Catalog\CatalogNameKind;
 use jbboehr\Yumemi\Units;
 
 $units = Units::default();
-$meter = $units->describe('m');
+$kilopascal = $units->describe('kPa');
 
-assert($meter !== null);
-assert($meter->canonicalName === 'meter');
-assert($meter->matchedAs === CatalogNameKind::Symbol);
-assert(in_array('metre', $meter->aliases, true));
+assert($kilopascal !== null);
+assert($kilopascal->canonicalName === 'kilopascal');
+assert($kilopascal->matchedAs === CatalogNameKind::Prefixed);
+assert($kilopascal->definitionExpression === '1e3 * pascal');
+assert($kilopascal->isDynamicallyPrefixed());
 
-assert($units->normalize('micrometer')->toString() === '1/1000000 * meter');
-assert($units->describe('micrometer') === null);
+assert($kilopascal->prefixApplication !== null);
+assert($kilopascal->prefixApplication->prefix->matchedName === 'k');
+assert($kilopascal->prefixApplication->prefix->canonicalName === 'kilo');
+assert($kilopascal->prefixApplication->prefix->matchedAs === CatalogNameKind::Symbol);
+assert($kilopascal->prefixApplication->unit->matchedName === 'Pa');
+assert($kilopascal->prefixApplication->unit->canonicalName === 'pascal');
+assert($kilopascal->prefixApplication->unit->matchedAs === CatalogNameKind::Symbol);
 ```
 
-That distinction is intentional current behavior, not evidence that `micrometer` is invalid.
+The synthesized descriptor's top-level alias, symbol, and plural lists are empty because it is not an exact catalog
+entry. The residual descriptor retains the underlying unit's complete metadata. Exact spellings still take precedence:
+`Pa` describes the exact pascal symbol rather than decomposing as peta-are.
+
+Prefixed affine and logarithmic names also receive synthesized descriptors with the residual unit's
+`UnsupportedUnitReason`. This allows tooling to explain their structure even though multiplicative evaluation rejects
+them.
 
 ## Custom Registries
 

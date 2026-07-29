@@ -57,6 +57,7 @@ final readonly class UnitDescriptor
         public array $explicitPlurals = [],
         public array $generatedPlurals = [],
         public ?UnsupportedUnitReason $unsupportedReason = null,
+        public ?PrefixApplicationDescriptor $prefixApplication = null,
     ) {
     }
 
@@ -71,5 +72,10 @@ final readonly class UnitDescriptor
     public function isSupported(): bool
     {
         return $this->unsupportedReason === null;
+    }
+
+    public function isDynamicallyPrefixed(): bool
+    {
+        return $this->prefixApplication !== null;
     }
 }

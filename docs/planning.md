@@ -90,8 +90,8 @@ Already implemented:
   - generated aliases
   - generated plural aliases honoring explicit plurals and `<noplural>` metadata
   - generated prefix data
-  - exact catalog introspection preserving canonical names, aliases, symbols, plural provenance, comments, and
-    documentation
+  - exact and dynamically prefixed catalog introspection preserving canonical names, component provenance, aliases,
+    symbols, plural provenance, comments, and documentation
   - structured support reasons for retained affine and logarithmic definitions
   - mutable fluent registry construction producing immutable registry snapshots
   - resolver-side prefix handling
@@ -488,7 +488,6 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
 
 ### Near-Term Work
 
-- Extend catalog introspection to explain dynamically prefixed names.
 - Split broad PHPStan diagnostic identifiers only where users need more precise suppression.
 - Decide whether user-defined base dimensions justify replacing or extending the fixed seven-axis `Dimension` vector.
 
@@ -511,8 +510,6 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
   independent source and target unions whose Cartesian product loses value correlation.
 - Lookup is case-sensitive. Short but valid prefix/symbol compositions such as `pa` (pico-are) and `PA` (peta-ampere)
   remain accepted while `Pa` is pascal; Yumemi does not special-case these catalog-valid ambiguities.
-- Catalog introspection currently describes exact unit and prefix entries only. It does not synthesize descriptors for
-  dynamically prefixed names.
 - Syntax errors carry decoded-expression byte spans. Unknown-unit and unsupported-semantic errors occur after parsing
   and remain unspanned because AST nodes do not yet retain source locations.
 - Very large parsed integer exponents may exceed PHP integer range before reaching the expression model.

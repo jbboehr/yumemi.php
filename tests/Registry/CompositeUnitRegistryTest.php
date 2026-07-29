@@ -163,6 +163,56 @@ final class CompositeUnitRegistryTest extends TestCase
         $this->assertSame('3', $descriptor->definitionExpression);
     }
 
+    public function testPrefixedDescriptionUsesEffectiveOverlayAndBaseFallbacks(): void
+    {
+        $composite = new CompositeUnitRegistry(
+            $this->registry(
+                [],
+                [
+                    'shared' => [
+                        'type' => 'base',
+                        'name' => 'shared',
+                        'documentation' => 'base documentation',
+                    ],
+                    'sh' => [
+                        'type' => 'alias',
+                        'name' => 'sh',
+                        'def' => 'shared',
+                        'aliasKind' => 'symbol',
+                    ],
+                ],
+                ['k' => '2', 'base' => '5'],
+            ),
+            $this->registry(
+                [],
+                [
+                    'shared' => [
+                        'type' => 'unit',
+                        'name' => 'shared',
+                        'def' => '7 * meter',
+                        'documentation' => 'overlay documentation',
+                    ],
+                ],
+                ['k' => '3'],
+            ),
+        );
+
+        $overlayPrefix = $composite->describe('ksh');
+        $basePrefix = $composite->describe('basesh');
+
+        $this->assertNotNull($overlayPrefix);
+        $this->assertNotNull($basePrefix);
+        $this->assertSame('kshared', $overlayPrefix->canonicalName);
+        $this->assertSame('3 * shared', $overlayPrefix->definitionExpression);
+        $this->assertSame('overlay documentation', $overlayPrefix->documentation);
+        $this->assertNotNull($overlayPrefix->prefixApplication);
+        $this->assertSame(CatalogNameKind::Symbol, $overlayPrefix->prefixApplication->unit->matchedAs);
+        $this->assertSame(['sh'], $overlayPrefix->prefixApplication->unit->symbols);
+        $this->assertSame('baseshared', $basePrefix->canonicalName);
+        $this->assertSame('5 * shared', $basePrefix->definitionExpression);
+        $this->assertSame('overlay documentation', $basePrefix->documentation);
+    }
+
     /**
      * @param array<string, Unit>          $units
      * @phpstan-param array<string, CatalogRecord> $records

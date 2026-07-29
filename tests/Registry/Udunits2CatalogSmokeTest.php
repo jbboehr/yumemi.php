@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\Tests\Registry;
 
 use jbboehr\Yumemi\Analyzer\UnitResolver;
+use jbboehr\Yumemi\Catalog\CatalogNameKind;
 use jbboehr\Yumemi\Catalog\UnsupportedUnitReason;
 use jbboehr\Yumemi\Exception\UnsupportedUnitException;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
@@ -233,11 +234,18 @@ final class Udunits2CatalogSmokeTest extends TestCase
         }
     }
 
-    public function testDynamicallyPrefixedUnsupportedUnitFailsButIsNotDescribed(): void
+    public function testDynamicallyPrefixedUnsupportedUnitIsDescribedButStillFailsEvaluation(): void
     {
         $units = Units::default();
+        $descriptor = $units->describe('dB');
 
-        $this->assertNull($units->describe('dB'));
+        $this->assertNotNull($descriptor);
+        $this->assertSame('deciB', $descriptor->canonicalName);
+        $this->assertSame(CatalogNameKind::Prefixed, $descriptor->matchedAs);
+        $this->assertSame(UnsupportedUnitReason::Logarithmic, $descriptor->unsupportedReason);
+        $this->assertNotNull($descriptor->prefixApplication);
+        $this->assertSame('deci', $descriptor->prefixApplication->prefix->canonicalName);
+        $this->assertSame('B', $descriptor->prefixApplication->unit->canonicalName);
 
         try {
             $units->normalize('dB');
