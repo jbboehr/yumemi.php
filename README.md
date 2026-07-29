@@ -511,8 +511,8 @@ requirements for modified versions made available over a computer network.
 
 See [`LICENSE`](LICENSE.md) and [`LICENSE_EXCEPTION`](docs/LICENSE_EXCEPTION.md) for the complete terms.
 
-The generated UDUNITS2 catalog incorporates material distributed under the UCAR License; see
-[`docs/UDUNITS-COPYRIGHT`](docs/UDUNITS-COPYRIGHT).
+The generated UDUNITS2 catalog and portions of the unit-expression parser grammar incorporate material distributed under
+the UCAR License; see [`docs/UDUNITS-COPYRIGHT`](docs/UDUNITS-COPYRIGHT).
 
 ### Contributions
 

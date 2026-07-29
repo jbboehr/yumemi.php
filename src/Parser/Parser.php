@@ -40,6 +40,25 @@ namespace jbboehr\Yumemi\Parser;
 
 
 
+/* "%code top" blocks.  */
+/* "src/Parser/grammar.y":1  */
+
+/*
+ * Portions of this parser grammar are derived from UDUNITS-2 lib/parser.y:
+ * Copyright 2020 University Corporation for Atmospheric Research
+ *
+ * This derivative grammar and its modifications are distributed under the
+ * Yumemi project license. The UDUNITS-derived portions remain subject to the
+ * UCAR License.
+ *
+ * Copyright (c) anno Domini nostri Jesu Christi MMXXIV-MMXXVI, John Boehr & contributors
+ *
+ * SPDX-License-Identifier: (AGPL-3.0-only WITH romic-exception) AND UCAR
+ *
+ * See docs/UDUNITS-COPYRIGHT for copying and redistribution conditions.
+ */
+
+/* "src/Parser/Parser.php":62  */
 
 
 /**
@@ -89,10 +108,6 @@ interface LexerInterface {
     public const T_RIGHT_PAREN = 270;
     /** Token "@", to be returned by the scanner.  */
     public const T_AT = 271;
-    /** Token LOW, to be returned by the scanner.  */
-    public const LOW = 272;
-    /** Token NEG, to be returned by the scanner.  */
-    public const NEG = 273;
 
 
 
@@ -279,15 +294,16 @@ interface LexerInterface {
     public const S_T_LEFT_PAREN = 14; /* "("  */
     public const S_T_RIGHT_PAREN = 15; /* ")"  */
     public const S_T_AT = 16;      /* "@"  */
-    public const S_LOW = 17;       /* LOW  */
-    public const S_NEG = 18;       /* NEG  */
-    public const S_YYACCEPT = 19;  /* $accept  */
-    public const S_start = 20;     /* start  */
-    public const S_exp = 21;       /* exp  */
-    public const S_seq = 22;       /* seq  */
-    public const S_simple = 23;    /* simple  */
-    public const S_number = 24;    /* number  */
-    public const S_identifier = 25; /* identifier  */
+    public const S_YYACCEPT = 17;  /* $accept  */
+    public const S_start = 18;     /* start  */
+    public const S_exp = 19;       /* exp  */
+    public const S_additive_exp = 20; /* additive_exp  */
+    public const S_product_exp = 21; /* product_exp  */
+    public const S_unary_exp = 22; /* unary_exp  */
+    public const S_power_exp = 23; /* power_exp  */
+    public const S_simple = 24;    /* simple  */
+    public const S_number = 25;    /* number  */
+    public const S_identifier = 26; /* identifier  */
 
 
     private int $yycode;
@@ -304,8 +320,8 @@ interface LexerInterface {
     private const NAMES = array("end of file", "error", "invalid token", "integer",
   "superscript integer", "superscript sign without digits",
   "decimal number", ".", "*", "/", "^", "-", "+", "identifier", "(", ")",
-  "@", "LOW", "NEG", "\$accept", "start", "exp", "seq", "simple", "number",
-  "identifier", null);
+  "@", "\$accept", "start", "exp", "additive_exp", "product_exp",
+  "unary_exp", "power_exp", "simple", "number", "identifier", null);
 
     public function getName(): string {
       return self::NAMES[$this->yycode];
@@ -361,14 +377,14 @@ class Parser
   public const BISON_SKELETON = "vendor/mrsuh/php-bison-skeleton/src/php-skel.m4";
 
 /* "%code parser" blocks.  */
-/* "src/Parser/grammar.y":8  */
+/* "src/Parser/grammar.y":25  */
 
     use ParserUtils;
     private Ast $ast;
     public function setAst(Ast $ast): void { $this->ast = $ast; }
     public function getAst(): Ast { return $this->ast; }
 
-/* "src/Parser/Parser.php":372  */
+/* "src/Parser/Parser.php":388  */
 
 
 
@@ -548,139 +564,139 @@ class Parser
     switch ($yyn)
       {
           case 2: /* start: exp  */
-    /* "src/Parser/grammar.y":42  */
+    /* "src/Parser/grammar.y":51  */
                                                 {  self::setAst($yystack->valueAt(0)); };
   break;
 
 
-  case 3: /* exp: simple  */
-    /* "src/Parser/grammar.y":46  */
+  case 3: /* exp: additive_exp  */
+    /* "src/Parser/grammar.y":55  */
                                                 { $yyval = $yystack->valueAt(0); };
   break;
 
 
-  case 4: /* exp: exp "+" exp  */
-    /* "src/Parser/grammar.y":47  */
+  case 4: /* additive_exp: product_exp  */
+    /* "src/Parser/grammar.y":59  */
+                                                { $yyval = $yystack->valueAt(0); };
+  break;
+
+
+  case 5: /* additive_exp: additive_exp "+" product_exp  */
+    /* "src/Parser/grammar.y":60  */
                                                 { $yyval = self::makeAdd($yystack->valueAt(2), $yystack->valueAt(0)); };
   break;
 
 
-  case 5: /* exp: exp "-" exp  */
-    /* "src/Parser/grammar.y":48  */
+  case 6: /* additive_exp: additive_exp "-" product_exp  */
+    /* "src/Parser/grammar.y":61  */
                                                 { $yyval = self::makeSub($yystack->valueAt(2), $yystack->valueAt(0)); };
   break;
 
 
-  case 6: /* exp: exp "*" exp  */
-    /* "src/Parser/grammar.y":49  */
+  case 7: /* product_exp: unary_exp  */
+    /* "src/Parser/grammar.y":65  */
+                                                { $yyval = $yystack->valueAt(0); };
+  break;
+
+
+  case 8: /* product_exp: product_exp power_exp  */
+    /* "src/Parser/grammar.y":66  */
+                                                { $yyval = self::makeMul($yystack->valueAt(1), $yystack->valueAt(0)); };
+  break;
+
+
+  case 9: /* product_exp: product_exp "." unary_exp  */
+    /* "src/Parser/grammar.y":67  */
                                                 { $yyval = self::makeMul($yystack->valueAt(2), $yystack->valueAt(0)); };
   break;
 
 
-  case 7: /* exp: exp "/" exp  */
-    /* "src/Parser/grammar.y":50  */
+  case 10: /* product_exp: product_exp "*" unary_exp  */
+    /* "src/Parser/grammar.y":68  */
+                                                { $yyval = self::makeMul($yystack->valueAt(2), $yystack->valueAt(0)); };
+  break;
+
+
+  case 11: /* product_exp: product_exp "/" unary_exp  */
+    /* "src/Parser/grammar.y":69  */
                                                 { $yyval = self::makeDiv($yystack->valueAt(2), $yystack->valueAt(0)); };
   break;
 
 
-  case 8: /* exp: exp "^" exp  */
-    /* "src/Parser/grammar.y":51  */
-                                                { $yyval = self::makePow($yystack->valueAt(2), $yystack->valueAt(0)); };
+  case 12: /* unary_exp: power_exp  */
+    /* "src/Parser/grammar.y":73  */
+                                                { $yyval = $yystack->valueAt(0); };
   break;
 
 
-  case 9: /* exp: "-" exp  */
-    /* "src/Parser/grammar.y":52  */
+  case 13: /* unary_exp: "-" unary_exp  */
+    /* "src/Parser/grammar.y":74  */
                                                 { $yyval = self::makeNeg($yystack->valueAt(0)); };
   break;
 
 
-  case 10: /* exp: exp "." exp  */
-    /* "src/Parser/grammar.y":53  */
-                                                { $yyval = self::makeMul($yystack->valueAt(2), $yystack->valueAt(0)); };
+  case 14: /* power_exp: simple  */
+    /* "src/Parser/grammar.y":78  */
+                                                { $yyval = $yystack->valueAt(0); };
   break;
 
 
-  case 11: /* exp: seq  */
-    /* "src/Parser/grammar.y":54  */
-                                                { $yyval = self::listToMul($yystack->valueAt(0)); };
+  case 15: /* power_exp: simple "^" unary_exp  */
+    /* "src/Parser/grammar.y":79  */
+                                                { $yyval = self::makePow($yystack->valueAt(2), $yystack->valueAt(0)); };
   break;
 
 
-  case 12: /* exp: identifier "@" number  */
-    /* "src/Parser/grammar.y":55  */
+  case 16: /* simple: number  */
+    /* "src/Parser/grammar.y":83  */
+                                                { $yyval = $yystack->valueAt(0); };
+  break;
+
+
+  case 17: /* simple: identifier  */
+    /* "src/Parser/grammar.y":84  */
+                                                { $yyval = $yystack->valueAt(0); };
+  break;
+
+
+  case 18: /* simple: identifier "@" number  */
+    /* "src/Parser/grammar.y":85  */
                                                 { $yyval = self::makeAt($yystack->valueAt(2), $yystack->valueAt(0)); };
   break;
 
 
-  case 13: /* seq: simple simple  */
-    /* "src/Parser/grammar.y":59  */
-                                                { $yyval = [$yystack->valueAt(1), $yystack->valueAt(0)]; };
-  break;
-
-
-  case 14: /* seq: seq simple  */
-    /* "src/Parser/grammar.y":60  */
-                                                { $yyval = $yystack->valueAt(1); $yyval[] = $yystack->valueAt(0); };
-  break;
-
-
-  case 15: /* seq: seq "^" simple  */
-    /* "src/Parser/grammar.y":61  */
-                                                { $yyval = self::fudgeSeqPow($yystack->valueAt(2), $yystack->valueAt(0)); };
-  break;
-
-
-  case 16: /* seq: seq "^" "-" number  */
-    /* "src/Parser/grammar.y":62  */
-                                                { $yyval = self::fudgeSeqPow($yystack->valueAt(3), self::makeNeg($yystack->valueAt(0))); };
-  break;
-
-
-  case 17: /* simple: number  */
-    /* "src/Parser/grammar.y":66  */
-                                                { $yyval = $yystack->valueAt(0); };
-  break;
-
-
-  case 18: /* simple: identifier  */
-    /* "src/Parser/grammar.y":67  */
-                                                { $yyval = $yystack->valueAt(0); };
-  break;
-
-
   case 19: /* simple: "(" exp ")"  */
-    /* "src/Parser/grammar.y":68  */
+    /* "src/Parser/grammar.y":86  */
                                                 { $yyval = $yystack->valueAt(1); };
   break;
 
 
   case 20: /* simple: simple "superscript integer"  */
-    /* "src/Parser/grammar.y":69  */
+    /* "src/Parser/grammar.y":87  */
                                                  { $yyval = self::makePow($yystack->valueAt(1), self::makeSuperscriptInteger($yystack->valueAt(0))); };
   break;
 
 
   case 21: /* number: "integer"  */
-    /* "src/Parser/grammar.y":73  */
+    /* "src/Parser/grammar.y":91  */
                                                 { $yyval = self::makeInteger($yystack->valueAt(0)); };
   break;
 
 
   case 22: /* number: "decimal number"  */
-    /* "src/Parser/grammar.y":74  */
+    /* "src/Parser/grammar.y":92  */
                                                 { $yyval = self::makeFloat($yystack->valueAt(0)); };
   break;
 
 
   case 23: /* identifier: "identifier"  */
-    /* "src/Parser/grammar.y":78  */
+    /* "src/Parser/grammar.y":96  */
                                                 { $yyval = self::makeIdentifier($yystack->valueAt(0)); };
   break;
 
 
 
-/* "src/Parser/Parser.php":684  */
+/* "src/Parser/Parser.php":700  */
 
         default: break;
       }
@@ -1024,17 +1040,17 @@ class Parser
     return $yyvalue === $this->yytable_ninf;
   }
 
-  public int $yypact_ninf = -24;
+  public int $yypact_ninf = -9;
   public int $yytable_ninf = -1;
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
   
   /** @var int[] */
-  public array $yypact = array(    17,   -24,   -24,    17,   -24,    17,     1,    52,    19,    31,
-     -24,   -12,    -5,    43,   -24,    17,    17,    17,    17,    17,
-      17,    35,     6,   -24,   -24,     6,    21,   -24,    57,    -5,
-      -5,    -5,    62,    62,    21,     6,   -24,   -24);
+  public array $yypact = array(    20,    -9,    -9,    20,    -9,    20,     3,    -9,     4,    -1,
+      -9,    -9,     0,    -9,    -7,    -9,    12,    -9,    20,    20,
+      20,    20,    20,    -9,    -9,    20,     8,    -9,    -1,    -1,
+      -9,    -9,    -9,    -9,    -9);
   
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -1042,22 +1058,22 @@ class Parser
    means the default is an error.  */
   
   /** @var int[] */
-  public array $yydefact = array(     0,    21,    22,     0,    23,     0,     0,     2,    11,     3,
-      17,    18,     9,     0,     1,     0,     0,     0,     0,     0,
-       0,     0,    14,    18,    20,    13,     0,    19,    10,     6,
-       7,     8,     5,     4,     0,    15,    12,    16);
+  public array $yydefact = array(     0,    21,    22,     0,    23,     0,     0,     2,     3,     4,
+       7,    12,    14,    16,    17,    13,     0,     1,     0,     0,
+       0,     0,     0,     8,    20,     0,     0,    19,     6,     5,
+       9,    10,    11,    15,    18);
   
 
 /* YYPGOTO[NTERM-NUM].  */
   
   /** @var int[] */
-  public array $yypgoto = array(   -24,   -24,    -3,   -24,    -2,   -23,     0);
+  public array $yypgoto = array(    -9,    -9,    23,    -9,     6,    -3,    -8,    -9,     9,    -9);
   
 
 /* YYDEFGOTO[NTERM-NUM].  */
   
   /** @var int[] */
-  public array $yydefgoto = array(     0,     6,     7,     8,     9,    10,    11);
+  public array $yydefgoto = array(     0,     6,     7,     8,     9,    10,    11,    12,    13,    14);
   
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -1065,51 +1081,43 @@ class Parser
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
   
   /** @var int[] */
-  public array $yytable = array(    12,    14,    13,    36,    26,    18,    22,    25,    23,    23,
-      24,    37,    28,    29,    30,    31,    32,    33,     0,    35,
-       1,    23,     1,     2,     1,     2,     0,     2,     3,    21,
-       4,     5,     4,     5,     1,    24,     0,     2,     1,     0,
-       0,     2,     0,     0,     4,     5,    34,     0,     4,     5,
-      15,    16,    17,    18,    19,    20,     0,     0,    27,    15,
-      16,    17,    18,    19,    20,    16,    17,    18,    19,    20,
-      16,    17,    18);
+  public array $yytable = array(    15,    23,     1,    17,    24,     2,    20,    21,    22,    26,
+      25,     1,     4,     5,     2,    18,    19,    30,    31,    32,
+      23,    23,    33,     1,    28,    29,     2,    27,    16,     0,
+       0,     3,     0,     4,     5,    34);
   
 
 
   /** @var int[] */
-  public array $yycheck = array(     3,     0,     5,    26,    16,    10,     8,     9,     8,     9,
-       4,    34,    15,    16,    17,    18,    19,    20,    -1,    21,
-       3,    21,     3,     6,     3,     6,    -1,     6,    11,    10,
-      13,    14,    13,    14,     3,     4,    -1,     6,     3,    -1,
-      -1,     6,    -1,    -1,    13,    14,    11,    -1,    13,    14,
-       7,     8,     9,    10,    11,    12,    -1,    -1,    15,     7,
-       8,     9,    10,    11,    12,     8,     9,    10,    11,    12,
-       8,     9,    10);
+  public array $yycheck = array(     3,     9,     3,     0,     4,     6,     7,     8,     9,    16,
+      10,     3,    13,    14,     6,    11,    12,    20,    21,    22,
+      28,    29,    25,     3,    18,    19,     6,    15,     5,    -1,
+      -1,    11,    -1,    13,    14,    26);
   
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
   
   /** @var int[] */
-  public array $yystos = array(     0,     3,     6,    11,    13,    14,    20,    21,    22,    23,
-      24,    25,    21,    21,     0,     7,     8,     9,    10,    11,
-      12,    10,    23,    25,     4,    23,    16,    15,    21,    21,
-      21,    21,    21,    21,    11,    23,    24,    24);
+  public array $yystos = array(     0,     3,     6,    11,    13,    14,    18,    19,    20,    21,
+      22,    23,    24,    25,    26,    22,    19,     0,    11,    12,
+       7,     8,     9,    23,     4,    10,    16,    15,    21,    21,
+      22,    22,    22,    22,    25);
   
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
   
   /** @var int[] */
-  public array $yyr1 = array(     0,    19,    20,    21,    21,    21,    21,    21,    21,    21,
-      21,    21,    21,    22,    22,    22,    22,    23,    23,    23,
-      23,    24,    24,    25);
+  public array $yyr1 = array(     0,    17,    18,    19,    20,    20,    20,    21,    21,    21,
+      21,    21,    22,    22,    23,    23,    24,    24,    24,    24,
+      24,    25,    25,    26);
   
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
   
   /** @var int[] */
-  public array $yyr2 = array(     0,     2,     1,     1,     3,     3,     3,     3,     3,     2,
-       3,     1,     3,     2,     2,     3,     4,     1,     1,     3,
+  public array $yyr2 = array(     0,     2,     1,     1,     1,     3,     3,     1,     2,     3,
+       3,     3,     1,     2,     1,     3,     1,     1,     3,     3,
        2,     1,     1,     1);
   
 
@@ -1121,7 +1129,7 @@ class Parser
   private function yytranslate(int $t): SymbolKind
   {
     // Last valid token kind.
-    $code_max = 273;
+    $code_max = 271;
     if ($t <= 0)
       return new SymbolKind(SymbolKind::S_YYEOF);
     else if ($t <= $code_max)
@@ -1158,14 +1166,14 @@ class Parser
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
-      15,    16,    17,    18);
+      15,    16);
   
 
 
-  public const YYLAST = 72;
+  public const YYLAST = 35;
   public const YYEMPTY = -2;
-  public const YYFINAL = 14;
-  public const YYNTOKENS = 19;
+  public const YYFINAL = 17;
+  public const YYNTOKENS = 17;
 
 
 }

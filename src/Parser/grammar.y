@@ -1,3 +1,20 @@
+%code top {
+/*
+ * Portions of this parser grammar are derived from UDUNITS-2 lib/parser.y:
+ * Copyright 2020 University Corporation for Atmospheric Research
+ *
+ * This derivative grammar and its modifications are distributed under the
+ * Yumemi project license. The UDUNITS-derived portions remain subject to the
+ * UCAR License.
+ *
+ * Copyright (c) anno Domini nostri Jesu Christi MMXXIV-MMXXVI, John Boehr & contributors
+ *
+ * SPDX-License-Identifier: (AGPL-3.0-only WITH romic-exception) AND UCAR
+ *
+ * See docs/UDUNITS-COPYRIGHT for copying and redistribution conditions.
+ */
+}
+
 %define api.parser.class {Parser}
 %define api.namespace {jbboehr\Yumemi\Parser}
 
@@ -29,42 +46,43 @@
 %token T_RIGHT_PAREN ")"
 %token T_AT "@"
 
-%precedence LOW
-%left T_DOT
-%left T_ADD T_SUB
-%left T_MUL T_DIV
-%precedence NEG
-%right T_POW
-%left T_AT
-
 %%
 start:
         exp                                     {  self::setAst($1); }
     ;
 
 exp:
-        simple                                  { $$ = $1; }
-    |   exp T_ADD exp                           { $$ = self::makeAdd($1, $3); }
-    |   exp T_SUB exp                           { $$ = self::makeSub($1, $3); }
-    |   exp T_MUL exp                           { $$ = self::makeMul($1, $3); }
-    |   exp T_DIV exp                           { $$ = self::makeDiv($1, $3); }
-    |   exp T_POW exp                           { $$ = self::makePow($1, $3); }
-    |   T_SUB exp %prec NEG                     { $$ = self::makeNeg($2); }
-    |   exp T_DOT exp                           { $$ = self::makeMul($1, $3); }
-    |   seq %prec LOW                           { $$ = self::listToMul($1); }
-    |   identifier T_AT number                  { $$ = self::makeAt($1, $3); }
+        additive_exp                            { $$ = $1; }
     ;
 
-seq:
-        simple simple %prec LOW                 { $$ = [$1, $2]; }
-    |   seq simple %prec LOW                    { $$ = $1; $$[] = $2; }
-    |   seq T_POW simple                        { $$ = self::fudgeSeqPow($1, $3); }
-    |   seq T_POW T_SUB number                  { $$ = self::fudgeSeqPow($1, self::makeNeg($4)); }
+additive_exp:
+        product_exp                             { $$ = $1; }
+    |   additive_exp T_ADD product_exp          { $$ = self::makeAdd($1, $3); }
+    |   additive_exp T_SUB product_exp          { $$ = self::makeSub($1, $3); }
+    ;
+
+product_exp:
+        unary_exp                               { $$ = $1; }
+    |   product_exp power_exp                   { $$ = self::makeMul($1, $2); }
+    |   product_exp T_DOT unary_exp             { $$ = self::makeMul($1, $3); }
+    |   product_exp T_MUL unary_exp             { $$ = self::makeMul($1, $3); }
+    |   product_exp T_DIV unary_exp             { $$ = self::makeDiv($1, $3); }
+    ;
+
+unary_exp:
+        power_exp                               { $$ = $1; }
+    |   T_SUB unary_exp                         { $$ = self::makeNeg($2); }
+    ;
+
+power_exp:
+        simple                                  { $$ = $1; }
+    |   simple T_POW unary_exp                  { $$ = self::makePow($1, $3); }
     ;
 
 simple:
         number                                  { $$ = $1; }
     |   identifier                              { $$ = $1; }
+    |   identifier T_AT number                  { $$ = self::makeAt($1, $3); }
     |   T_LEFT_PAREN exp T_RIGHT_PAREN          { $$ = $2; }
     |   simple T_SUPERSCRIPT_INTEGER %prec T_POW { $$ = self::makePow($1, self::makeSuperscriptInteger($2)); }
     ;

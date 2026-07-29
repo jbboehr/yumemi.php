@@ -310,6 +310,11 @@ There are currently two catalog-aware operations with different intent:
 The parser is intentionally broader than the semantic runtime layer. This is acceptable because the long-term goal is
 UDUNITS2 compatibility, but syntax must not imply semantic support.
 
+The grammar is derived in part from UDUNITS2 `lib/parser.y`. The derivative grammar is distributed under the project
+license while the incorporated upstream portions remain subject to the UCAR License. Its product precedence follows
+UDUNITS2: adjacency, `*`, `.`, `·`, and `/` associate left at one tier, while powers bind more tightly. Consequently,
+`meter / second kilogram` means `(meter / second) * kilogram`; a compound denominator requires parentheses.
+
 Supported by parser and converter now:
 
 - `meter`
@@ -506,9 +511,6 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
 - Preferred/compact unit selection and broader formatting presets
 - Change `UnitRegistryBuilder` fluent methods to mutate the builder in place, avoiding one clone per registered unit or
   alias while keeping each built `UnitRegistry` immutable.
-- Finalize the parser precedence contract before release. Juxtaposition currently binds as a single algebraic product,
-  so `a / b c` means `a / (b * c)`, while explicit `a / b * c` is left-associative. Compare this with UDUNITS, decide
-  whether the distinction is intentional, and cover the complete operator matrix with parser and round-trip tests.
 - Optimize bulk catalog introspection by pre-grouping canonical aliases, symbols, and plurals during generation, then
   lazily caching an effective index per immutable registry. Composite registries must build a composition-aware index so
   base aliases continue to follow overlay replacements; expression resolution remains in `UnitResolver`.

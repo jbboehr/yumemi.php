@@ -45,6 +45,17 @@ use PHPUnit\Framework\TestCase;
 
 final class ParserFormatterRoundTripTest extends TestCase
 {
+    public function testImplicitMultiplicationUsesUdunitsProductPrecedence(): void
+    {
+        $units = Units::default();
+        $implicit = $units->parse('meter / second kilogram');
+        $explicit = $units->parse('meter / second * kilogram');
+        $groupedDenominator = $units->parse('meter / (second * kilogram)');
+
+        $this->assertTrue($implicit->equals($explicit));
+        $this->assertFalse($implicit->equals($groupedDenominator));
+    }
+
     public function testFormattedParsedExpressionsCanBeParsedAgainWithSameMeaning(): void
     {
         $units = Units::default();
@@ -120,6 +131,10 @@ final class ParserFormatterRoundTripTest extends TestCase
             'meter',
             'meter second',
             'meter / second',
+            'meter / second kilogram',
+            'meter / second * kilogram',
+            'meter / (second kilogram)',
+            'meter.second / kilogram',
             '(meter / second)^2',
             'second^-2',
             '1.25 meter / second^2',

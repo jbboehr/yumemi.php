@@ -58,6 +58,17 @@ final class ParserTest extends TestCase
         );
     }
 
+    public function testDotMultiplication(): void
+    {
+        $expected = new Ast\Mul(
+            new Ast\Identifier('meter'),
+            new Ast\Identifier('second'),
+        );
+
+        $this->assertEquals($expected, Parser::parseString('meter.second'));
+        $this->assertEquals($expected, Parser::parseString('meter · second'));
+    }
+
     public function testImplicitMultiplication(): void
     {
         $this->assertEquals(
@@ -96,29 +107,57 @@ final class ParserTest extends TestCase
 
     public function testParenthesesOverrideMultiplicationAndDivisionPrecedence(): void
     {
-        $this->assertEquals(
-            new Ast\Div(
-                new Ast\Identifier('meter'),
-                new Ast\Mul(
-                    new Ast\Identifier('second'),
-                    new Ast\Identifier('kilogram'),
-                ),
+        $expected = new Ast\Div(
+            new Ast\Identifier('meter'),
+            new Ast\Mul(
+                new Ast\Identifier('second'),
+                new Ast\Identifier('kilogram'),
             ),
-            Parser::parseString('meter / (second * kilogram)'),
+        );
+
+        $this->assertEquals($expected, Parser::parseString('meter / (second * kilogram)'));
+        $this->assertEquals($expected, Parser::parseString('meter / (second kilogram)'));
+    }
+
+    public function testImplicitMultiplicationAndDivisionAssociateLeft(): void
+    {
+        $this->assertEquals(
+            new Ast\Mul(
+                new Ast\Div(
+                    new Ast\Identifier('meter'),
+                    new Ast\Identifier('second'),
+                ),
+                new Ast\Identifier('kilogram'),
+            ),
+            Parser::parseString('meter / second kilogram'),
         );
     }
 
-    public function testImplicitProductFormsCompoundDenominator(): void
+    public function testImplicitMultiplicationBeforeDivisionAssociatesLeft(): void
     {
         $this->assertEquals(
             new Ast\Div(
-                new Ast\Identifier('meter'),
                 new Ast\Mul(
-                    new Ast\Identifier('second'),
+                    new Ast\Identifier('meter'),
                     new Ast\Identifier('kilogram'),
                 ),
+                new Ast\Identifier('second'),
             ),
-            Parser::parseString('meter / second kilogram'),
+            Parser::parseString('meter kilogram / second'),
+        );
+    }
+
+    public function testRepeatedDivisionAssociatesLeft(): void
+    {
+        $this->assertEquals(
+            new Ast\Div(
+                new Ast\Div(
+                    new Ast\Identifier('meter'),
+                    new Ast\Identifier('second'),
+                ),
+                new Ast\Identifier('kilogram'),
+            ),
+            Parser::parseString('meter / second / kilogram'),
         );
     }
 
@@ -135,16 +174,16 @@ final class ParserTest extends TestCase
 
     public function testPowerBindsMoreTightlyThanMultiplication(): void
     {
-        $this->assertEquals(
-            new Ast\Mul(
-                new Ast\Identifier('meter'),
-                new Ast\Pow(
-                    new Ast\Identifier('second'),
-                    new Ast\Integer_('2'),
-                ),
+        $expected = new Ast\Mul(
+            new Ast\Identifier('meter'),
+            new Ast\Pow(
+                new Ast\Identifier('second'),
+                new Ast\Integer_('2'),
             ),
-            Parser::parseString('meter * second^2'),
         );
+
+        $this->assertEquals($expected, Parser::parseString('meter * second^2'));
+        $this->assertEquals($expected, Parser::parseString('meter second^2'));
     }
 
     public function testNegativePower(): void

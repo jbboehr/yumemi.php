@@ -133,50 +133,6 @@ trait ParserUtils
         }
     }
 
-    /**
-     * @param non-empty-list<Ast> $nodes
-     * @return Ast
-     */
-    public static function listToMul(array $nodes)
-    {
-        assert(count($nodes) > 0);
-
-        if (count($nodes) <= 1) {
-            return $nodes[0];
-        }
-
-        $rv = new Mul($nodes[0], $nodes[1]);
-
-        for ($i = 2; $i < count($nodes); $i++) {
-            $rv = new Mul($rv, $nodes[$i]);
-        }
-
-        return $rv;
-    }
-
-    /**
-     * @param non-empty-list<Ast> $left
-     * @note fear
-     */
-    public static function makeSeqPow(array $left, Ast $right): Ast
-    {
-        $tmp = array_pop($left);
-        $left[] = new Pow($tmp, $right);
-        return self::listToMul($left);
-    }
-
-    /**
-     * @param non-empty-list<Ast> $left
-     * @param Ast $right
-     * @return non-empty-list<Ast>
-     */
-    public static function fudgeSeqPow(array $left, Ast $right): array
-    {
-        $tmp = array_pop($left);
-        $left[] = new Pow($tmp, $right);
-        return $left;
-    }
-
     public static function makeAt(Ast $left, Ast $right): Ast
     {
         return new At($left, $right);

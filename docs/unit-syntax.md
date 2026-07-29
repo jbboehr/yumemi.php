@@ -7,19 +7,19 @@ therefore has the same meaning in `Units::parse()`, `Quantity`, `unit_int<'...'>
 
 The semantic unit language supports:
 
-| Form           | Examples                                           | Meaning                                            |
-| -------------- | -------------------------------------------------- | -------------------------------------------------- |
-| Identifier     | `meter`, `international_foot`, `Pa`                | Catalog unit name, alias, symbol, or prefixed name |
-| Multiplication | `meter * second`, `meter second`, `meter · second` | Product of unit expressions                        |
-| Division       | `meter / second`                                   | Quotient of unit expressions                       |
-| Integer power  | `meter^2`, `second^-2`, `meter²`, `second⁻²`       | Unit expression raised to an integer power         |
-| Grouping       | `(meter / second)^2`                               | Parenthesized subexpression                        |
-| Exact constant | `1000`, `1.25`, `1e3`, `1000 meter`                | Exact rational alone or scaling a unit expression  |
+| Form           | Examples                                     | Meaning                                            |
+| -------------- | -------------------------------------------- | -------------------------------------------------- |
+| Identifier     | `meter`, `international_foot`, `Pa`          | Catalog unit name, alias, symbol, or prefixed name |
+| Multiplication | `m * s`, `m s`, `m.s`, `m · s`               | Product of unit expressions                        |
+| Division       | `meter / second`                             | Quotient of unit expressions                       |
+| Integer power  | `meter^2`, `second^-2`, `meter²`, `second⁻²` | Unit expression raised to an integer power         |
+| Grouping       | `(meter / second)^2`                         | Parenthesized subexpression                        |
+| Exact constant | `1000`, `1.25`, `1e3`, `1000 meter`          | Exact rational alone or scaling a unit expression  |
 
 Whitespace is ignored except that adjacent simple expressions imply multiplication. Exponentiation binds more tightly
-than multiplication and division; explicit `*` and `/` share precedence and associate left. An adjacent sequence forms
-one implicit product, so `meter / foot second` is equivalent to `meter / (foot * second)`. Parentheses make a compound
-denominator explicit:
+than multiplication and division. Adjacency, `*`, `.`, `·`, and `/` share precedence and associate left, matching
+UDUNITS2: `meter / foot second` is equivalent to `(meter / foot) * second`. Parentheses are therefore required for a
+compound denominator:
 
 ```text
 centimeter / (foot * second)
@@ -42,6 +42,7 @@ $units = Units::default();
 assert($units->parse('meter · second⁻²')->toString() === 'meter * second ^ -2');
 assert($units->parse('1000')->toString() === '1000');
 assert($units->parse('1.25 meter')->toString() === '5/4 * meter');
+assert($units->parse('meter / second kilogram')->equals($units->parse('meter / second * kilogram')));
 assert($units->dimension('(meter / second)^2')->toString() === 'length ^ 2 / time ^ 2');
 ```
 
