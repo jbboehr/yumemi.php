@@ -9,6 +9,7 @@
         failOnRisky="true"
         failOnWarning="true"
         cacheDirectory=".phpunit.cache"
+        executionOrder="default"
 >
     <source>
         <include>

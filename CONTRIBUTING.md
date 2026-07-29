@@ -18,6 +18,9 @@ A pull request should:
 AI-assisted contributions are permitted, but you remain responsible for reviewing the submitted material and ensuring
 that you have the right to license it under these terms.
 
+See [`docs/mutation-testing.md`](docs/mutation-testing.md) for the optional mutation-testing workflow and guidance on
+interpreting escaped mutants.
+
 ## Definitions
 
 The project as a whole is distributed under:

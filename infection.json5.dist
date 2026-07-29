@@ -1,0 +1,21 @@
+{
+    source: {
+        directories: [
+            "src",
+        ],
+        excludes: [
+            "PHPStan",
+            "Parser/Parser.php",
+        ],
+    },
+    timeout: 20,
+    threads: "max",
+    logs: {
+        text: "infection.log",
+        summary: "infection-summary.log",
+    },
+    testFramework: "phpunit",
+    mutators: {
+        "@default": true,
+    },
+}

@@ -90,6 +90,15 @@ final class ExprReducerTest extends TestCase
         $this->assertTrue((new Constant(new Rational(2, 4)))->equals(new Constant(new Rational(1, 2))));
     }
 
+    public function testPoweredTermsComparePowerAndValue(): void
+    {
+        $meter = new Unit('meter');
+        $second = new Unit('second');
+
+        $this->assertFalse((new Term($meter, 2))->equals(new Term($meter, 3)));
+        $this->assertFalse((new Term($meter, 2))->equals(new Term($second, 2)));
+    }
+
     public function testUnitEqualsIgnoresDefinitionAndUnitsContext(): void
     {
         $units = Units::default();

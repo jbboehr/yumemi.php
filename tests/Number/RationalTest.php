@@ -89,6 +89,33 @@ final class RationalTest extends TestCase
         yield 'zero decimal' => ['0.0', '0'];
     }
 
+    #[DataProvider('invalidDecimalStringProvider')]
+    public function testRejectsMalformedDecimalStrings(string $input): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        Rational::fromDecimalString($input);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function invalidDecimalStringProvider(): iterable
+    {
+        yield 'leading garbage' => ['value=1.5'];
+        yield 'trailing garbage' => ['1.5 meters'];
+        yield 'missing fractional digits' => ['1.'];
+    }
+
+    public function testNormalizesNegativeDenominator(): void
+    {
+        $rational = new Rational(3, -6);
+
+        $this->assertSame('-1/2', $rational->toString());
+        $this->assertSame('-1', gmp_strval($rational->numerator));
+        $this->assertSame('2', gmp_strval($rational->denominator));
+    }
+
     public function testSubtractsRationals(): void
     {
         $this->assertSame('1/6', (new Rational(1, 2))->sub(new Rational(1, 3))->toString());

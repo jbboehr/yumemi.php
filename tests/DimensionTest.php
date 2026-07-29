@@ -87,6 +87,15 @@ final class DimensionTest extends TestCase
         $this->assertSame('length / time ^ 2', $acceleration->toString());
     }
 
+    public function testCombinesEveryDimensionAxis(): void
+    {
+        $left = new Dimension(1, 2, 3, 4, 5, 6, 7);
+        $right = new Dimension(-1, 1, -2, 3, -4, 5, -6);
+
+        $this->assertSame([0, 3, 1, 7, 1, 11, 1], $left->mul($right)->powers());
+        $this->assertSame([2, 1, 5, 1, 9, 1, 13], $left->div($right)->powers());
+    }
+
     public function testRaisesDimensionToPower(): void
     {
         $velocity = new Dimension(length: 1, time: -1);
