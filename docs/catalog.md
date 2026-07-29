@@ -26,8 +26,10 @@ entry exists, it applies the same one-prefix-plus-exact-unit decomposition used 
 `Units::describePrefix()` describes one exact prefix name or symbol. Descriptors preserve whether the matched spelling
 was canonical, an alias, a symbol, an explicit plural, a generated plural, or dynamically prefixed.
 
-Introspection does not parse compound expressions, normalize definitions, or add synthesized spellings to `names()`. A
-dynamically prefixed descriptor exposes its prefix and exact residual unit through `prefixDecomposition`:
+`describe()` does not accept compound expressions as lookup names, normalize definitions, or add synthesized spellings
+to `names()`. To report truthful capabilities, it does lazily resolve the complete canonical or dynamically prefixed
+spelling against the effective registry. A dynamically prefixed descriptor exposes its prefix and exact residual unit
+through `prefixDecomposition`:
 
 ```php
 <?php
@@ -63,9 +65,10 @@ The synthesized descriptor's top-level alias, symbol, and plural lists are empty
 entry. The residual descriptor retains the underlying unit's complete metadata. Exact spellings still take precedence:
 `Pa` describes the exact pascal symbol rather than decomposing as peta-are.
 
-Prefixed affine and logarithmic names also receive synthesized descriptors with the residual unit's `UnitSemantics`. Use
-`supportsMultiplicativeAlgebra()` and `supportsConversion()` to inspect concrete capabilities. Ordinary affine units
-support conversion, dynamically prefixed affine units do not, and logarithmic units support neither operation.
+Prefixed affine and logarithmic names receive synthesized descriptors whose top-level semantics are
+`UnitSemantics::UnsupportedExpression`, because the complete prefixed spelling is executable by neither runtime path.
+The residual descriptor retains `UnitSemantics::Affine` or `UnitSemantics::Logarithmic`, identifying the underlying
+reason. Use `supportsMultiplicativeAlgebra()` and `supportsConversion()` to inspect concrete capabilities.
 
 ## Custom Registries
 
@@ -108,10 +111,23 @@ track a separate catalog identity for each value.
 
 ## Catalog Semantic Support
 
-The expression and quantity models intentionally support only multiplicative unit algebra with integer powers. Known
-affine and logarithmic UDUNITS2 definitions remain in the generated catalog with a `UnitSemantics` value exposed by
-`describe()`. Aliases inherit the semantics of their canonical entry, and direct custom `@` or `lg(...)` definitions
-receive the same classification. Multiplicative descriptors expose `UnitSemantics::Multiplicative` rather than `null`.
+The expression and quantity models intentionally support only multiplicative unit algebra with integer powers.
+`UnitSemantics` describes the capabilities of the complete name represented by a descriptor:
+
+- `Multiplicative` supports expression algebra and conversion.
+- `Affine` rejects expression algebra but supports explicit conversion.
+- `Logarithmic` identifies a direct logarithmic definition and supports neither operation.
+- `UnsupportedExpression` identifies a complete expression that supports neither operation, including invalid
+  composites, malformed or cyclic custom definitions, missing dependencies, and invalid prefixes.
+
+Known affine and logarithmic UDUNITS2 definitions remain in the generated catalog. Aliases are classified through their
+canonical entry, and direct custom `@` or `lg(...)` definitions receive the same classification. Descriptors lazily
+resolve and cache capabilities against the effective registry, so transitive definitions and overlays cannot leave
+capability methods out of sync with runtime behavior.
+
+Raw rows returned by `findCatalogRecord()` remain declaration metadata: they store direct or exact-name-inherited affine
+and logarithmic markers, but do not eagerly materialize `UnsupportedExpression` or transitive composite results. This
+keeps catalog generation deterministic and avoids resolving the full catalog merely for introspection.
 
 Affine classification currently means "unsupported by multiplicative `Expr` algebra," not "unsupported everywhere."
 `convert()`, `convertFloat()`, `areCompatible()`, `dimension()`, and `unit_to()` evaluate affine definitions exactly.

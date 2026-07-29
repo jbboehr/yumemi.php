@@ -38,9 +38,14 @@ namespace jbboehr\Yumemi\Tests\Registry;
 
 use jbboehr\Yumemi\Analyzer\UnitResolver;
 use jbboehr\Yumemi\Catalog\UnitSemantics;
+use jbboehr\Yumemi\Exception\UnitNotFoundException;
+use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
 use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Unit;
+use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Registry\CompositeUnitRegistry;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistry;
@@ -207,9 +212,58 @@ final class UnitRegistryBuilderTest extends TestCase
 
         $prefixed = $registry->describe('kilowidget_temperature');
         $this->assertNotNull($prefixed);
-        $this->assertSame(UnitSemantics::Affine, $prefixed->semantics);
+        $this->assertSame(UnitSemantics::UnsupportedExpression, $prefixed->semantics);
         $this->assertFalse($prefixed->supportsMultiplicativeAlgebra());
         $this->assertFalse($prefixed->supportsConversion());
+        $this->assertSame(UnitSemantics::Affine, $prefixed->prefixDecomposition?->unit->semantics);
+    }
+
+    public function testDescriptionsReflectCompleteExpressionRuntimeCapabilities(): void
+    {
+        $registry = UnitRegistryBuilder::default()
+            ->define('widget_speed = meter / second')
+            ->alias('widget_velocity', 'widget_speed')
+            ->define('degree_widget = kelvin @ 100')
+            ->define('bel_widget = lg(re 1)')
+            ->define('scaled_celsius = 2 * celsius')
+            ->define('scaled_bel = 2 * B')
+            ->define('unsupported_sum = meter + second')
+            ->define('missing_dependency = definitely_missing_unit')
+            ->define('malformed_definition = meter * / second')
+            ->define('cycle_left = cycle_right')
+            ->define('cycle_right = cycle_left')
+            ->build();
+        $units = new Units($registry);
+
+        $cases = [
+            'widget_speed' => UnitSemantics::Multiplicative,
+            'widget_velocity' => UnitSemantics::Multiplicative,
+            'degree_widget' => UnitSemantics::Affine,
+            'bel_widget' => UnitSemantics::Logarithmic,
+            'scaled_celsius' => UnitSemantics::UnsupportedExpression,
+            'scaled_bel' => UnitSemantics::UnsupportedExpression,
+            'unsupported_sum' => UnitSemantics::UnsupportedExpression,
+            'missing_dependency' => UnitSemantics::UnsupportedExpression,
+            'malformed_definition' => UnitSemantics::UnsupportedExpression,
+            'cycle_left' => UnitSemantics::UnsupportedExpression,
+        ];
+
+        foreach ($cases as $name => $semantics) {
+            $descriptor = $registry->describe($name);
+
+            $this->assertNotNull($descriptor, $name);
+            $this->assertSame($semantics, $descriptor->semantics, $name);
+            $this->assertSame(
+                $this->supportsAlgebra($units, $name),
+                $descriptor->supportsMultiplicativeAlgebra(),
+                $name,
+            );
+            $this->assertSame($this->supportsConversion($units, $name), $descriptor->supportsConversion(), $name);
+            $this->assertSame($semantics, $registry->describe($name)?->semantics, $name);
+        }
+
+        $this->assertArrayNotHasKey('semantics', $registry->findCatalogRecord('scaled_celsius') ?? []);
+        $this->assertArrayNotHasKey('semantics', $registry->findCatalogRecord('scaled_bel') ?? []);
     }
 
     public function testPrebuiltOverlayPreventsInheritedBaseCatalogReason(): void
@@ -227,6 +281,22 @@ final class UnitRegistryBuilderTest extends TestCase
         $customTemperature = $units->unit('custom_temperature');
         $this->assertInstanceOf(Unit::class, $customTemperature);
         $this->assertSame('celsius', $customTemperature->definition?->toString());
+    }
+
+    public function testAffineDescriptionRequiresResolvableConversionDimensions(): void
+    {
+        $registry = UnitRegistryBuilder::empty()
+            ->add(new Unit('widget'))
+            ->define('degree_widget = widget @ 100')
+            ->build();
+
+        $descriptor = $registry->describe('degree_widget');
+
+        $this->assertNotNull($descriptor);
+        $this->assertSame('affine', $registry->findCatalogRecord('degree_widget')['semantics'] ?? null);
+        $this->assertSame(UnitSemantics::UnsupportedExpression, $descriptor->semantics);
+        $this->assertFalse($descriptor->supportsMultiplicativeAlgebra());
+        $this->assertFalse($descriptor->supportsConversion());
     }
 
     public function testDefineWorksOnEmptyBuilderWithExplicitUnits(): void
@@ -454,5 +524,39 @@ final class UnitRegistryBuilderTest extends TestCase
         file_put_contents($file, "<?php\n\nreturn " . var_export($catalog, true) . ";\n");
 
         return $file;
+    }
+
+    private function supportsAlgebra(Units $units, string $name): bool
+    {
+        try {
+            $units->unit($name);
+
+            return true;
+        } catch (
+            UnitNotFoundException
+            | UnsupportedSyntaxException
+            | UnsupportedUnitAlgebraException
+            | ParseException
+            | \UnexpectedValueException
+        ) {
+            return false;
+        }
+    }
+
+    private function supportsConversion(Units $units, string $name): bool
+    {
+        try {
+            $units->dimension($name);
+
+            return true;
+        } catch (
+            UnitNotFoundException
+            | UnsupportedSyntaxException
+            | UnsupportedUnitConversionException
+            | ParseException
+            | \UnexpectedValueException
+        ) {
+            return false;
+        }
     }
 }

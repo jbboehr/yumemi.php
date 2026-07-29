@@ -38,12 +38,12 @@ namespace jbboehr\Yumemi\Registry;
 
 use jbboehr\Yumemi\Analyzer\ExprReducer;
 use jbboehr\Yumemi\Analyzer\UnitNameResolver;
+use jbboehr\Yumemi\Analyzer\UnitSemanticsResolver;
 use jbboehr\Yumemi\Catalog\CatalogNameKind;
 use jbboehr\Yumemi\Catalog\PrefixDecomposition;
 use jbboehr\Yumemi\Catalog\PrefixDescriptor;
 use jbboehr\Yumemi\Catalog\UnitDescriptor;
 use jbboehr\Yumemi\Catalog\UnitKind;
-use jbboehr\Yumemi\Catalog\UnitSemantics;
 use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Unit;
@@ -81,6 +81,7 @@ class UnitRegistry
     private array $records = [];
 
     private ?UnitNameResolver $unitNameResolver = null;
+    private ?UnitSemanticsResolver $unitSemanticsResolver = null;
 
     /**
      * @param iterable<int, Unit>|array<string, Unit> $units
@@ -234,7 +235,7 @@ class UnitRegistry
             definitionExpression: $prefix->definitionExpression . ' * ' . $unit->canonicalName,
             documentation: $unit->documentation,
             comment: $unit->comment,
-            semantics: $unit->semantics,
+            semantics: $this->unitSemanticsResolver()->resolve($name),
             prefixDecomposition: new PrefixDecomposition($prefix, $unit),
         );
     }
@@ -289,9 +290,7 @@ class UnitRegistry
             definitionExpression: $record['def'] ?? $unit?->definition?->toString(),
             documentation: $record['documentation'] ?? $record['definition'] ?? null,
             comment: $record['comment'] ?? null,
-            semantics: isset($record['semantics'])
-                ? UnitSemantics::from($record['semantics'])
-                : UnitSemantics::Multiplicative,
+            semantics: $this->unitSemanticsResolver()->resolve($canonicalName),
             aliases: $aliases,
             symbols: $symbols,
             explicitPlurals: $explicitPlurals,
@@ -302,6 +301,11 @@ class UnitRegistry
     private function unitNameResolver(): UnitNameResolver
     {
         return $this->unitNameResolver ??= new UnitNameResolver($this);
+    }
+
+    private function unitSemanticsResolver(): UnitSemanticsResolver
+    {
+        return $this->unitSemanticsResolver ??= new UnitSemanticsResolver($this);
     }
 
     private static function prebuiltKind(?Unit $unit): UnitKind

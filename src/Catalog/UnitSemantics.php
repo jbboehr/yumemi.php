@@ -41,6 +41,7 @@ enum UnitSemantics: string
     case Multiplicative = 'multiplicative';
     case Affine = 'affine';
     case Logarithmic = 'logarithmic';
+    case UnsupportedExpression = 'unsupported_expression';
 
     public function supportsMultiplicativeAlgebra(): bool
     {
@@ -49,6 +50,6 @@ enum UnitSemantics: string
 
     public function supportsConversion(): bool
     {
-        return $this !== self::Logarithmic;
+        return $this === self::Multiplicative || $this === self::Affine;
     }
 }

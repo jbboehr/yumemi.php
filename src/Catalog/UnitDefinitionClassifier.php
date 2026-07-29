@@ -84,7 +84,7 @@ final class UnitDefinitionClassifier
         }
 
         $directSemantics = self::classify($targetName);
-        if ($directSemantics !== UnitSemantics::Multiplicative) {
+        if ($directSemantics === UnitSemantics::Affine || $directSemantics === UnitSemantics::Logarithmic) {
             return $directSemantics;
         }
 

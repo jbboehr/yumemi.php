@@ -354,9 +354,9 @@ assert($kilo->definitionExpression === '1e3');
 ```
 
 `describe()` performs exact catalog lookup and can synthesize a descriptor for one dynamically prefixed unit name;
-`describePrefix()` performs exact prefix lookup. Neither parses compound unit expressions or substitutes unit
-definitions. See the [catalog reference](docs/catalog.md) for catalog customization, semantic capabilities, affine
-conversion boundaries, logarithmic limitations, and regeneration.
+`describePrefix()` performs exact prefix lookup. Neither accepts compound unit expressions as lookup names or
+substitutes unit definitions in the returned spelling. See the [catalog reference](docs/catalog.md) for catalog
+customization, semantic capabilities, affine conversion boundaries, logarithmic limitations, and regeneration.
 
 Formatting policies can canonicalize aliases and generated plurals, select catalog symbols, use Unicode typography, and
 control dimensionless output. Formatting does not normalize or substitute unit definitions:

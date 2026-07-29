@@ -93,6 +93,8 @@ Already implemented:
   - exact and dynamically prefixed catalog introspection preserving canonical names, component provenance, aliases,
     symbols, plural provenance, comments, and documentation
   - structured semantics for retained affine and logarithmic definitions
+  - lazily cached complete-name capability classification for exact and dynamically prefixed descriptors, including
+    transitive custom definitions, invalid expressions, and effective overlay behavior
   - mutable fluent registry construction producing immutable registry snapshots
   - resolver-side prefix handling
   - fail-closed, case-sensitive name resolution without runtime morphology
@@ -515,9 +517,6 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
 - Very large parsed integer exponents may exceed PHP integer range before reaching the expression model.
 - The UDUNITS2 importer still special-cases `cm2` syntax, and generated `prefixRegex` metadata is currently unused by
   resolution.
-- Custom registry semantics metadata propagates through direct affine/logarithmic markers and exact-name synonym chains.
-  Composite definitions that reference affine or logarithmic units are rejected lazily during resolution but do not yet
-  receive transitive descriptor metadata.
 - Expression arithmetic reduces eagerly and has not been benchmarked as a hot path.
 - Dimensional analysis intentionally cannot distinguish semantically different quantities with the same dimension, such
   as gray and sievert.

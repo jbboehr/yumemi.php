@@ -198,7 +198,7 @@ final class Udunits2CatalogImporter
             $unit['def'] = $def;
 
             $semantics = UnitDefinitionClassifier::classify($def);
-            if ($semantics !== UnitSemantics::Multiplicative) {
+            if ($semantics === UnitSemantics::Affine || $semantics === UnitSemantics::Logarithmic) {
                 $unit['semantics'] = $semantics->value;
             }
         }
@@ -384,7 +384,7 @@ final class Udunits2CatalogImporter
                 $unit,
                 static fn (string $target): ?array => $catalog['units'][$target] ?? null,
             );
-            if ($semantics !== UnitSemantics::Multiplicative) {
+            if ($semantics === UnitSemantics::Affine || $semantics === UnitSemantics::Logarithmic) {
                 $catalog['units'][$name]['semantics'] = $semantics->value;
             }
         }

@@ -137,7 +137,7 @@ final class UnitRegistryBuilder
             'def' => $expression,
         ];
         $semantics = UnitDefinitionClassifier::classify($expression);
-        if ($semantics !== UnitSemantics::Multiplicative) {
+        if ($semantics === UnitSemantics::Affine || $semantics === UnitSemantics::Logarithmic) {
             $record['semantics'] = $semantics->value;
         }
 
@@ -270,7 +270,7 @@ final class UnitRegistryBuilder
             }
 
             $semantics = UnitDefinitionClassifier::inheritedSemantics($record, $findRecord);
-            if ($semantics !== UnitSemantics::Multiplicative) {
+            if ($semantics === UnitSemantics::Affine || $semantics === UnitSemantics::Logarithmic) {
                 $records[$name]['semantics'] = $semantics->value;
             }
         }

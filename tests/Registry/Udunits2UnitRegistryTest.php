@@ -295,14 +295,18 @@ final class Udunits2UnitRegistryTest extends TestCase
 
         $this->assertNotNull($affine);
         $this->assertNotNull($logarithmic);
-        $this->assertSame(UnitSemantics::Affine, $affine->semantics);
-        $this->assertSame(UnitSemantics::Logarithmic, $logarithmic->semantics);
+        $this->assertNotNull($affine->prefixDecomposition);
+        $this->assertNotNull($logarithmic->prefixDecomposition);
+        $this->assertSame(UnitSemantics::UnsupportedExpression, $affine->semantics);
+        $this->assertSame(UnitSemantics::UnsupportedExpression, $logarithmic->semantics);
         $this->assertFalse($affine->supportsMultiplicativeAlgebra());
         $this->assertFalse($affine->supportsConversion());
         $this->assertFalse($logarithmic->supportsMultiplicativeAlgebra());
         $this->assertFalse($logarithmic->supportsConversion());
-        $this->assertSame('celsius', $affine->prefixDecomposition?->unit->canonicalName);
-        $this->assertSame('BZ', $logarithmic->prefixDecomposition?->unit->canonicalName);
+        $this->assertSame('celsius', $affine->prefixDecomposition->unit->canonicalName);
+        $this->assertSame('BZ', $logarithmic->prefixDecomposition->unit->canonicalName);
+        $this->assertSame(UnitSemantics::Affine, $affine->prefixDecomposition->unit->semantics);
+        $this->assertSame(UnitSemantics::Logarithmic, $logarithmic->prefixDecomposition->unit->semantics);
     }
 
     public function testDynamicDescriptionDoesNotInventNestedPrefixesOrCatalogEntries(): void

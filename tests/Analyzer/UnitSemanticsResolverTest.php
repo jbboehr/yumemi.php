@@ -34,53 +34,48 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\Catalog;
+namespace jbboehr\Yumemi\Tests\Analyzer;
 
-final readonly class UnitDescriptor
+use jbboehr\Yumemi\Analyzer\UnitSemanticsResolver;
+use jbboehr\Yumemi\Catalog\UnitSemantics;
+use jbboehr\Yumemi\Registry\UnitRegistry;
+use PHPUnit\Framework\TestCase;
+
+final class UnitSemanticsResolverTest extends TestCase
 {
-    /**
-     * @param list<string> $aliases
-     * @param list<string> $symbols
-     * @param list<string> $explicitPlurals
-     * @param list<string> $generatedPlurals
-     */
-    public function __construct(
-        public string $matchedName,
-        public string $canonicalName,
-        public CatalogNameKind $matchedAs,
-        public UnitKind $kind,
-        public ?string $definitionExpression = null,
-        public ?string $documentation = null,
-        public ?string $comment = null,
-        public array $aliases = [],
-        public array $symbols = [],
-        public array $explicitPlurals = [],
-        public array $generatedPlurals = [],
-        public UnitSemantics $semantics = UnitSemantics::Multiplicative,
-        public ?PrefixDecomposition $prefixDecomposition = null,
-    ) {
+    public function testResolvedSemanticsAreCachedByCompleteName(): void
+    {
+        $registry = new class () extends UnitRegistry {
+            public int $recordLookups = 0;
+
+            public function findCatalogRecord(string $name): ?array
+            {
+                ++$this->recordLookups;
+
+                return parent::findCatalogRecord($name);
+            }
+        };
+        $resolver = new UnitSemanticsResolver($registry);
+
+        $this->assertSame(UnitSemantics::UnsupportedExpression, $resolver->resolve('missing'));
+        $lookups = $registry->recordLookups;
+        $this->assertGreaterThan(0, $lookups);
+        $this->assertSame(UnitSemantics::UnsupportedExpression, $resolver->resolve('missing'));
+        $this->assertSame($lookups, $registry->recordLookups);
     }
 
-    /**
-     * @return list<string>
-     */
-    public function plurals(): array
+    public function testUnexpectedProgrammingErrorsPropagate(): void
     {
-        return [...$this->explicitPlurals, ...$this->generatedPlurals];
-    }
+        $registry = new class () extends UnitRegistry {
+            public function findCatalogRecord(string $name): ?array
+            {
+                throw new \LogicException('unexpected registry failure');
+            }
+        };
 
-    public function supportsMultiplicativeAlgebra(): bool
-    {
-        return $this->semantics->supportsMultiplicativeAlgebra();
-    }
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('unexpected registry failure');
 
-    public function supportsConversion(): bool
-    {
-        return $this->semantics->supportsConversion();
-    }
-
-    public function isDynamicallyPrefixed(): bool
-    {
-        return $this->prefixDecomposition !== null;
+        (new UnitSemanticsResolver($registry))->resolve('meter');
     }
 }

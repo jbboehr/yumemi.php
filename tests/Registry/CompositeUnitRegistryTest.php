@@ -39,6 +39,7 @@ namespace jbboehr\Yumemi\Tests\Registry;
 use jbboehr\Yumemi\Analyzer\UnitResolver;
 use jbboehr\Yumemi\Catalog\CatalogNameKind;
 use jbboehr\Yumemi\Catalog\UnitKind;
+use jbboehr\Yumemi\Catalog\UnitSemantics;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Registry\CompositeUnitRegistry;
@@ -187,6 +188,37 @@ final class CompositeUnitRegistryTest extends TestCase
         $this->assertSame(UnitKind::Derived, $descriptor->kind);
         $this->assertSame('overlay documentation', $descriptor->documentation);
         $this->assertSame(['sh'], $descriptor->symbols);
+    }
+
+    public function testDescriptionCapabilitiesUseTheEffectiveOverlay(): void
+    {
+        $composite = new CompositeUnitRegistry(
+            $this->registry(
+                [],
+                [
+                    'kelvin' => ['type' => 'base', 'name' => 'kelvin'],
+                    'shared' => [
+                        'type' => 'unit',
+                        'name' => 'shared',
+                        'def' => 'kelvin @ 100',
+                        'semantics' => 'affine',
+                    ],
+                    'dependent' => ['type' => 'unit', 'name' => 'dependent', 'def' => 'shared'],
+                ],
+                [],
+            ),
+            $this->registry(['shared' => new Unit('shared')], [], []),
+        );
+
+        $shared = $composite->describe('shared');
+        $dependent = $composite->describe('dependent');
+
+        $this->assertNotNull($shared);
+        $this->assertNotNull($dependent);
+        $this->assertSame(UnitSemantics::Multiplicative, $shared->semantics);
+        $this->assertSame(UnitSemantics::Multiplicative, $dependent->semantics);
+        $this->assertTrue($dependent->supportsMultiplicativeAlgebra());
+        $this->assertTrue($dependent->supportsConversion());
     }
 
     public function testPrefixDescriptionUsesOverlayPrecedence(): void

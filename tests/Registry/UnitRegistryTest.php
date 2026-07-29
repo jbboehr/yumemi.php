@@ -219,6 +219,10 @@ final class UnitRegistryTest extends TestCase
     public function testDescriptionExposesUnsupportedCanonicalMetadataThroughAliases(): void
     {
         $registry = new UnitRegistry([], [
+            'kelvin' => [
+                'type' => 'base',
+                'name' => 'kelvin',
+            ],
             'degree_widget' => [
                 'type' => 'unit',
                 'name' => 'degree_widget',

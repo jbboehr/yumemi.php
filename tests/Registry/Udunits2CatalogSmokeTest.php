@@ -242,10 +242,11 @@ final class Udunits2CatalogSmokeTest extends TestCase
         $this->assertNotNull($descriptor);
         $this->assertSame('deciB', $descriptor->canonicalName);
         $this->assertSame(CatalogNameKind::Prefixed, $descriptor->matchedAs);
-        $this->assertSame(UnitSemantics::Logarithmic, $descriptor->semantics);
+        $this->assertSame(UnitSemantics::UnsupportedExpression, $descriptor->semantics);
         $this->assertNotNull($descriptor->prefixDecomposition);
         $this->assertSame('deci', $descriptor->prefixDecomposition->prefix->canonicalName);
         $this->assertSame('B', $descriptor->prefixDecomposition->unit->canonicalName);
+        $this->assertSame(UnitSemantics::Logarithmic, $descriptor->prefixDecomposition->unit->semantics);
 
         try {
             $units->normalize('dB');
