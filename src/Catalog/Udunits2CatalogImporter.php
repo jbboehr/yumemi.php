@@ -81,7 +81,7 @@ final class Udunits2CatalogImporter
         }
 
         $this->materializeImplicitPluralAliases($catalog, $implicitPluralTargets);
-        $this->materializeUnsupportedReasons($catalog);
+        $this->materializeSemantics($catalog);
         $catalog['prefixRegex'] = $this->createPrefixRegex(array_keys($catalog['prefixes']));
 
         /** @phpstan-var Udunits2Catalog $catalog */
@@ -197,9 +197,9 @@ final class Udunits2CatalogImporter
         if ($def !== null) {
             $unit['def'] = $def;
 
-            $unsupportedReason = UnitDefinitionClassifier::unsupportedReason($def)?->value;
-            if ($unsupportedReason !== null) {
-                $unit['unsupportedReason'] = $unsupportedReason;
+            $semantics = UnitDefinitionClassifier::classify($def);
+            if ($semantics !== UnitSemantics::Multiplicative) {
+                $unit['semantics'] = $semantics->value;
             }
         }
 
@@ -368,24 +368,24 @@ final class Udunits2CatalogImporter
     }
 
     /**
-     * Propagate support status through exact-name synonym definitions such as
-     * celsius = degree_Celsius. Alias rows inherit status during introspection.
+     * Propagate semantics through exact-name synonym definitions such as
+     * celsius = degree_Celsius. Alias rows inherit semantics during introspection.
      *
      * @phpstan-param MutableUdunits2Catalog $catalog
      */
-    private function materializeUnsupportedReasons(array &$catalog): void
+    private function materializeSemantics(array &$catalog): void
     {
         foreach ($catalog['units'] as $name => $unit) {
-            if ($unit['type'] === 'alias' || isset($unit['unsupportedReason'])) {
+            if ($unit['type'] === 'alias' || isset($unit['semantics'])) {
                 continue;
             }
 
-            $reason = UnitDefinitionClassifier::inheritedUnsupportedReason(
+            $semantics = UnitDefinitionClassifier::inheritedSemantics(
                 $unit,
                 static fn (string $target): ?array => $catalog['units'][$target] ?? null,
             );
-            if ($reason !== null) {
-                $catalog['units'][$name]['unsupportedReason'] = $reason->value;
+            if ($semantics !== UnitSemantics::Multiplicative) {
+                $catalog['units'][$name]['semantics'] = $semantics->value;
             }
         }
     }

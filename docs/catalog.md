@@ -27,7 +27,7 @@ entry exists, it applies the same one-prefix-plus-exact-unit decomposition used 
 was canonical, an alias, a symbol, an explicit plural, a generated plural, or dynamically prefixed.
 
 Introspection does not parse compound expressions, normalize definitions, or add synthesized spellings to `names()`. A
-dynamically prefixed descriptor exposes its prefix and exact residual unit through `prefixApplication`:
+dynamically prefixed descriptor exposes its prefix and exact residual unit through `prefixDecomposition`:
 
 ```php
 <?php
@@ -35,6 +35,7 @@ dynamically prefixed descriptor exposes its prefix and exact residual unit throu
 require 'vendor/autoload.php';
 
 use jbboehr\Yumemi\Catalog\CatalogNameKind;
+use jbboehr\Yumemi\Catalog\UnitSemantics;
 use jbboehr\Yumemi\Units;
 
 $units = Units::default();
@@ -45,23 +46,26 @@ assert($kilopascal->canonicalName === 'kilopascal');
 assert($kilopascal->matchedAs === CatalogNameKind::Prefixed);
 assert($kilopascal->definitionExpression === '1e3 * pascal');
 assert($kilopascal->isDynamicallyPrefixed());
+assert($kilopascal->semantics === UnitSemantics::Multiplicative);
+assert($kilopascal->supportsMultiplicativeAlgebra());
+assert($kilopascal->supportsConversion());
 
-assert($kilopascal->prefixApplication !== null);
-assert($kilopascal->prefixApplication->prefix->matchedName === 'k');
-assert($kilopascal->prefixApplication->prefix->canonicalName === 'kilo');
-assert($kilopascal->prefixApplication->prefix->matchedAs === CatalogNameKind::Symbol);
-assert($kilopascal->prefixApplication->unit->matchedName === 'Pa');
-assert($kilopascal->prefixApplication->unit->canonicalName === 'pascal');
-assert($kilopascal->prefixApplication->unit->matchedAs === CatalogNameKind::Symbol);
+assert($kilopascal->prefixDecomposition !== null);
+assert($kilopascal->prefixDecomposition->prefix->matchedName === 'k');
+assert($kilopascal->prefixDecomposition->prefix->canonicalName === 'kilo');
+assert($kilopascal->prefixDecomposition->prefix->matchedAs === CatalogNameKind::Symbol);
+assert($kilopascal->prefixDecomposition->unit->matchedName === 'Pa');
+assert($kilopascal->prefixDecomposition->unit->canonicalName === 'pascal');
+assert($kilopascal->prefixDecomposition->unit->matchedAs === CatalogNameKind::Symbol);
 ```
 
 The synthesized descriptor's top-level alias, symbol, and plural lists are empty because it is not an exact catalog
 entry. The residual descriptor retains the underlying unit's complete metadata. Exact spellings still take precedence:
 `Pa` describes the exact pascal symbol rather than decomposing as peta-are.
 
-Prefixed affine and logarithmic names also receive synthesized descriptors with the residual unit's
-`UnsupportedUnitReason`. This allows tooling to explain their structure even though multiplicative evaluation rejects
-them.
+Prefixed affine and logarithmic names also receive synthesized descriptors with the residual unit's `UnitSemantics`. Use
+`supportsMultiplicativeAlgebra()` and `supportsConversion()` to inspect concrete capabilities. Ordinary affine units
+support conversion, dynamically prefixed affine units do not, and logarithmic units support neither operation.
 
 ## Custom Registries
 
@@ -105,18 +109,19 @@ track a separate catalog identity for each value.
 ## Catalog Semantic Support
 
 The expression and quantity models intentionally support only multiplicative unit algebra with integer powers. Known
-affine and logarithmic UDUNITS2 definitions remain in the generated catalog with an `UnsupportedUnitReason` exposed by
-`describe()`. Aliases inherit the support status of their canonical entry, and direct custom `@` or `lg(...)`
-definitions receive the same classification.
+affine and logarithmic UDUNITS2 definitions remain in the generated catalog with a `UnitSemantics` value exposed by
+`describe()`. Aliases inherit the semantics of their canonical entry, and direct custom `@` or `lg(...)` definitions
+receive the same classification. Multiplicative descriptors expose `UnitSemantics::Multiplicative` rather than `null`.
 
 Affine classification currently means "unsupported by multiplicative `Expr` algebra," not "unsupported everywhere."
-`convert()`, `convertFloat()`, `compatible()`, `dimension()`, and `unit_to()` evaluate affine definitions exactly.
+`convert()`, `convertFloat()`, `areCompatible()`, `dimension()`, and `unit_to()` evaluate affine definitions exactly.
 `conversionFactor()` works only when the composed conversion has no offset. Affine units remain invalid in `parse()`,
 `unit()`, quantities, multiplication, division, powers, and prefixes.
 
 Logarithmic definitions remain unsupported at every execution boundary. Attempting to evaluate one throws
-`UnsupportedUnitException`, which carries the canonical unit name, support reason, and original definition. PHPStan
-reports the same reason for constant unit strings.
+`UnsupportedUnitAlgebraException` from expression APIs or `UnsupportedUnitConversionException` from conversion APIs.
+Both carry the canonical unit name, semantics, and original definition. PHPStan reports the same operation-specific
+message for constant unit strings.
 
 ## Regenerating The Catalog
 

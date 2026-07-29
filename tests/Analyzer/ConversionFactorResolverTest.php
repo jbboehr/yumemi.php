@@ -39,9 +39,9 @@ namespace jbboehr\Yumemi\Tests\Analyzer;
 use jbboehr\Yumemi\Analyzer\ConversionFactorResolver;
 use jbboehr\Yumemi\Analyzer\UnitNormalizer;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
-use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
-use jbboehr\Yumemi\Expr\Term;
+use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
 use PHPUnit\Framework\TestCase;
 
@@ -50,7 +50,7 @@ final class ConversionFactorResolverTest extends TestCase
     public function testCompatibleUnitsResolveScaleFactor(): void
     {
         $meter = new Unit('meter');
-        $kilometer = new Unit('kilometer', new Compound([
+        $kilometer = new Unit('kilometer', new Product([
             new Constant(1000),
             $meter,
         ]));
@@ -75,27 +75,27 @@ final class ConversionFactorResolverTest extends TestCase
     {
         $meter = new Unit('meter');
         $second = new Unit('second');
-        $kilometer = new Unit('kilometer', new Compound([
+        $kilometer = new Unit('kilometer', new Product([
             new Constant(1000),
             $meter,
         ]));
-        $minute = new Unit('minute', new Compound([
+        $minute = new Unit('minute', new Product([
             new Constant(60),
             $second,
         ]));
 
         $resolver = new ConversionFactorResolver(new UnitNormalizer());
 
-        $metersPerSecond = new Compound([
+        $metersPerSecond = new Product([
             $meter,
-            new Term($second, -1),
+            new Power($second, -1),
         ]);
-        $kilometersPerMinute = new Compound([
+        $kilometersPerMinute = new Product([
             $kilometer,
-            new Term($minute, -1),
+            new Power($minute, -1),
         ]);
 
-        $this->assertTrue($resolver->compatible($metersPerSecond, $kilometersPerMinute));
+        $this->assertTrue($resolver->areCompatible($metersPerSecond, $kilometersPerMinute));
         $this->assertSame('50/3', $resolver->resolve($kilometersPerMinute, $metersPerSecond)->toString());
         $this->assertSame('3/50', $resolver->resolve($metersPerSecond, $kilometersPerMinute)->toString());
     }

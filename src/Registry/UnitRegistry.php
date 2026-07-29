@@ -36,15 +36,15 @@
 
 namespace jbboehr\Yumemi\Registry;
 
+use jbboehr\Yumemi\Analyzer\ExprReducer;
 use jbboehr\Yumemi\Analyzer\UnitNameResolver;
 use jbboehr\Yumemi\Catalog\CatalogNameKind;
-use jbboehr\Yumemi\Catalog\PrefixApplicationDescriptor;
+use jbboehr\Yumemi\Catalog\PrefixDecomposition;
 use jbboehr\Yumemi\Catalog\PrefixDescriptor;
 use jbboehr\Yumemi\Catalog\UnitDescriptor;
 use jbboehr\Yumemi\Catalog\UnitKind;
-use jbboehr\Yumemi\Catalog\UnsupportedUnitReason;
-use jbboehr\Yumemi\Exception\UnitNotFoundException;
-use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Catalog\UnitSemantics;
+use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Unit;
 
@@ -54,8 +54,8 @@ use jbboehr\Yumemi\Expr\Unit;
  * Construct via {@see self::builder()}, {@see self::defaults()}, or a concrete catalog
  * subclass. There is no public mutation API after construction.
  *
- * Hand-built registries expose precomposed {@see Unit} values via {@see lookup()}.
- * Definition/alias rows are exposed via {@see record()}; {@see Analyzer\UnitResolver}
+ * Hand-built registries expose precomposed {@see Unit} values via {@see findPrebuiltUnit()}.
+ * Definition/alias rows are exposed via {@see findCatalogRecord()}; {@see Analyzer\UnitResolver}
  * parses definition strings and is the only resolving brain.
  *
  * @phpstan-type CatalogRecord array{
@@ -67,7 +67,7 @@ use jbboehr\Yumemi\Expr\Unit;
  *     documentation?: string,
  *     comment?: string,
  *     plural?: string,
- *     unsupportedReason?: 'affine'|'logarithmic'
+ *     semantics?: 'affine'|'logarithmic'
  * }
  */
 class UnitRegistry
@@ -161,35 +161,23 @@ class UnitRegistry
         return [
             $meter,
             $second,
-            new Unit('foot', new Compound([
+            new Unit('foot', new Product([
                 new Constant(3048),
                 (new Constant(10000))->pow(-1),
                 $meter,
             ])),
-            new Unit('kilometer', new Compound([
+            new Unit('kilometer', new Product([
                 new Constant(1000),
                 $meter,
             ])),
-            new Unit('minute', new Compound([
+            new Unit('minute', new Product([
                 new Constant(60),
                 $second,
             ])),
         ];
     }
 
-    public function get(string $name): Unit
-    {
-        return $this->lookup($name) ?? throw UnitNotFoundException::create(
-            $name,
-            // Cheap exact-case suggestions only; full levenshtein lives in UnitResolver.
-            array_values(array_filter(
-                $this->names(),
-                static fn (string $candidate): bool => strcasecmp($candidate, $name) === 0 && $candidate !== $name,
-            )),
-        );
-    }
-
-    public function lookup(string $name): ?Unit
+    public function findPrebuiltUnit(string $name): ?Unit
     {
         return $this->units[$name] ?? null;
     }
@@ -212,7 +200,7 @@ class UnitRegistry
      *
      * @phpstan-return CatalogRecord|null
      */
-    public function record(string $name): ?array
+    public function findCatalogRecord(string $name): ?array
     {
         return $this->records[$name] ?? null;
     }
@@ -246,8 +234,8 @@ class UnitRegistry
             definitionExpression: $prefix->definitionExpression . ' * ' . $unit->canonicalName,
             documentation: $unit->documentation,
             comment: $unit->comment,
-            unsupportedReason: $unit->unsupportedReason,
-            prefixApplication: new PrefixApplicationDescriptor($prefix, $unit),
+            semantics: $unit->semantics,
+            prefixDecomposition: new PrefixDecomposition($prefix, $unit),
         );
     }
 
@@ -296,14 +284,14 @@ class UnitRegistry
                 'base' => UnitKind::Base,
                 'dimensionless' => UnitKind::Dimensionless,
                 'unit' => UnitKind::Derived,
-                default => UnitKind::Prebuilt,
+                default => self::prebuiltKind($unit),
             },
             definitionExpression: $record['def'] ?? $unit?->definition?->toString(),
             documentation: $record['documentation'] ?? $record['definition'] ?? null,
             comment: $record['comment'] ?? null,
-            unsupportedReason: isset($record['unsupportedReason'])
-                ? UnsupportedUnitReason::from($record['unsupportedReason'])
-                : null,
+            semantics: isset($record['semantics'])
+                ? UnitSemantics::from($record['semantics'])
+                : UnitSemantics::Multiplicative,
             aliases: $aliases,
             symbols: $symbols,
             explicitPlurals: $explicitPlurals,
@@ -314,6 +302,17 @@ class UnitRegistry
     private function unitNameResolver(): UnitNameResolver
     {
         return $this->unitNameResolver ??= new UnitNameResolver($this);
+    }
+
+    private static function prebuiltKind(?Unit $unit): UnitKind
+    {
+        if ($unit?->definition === null) {
+            return UnitKind::Base;
+        }
+
+        return ExprReducer::reduce($unit->definition) instanceof Constant
+            ? UnitKind::Dimensionless
+            : UnitKind::Derived;
     }
 
     /**
@@ -349,7 +348,7 @@ class UnitRegistry
             throw new \UnexpectedValueException('Circular catalog alias while describing unit: ' . $name);
         }
 
-        $record = $this->record($name);
+        $record = $this->findCatalogRecord($name);
         if ($record !== null) {
             if ($record['type'] !== 'alias') {
                 return [$record['name'], $record, null];
@@ -365,7 +364,7 @@ class UnitRegistry
             );
         }
 
-        $unit = $this->lookup($name);
+        $unit = $this->findPrebuiltUnit($name);
         if ($unit === null) {
             return null;
         }
@@ -383,7 +382,7 @@ class UnitRegistry
 
     private function nameKind(string $name): CatalogNameKind
     {
-        $record = $this->record($name);
+        $record = $this->findCatalogRecord($name);
         if ($record === null || $record['type'] !== 'alias') {
             return CatalogNameKind::Alias;
         }

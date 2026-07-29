@@ -72,12 +72,12 @@ final class CompositeUnitRegistryTest extends TestCase
         );
 
         // Overlay wins on conflict; base is the fallback for names only it provides.
-        $this->assertSame($overlayShared, $composite->lookup('shared'));
-        $this->assertSame($baseOnly, $composite->lookup('base_only'));
-        $this->assertSame($overlayOnly, $composite->lookup('overlay_only'));
-        $this->assertNull($composite->lookup('missing'));
+        $this->assertSame($overlayShared, $composite->findPrebuiltUnit('shared'));
+        $this->assertSame($baseOnly, $composite->findPrebuiltUnit('base_only'));
+        $this->assertSame($overlayOnly, $composite->findPrebuiltUnit('overlay_only'));
+        $this->assertNull($composite->findPrebuiltUnit('missing'));
 
-        $this->assertSame('OVERLAY', $composite->record('rec_shared')['def'] ?? null);
+        $this->assertSame('OVERLAY', $composite->findCatalogRecord('rec_shared')['def'] ?? null);
     }
 
     public function testOverlayRecordMasksBasePrebuiltUnitAcrossAllConsumers(): void
@@ -89,8 +89,8 @@ final class CompositeUnitRegistryTest extends TestCase
             ], []),
         );
 
-        $this->assertNull($composite->lookup('shared'));
-        $this->assertSame('3', $composite->record('shared')['def'] ?? null);
+        $this->assertNull($composite->findPrebuiltUnit('shared'));
+        $this->assertSame('3', $composite->findCatalogRecord('shared')['def'] ?? null);
         $this->assertSame('3', $composite->describe('shared')?->definitionExpression);
 
         $resolved = (new UnitResolver($composite))->resolveOrFail('shared');
@@ -109,8 +109,8 @@ final class CompositeUnitRegistryTest extends TestCase
             $this->registry(['shared' => $overlayUnit], [], []),
         );
 
-        $this->assertSame($overlayUnit, $composite->lookup('shared'));
-        $this->assertNull($composite->record('shared'));
+        $this->assertSame($overlayUnit, $composite->findPrebuiltUnit('shared'));
+        $this->assertNull($composite->findCatalogRecord('shared'));
         $this->assertSame('3', $composite->describe('shared')?->definitionExpression);
         $this->assertSame($overlayUnit, (new UnitResolver($composite))->resolveOrFail('shared'));
         $this->assertSame('3', (new Units($composite))->conversionFactor('shared', '1')->toString());
@@ -244,9 +244,9 @@ final class CompositeUnitRegistryTest extends TestCase
         $this->assertSame('kshared', $overlayPrefix->canonicalName);
         $this->assertSame('3 * shared', $overlayPrefix->definitionExpression);
         $this->assertSame('overlay documentation', $overlayPrefix->documentation);
-        $this->assertNotNull($overlayPrefix->prefixApplication);
-        $this->assertSame(CatalogNameKind::Symbol, $overlayPrefix->prefixApplication->unit->matchedAs);
-        $this->assertSame(['sh'], $overlayPrefix->prefixApplication->unit->symbols);
+        $this->assertNotNull($overlayPrefix->prefixDecomposition);
+        $this->assertSame(CatalogNameKind::Symbol, $overlayPrefix->prefixDecomposition->unit->matchedAs);
+        $this->assertSame(['sh'], $overlayPrefix->prefixDecomposition->unit->symbols);
         $this->assertSame('baseshared', $basePrefix->canonicalName);
         $this->assertSame('5 * shared', $basePrefix->definitionExpression);
         $this->assertSame('overlay documentation', $basePrefix->documentation);
@@ -271,7 +271,7 @@ final class CompositeUnitRegistryTest extends TestCase
              *     documentation?: string,
              *     comment?: string,
              *     plural?: string,
-             *     unsupportedReason?: 'affine'|'logarithmic'
+             *     semantics?: 'affine'|'logarithmic'
              * }> $records
              * @param array<string, string> $prefixes
              */

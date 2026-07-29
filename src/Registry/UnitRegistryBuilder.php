@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\Registry;
 
 use jbboehr\Yumemi\Catalog\UnitDefinitionClassifier;
+use jbboehr\Yumemi\Catalog\UnitSemantics;
 use jbboehr\Yumemi\Expr\Unit;
 
 /**
@@ -109,7 +110,7 @@ final class UnitRegistryBuilder
      *
      * @param string|null $dataFile Catalog path; defaults to {@see Udunits2UnitRegistry::DATA_FILE}.
      */
-    public function withUdunits2(?string $dataFile = null): self
+    public function includeUdunits2(?string $dataFile = null): self
     {
         $this->includeUdunits2 = true;
         $this->udunits2DataFile = $dataFile ?? Udunits2UnitRegistry::DATA_FILE;
@@ -135,9 +136,9 @@ final class UnitRegistryBuilder
             'name' => $name,
             'def' => $expression,
         ];
-        $unsupportedReason = UnitDefinitionClassifier::unsupportedReason($expression);
-        if ($unsupportedReason !== null) {
-            $record['unsupportedReason'] = $unsupportedReason->value;
+        $semantics = UnitDefinitionClassifier::classify($expression);
+        if ($semantics !== UnitSemantics::Multiplicative) {
+            $record['semantics'] = $semantics->value;
         }
 
         $this->records[$name] = $record;
@@ -210,7 +211,7 @@ final class UnitRegistryBuilder
         $base = $this->includeUdunits2
             ? new Udunits2UnitRegistry($this->udunits2DataFile ?? Udunits2UnitRegistry::DATA_FILE)
             : null;
-        $records = $this->materializeUnsupportedReasons($base);
+        $records = $this->materializeSemantics($base);
         $overlay = $this->buildOverlayRegistry($records);
 
         if ($base !== null) {
@@ -237,7 +238,7 @@ final class UnitRegistryBuilder
         }
 
         // Prebuilt aliases: if a record is an alias to a prebuilt unit name, also expose
-        // lookup() for that alias so get() works without going through UnitResolver.
+        // the alias through findPrebuiltUnit() without requiring UnitResolver.
         foreach ($records as $name => $record) {
             if ($record['type'] !== 'alias') {
                 continue;
@@ -257,20 +258,20 @@ final class UnitRegistryBuilder
     /**
      * @return array<string, CatalogRecord>
      */
-    private function materializeUnsupportedReasons(?UnitRegistry $base): array
+    private function materializeSemantics(?UnitRegistry $base): array
     {
         $records = $this->records;
 
         $findRecord = fn (string $name): ?array => $this->findEffectiveRecord($name, $records, $base);
 
         foreach ($records as $name => $record) {
-            if ($record['type'] === 'alias' || isset($record['unsupportedReason'])) {
+            if ($record['type'] === 'alias' || isset($record['semantics'])) {
                 continue;
             }
 
-            $reason = UnitDefinitionClassifier::inheritedUnsupportedReason($record, $findRecord);
-            if ($reason !== null) {
-                $records[$name]['unsupportedReason'] = $reason->value;
+            $semantics = UnitDefinitionClassifier::inheritedSemantics($record, $findRecord);
+            if ($semantics !== UnitSemantics::Multiplicative) {
+                $records[$name]['semantics'] = $semantics->value;
             }
         }
 
@@ -287,7 +288,7 @@ final class UnitRegistryBuilder
             return null;
         }
 
-        return $records[$name] ?? $base?->record($name);
+        return $records[$name] ?? $base?->findCatalogRecord($name);
     }
 
     private function assertNameAvailable(string $name): void

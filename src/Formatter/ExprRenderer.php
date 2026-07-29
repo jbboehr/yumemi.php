@@ -38,9 +38,9 @@ namespace jbboehr\Yumemi\Formatter;
 
 use jbboehr\Yumemi\Analyzer\ExprReducer;
 use jbboehr\Yumemi\Expr;
-use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
-use jbboehr\Yumemi\Expr\Term;
+use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Number\Rational;
 
@@ -127,8 +127,8 @@ final class ExprRenderer
         array &$denominator,
         array &$negativePowers,
     ): void {
-        if ($expr instanceof Compound) {
-            foreach ($expr->exprs as $subexpr) {
+        if ($expr instanceof Product) {
+            foreach ($expr->factors as $subexpr) {
                 self::collect(
                     $subexpr,
                     $options,
@@ -148,8 +148,8 @@ final class ExprRenderer
             return;
         }
 
-        if ($expr instanceof Term) {
-            self::collectTerm(
+        if ($expr instanceof Power) {
+            self::collectPower(
                 $expr,
                 $options,
                 $unitNameFormatter,
@@ -175,8 +175,8 @@ final class ExprRenderer
      * @param list<string>             $denominator
      * @param list<string>             $negativePowers
      */
-    private static function collectTerm(
-        Term $term,
+    private static function collectPower(
+        Power $power,
         FormatOptions $options,
         callable $unitNameFormatter,
         Rational &$constant,
@@ -184,25 +184,25 @@ final class ExprRenderer
         array &$denominator,
         array &$negativePowers,
     ): void {
-        if ($term->value instanceof Constant) {
-            $constant = $constant->mul($term->value->value->pow($term->power));
+        if ($power->base instanceof Constant) {
+            $constant = $constant->mul($power->base->value->pow($power->exponent));
             return;
         }
 
-        $factor = $term->value instanceof Unit
-            ? $unitNameFormatter($term->value->name)
-            : $term->value->toString();
-        if ($term->power < 0) {
+        $factor = $power->base instanceof Unit
+            ? $unitNameFormatter($power->base->name)
+            : $power->base->toString();
+        if ($power->exponent < 0) {
             if ($options->divisionStyle === DivisionStyle::NegativePowers) {
-                $negativePowers[] = self::formatPowered($factor, $term->power, $options);
+                $negativePowers[] = self::formatPowered($factor, $power->exponent, $options);
             } else {
-                $denominator[] = self::formatPowered($factor, -$term->power, $options);
+                $denominator[] = self::formatPowered($factor, -$power->exponent, $options);
             }
 
             return;
         }
 
-        $numerator[] = self::formatPowered($factor, $term->power, $options);
+        $numerator[] = self::formatPowered($factor, $power->exponent, $options);
     }
 
     private static function formatPowered(string $expr, int $power, FormatOptions $options): string

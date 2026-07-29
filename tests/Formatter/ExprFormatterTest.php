@@ -37,9 +37,9 @@
 namespace jbboehr\Yumemi\Tests\Formatter;
 
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
-use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
-use jbboehr\Yumemi\Expr\Term;
+use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\TestCase;
@@ -48,10 +48,10 @@ final class ExprFormatterTest extends TestCase
 {
     public function testFormatsUnitsWithDenominator(): void
     {
-        $expr = new Compound([
+        $expr = new Product([
             new Constant(3),
             new Unit('meter'),
-            new Term(new Unit('second'), -1),
+            new Power(new Unit('second'), -1),
         ]);
 
         $this->assertSame('3 * meter / second', Units::default()->formatter()->format($expr));
@@ -79,10 +79,10 @@ final class ExprFormatterTest extends TestCase
 
     public function testFormatsMultipleDenominatorTermsWithParentheses(): void
     {
-        $expr = new Compound([
+        $expr = new Product([
             new Unit('centimeter'),
-            new Term(new Unit('foot'), -1),
-            new Term(new Unit('second'), -1),
+            new Power(new Unit('foot'), -1),
+            new Power(new Unit('second'), -1),
         ]);
 
         $this->assertSame('centimeter / (foot * second)', Units::default()->formatter()->format($expr));

@@ -34,16 +34,39 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\Catalog;
+namespace jbboehr\Yumemi\Expr;
 
-/**
- * Provenance for a unit descriptor synthesized from one prefix and one exact unit spelling.
- */
-final readonly class PrefixApplicationDescriptor
+use jbboehr\Yumemi\Analyzer\ExprReducer;
+use jbboehr\Yumemi\Dimension;
+use jbboehr\Yumemi\Expr;
+use jbboehr\Yumemi\Util\MathTrait;
+
+final class Power implements Expr
 {
+    use MathTrait;
+
     public function __construct(
-        public PrefixDescriptor $prefix,
-        public UnitDescriptor $unit,
+        public readonly Expr $base,
+        public readonly int $exponent = 1,
     ) {
+    }
+
+    public function dimension(): Dimension
+    {
+        return $this->base->dimension()->pow($this->exponent);
+    }
+
+    public function toString(): string
+    {
+        if ($this->exponent === 1) {
+            return $this->base->toString();
+        }
+
+        return $this->base->toString() . ' ^ ' . $this->exponent;
+    }
+
+    public function reduce(): Expr
+    {
+        return ExprReducer::reduce($this);
     }
 }

@@ -83,7 +83,7 @@ final class InvalidQuantityConstructionRuleTest extends RuleTestCase
                 29,
             ],
             [
-                'Unit "B" is known but uses unsupported logarithmic semantics (definition: lg(re 1)).',
+                'Unit "B" uses logarithmic semantics, which are not supported by multiplicative unit algebra (definition: lg(re 1)).',
                 30,
             ],
             [
@@ -97,7 +97,7 @@ final class InvalidQuantityConstructionRuleTest extends RuleTestCase
                 33,
             ],
             [
-                'Unit "B" is known but uses unsupported logarithmic semantics (definition: lg(re 1)).',
+                'Unit "B" uses logarithmic semantics, which are not supported by multiplicative unit algebra (definition: lg(re 1)).',
                 34,
             ],
         ]);

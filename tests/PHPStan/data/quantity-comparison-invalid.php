@@ -9,6 +9,6 @@ $seconds = $units->quantity(1, 'second');
 $meters->compareTo($seconds);
 $meters->equals($seconds);
 $meters->lessThan($seconds);
-$meters->lessThanOrEqual($seconds);
+$meters->lessThanOrEqualTo($seconds);
 $meters->greaterThan($seconds);
-$meters->greaterThanOrEqual($seconds);
+$meters->greaterThanOrEqualTo($seconds);

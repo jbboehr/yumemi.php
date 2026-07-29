@@ -36,9 +36,9 @@
 
 namespace jbboehr\Yumemi\Tests\Analyzer;
 
-use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
-use jbboehr\Yumemi\Expr\Term;
+use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Units;
@@ -90,13 +90,25 @@ final class ExprReducerTest extends TestCase
         $this->assertTrue((new Constant(new Rational(2, 4)))->equals(new Constant(new Rational(1, 2))));
     }
 
-    public function testPoweredTermsComparePowerAndValue(): void
+    public function testPowersCompareExponentAndBase(): void
     {
         $meter = new Unit('meter');
         $second = new Unit('second');
 
-        $this->assertFalse((new Term($meter, 2))->equals(new Term($meter, 3)));
-        $this->assertFalse((new Term($meter, 2))->equals(new Term($second, 2)));
+        $this->assertFalse((new Power($meter, 2))->equals(new Power($meter, 3)));
+        $this->assertFalse((new Power($meter, 2))->equals(new Power($second, 2)));
+    }
+
+    public function testPowerAndProductExposeMathematicalParts(): void
+    {
+        $meter = new Unit('meter');
+        $second = new Unit('second');
+        $power = new Power($second, -2);
+        $product = new Product([$meter, $power]);
+
+        $this->assertSame($second, $power->base);
+        $this->assertSame(-2, $power->exponent);
+        $this->assertSame([$meter, $power], $product->factors);
     }
 
     public function testUnitEqualsIgnoresDefinitionAndUnitsContext(): void
@@ -110,14 +122,14 @@ final class ExprReducerTest extends TestCase
         $this->assertTrue($bare->equals(new Unit('meter', new Constant(1))));
     }
 
-    public function testCompoundPowersDistribute(): void
+    public function testProductPowersDistribute(): void
     {
         $meter = new Unit('meter');
         $second = new Unit('second');
 
-        $expr = (new Compound([
+        $expr = (new Product([
             $meter,
-            new Term($second, -1),
+            new Power($second, -1),
         ]))->pow(2);
 
         $this->assertSame('meter ^ 2 * second ^ -2', $expr->toString());

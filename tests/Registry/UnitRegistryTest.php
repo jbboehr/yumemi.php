@@ -38,9 +38,9 @@ namespace jbboehr\Yumemi\Tests\Registry;
 
 use jbboehr\Yumemi\Catalog\CatalogNameKind;
 use jbboehr\Yumemi\Catalog\UnitKind;
-use jbboehr\Yumemi\Catalog\UnsupportedUnitReason;
-use jbboehr\Yumemi\Exception\UnitNotFoundException;
+use jbboehr\Yumemi\Catalog\UnitSemantics;
 use jbboehr\Yumemi\Expr\Constant;
+use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
@@ -53,9 +53,9 @@ final class UnitRegistryTest extends TestCase
     {
         $registry = UnitRegistry::defaults();
 
-        $this->assertSame('meter', $registry->get('meter')->toString());
-        $this->assertSame('kilometer', $registry->get('kilometer')->toString());
-        $this->assertFalse($registry->get('kilometer')->isBase());
+        $this->assertSame('meter', $registry->findPrebuiltUnit('meter')?->toString());
+        $this->assertSame('kilometer', $registry->findPrebuiltUnit('kilometer')?->toString());
+        $this->assertFalse($registry->findPrebuiltUnit('kilometer')->isBase());
     }
 
     public function testBuiltinDefinitionsHaveExactScales(): void
@@ -66,31 +66,6 @@ final class UnitRegistryTest extends TestCase
         $this->assertSame('1000', $units->quantity(1, 'kilometer')->valueIn('meter')->toString());
         $this->assertSame('60', $units->quantity(1, 'minute')->valueIn('second')->toString());
         $this->assertCount(5, UnitRegistry::builtinDefaultUnits());
-    }
-
-    public function testMissingUnitFails(): void
-    {
-        $registry = UnitRegistry::defaults();
-
-        $this->expectException(UnitNotFoundException::class);
-        $registry->get('league');
-    }
-
-    public function testMissingUnitSuggestsOnlyCaseInsensitiveExactMatchesAsAList(): void
-    {
-        $registry = new UnitRegistry([
-            'second' => new Unit('second'),
-            'Meter' => new Unit('Meter'),
-            'metre' => new Unit('metre'),
-        ]);
-
-        try {
-            $registry->get('meter');
-            self::fail('Expected a missing-unit exception.');
-        } catch (UnitNotFoundException $exception) {
-            $this->assertSame('meter', $exception->unitName);
-            $this->assertSame(['Meter'], $exception->suggestions);
-        }
     }
 
     public function testNamesAreUniqueAndDenselyIndexed(): void
@@ -151,8 +126,21 @@ final class UnitRegistryTest extends TestCase
         $this->assertSame('kilometer', $descriptor->matchedName);
         $this->assertSame('kilometer', $descriptor->canonicalName);
         $this->assertSame(CatalogNameKind::Canonical, $descriptor->matchedAs);
-        $this->assertSame(UnitKind::Prebuilt, $descriptor->kind);
+        $this->assertSame(UnitKind::Derived, $descriptor->kind);
         $this->assertSame('1000 * meter', $descriptor->definitionExpression);
+    }
+
+    public function testClassifiesPrebuiltUnitsByDefinition(): void
+    {
+        $registry = new UnitRegistry([
+            new Unit('widget'),
+            new Unit('dozen', new Product([new Constant(3), new Constant(4)])),
+            new Unit('widget_pair', new Product([new Constant(2), new Unit('widget')])),
+        ]);
+
+        $this->assertSame(UnitKind::Base, $registry->describe('widget')?->kind);
+        $this->assertSame(UnitKind::Dimensionless, $registry->describe('dozen')?->kind);
+        $this->assertSame(UnitKind::Derived, $registry->describe('widget_pair')?->kind);
     }
 
     public function testDescribesBuilderDefinitionsAndAliases(): void
@@ -223,6 +211,7 @@ final class UnitRegistryTest extends TestCase
         $this->assertSame(['A', 'Z'], $descriptor->symbols);
         $this->assertSame(['widgets', 'widgetz'], $descriptor->explicitPlurals);
         $this->assertSame(['widgetses', 'widgetzz'], $descriptor->generatedPlurals);
+        $this->assertSame(['widgets', 'widgetz', 'widgetses', 'widgetzz'], $descriptor->plurals());
         $this->assertSame(CatalogNameKind::Symbol, $registry->describe('A')?->matchedAs);
         $this->assertSame(UnitKind::Dimensionless, $registry->describe('radian')?->kind);
     }
@@ -234,7 +223,7 @@ final class UnitRegistryTest extends TestCase
                 'type' => 'unit',
                 'name' => 'degree_widget',
                 'def' => 'kelvin @ 273.15',
-                'unsupportedReason' => 'affine',
+                'semantics' => 'affine',
             ],
             'widget_temperature' => [
                 'type' => 'alias',
@@ -248,15 +237,17 @@ final class UnitRegistryTest extends TestCase
 
         $this->assertNotNull($canonical);
         $this->assertNotNull($alias);
-        $this->assertFalse($canonical->isSupported());
-        $this->assertFalse($alias->isSupported());
-        $this->assertSame(UnsupportedUnitReason::Affine, $canonical->unsupportedReason);
-        $this->assertSame(UnsupportedUnitReason::Affine, $alias->unsupportedReason);
+        $this->assertFalse($canonical->supportsMultiplicativeAlgebra());
+        $this->assertFalse($alias->supportsMultiplicativeAlgebra());
+        $this->assertTrue($canonical->supportsConversion());
+        $this->assertTrue($alias->supportsConversion());
+        $this->assertSame(UnitSemantics::Affine, $canonical->semantics);
+        $this->assertSame(UnitSemantics::Affine, $alias->semantics);
         $this->assertSame('degree_widget', $alias->canonicalName);
         $this->assertSame(UnitKind::Derived, $alias->kind);
     }
 
-    public function testPrebuiltAliasRemainsAvailableToGetAndIntrospection(): void
+    public function testPrebuiltAliasRemainsAvailableToLookupAndIntrospection(): void
     {
         $widget = new Unit('widget');
         $registry = UnitRegistryBuilder::empty()
@@ -264,7 +255,7 @@ final class UnitRegistryTest extends TestCase
             ->alias('thing', 'widget')
             ->build();
 
-        $this->assertSame($widget, $registry->get('thing'));
+        $this->assertSame($widget, $registry->findPrebuiltUnit('thing'));
         $this->assertSame('widget', $registry->describe('thing')?->canonicalName);
         $this->assertSame(['thing'], $registry->describe('widget')?->aliases);
     }

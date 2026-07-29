@@ -97,23 +97,23 @@ final class QuantityTest extends TestCase
         $this->assertSame(0, $meter->compareTo($hundredCentimeters));
         $this->assertTrue($meter->equals($hundredCentimeters));
         $this->assertFalse($meter->lessThan($hundredCentimeters));
-        $this->assertTrue($meter->lessThanOrEqual($hundredCentimeters));
+        $this->assertTrue($meter->lessThanOrEqualTo($hundredCentimeters));
         $this->assertFalse($meter->greaterThan($hundredCentimeters));
-        $this->assertTrue($meter->greaterThanOrEqual($hundredCentimeters));
+        $this->assertTrue($meter->greaterThanOrEqualTo($hundredCentimeters));
 
         $this->assertSame(1, $meter->compareTo($threeFeet));
         $this->assertFalse($meter->equals($threeFeet));
         $this->assertFalse($meter->lessThan($threeFeet));
-        $this->assertFalse($meter->lessThanOrEqual($threeFeet));
+        $this->assertFalse($meter->lessThanOrEqualTo($threeFeet));
         $this->assertTrue($meter->greaterThan($threeFeet));
-        $this->assertTrue($meter->greaterThanOrEqual($threeFeet));
+        $this->assertTrue($meter->greaterThanOrEqualTo($threeFeet));
 
         $this->assertSame(-1, $meter->compareTo($fourFeet));
         $this->assertFalse($meter->equals($fourFeet));
         $this->assertTrue($meter->lessThan($fourFeet));
-        $this->assertTrue($meter->lessThanOrEqual($fourFeet));
+        $this->assertTrue($meter->lessThanOrEqualTo($fourFeet));
         $this->assertFalse($meter->greaterThan($fourFeet));
-        $this->assertFalse($meter->greaterThanOrEqual($fourFeet));
+        $this->assertFalse($meter->greaterThanOrEqualTo($fourFeet));
     }
 
     public function testComparisonRetainsExactnessBeyondFloatPrecision(): void
@@ -177,12 +177,12 @@ final class QuantityTest extends TestCase
         yield 'compareTo' => [static fn (Quantity $left, Quantity $right): int => $left->compareTo($right)];
         yield 'equals' => [static fn (Quantity $left, Quantity $right): bool => $left->equals($right)];
         yield 'lessThan' => [static fn (Quantity $left, Quantity $right): bool => $left->lessThan($right)];
-        yield 'lessThanOrEqual' => [
-            static fn (Quantity $left, Quantity $right): bool => $left->lessThanOrEqual($right),
+        yield 'lessThanOrEqualTo' => [
+            static fn (Quantity $left, Quantity $right): bool => $left->lessThanOrEqualTo($right),
         ];
         yield 'greaterThan' => [static fn (Quantity $left, Quantity $right): bool => $left->greaterThan($right)];
-        yield 'greaterThanOrEqual' => [
-            static fn (Quantity $left, Quantity $right): bool => $left->greaterThanOrEqual($right),
+        yield 'greaterThanOrEqualTo' => [
+            static fn (Quantity $left, Quantity $right): bool => $left->greaterThanOrEqualTo($right),
         ];
     }
 
@@ -391,7 +391,7 @@ final class QuantityTest extends TestCase
 
         $this->assertSame('6', $quantity->valueToString());
         $this->assertSame('meter * second', $quantity->unitToString());
-        $this->assertSame('6 * meter * second', $quantity->expr()->toString());
+        $this->assertSame('6 * meter * second', $quantity->toExpr()->toString());
     }
 
     public function testRaisesQuantityToIntegerPower(): void
@@ -444,7 +444,7 @@ final class QuantityTest extends TestCase
 
         $this->assertSame('3/2', $quantity->valueToString());
         $this->assertSame('meter / second', $quantity->unitToString());
-        $this->assertSame('3/2 * meter * second ^ -1', $quantity->expr()->toString());
+        $this->assertSame('3/2 * meter * second ^ -1', $quantity->toExpr()->toString());
     }
 
     public function testRejectsDivisionAcrossDifferentUnitsContexts(): void
@@ -506,7 +506,7 @@ final class QuantityTest extends TestCase
         $quantity = $units->quantity(100, 'centimeter');
 
         $this->assertSame('100 * centimeter', $quantity->toString());
-        $this->assertSame('100 * centimeter', $quantity->expr()->toString());
+        $this->assertSame('100 * centimeter', $quantity->toExpr()->toString());
         $this->assertSame('1', $quantity->valueIn('meter')->toString());
     }
 

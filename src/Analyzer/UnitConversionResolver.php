@@ -36,13 +36,13 @@
 
 namespace jbboehr\Yumemi\Analyzer;
 
-use jbboehr\Yumemi\Catalog\UnsupportedUnitReason;
+use jbboehr\Yumemi\Catalog\UnitSemantics;
 use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\Exception\NonMultiplicativeConversionException;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
-use jbboehr\Yumemi\Exception\UnsupportedUnitException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
 use jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Unit;
@@ -88,7 +88,7 @@ final class UnitConversionResolver
         $this->unitNameResolver = new UnitNameResolver($this->unitRegistry);
     }
 
-    public function compatible(Expr|string $left, Expr|string $right): bool
+    public function areCompatible(Expr|string $left, Expr|string $right): bool
     {
         return $this->resolve($left)->dimension->equals($this->resolve($right)->dimension);
     }
@@ -299,20 +299,20 @@ final class UnitConversionResolver
 
     private function resolveExact(string $name): ResolvedConversionUnit
     {
-        $prebuilt = $this->unitRegistry->lookup($name);
+        $prebuilt = $this->unitRegistry->findPrebuiltUnit($name);
         if ($prebuilt !== null) {
             return $this->resolveExpr($prebuilt)->withSource(new Unit($name));
         }
 
-        $record = $this->unitRegistry->record($name)
+        $record = $this->unitRegistry->findCatalogRecord($name)
             ?? throw UnitNotFoundException::create($name);
 
-        if (($record['unsupportedReason'] ?? null) === UnsupportedUnitReason::Logarithmic->value) {
-            throw new UnsupportedUnitException(
+        if (($record['semantics'] ?? null) === UnitSemantics::Logarithmic->value) {
+            throw new UnsupportedUnitConversionException(
                 $record['name'],
-                UnsupportedUnitReason::Logarithmic,
+                UnitSemantics::Logarithmic,
                 $record['def'] ?? throw new \UnexpectedValueException(
-                    'Unsupported catalog unit is missing definition: ' . $record['name'],
+                    'Non-convertible catalog unit is missing definition: ' . $record['name'],
                 ),
             );
         }

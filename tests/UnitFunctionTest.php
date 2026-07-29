@@ -38,7 +38,8 @@ namespace jbboehr\Yumemi\Tests;
 
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
-use jbboehr\Yumemi\Exception\UnsupportedUnitException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Units;
@@ -138,19 +139,19 @@ final class UnitFunctionTest extends TestCase
             'celsius',
             'kelvin',
             'Cannot calculate unit_factor()',
-            UnsupportedUnitException::class,
+            UnsupportedUnitAlgebraException::class,
         ];
         yield 'affine identity' => [
             'celsius',
             'celsius',
             'Cannot calculate unit_factor()',
-            UnsupportedUnitException::class,
+            UnsupportedUnitAlgebraException::class,
         ];
         yield 'logarithmic unit' => [
             'B',
             'B',
             'Cannot calculate unit_factor()',
-            UnsupportedUnitException::class,
+            UnsupportedUnitAlgebraException::class,
         ];
     }
 
@@ -319,6 +320,17 @@ final class UnitFunctionTest extends TestCase
         $this->assertSame(0.0, unit_to(32, 'fahrenheit', 'celsius'));
     }
 
+    public function testUnitToReportsUnsupportedConversionSemantics(): void
+    {
+        try {
+            self::callUnitTo(1, 'B', '1');
+            self::fail('Expected logarithmic conversion to be rejected.');
+        } catch (\InvalidArgumentException $exception) {
+            $this->assertStringStartsWith('Cannot convert with unit_to()', $exception->getMessage());
+            $this->assertInstanceOf(UnsupportedUnitConversionException::class, $exception->getPrevious());
+        }
+    }
+
     private function expectedConvertedFloat(int|float $value, string $from, string $to): float
     {
         $factor = Units::default()->conversionFactor($from, $to);
@@ -331,6 +343,11 @@ final class UnitFunctionTest extends TestCase
         }
 
         return $value * $this->rationalToFloat($factor);
+    }
+
+    private static function callUnitTo(int|float $value, string $from, string $to): float
+    {
+        return unit_to($value, $from, $to);
     }
 
     private function rationalToFloat(Rational $rational): float

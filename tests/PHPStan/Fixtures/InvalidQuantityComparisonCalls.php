@@ -13,17 +13,17 @@ $feet = $units->quantity(1, 'foot');
 $meters->compareTo($seconds);
 $meters->equals($seconds);
 $meters->lessThan($seconds);
-$meters->lessThanOrEqual($seconds);
+$meters->lessThanOrEqualTo($seconds);
 $meters->greaterThan($seconds);
-$meters->greaterThanOrEqual($seconds);
+$meters->greaterThanOrEqualTo($seconds);
 
 // Valid: comparisons convert compatible dimensions.
 $meters->compareTo($feet);
 $meters->equals($feet);
 $meters->lessThan($feet);
-$meters->lessThanOrEqual($feet);
+$meters->lessThanOrEqualTo($feet);
 $meters->greaterThan($feet);
-$meters->greaterThanOrEqual($feet);
+$meters->greaterThanOrEqualTo($feet);
 
 // Unbranded operands fail open because their units are not statically known.
 function compareUnknown(Quantity $unknown): void
@@ -33,7 +33,7 @@ function compareUnknown(Quantity $unknown): void
     $meters->compareTo($unknown);
     $meters->equals($unknown);
     $meters->lessThan($unknown);
-    $meters->lessThanOrEqual($unknown);
+    $meters->lessThanOrEqualTo($unknown);
     $meters->greaterThan($unknown);
-    $meters->greaterThanOrEqual($unknown);
+    $meters->greaterThanOrEqualTo($unknown);
 }

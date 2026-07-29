@@ -44,7 +44,7 @@ use jbboehr\Yumemi\Expr\Unit;
  * UDUNITS2 catalog data source.
  *
  * This class does not parse definition strings or own a UnitResolver/AstConverter.
- * {@see \jbboehr\Yumemi\Analyzer\UnitResolver} reads {@see record()}
+ * {@see \jbboehr\Yumemi\Analyzer\UnitResolver} reads {@see findCatalogRecord()}
  * rows and builds expression trees.
  *
  * @phpstan-type Udunits2BaseUnit array{type: 'base', name: string, definition?: string, plural?: string, comment?: string}
@@ -62,7 +62,7 @@ use jbboehr\Yumemi\Expr\Unit;
  *     definition?: string,
  *     plural?: string,
  *     comment?: string,
- *     unsupportedReason?: 'affine'|'logarithmic'
+ *     semantics?: 'affine'|'logarithmic'
  * }
  * @phpstan-type Udunits2AliasUnit array{
  *     type: 'alias',
@@ -103,7 +103,7 @@ final class Udunits2UnitRegistry extends UnitRegistry
     /**
      * Catalog-backed registries do not precompose Units; use UnitResolver or Units::unit().
      */
-    public function lookup(string $name): ?Unit
+    public function findPrebuiltUnit(string $name): ?Unit
     {
         return null;
     }
@@ -119,7 +119,7 @@ final class Udunits2UnitRegistry extends UnitRegistry
     /**
      * @phpstan-return CatalogRecord|null
      */
-    public function record(string $name): ?array
+    public function findCatalogRecord(string $name): ?array
     {
         $unit = $this->catalog['units'][$name] ?? null;
         if ($unit === null) {

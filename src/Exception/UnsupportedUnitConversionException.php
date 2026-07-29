@@ -36,19 +36,19 @@
 
 namespace jbboehr\Yumemi\Exception;
 
-use jbboehr\Yumemi\Catalog\UnsupportedUnitReason;
+use jbboehr\Yumemi\Catalog\UnitSemantics;
 
-final class UnsupportedUnitException extends \RuntimeException
+final class UnsupportedUnitConversionException extends \RuntimeException
 {
     public function __construct(
         public readonly string $unitName,
-        public readonly UnsupportedUnitReason $reason,
+        public readonly UnitSemantics $semantics,
         public readonly string $definition,
     ) {
         parent::__construct(sprintf(
-            'Unit "%s" is known but uses unsupported %s semantics (definition: %s).',
+            'Conversion of unit "%s" with %s semantics is not supported (definition: %s).',
             $unitName,
-            $reason->value,
+            $semantics->value,
             $definition,
         ));
     }

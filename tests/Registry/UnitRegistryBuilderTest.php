@@ -37,8 +37,8 @@
 namespace jbboehr\Yumemi\Tests\Registry;
 
 use jbboehr\Yumemi\Analyzer\UnitResolver;
-use jbboehr\Yumemi\Catalog\UnsupportedUnitReason;
-use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Catalog\UnitSemantics;
+use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Registry\CompositeUnitRegistry;
@@ -67,8 +67,8 @@ final class UnitRegistryBuilderTest extends TestCase
         $registry = UnitRegistryBuilder::empty()->build();
 
         $this->assertSame([], $registry->names());
-        $this->assertNull($registry->lookup('meter'));
-        $this->assertNull($registry->record('meter'));
+        $this->assertNull($registry->findPrebuiltUnit('meter'));
+        $this->assertNull($registry->findCatalogRecord('meter'));
     }
 
     public function testDefaultBuilderIncludesUdunits2(): void
@@ -76,7 +76,7 @@ final class UnitRegistryBuilderTest extends TestCase
         $registry = UnitRegistryBuilder::default()->build();
 
         $this->assertInstanceOf(Udunits2UnitRegistry::class, $registry);
-        $this->assertNotNull($registry->record('meter'));
+        $this->assertNotNull($registry->findCatalogRecord('meter'));
     }
 
     public function testBuilderUsesExplicitUdunits2CatalogPath(): void
@@ -85,12 +85,12 @@ final class UnitRegistryBuilderTest extends TestCase
 
         $defaultRegistry = UnitRegistryBuilder::default($catalogFile)->build();
         $emptyBuilder = UnitRegistryBuilder::empty();
-        $this->assertSame($emptyBuilder, $emptyBuilder->withUdunits2($catalogFile));
+        $this->assertSame($emptyBuilder, $emptyBuilder->includeUdunits2($catalogFile));
         $optInRegistry = $emptyBuilder->build();
 
         foreach ([$defaultRegistry, $optInRegistry] as $registry) {
-            $this->assertSame(['type' => 'base', 'name' => 'widget'], $registry->record('widget'));
-            $this->assertNull($registry->record('meter'));
+            $this->assertSame(['type' => 'base', 'name' => 'widget'], $registry->findCatalogRecord('widget'));
+            $this->assertNull($registry->findCatalogRecord('meter'));
         }
 
         $this->assertSame(['widget'], $emptyBuilder->build()->names());
@@ -104,9 +104,9 @@ final class UnitRegistryBuilderTest extends TestCase
             ->alias('metres', 'meter')
             ->build();
 
-        $this->assertSame($meter, $registry->lookup('meter'));
-        $this->assertSame($meter, $registry->lookup('metres'));
-        $this->assertNull($registry->lookup('foot'));
+        $this->assertSame($meter, $registry->findPrebuiltUnit('meter'));
+        $this->assertSame($meter, $registry->findPrebuiltUnit('metres'));
+        $this->assertNull($registry->findPrebuiltUnit('foot'));
         $this->assertFalse(method_exists($registry, 'register'));
     }
 
@@ -123,9 +123,9 @@ final class UnitRegistryBuilderTest extends TestCase
     {
         $registry = UnitRegistry::defaults();
 
-        $this->assertSame('meter', $registry->get('meter')->toString());
-        $this->assertSame('kilometer', $registry->get('kilometer')->toString());
-        $this->assertFalse($registry->get('kilometer')->isBase());
+        $this->assertSame('meter', $registry->findPrebuiltUnit('meter')?->toString());
+        $this->assertSame('kilometer', $registry->findPrebuiltUnit('kilometer')?->toString());
+        $this->assertFalse($registry->findPrebuiltUnit('kilometer')->isBase());
     }
 
     public function testDefineStringDefinitionOverUdunits2(): void
@@ -140,7 +140,7 @@ final class UnitRegistryBuilderTest extends TestCase
             'type' => 'unit',
             'name' => 'widget',
             'def' => '12 * meter',
-        ], $registry->record('widget'));
+        ], $registry->findCatalogRecord('widget'));
 
         $units = new Units($registry);
 
@@ -168,13 +168,13 @@ final class UnitRegistryBuilderTest extends TestCase
             ->define('bel_widget = lg(re 1)')
             ->build();
 
-        $this->assertSame('affine', $registry->record('degree_widget')['unsupportedReason'] ?? null);
-        $this->assertSame('logarithmic', $registry->record('bel_widget')['unsupportedReason'] ?? null);
-        $this->assertSame(UnsupportedUnitReason::Affine, $registry->describe('degree_widget')?->unsupportedReason);
-        $this->assertSame(UnsupportedUnitReason::Logarithmic, $registry->describe('bel_widget')?->unsupportedReason);
+        $this->assertSame('affine', $registry->findCatalogRecord('degree_widget')['semantics'] ?? null);
+        $this->assertSame('logarithmic', $registry->findCatalogRecord('bel_widget')['semantics'] ?? null);
+        $this->assertSame(UnitSemantics::Affine, $registry->describe('degree_widget')?->semantics);
+        $this->assertSame(UnitSemantics::Logarithmic, $registry->describe('bel_widget')?->semantics);
     }
 
-    public function testDefineInheritsUnsupportedReasonsThroughExactNameChains(): void
+    public function testDefineInheritsSemanticsThroughExactNameChains(): void
     {
         $registry = UnitRegistryBuilder::default()
             ->define('degree_widget = kelvin @ 100')
@@ -196,18 +196,20 @@ final class UnitRegistryBuilderTest extends TestCase
                 'celsius_synonym',
             ] as $name
         ) {
-            $this->assertSame('affine', $registry->record($name)['unsupportedReason'] ?? null, $name);
-            $this->assertSame(UnsupportedUnitReason::Affine, $registry->describe($name)?->unsupportedReason, $name);
+            $this->assertSame('affine', $registry->findCatalogRecord($name)['semantics'] ?? null, $name);
+            $this->assertSame(UnitSemantics::Affine, $registry->describe($name)?->semantics, $name);
         }
 
         foreach (['widget_level', 'bel_synonym'] as $name) {
-            $this->assertSame('logarithmic', $registry->record($name)['unsupportedReason'] ?? null, $name);
-            $this->assertSame(UnsupportedUnitReason::Logarithmic, $registry->describe($name)?->unsupportedReason, $name);
+            $this->assertSame('logarithmic', $registry->findCatalogRecord($name)['semantics'] ?? null, $name);
+            $this->assertSame(UnitSemantics::Logarithmic, $registry->describe($name)?->semantics, $name);
         }
 
         $prefixed = $registry->describe('kilowidget_temperature');
         $this->assertNotNull($prefixed);
-        $this->assertSame(UnsupportedUnitReason::Affine, $prefixed->unsupportedReason);
+        $this->assertSame(UnitSemantics::Affine, $prefixed->semantics);
+        $this->assertFalse($prefixed->supportsMultiplicativeAlgebra());
+        $this->assertFalse($prefixed->supportsConversion());
     }
 
     public function testPrebuiltOverlayPreventsInheritedBaseCatalogReason(): void
@@ -217,8 +219,9 @@ final class UnitRegistryBuilderTest extends TestCase
             ->define('custom_temperature = celsius')
             ->build();
 
-        $this->assertArrayNotHasKey('unsupportedReason', $registry->record('custom_temperature') ?? []);
-        $this->assertTrue($registry->describe('custom_temperature')?->isSupported());
+        $this->assertArrayNotHasKey('semantics', $registry->findCatalogRecord('custom_temperature') ?? []);
+        $this->assertTrue($registry->describe('custom_temperature')?->supportsMultiplicativeAlgebra());
+        $this->assertTrue($registry->describe('custom_temperature')->supportsConversion());
 
         $units = new Units($registry);
         $customTemperature = $units->unit('custom_temperature');
@@ -241,7 +244,7 @@ final class UnitRegistryBuilderTest extends TestCase
     public function testBuilderLayersPrebuiltUnitsOverUdunits2(): void
     {
         $meter = new Unit('meter');
-        $widget = new Unit('widget', new Compound([
+        $widget = new Unit('widget', new Product([
             new Constant(12),
             $meter,
         ]));
@@ -362,9 +365,9 @@ final class UnitRegistryBuilderTest extends TestCase
         $this->assertSame($builder, $builder->alias('thing', 'widget'));
 
         $registry = $builder->build();
-        $this->assertNotNull($registry->lookup('meter'));
-        $this->assertNotNull($registry->record('widget'));
-        $this->assertNotNull($registry->record('thing'));
+        $this->assertNotNull($registry->findPrebuiltUnit('meter'));
+        $this->assertNotNull($registry->findCatalogRecord('widget'));
+        $this->assertNotNull($registry->findCatalogRecord('thing'));
     }
 
     public function testBuiltRegistriesAreSnapshotsOfMutableBuilderState(): void
@@ -376,9 +379,9 @@ final class UnitRegistryBuilderTest extends TestCase
         $second = $builder->build();
 
         $this->assertSame(['meter'], $first->names());
-        $this->assertNull($first->record('widget'));
+        $this->assertNull($first->findCatalogRecord('widget'));
         $this->assertSame(['meter', 'second', 'widget'], $second->names());
-        $this->assertNotNull($second->record('widget'));
+        $this->assertNotNull($second->findCatalogRecord('widget'));
     }
 
     public function testAddAllIsTransactional(): void
@@ -405,8 +408,8 @@ final class UnitRegistryBuilderTest extends TestCase
             ->alias('thing', 'widget')
             ->build();
 
-        $this->assertNull($registry->lookup('unresolved'));
-        $this->assertSame($widget, $registry->lookup('thing'));
+        $this->assertNull($registry->findPrebuiltUnit('unresolved'));
+        $this->assertSame($widget, $registry->findPrebuiltUnit('thing'));
     }
 
     public function testDefinitionAssignmentTrimsOuterAndExpressionWhitespace(): void
@@ -419,7 +422,7 @@ final class UnitRegistryBuilderTest extends TestCase
             'type' => 'unit',
             'name' => 'widget',
             'def' => "12 *\n meter",
-        ], $registry->record('widget'));
+        ], $registry->findCatalogRecord('widget'));
     }
 
     public function testDefinitionAssignmentRejectsLeadingGarbage(): void

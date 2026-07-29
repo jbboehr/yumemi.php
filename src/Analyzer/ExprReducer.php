@@ -37,9 +37,9 @@
 namespace jbboehr\Yumemi\Analyzer;
 
 use jbboehr\Yumemi\Expr;
-use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
-use jbboehr\Yumemi\Expr\Term;
+use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
 
 final class ExprReducer
@@ -70,14 +70,14 @@ final class ExprReducer
             }
 
             $unit = $data['unit'];
-            $exprs[] = $power === 1 ? $unit : new Term($unit, $power);
+            $exprs[] = $power === 1 ? $unit : new Power($unit, $power);
         }
 
         if (count($exprs) === 1) {
             return $exprs[0];
         }
 
-        return new Compound($exprs);
+        return new Product($exprs);
     }
 
     private static function collect(Expr $expr, int $power, ReductionState $state): void
@@ -86,16 +86,16 @@ final class ExprReducer
             return;
         }
 
-        if ($expr instanceof Compound) {
-            foreach ($expr->exprs as $subexpr) {
+        if ($expr instanceof Product) {
+            foreach ($expr->factors as $subexpr) {
                 self::collect($subexpr, $power, $state);
             }
 
             return;
         }
 
-        if ($expr instanceof Term) {
-            self::collect($expr->value, $power * $expr->power, $state);
+        if ($expr instanceof Power) {
+            self::collect($expr->base, $power * $expr->exponent, $state);
             return;
         }
 

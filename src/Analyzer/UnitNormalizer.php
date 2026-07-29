@@ -37,8 +37,8 @@
 namespace jbboehr\Yumemi\Analyzer;
 
 use jbboehr\Yumemi\Expr;
-use jbboehr\Yumemi\Expr\Compound;
-use jbboehr\Yumemi\Expr\Term;
+use jbboehr\Yumemi\Expr\Product;
+use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
 
 final class UnitNormalizer
@@ -50,15 +50,15 @@ final class UnitNormalizer
 
     private function substitute(Expr $expr): Expr
     {
-        if ($expr instanceof Compound) {
-            return new Compound(array_map(
+        if ($expr instanceof Product) {
+            return new Product(array_map(
                 fn (Expr $subexpr): Expr => $this->substitute($subexpr),
-                $expr->exprs,
+                $expr->factors,
             ));
         }
 
-        if ($expr instanceof Term) {
-            return new Term($this->substitute($expr->value), $expr->power);
+        if ($expr instanceof Power) {
+            return new Power($this->substitute($expr->base), $expr->exponent);
         }
 
         if ($expr instanceof Unit && !$expr->isBase()) {

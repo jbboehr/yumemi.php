@@ -39,9 +39,9 @@ namespace jbboehr\Yumemi\Tests;
 use jbboehr\Yumemi\Analyzer\ExprReducer;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\Expr;
-use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
-use jbboehr\Yumemi\Expr\Term;
+use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Units;
@@ -79,13 +79,13 @@ final class RuntimeInvariantTest extends TestCase
         $units = Units::default();
 
         foreach (self::compatibleUnitPairs() as [$left, $right]) {
-            $this->assertTrue($units->compatible($left, $right), $left . ' should be compatible with ' . $right);
+            $this->assertTrue($units->areCompatible($left, $right), $left . ' should be compatible with ' . $right);
             $factor = $units->conversionFactor($left, $right);
             $this->assertFalse($factor->toString() === '', $left . ' -> ' . $right . ' should produce a factor');
         }
 
         foreach (self::incompatibleUnitPairs() as [$left, $right]) {
-            $this->assertFalse($units->compatible($left, $right), $left . ' should be incompatible with ' . $right);
+            $this->assertFalse($units->areCompatible($left, $right), $left . ' should be incompatible with ' . $right);
 
             try {
                 $units->conversionFactor($left, $right);
@@ -208,28 +208,28 @@ final class RuntimeInvariantTest extends TestCase
         $ampere = new Unit('ampere');
 
         return [
-            new Compound([
+            new Product([
                 new Constant(2),
                 new Constant(3),
                 $meter,
-                new Term($meter, -1),
+                new Power($meter, -1),
             ]),
-            new Compound([
+            new Product([
                 $second,
                 $meter,
-                new Term($second, -2),
-                new Term($ampere, 3),
-                new Term($ampere, -1),
+                new Power($second, -2),
+                new Power($ampere, 3),
+                new Power($ampere, -1),
             ]),
-            new Term(new Compound([
+            new Power(new Product([
                 new Constant(new Rational(2, 3)),
                 $meter,
-                new Term($second, -1),
+                new Power($second, -1),
             ]), -2),
-            new Compound([
-                new Term(new Compound([$meter, $second]), 2),
-                new Term($meter, -1),
-                new Term($second, -2),
+            new Product([
+                new Power(new Product([$meter, $second]), 2),
+                new Power($meter, -1),
+                new Power($second, -2),
             ]),
         ];
     }

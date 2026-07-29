@@ -66,7 +66,7 @@ final class UnitExpression
      */
     public function equals(self $other): bool
     {
-        return ExprComparer::equal($this->expr, $other->expr);
+        return ExprComparer::areEqual($this->expr, $other->expr);
     }
 
     /**
@@ -74,7 +74,7 @@ final class UnitExpression
      */
     public function equivalent(self $other): bool
     {
-        return ExprComparer::equal($this->normalizedExpr, $other->normalizedExpr);
+        return ExprComparer::areEqual($this->normalizedExpr, $other->normalizedExpr);
     }
 
     public function sameDimension(self $other): bool

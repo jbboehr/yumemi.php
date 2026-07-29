@@ -37,9 +37,9 @@
 namespace jbboehr\Yumemi\Analyzer;
 
 use jbboehr\Yumemi\Expr;
-use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
-use jbboehr\Yumemi\Expr\Term;
+use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
 
 /**
@@ -49,7 +49,7 @@ use jbboehr\Yumemi\Expr\Unit;
  */
 final class ExprComparer
 {
-    public static function equal(Expr $left, Expr $right): bool
+    public static function areEqual(Expr $left, Expr $right): bool
     {
         return self::equalReduced(
             ExprReducer::reduce($left),
@@ -71,18 +71,18 @@ final class ExprComparer
             return $left->name === $right->name;
         }
 
-        if ($left instanceof Term && $right instanceof Term) {
-            return $left->power === $right->power
-                && self::equalReduced($left->value, $right->value);
+        if ($left instanceof Power && $right instanceof Power) {
+            return $left->exponent === $right->exponent
+                && self::equalReduced($left->base, $right->base);
         }
 
-        if ($left instanceof Compound && $right instanceof Compound) {
-            if (count($left->exprs) !== count($right->exprs)) {
+        if ($left instanceof Product && $right instanceof Product) {
+            if (count($left->factors) !== count($right->factors)) {
                 return false;
             }
 
-            foreach ($left->exprs as $index => $expr) {
-                if (!self::equalReduced($expr, $right->exprs[$index])) {
+            foreach ($left->factors as $index => $expr) {
+                if (!self::equalReduced($expr, $right->factors[$index])) {
                     return false;
                 }
             }

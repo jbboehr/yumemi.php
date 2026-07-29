@@ -37,11 +37,11 @@
 namespace jbboehr\Yumemi\Analyzer;
 
 use jbboehr\Yumemi\Dimension;
-use jbboehr\Yumemi\Exception\UnsupportedUnitDimensionException;
+use jbboehr\Yumemi\Exception\UnresolvableUnitDimensionException;
 use jbboehr\Yumemi\Expr;
-use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
-use jbboehr\Yumemi\Expr\Term;
+use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
 
 final class DimensionResolver
@@ -74,10 +74,10 @@ final class DimensionResolver
 
     private static function collect(Expr $expr): Dimension
     {
-        if ($expr instanceof Compound) {
+        if ($expr instanceof Product) {
             $dimension = Dimension::dimensionless();
 
-            foreach ($expr->exprs as $subexpr) {
+            foreach ($expr->factors as $subexpr) {
                 $dimension = $dimension->mul(self::collect($subexpr));
             }
 
@@ -88,8 +88,8 @@ final class DimensionResolver
             return Dimension::dimensionless();
         }
 
-        if ($expr instanceof Term) {
-            return self::collect($expr->value)->pow($expr->power);
+        if ($expr instanceof Power) {
+            return self::collect($expr->base)->pow($expr->exponent);
         }
 
         if ($expr instanceof Unit) {
@@ -104,7 +104,7 @@ final class DimensionResolver
         $powers = self::BASE_DIMENSIONS[$unit->name] ?? null;
 
         if ($powers === null) {
-            throw UnsupportedUnitDimensionException::create($unit->name);
+            throw UnresolvableUnitDimensionException::create($unit->name);
         }
 
         return Dimension::fromPowers($powers);

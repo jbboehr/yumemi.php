@@ -152,7 +152,7 @@ final class UnitsQuantityReturnTypeExtension implements DynamicMethodReturnTypeE
 
         $targetUnits = [];
         foreach ($constantStrings as $constantString) {
-            $parsed = $this->parser->parseQuantity($constantString->getValue());
+            $parsed = $this->parser->parseQuantityUnit($constantString->getValue());
             if (!$parsed->isOk()) {
                 return new ErrorType($parsed->errorMessage() ?? 'Invalid quantity expression.');
             }

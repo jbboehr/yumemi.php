@@ -34,22 +34,46 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\Exception;
+namespace jbboehr\Yumemi\Expr;
 
-final class UnsupportedUnitDimensionException extends \RuntimeException
+use jbboehr\Yumemi\Analyzer\ExprReducer;
+use jbboehr\Yumemi\Dimension;
+use jbboehr\Yumemi\Expr;
+use jbboehr\Yumemi\Util\MathTrait;
+
+final class Product implements Expr
 {
-    public static function create(string $unitName): self
-    {
-        return new self('Cannot resolve dimension for unit: ' . $unitName);
+    use MathTrait;
+
+    /**
+     * @param list<Expr> $factors
+     */
+    public function __construct(
+        public readonly array $factors,
+    ) {
     }
 
-    public static function missingContext(string $unitName): self
+    public function dimension(): Dimension
     {
-        return new self(sprintf(
-            'Cannot resolve dimension for unit "%s": incomplete definition and no Units context. '
-            . 'Obtain units via Units::unit() (or Units::parse / quantity APIs), '
-            . 'not by constructing Unit directly.',
-            $unitName,
+        $dimension = Dimension::dimensionless();
+
+        foreach ($this->factors as $expr) {
+            $dimension = $dimension->mul($expr->dimension());
+        }
+
+        return $dimension;
+    }
+
+    public function toString(): string
+    {
+        return implode(' * ', array_map(
+            static fn (Expr $expr): string => $expr->toString(),
+            $this->factors,
         ));
+    }
+
+    public function reduce(): Expr
+    {
+        return ExprReducer::reduce($this);
     }
 }

@@ -37,9 +37,9 @@
 namespace jbboehr\Yumemi\Tests\Analyzer;
 
 use jbboehr\Yumemi\Analyzer\UnitResolver;
-use jbboehr\Yumemi\Catalog\UnsupportedUnitReason;
+use jbboehr\Yumemi\Catalog\UnitSemantics;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
-use jbboehr\Yumemi\Exception\UnsupportedUnitException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 use jbboehr\Yumemi\Units;
@@ -176,7 +176,7 @@ final class UnitResolverTest extends TestCase
                 'type' => 'unit',
                 'name' => 'bel_widget',
                 'def' => 'lg(re 1 widget)',
-                'unsupportedReason' => 'logarithmic',
+                'semantics' => 'logarithmic',
             ],
             'BW' => ['type' => 'alias', 'name' => 'BW', 'def' => 'bel_widget'],
         ]);
@@ -186,11 +186,14 @@ final class UnitResolverTest extends TestCase
             try {
                 $resolver->resolveOrFail($name);
                 self::fail('Expected unsupported-unit failure for ' . $name);
-            } catch (UnsupportedUnitException $exception) {
+            } catch (UnsupportedUnitAlgebraException $exception) {
                 $this->assertSame('bel_widget', $exception->unitName);
-                $this->assertSame(UnsupportedUnitReason::Logarithmic, $exception->reason);
+                $this->assertSame(UnitSemantics::Logarithmic, $exception->semantics);
                 $this->assertSame('lg(re 1 widget)', $exception->definition);
-                $this->assertStringContainsString('known but uses unsupported logarithmic semantics', $exception->getMessage());
+                $this->assertStringContainsString(
+                    'logarithmic semantics, which are not supported by multiplicative unit algebra',
+                    $exception->getMessage(),
+                );
             }
         }
     }

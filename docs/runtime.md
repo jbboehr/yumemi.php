@@ -67,7 +67,7 @@ The `Units` facade exposes expression-level operations:
 - `parseQuantity()` separates explicit constants from a symbolic unit expression and returns a `Quantity`.
 - `unit()` resolves one catalog unit name.
 - `dimension()` returns the seven-axis SI dimension vector.
-- `compatible()` checks dimensional compatibility.
+- `areCompatible()` checks dimensional compatibility.
 - `conversionFactor()` returns an exact value-independent factor and throws `NonMultiplicativeConversionException` when
   the conversion includes an offset.
 - `convert()` applies an exact scale-and-offset conversion to an `int` or `Rational`.
@@ -120,9 +120,9 @@ assert(abs($units->convertFloat(37.0, 'celsius', 'fahrenheit') - 98.6) < 1e-12);
 assert(unit_to(32, 'fahrenheit', 'celsius') === 0.0);
 ```
 
-`dimension()` and `compatible()` understand the affine unit's reference dimension. `conversionFactor()` succeeds for an
-identity or another offset-free conversion, such as `celsius` to an equivalent alias, but it cannot represent `celsius`
-to `kelvin` because that result depends on the input value.
+`dimension()` and `areCompatible()` understand the affine unit's reference dimension. `conversionFactor()` succeeds for
+an identity or another offset-free conversion, such as `celsius` to an equivalent alias, but it cannot represent
+`celsius` to `kelvin` because that result depends on the input value.
 
 Affine support is deliberately confined to explicit conversion boundaries. `parse()`, `parseUnit()`, `unit()`,
 `parseQuantity()`, `quantity()`, normalization, and quantity arithmetic still reject affine units. Multiplication,
@@ -177,7 +177,7 @@ with the same scale. Thus `meter` and `100 * centimeter` may be equivalent, but 
 `to()` returns a new quantity whose magnitude has been converted to the requested symbolic unit. `valueIn()` returns
 only the exact converted magnitude and leaves the quantity unchanged.
 
-`compareTo()`, `equals()`, `lessThan()`, `lessThanOrEqual()`, `greaterThan()`, and `greaterThanOrEqual()` convert a
+`compareTo()`, `equals()`, `lessThan()`, `lessThanOrEqualTo()`, `greaterThan()`, and `greaterThanOrEqualTo()` convert a
 compatible right operand exactly before comparing. Incompatible dimensions throw `IncompatibleUnitException`.
 
 Do not use PHP's object comparison operators as unit-aware comparisons. They compare PHP object state rather than

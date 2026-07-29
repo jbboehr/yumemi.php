@@ -38,8 +38,9 @@ namespace jbboehr\Yumemi\PHPStan;
 
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
-use jbboehr\Yumemi\Exception\UnsupportedUnitException;
-use jbboehr\Yumemi\Exception\UnsupportedUnitDimensionException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
+use jbboehr\Yumemi\Exception\UnresolvableUnitDimensionException;
 use jbboehr\Yumemi\Formatter\ExprRenderer;
 use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Units;
@@ -80,9 +81,11 @@ final class UnitExpressionParser
             return UnitExpressionParseResult::invalid($exception->getMessage());
         } catch (UnsupportedSyntaxException $exception) {
             return UnitExpressionParseResult::invalid($exception->getMessage());
-        } catch (UnsupportedUnitException $exception) {
+        } catch (UnsupportedUnitAlgebraException $exception) {
             return UnitExpressionParseResult::invalid($exception->getMessage());
-        } catch (UnsupportedUnitDimensionException $exception) {
+        } catch (UnsupportedUnitConversionException $exception) {
+            return UnitExpressionParseResult::invalid($exception->getMessage());
+        } catch (UnresolvableUnitDimensionException $exception) {
             return UnitExpressionParseResult::invalid($exception->getMessage());
         } catch (ParseException $exception) {
             $message = $exception->getMessage();
@@ -98,7 +101,7 @@ final class UnitExpressionParser
         }
     }
 
-    public function parseQuantity(string $quantityString): UnitExpressionParseResult
+    public function parseQuantityUnit(string $quantityString): UnitExpressionParseResult
     {
         if (trim($quantityString) === '') {
             return UnitExpressionParseResult::invalid('Quantity expression must not be empty.');
@@ -112,9 +115,11 @@ final class UnitExpressionParser
             return UnitExpressionParseResult::invalid($exception->getMessage());
         } catch (UnsupportedSyntaxException $exception) {
             return UnitExpressionParseResult::invalid($exception->getMessage());
-        } catch (UnsupportedUnitException $exception) {
+        } catch (UnsupportedUnitAlgebraException $exception) {
             return UnitExpressionParseResult::invalid($exception->getMessage());
-        } catch (UnsupportedUnitDimensionException $exception) {
+        } catch (UnsupportedUnitConversionException $exception) {
+            return UnitExpressionParseResult::invalid($exception->getMessage());
+        } catch (UnresolvableUnitDimensionException $exception) {
             return UnitExpressionParseResult::invalid($exception->getMessage());
         } catch (ParseException $exception) {
             $message = $exception->getMessage();

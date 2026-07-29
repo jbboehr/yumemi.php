@@ -38,10 +38,10 @@ namespace jbboehr\Yumemi\Tests\Registry;
 
 use jbboehr\Yumemi\Analyzer\UnitResolver;
 use jbboehr\Yumemi\Catalog\CatalogNameKind;
-use jbboehr\Yumemi\Catalog\PrefixApplicationDescriptor;
+use jbboehr\Yumemi\Catalog\PrefixDecomposition;
 use jbboehr\Yumemi\Catalog\UnitKind;
-use jbboehr\Yumemi\Catalog\UnsupportedUnitReason;
-use jbboehr\Yumemi\Exception\UnsupportedUnitDimensionException;
+use jbboehr\Yumemi\Catalog\UnitSemantics;
+use jbboehr\Yumemi\Exception\UnresolvableUnitDimensionException;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
 use jbboehr\Yumemi\Units;
@@ -64,7 +64,7 @@ final class Udunits2UnitRegistryTest extends TestCase
     public function testRecordReturnsBaseUnits(): void
     {
         $registry = new Udunits2UnitRegistry();
-        $record = $registry->record('meter');
+        $record = $registry->findCatalogRecord('meter');
 
         $this->assertNotNull($record);
         $this->assertSame('base', $record['type']);
@@ -80,14 +80,14 @@ final class Udunits2UnitRegistryTest extends TestCase
             'name' => 'm',
             'def' => 'meter',
             'aliasKind' => 'symbol',
-        ], $registry->record('m'));
-        $this->assertSame('international_foot', $registry->record('foot')['def'] ?? null);
+        ], $registry->findCatalogRecord('m'));
+        $this->assertSame('international_foot', $registry->findCatalogRecord('foot')['def'] ?? null);
     }
 
     public function testRecordReturnsDerivedUnitDefinitionStrings(): void
     {
         $registry = new Udunits2UnitRegistry();
-        $record = $registry->record('international_foot');
+        $record = $registry->findCatalogRecord('international_foot');
 
         $this->assertNotNull($record);
         $this->assertSame('unit', $record['type']);
@@ -98,8 +98,8 @@ final class Udunits2UnitRegistryTest extends TestCase
     {
         $registry = new Udunits2UnitRegistry();
 
-        $this->assertNull($registry->lookup('meter'));
-        $this->assertNull($registry->lookup('newton'));
+        $this->assertNull($registry->findPrebuiltUnit('meter'));
+        $this->assertNull($registry->findPrebuiltUnit('newton'));
     }
 
     public function testResolverBuildsUnitsFromCatalogRecords(): void
@@ -147,7 +147,7 @@ final class Udunits2UnitRegistryTest extends TestCase
     {
         $registry = new Udunits2UnitRegistry();
 
-        $this->assertNull($registry->record('supercalifragilisticexpialidocious'));
+        $this->assertNull($registry->findCatalogRecord('supercalifragilisticexpialidocious'));
     }
 
     public function testDescribesCanonicalUnitAndAllNameKinds(): void
@@ -195,12 +195,16 @@ final class Udunits2UnitRegistryTest extends TestCase
         $this->assertNotNull($affineSynonym);
         $this->assertNotNull($affineAlias);
         $this->assertSame('BZ', $logarithmic->canonicalName);
-        $this->assertSame(UnsupportedUnitReason::Logarithmic, $logarithmic->unsupportedReason);
-        $this->assertFalse($logarithmic->isSupported());
-        $this->assertSame(UnsupportedUnitReason::Affine, $affineSynonym->unsupportedReason);
+        $this->assertSame(UnitSemantics::Logarithmic, $logarithmic->semantics);
+        $this->assertFalse($logarithmic->supportsMultiplicativeAlgebra());
+        $this->assertFalse($logarithmic->supportsConversion());
+        $this->assertSame(UnitSemantics::Affine, $affineSynonym->semantics);
+        $this->assertFalse($affineSynonym->supportsMultiplicativeAlgebra());
+        $this->assertTrue($affineSynonym->supportsConversion());
         $this->assertSame('celsius', $affineAlias->canonicalName);
-        $this->assertSame(UnsupportedUnitReason::Affine, $affineAlias->unsupportedReason);
-        $this->assertFalse($affineAlias->isSupported());
+        $this->assertSame(UnitSemantics::Affine, $affineAlias->semantics);
+        $this->assertFalse($affineAlias->supportsMultiplicativeAlgebra());
+        $this->assertTrue($affineAlias->supportsConversion());
     }
 
     public function testDescribesPrefixNamesAndSymbols(): void
@@ -235,17 +239,18 @@ final class Udunits2UnitRegistryTest extends TestCase
         $this->assertSame([], $descriptor->symbols);
         $this->assertSame([], $descriptor->plurals());
         $this->assertTrue($descriptor->isDynamicallyPrefixed());
-        $this->assertTrue($descriptor->isSupported());
+        $this->assertTrue($descriptor->supportsMultiplicativeAlgebra());
+        $this->assertTrue($descriptor->supportsConversion());
         $this->assertSame($registry->describe('pascal')?->documentation, $descriptor->documentation);
 
-        $application = $descriptor->prefixApplication;
-        $this->assertInstanceOf(PrefixApplicationDescriptor::class, $application);
-        $this->assertSame('k', $application->prefix->matchedName);
-        $this->assertSame('kilo', $application->prefix->canonicalName);
-        $this->assertSame(CatalogNameKind::Symbol, $application->prefix->matchedAs);
-        $this->assertSame('Pa', $application->unit->matchedName);
-        $this->assertSame('pascal', $application->unit->canonicalName);
-        $this->assertSame(CatalogNameKind::Symbol, $application->unit->matchedAs);
+        $decomposition = $descriptor->prefixDecomposition;
+        $this->assertInstanceOf(PrefixDecomposition::class, $decomposition);
+        $this->assertSame('k', $decomposition->prefix->matchedName);
+        $this->assertSame('kilo', $decomposition->prefix->canonicalName);
+        $this->assertSame(CatalogNameKind::Symbol, $decomposition->prefix->matchedAs);
+        $this->assertSame('Pa', $decomposition->unit->matchedName);
+        $this->assertSame('pascal', $decomposition->unit->canonicalName);
+        $this->assertSame(CatalogNameKind::Symbol, $decomposition->unit->matchedAs);
     }
 
     public function testPrefixedDescriptionPreservesResidualSpellingProvenance(): void
@@ -265,9 +270,9 @@ final class Udunits2UnitRegistryTest extends TestCase
             $this->assertNotNull($descriptor, $name);
             $this->assertSame('kilometer', $descriptor->canonicalName, $name);
             $this->assertSame(CatalogNameKind::Prefixed, $descriptor->matchedAs, $name);
-            $this->assertNotNull($descriptor->prefixApplication, $name);
-            $this->assertSame($prefixKind, $descriptor->prefixApplication->prefix->matchedAs, $name);
-            $this->assertSame($unitKind, $descriptor->prefixApplication->unit->matchedAs, $name);
+            $this->assertNotNull($descriptor->prefixDecomposition, $name);
+            $this->assertSame($prefixKind, $descriptor->prefixDecomposition->prefix->matchedAs, $name);
+            $this->assertSame($unitKind, $descriptor->prefixDecomposition->unit->matchedAs, $name);
         }
     }
 
@@ -279,7 +284,7 @@ final class Udunits2UnitRegistryTest extends TestCase
         $this->assertSame('pascal', $descriptor->canonicalName);
         $this->assertSame(CatalogNameKind::Symbol, $descriptor->matchedAs);
         $this->assertFalse($descriptor->isDynamicallyPrefixed());
-        $this->assertNull($descriptor->prefixApplication);
+        $this->assertNull($descriptor->prefixDecomposition);
     }
 
     public function testPrefixedUnsupportedUnitsExplainResidualSemantics(): void
@@ -290,12 +295,14 @@ final class Udunits2UnitRegistryTest extends TestCase
 
         $this->assertNotNull($affine);
         $this->assertNotNull($logarithmic);
-        $this->assertSame(UnsupportedUnitReason::Affine, $affine->unsupportedReason);
-        $this->assertSame(UnsupportedUnitReason::Logarithmic, $logarithmic->unsupportedReason);
-        $this->assertFalse($affine->isSupported());
-        $this->assertFalse($logarithmic->isSupported());
-        $this->assertSame('celsius', $affine->prefixApplication?->unit->canonicalName);
-        $this->assertSame('BZ', $logarithmic->prefixApplication?->unit->canonicalName);
+        $this->assertSame(UnitSemantics::Affine, $affine->semantics);
+        $this->assertSame(UnitSemantics::Logarithmic, $logarithmic->semantics);
+        $this->assertFalse($affine->supportsMultiplicativeAlgebra());
+        $this->assertFalse($affine->supportsConversion());
+        $this->assertFalse($logarithmic->supportsMultiplicativeAlgebra());
+        $this->assertFalse($logarithmic->supportsConversion());
+        $this->assertSame('celsius', $affine->prefixDecomposition?->unit->canonicalName);
+        $this->assertSame('BZ', $logarithmic->prefixDecomposition?->unit->canonicalName);
     }
 
     public function testDynamicDescriptionDoesNotInventNestedPrefixesOrCatalogEntries(): void
@@ -335,14 +342,14 @@ final class Udunits2UnitRegistryTest extends TestCase
 
         $registry = new Udunits2UnitRegistry($file);
 
-        $this->assertNotNull($registry->record('widget'));
-        $this->assertNull($registry->record('widgets'));
+        $this->assertNotNull($registry->findCatalogRecord('widget'));
+        $this->assertNull($registry->findCatalogRecord('widgets'));
         $this->assertSame(['widget'], $registry->names());
     }
 
     public function testBareUnitDimensionRequiresUnitsContextOrDefinition(): void
     {
-        $this->expectException(UnsupportedUnitDimensionException::class);
+        $this->expectException(UnresolvableUnitDimensionException::class);
         $this->expectExceptionMessage('Units::unit()');
 
         (new Unit('foot'))->dimension();

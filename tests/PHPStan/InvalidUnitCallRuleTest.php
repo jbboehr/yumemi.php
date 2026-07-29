@@ -88,15 +88,15 @@ final class InvalidUnitCallRuleTest extends RuleTestCase
                 25,
             ],
             [
-                'Unit "celsius" is known but uses unsupported affine semantics (definition: degree_Celsius).',
+                'Unit "celsius" uses affine semantics, which are not supported by multiplicative unit algebra (definition: degree_Celsius).',
                 26,
             ],
             [
-                'Unit "celsius" is known but uses unsupported affine semantics (definition: degree_Celsius).',
+                'Unit "celsius" uses affine semantics, which are not supported by multiplicative unit algebra (definition: degree_Celsius).',
                 27,
             ],
             [
-                'Unit "B" is known but uses unsupported logarithmic semantics (definition: lg(re 1)).',
+                'Unit "B" uses logarithmic semantics, which are not supported by multiplicative unit algebra (definition: lg(re 1)).',
                 28,
             ],
             [
@@ -132,11 +132,11 @@ final class InvalidUnitCallRuleTest extends RuleTestCase
                 41,
             ],
             [
-                'Unit "B" is known but uses unsupported logarithmic semantics (definition: lg(re 1)).',
+                'Unit "B" uses logarithmic semantics, which are not supported by multiplicative unit algebra (definition: lg(re 1)).',
                 44,
             ],
             [
-                'Unit "degree_Celsius" is known but uses unsupported affine semantics (definition: K @ 273.15).',
+                'Unit "degree_Celsius" uses affine semantics, which are not supported by multiplicative unit algebra (definition: K @ 273.15).',
                 45,
             ],
             [
@@ -154,6 +154,10 @@ final class InvalidUnitCallRuleTest extends RuleTestCase
             [
                 'Affine unit "celsius" cannot be prefixed.',
                 51,
+            ],
+            [
+                'Conversion of unit "B" with logarithmic semantics is not supported (definition: lg(re 1)).',
+                64,
             ],
         ]);
     }

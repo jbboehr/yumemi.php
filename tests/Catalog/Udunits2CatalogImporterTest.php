@@ -252,7 +252,7 @@ final class Udunits2CatalogImporterTest extends TestCase
 
         $this->assertSame('unit', $units['bel']['type']);
         $this->assertSame('lg(re 1 W)', $units['bel']['def']);
-        $this->assertSame('logarithmic', $units['bel']['unsupportedReason'] ?? null);
+        $this->assertSame('logarithmic', $units['bel']['semantics'] ?? null);
     }
 
     public function testClassifiesAffineUnitsAsUnsupported(): void
@@ -283,11 +283,11 @@ final class Udunits2CatalogImporterTest extends TestCase
         $units = $this->import($xml)['units'];
 
         $this->assertSame('kelvin @ 273.15', $units['degree_widget']['def'] ?? null);
-        $this->assertSame('affine', $units['degree_widget']['unsupportedReason'] ?? null);
-        $this->assertSame('affine', $units['widget_temperature']['unsupportedReason'] ?? null);
-        $this->assertSame('affine', $units['absolute_widget_temperature']['unsupportedReason'] ?? null);
-        $this->assertArrayNotHasKey('unsupportedReason', $units['widget_temp']);
-        $this->assertArrayNotHasKey('unsupportedReason', $units['ordinary_widget']);
+        $this->assertSame('affine', $units['degree_widget']['semantics'] ?? null);
+        $this->assertSame('affine', $units['widget_temperature']['semantics'] ?? null);
+        $this->assertSame('affine', $units['absolute_widget_temperature']['semantics'] ?? null);
+        $this->assertArrayNotHasKey('semantics', $units['widget_temp']);
+        $this->assertArrayNotHasKey('semantics', $units['ordinary_widget']);
     }
 
     public function testRegistersPrimeSymbolAndApostropheAlias(): void

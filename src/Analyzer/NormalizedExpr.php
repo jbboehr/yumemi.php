@@ -37,9 +37,9 @@
 namespace jbboehr\Yumemi\Analyzer;
 
 use jbboehr\Yumemi\Expr;
-use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
-use jbboehr\Yumemi\Expr\Term;
+use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Number\Rational;
 
 final class NormalizedExpr
@@ -52,8 +52,8 @@ final class NormalizedExpr
             return $expr->value;
         }
 
-        if ($expr instanceof Compound) {
-            foreach ($expr->exprs as $subexpr) {
+        if ($expr instanceof Product) {
+            foreach ($expr->factors as $subexpr) {
                 if ($subexpr instanceof Constant) {
                     return $subexpr->value;
                 }
@@ -71,12 +71,12 @@ final class NormalizedExpr
             return new Constant(1);
         }
 
-        if (!$expr instanceof Compound) {
+        if (!$expr instanceof Product) {
             return $expr;
         }
 
         $exprs = array_values(array_filter(
-            $expr->exprs,
+            $expr->factors,
             static fn (Expr $subexpr): bool => !$subexpr instanceof Constant,
         ));
 
@@ -88,6 +88,6 @@ final class NormalizedExpr
             return $exprs[0];
         }
 
-        return new Compound($exprs);
+        return new Product($exprs);
     }
 }

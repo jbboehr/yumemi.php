@@ -83,7 +83,7 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
         return in_array($methodReflection->getName(), [
             'mul', 'div', 'pow', 'neg', 'add', 'sub', 'addWithSameUnit', 'subWithSameUnit', 'to', 'valueIn',
             'intValueIn', 'exactIntValueIn', 'decimalValueIn', 'exactDecimalValueIn', 'floatValueIn', 'normalize',
-            'simplify', 'compareTo', 'equals', 'lessThan', 'lessThanOrEqual', 'greaterThan', 'greaterThanOrEqual',
+            'simplify', 'compareTo', 'equals', 'lessThan', 'lessThanOrEqualTo', 'greaterThan', 'greaterThanOrEqualTo',
         ], true);
     }
 
@@ -135,7 +135,7 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
             'neg' => $receiver,
             'add', 'sub' => $this->addSub($receiver, $args, $scope, false, $methodName),
             'addWithSameUnit', 'subWithSameUnit' => $this->addSub($receiver, $args, $scope, true, $methodName),
-            'compareTo', 'equals', 'lessThan', 'lessThanOrEqual', 'greaterThan', 'greaterThanOrEqual' => $this->compare(
+            'compareTo', 'equals', 'lessThan', 'lessThanOrEqualTo', 'greaterThan', 'greaterThanOrEqualTo' => $this->compare(
                 $receiver,
                 $args,
                 $scope,

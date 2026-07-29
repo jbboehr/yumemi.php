@@ -34,46 +34,21 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\Expr;
+namespace jbboehr\Yumemi\Catalog;
 
-use jbboehr\Yumemi\Analyzer\ExprReducer;
-use jbboehr\Yumemi\Dimension;
-use jbboehr\Yumemi\Expr;
-use jbboehr\Yumemi\Util\MathTrait;
-
-final class Compound implements Expr
+enum UnitSemantics: string
 {
-    use MathTrait;
+    case Multiplicative = 'multiplicative';
+    case Affine = 'affine';
+    case Logarithmic = 'logarithmic';
 
-    /**
-     * @param list<Expr> $exprs
-     */
-    public function __construct(
-        public readonly array $exprs,
-    ) {
+    public function supportsMultiplicativeAlgebra(): bool
+    {
+        return $this === self::Multiplicative;
     }
 
-    public function dimension(): Dimension
+    public function supportsConversion(): bool
     {
-        $dimension = Dimension::dimensionless();
-
-        foreach ($this->exprs as $expr) {
-            $dimension = $dimension->mul($expr->dimension());
-        }
-
-        return $dimension;
-    }
-
-    public function toString(): string
-    {
-        return implode(' * ', array_map(
-            static fn (Expr $expr): string => $expr->toString(),
-            $this->exprs,
-        ));
-    }
-
-    public function reduce(): Expr
-    {
-        return ExprReducer::reduce($this);
+        return $this !== self::Logarithmic;
     }
 }

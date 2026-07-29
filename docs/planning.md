@@ -69,8 +69,8 @@ Already implemented:
   - `Expr`
   - `Expr\Constant`
   - `Expr\Unit`
-  - `Expr\Term`
-  - `Expr\Compound`
+  - `Expr\Power`
+  - `Expr\Product`
 - Canonical expression reduction:
   - flatten compounds
   - combine constants
@@ -92,7 +92,7 @@ Already implemented:
   - generated prefix data
   - exact and dynamically prefixed catalog introspection preserving canonical names, component provenance, aliases,
     symbols, plural provenance, comments, and documentation
-  - structured support reasons for retained affine and logarithmic definitions
+  - structured semantics for retained affine and logarithmic definitions
   - mutable fluent registry construction producing immutable registry snapshots
   - resolver-side prefix handling
   - fail-closed, case-sensitive name resolution without runtime morphology
@@ -103,7 +103,7 @@ Already implemented:
   - `parseUnit()` alias
   - `parseQuantity()` with exact explicit-constant extraction
   - `normalize()`
-  - `compatible()`
+  - `areCompatible()`
   - `conversionFactor()`
   - `convert()`
   - `convertFloat()`
@@ -260,7 +260,7 @@ The runtime API is intentionally small, but it now has both expression-level and
 $units = Units::default();
 
 $units->normalize('kilometer'); // 1000 * meter
-$units->compatible('meter / second', 'kilometer / minute'); // true
+$units->areCompatible('meter / second', 'kilometer / minute'); // true
 $units->conversionFactor('meter / second', 'kilometer / minute'); // 3/50
 $units->convert(1, 'kilometer', 'meter'); // 1000
 ```
@@ -279,7 +279,7 @@ Current `Quantity` methods:
 
 - `value(): Rational`
 - `unit(): Expr`
-- `expr(): Expr`
+- `toExpr(): Expr`
 - `to(Expr|string $unit): self`
 - `valueIn(Expr|string $unit): Rational`
 - `intValueIn(Expr|string $unit): int`
@@ -294,9 +294,9 @@ Current `Quantity` methods:
 - `compareTo(self $other): int`
 - `equals(self $other): bool`
 - `lessThan(self $other): bool`
-- `lessThanOrEqual(self $other): bool`
+- `lessThanOrEqualTo(self $other): bool`
 - `greaterThan(self $other): bool`
-- `greaterThanOrEqual(self $other): bool`
+- `greaterThanOrEqualTo(self $other): bool`
 - `mul(self|int|Rational $other): self`
 - `div(self|int|Rational $other): self`
 - `neg(): self`
@@ -357,8 +357,8 @@ The exact conversion resolver separately supports a standalone `identifier @ num
 and in catalog definitions. Affine units still cannot participate in multiplicative expression or quantity algebra.
 
 The parser can read more UDUNITS2 syntax than the runtime chooses to support semantically. The catalog retains
-logarithmic and affine definitions with explicit support reasons. Affine definitions now execute only through
-conversion, compatibility, and dimension APIs; logarithmic definitions remain unevaluable.
+logarithmic and affine definitions with explicit semantics. Affine definitions now execute only through conversion,
+compatibility, and dimension APIs; logarithmic definitions remain unevaluable.
 
 ## Rational Powers And Exact Roots
 
@@ -376,7 +376,7 @@ operation can succeed when the required `q`th roots of the magnitude's numerator
 the exact API should throw. Approximate results should require a separate API with explicit precision and rounding
 rather than silently changing `Quantity` from exact rational arithmetic to decimal approximation.
 
-Full rational unit powers would be a cross-cutting representation change. `Expr\Term`, reduction state, `Dimension`,
+Full rational unit powers would be a cross-cutting representation change. `Expr\Power`, reduction state, `Dimension`,
 formatting, normalization, comparison, and PHPStan unit identity currently store integer powers. They would all need
 canonical `Rational` powers before expressions such as `meter^(1/10)` could be represented safely.
 
@@ -485,8 +485,6 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
 
 - Before creating the first release tag, remove `:dev-master` from the README installation command; after Packagist
   imports the tag, verify that the unqualified command installs the tagged release.
-- Complete the public API naming pass, especially registry entry terminology and capability-oriented names for affine
-  and logarithmic unit semantics.
 
 ### Near-Term Work
 
@@ -517,8 +515,8 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
 - Very large parsed integer exponents may exceed PHP integer range before reaching the expression model.
 - The UDUNITS2 importer still special-cases `cm2` syntax, and generated `prefixRegex` metadata is currently unused by
   resolution.
-- Custom registry support metadata propagates through direct affine/logarithmic markers and exact-name synonym chains.
-  Compound definitions that reference affine or logarithmic units are rejected lazily during resolution but do not yet
+- Custom registry semantics metadata propagates through direct affine/logarithmic markers and exact-name synonym chains.
+  Composite definitions that reference affine or logarithmic units are rejected lazily during resolution but do not yet
   receive transitive descriptor metadata.
 - Expression arithmetic reduces eagerly and has not been benchmarked as a hot path.
 - Dimensional analysis intentionally cannot distinguish semantically different quantities with the same dimension, such
@@ -557,7 +555,7 @@ The broader feature comparison and intentionally deferred Pint-style capabilitie
 ```text
 UDUNITS2 XML -> Udunits2CatalogImporter -> PhpCatalogExporter -> data/udunits2.php
 data/udunits2.php -> Udunits2UnitRegistry (catalog records only)
-UnitResolver -> record()/lookup() -> AstConverter (defs/prefixes) -> Expr
+UnitResolver -> findCatalogRecord()/findPrebuiltUnit() -> AstConverter (defs/prefixes) -> Expr
 Parser string -> Parser\Ast -> AstConverter (resolving or symbolic) -> Expr
 Expr -> ExprReducer -> reduced Expr
 Expr -> UnitNormalizer -> normalized Expr

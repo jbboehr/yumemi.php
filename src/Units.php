@@ -44,8 +44,8 @@ use jbboehr\Yumemi\Analyzer\UnitNormalizer;
 use jbboehr\Yumemi\Analyzer\UnitResolver;
 use jbboehr\Yumemi\Catalog\PrefixDescriptor;
 use jbboehr\Yumemi\Catalog\UnitDescriptor;
-use jbboehr\Yumemi\Expr\Compound;
-use jbboehr\Yumemi\Expr\Term;
+use jbboehr\Yumemi\Expr\Product;
+use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Formatter\ExprFormatter;
 use jbboehr\Yumemi\Formatter\FormatOptions;
@@ -86,9 +86,9 @@ final class Units
         return self::$default ??= new self(new Udunits2UnitRegistry());
     }
 
-    public function compatible(Expr|string $left, Expr|string $right): bool
+    public function areCompatible(Expr|string $left, Expr|string $right): bool
     {
-        return $this->unitConversionResolver->compatible($left, $right);
+        return $this->unitConversionResolver->areCompatible($left, $right);
     }
 
     public function conversionFactor(Expr|string $from, Expr|string $to): Rational
@@ -214,14 +214,14 @@ final class Units
             return $this->unitResolver->resolveOrFail($expr->name);
         }
 
-        if ($expr instanceof Term) {
-            return new Term($this->resolveSymbolicExpr($expr->value), $expr->power);
+        if ($expr instanceof Power) {
+            return new Power($this->resolveSymbolicExpr($expr->base), $expr->exponent);
         }
 
-        if ($expr instanceof Compound) {
-            return new Compound(array_map(
+        if ($expr instanceof Product) {
+            return new Product(array_map(
                 fn (Expr $subexpr): Expr => $this->resolveSymbolicExpr($subexpr),
-                $expr->exprs,
+                $expr->factors,
             ));
         }
 
@@ -237,14 +237,14 @@ final class Units
             return $expr->withUnits($this);
         }
 
-        if ($expr instanceof Term) {
-            return new Term($this->bindContext($expr->value), $expr->power);
+        if ($expr instanceof Power) {
+            return new Power($this->bindContext($expr->base), $expr->exponent);
         }
 
-        if ($expr instanceof Compound) {
-            return new Compound(array_map(
+        if ($expr instanceof Product) {
+            return new Product(array_map(
                 fn (Expr $subexpr): Expr => $this->bindContext($subexpr),
-                $expr->exprs,
+                $expr->factors,
             ));
         }
 

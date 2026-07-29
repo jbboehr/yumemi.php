@@ -56,8 +56,8 @@ final readonly class UnitDescriptor
         public array $symbols = [],
         public array $explicitPlurals = [],
         public array $generatedPlurals = [],
-        public ?UnsupportedUnitReason $unsupportedReason = null,
-        public ?PrefixApplicationDescriptor $prefixApplication = null,
+        public UnitSemantics $semantics = UnitSemantics::Multiplicative,
+        public ?PrefixDecomposition $prefixDecomposition = null,
     ) {
     }
 
@@ -69,13 +69,19 @@ final readonly class UnitDescriptor
         return [...$this->explicitPlurals, ...$this->generatedPlurals];
     }
 
-    public function isSupported(): bool
+    public function supportsMultiplicativeAlgebra(): bool
     {
-        return $this->unsupportedReason === null;
+        return $this->semantics->supportsMultiplicativeAlgebra();
+    }
+
+    public function supportsConversion(): bool
+    {
+        return $this->semantics->supportsConversion()
+            && !($this->semantics === UnitSemantics::Affine && $this->isDynamicallyPrefixed());
     }
 
     public function isDynamicallyPrefixed(): bool
     {
-        return $this->prefixApplication !== null;
+        return $this->prefixDecomposition !== null;
     }
 }

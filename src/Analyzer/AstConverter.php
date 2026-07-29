@@ -38,9 +38,9 @@ namespace jbboehr\Yumemi\Analyzer;
 
 use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
 use jbboehr\Yumemi\Expr;
-use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
-use jbboehr\Yumemi\Expr\Term;
+use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Parser\Ast;
@@ -78,14 +78,14 @@ final class AstConverter
     public function convert(Ast $ast): Expr
     {
         return match ($ast::class) {
-            Div::class => new Compound([
+            Div::class => new Product([
                 $this->convert($ast->left),
-                new Term($this->convert($ast->right), -1),
+                new Power($this->convert($ast->right), -1),
             ]),
             Float_::class => new Constant(Rational::fromDecimalString($ast->value)),
             Identifier::class => $this->convertIdentifier($ast),
             Integer_::class => new Constant(gmp_init($ast->value)),
-            Mul::class => new Compound([
+            Mul::class => new Product([
                 $this->convert($ast->left),
                 $this->convert($ast->right),
             ]),
@@ -112,6 +112,6 @@ final class AstConverter
             throw UnsupportedSyntaxException::create($ast);
         }
 
-        return new Term($this->convert($ast->left), (int) $ast->right->value);
+        return new Power($this->convert($ast->left), (int) $ast->right->value);
     }
 }

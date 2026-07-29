@@ -57,7 +57,7 @@ final class ConfiguredUnitRegistryProviderTest extends TestCase
         $registry = (new ConfiguredUnitRegistryProvider(null))->getRegistry();
 
         $this->assertInstanceOf(Udunits2UnitRegistry::class, $registry);
-        $this->assertNotNull($registry->record('meter'));
+        $this->assertNotNull($registry->findCatalogRecord('meter'));
     }
 
     public function testConfiguredFactoryIsInvokedOnce(): void

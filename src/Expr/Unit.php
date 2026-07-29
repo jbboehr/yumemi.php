@@ -40,7 +40,7 @@ use jbboehr\Yumemi\Analyzer\DimensionResolver;
 use jbboehr\Yumemi\Analyzer\ExprReducer;
 use jbboehr\Yumemi\Analyzer\UnitNormalizer;
 use jbboehr\Yumemi\Dimension;
-use jbboehr\Yumemi\Exception\UnsupportedUnitDimensionException;
+use jbboehr\Yumemi\Exception\UnresolvableUnitDimensionException;
 use jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Units;
 use jbboehr\Yumemi\Util\MathTrait;
@@ -98,13 +98,13 @@ final class Unit implements Expr
     {
         try {
             return (new DimensionResolver(new UnitNormalizer()))->resolve($this);
-        } catch (UnsupportedUnitDimensionException $exception) {
+        } catch (UnresolvableUnitDimensionException $exception) {
             $units = $this->units?->get();
             if ($units !== null) {
                 return $units->dimension($this->name);
             }
 
-            throw UnsupportedUnitDimensionException::missingContext($this->name);
+            throw UnresolvableUnitDimensionException::missingContext($this->name);
         }
     }
 

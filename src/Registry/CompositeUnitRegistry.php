@@ -53,13 +53,13 @@ final class CompositeUnitRegistry extends UnitRegistry
         parent::__construct();
     }
 
-    public function lookup(string $name): ?Unit
+    public function findPrebuiltUnit(string $name): ?Unit
     {
         if ($this->overlayContains($name)) {
-            return $this->overlay->lookup($name);
+            return $this->overlay->findPrebuiltUnit($name);
         }
 
-        return $this->base->lookup($name);
+        return $this->base->findPrebuiltUnit($name);
     }
 
     /**
@@ -76,13 +76,13 @@ final class CompositeUnitRegistry extends UnitRegistry
     /**
      * @phpstan-return CatalogRecord|null
      */
-    public function record(string $name): ?array
+    public function findCatalogRecord(string $name): ?array
     {
         if ($this->overlayContains($name)) {
-            return $this->overlay->record($name);
+            return $this->overlay->findCatalogRecord($name);
         }
 
-        return $this->base->record($name);
+        return $this->base->findCatalogRecord($name);
     }
 
     /**
@@ -105,6 +105,6 @@ final class CompositeUnitRegistry extends UnitRegistry
 
     private function overlayContains(string $name): bool
     {
-        return $this->overlay->lookup($name) !== null || $this->overlay->record($name) !== null;
+        return $this->overlay->findPrebuiltUnit($name) !== null || $this->overlay->findCatalogRecord($name) !== null;
     }
 }

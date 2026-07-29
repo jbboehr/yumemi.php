@@ -36,11 +36,11 @@
 
 namespace jbboehr\Yumemi\Analyzer;
 
-use jbboehr\Yumemi\Catalog\UnsupportedUnitReason;
+use jbboehr\Yumemi\Catalog\UnitSemantics;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
-use jbboehr\Yumemi\Exception\UnsupportedUnitException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
 use jbboehr\Yumemi\Expr;
-use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Parser\Parser;
@@ -164,7 +164,7 @@ final class UnitResolver
             return $unit;
         }
 
-        return new Compound([
+        return new Product([
             $this->prefixToExpr($resolvedName->prefixDefinition ?? throw new \LogicException(
                 'A prefixed unit name must include its prefix definition.',
             )),
@@ -175,17 +175,18 @@ final class UnitResolver
     /**
      * Exact catalog/prebuilt hit only — no prefix decomposition.
      *
-     * Prebuilt {@see UnitRegistry::lookup()} entries win over catalog {@see UnitRegistry::record()}
+     * Prebuilt {@see UnitRegistry::findPrebuiltUnit()} entries win over catalog
+     * {@see UnitRegistry::findCatalogRecord()}
      * rows so builder overlays can override UDUNITS2 names.
      */
     private function resolveExact(string $name): ?Expr
     {
-        $prebuilt = $this->unitRegistry->lookup($name);
+        $prebuilt = $this->unitRegistry->findPrebuiltUnit($name);
         if ($prebuilt !== null) {
             return $prebuilt;
         }
 
-        $record = $this->unitRegistry->record($name);
+        $record = $this->unitRegistry->findCatalogRecord($name);
         if ($record !== null) {
             return $this->exprFromRecord($record);
         }
@@ -198,10 +199,10 @@ final class UnitResolver
      */
     private function exprFromRecord(array $record): Expr
     {
-        if (isset($record['unsupportedReason'])) {
-            throw new UnsupportedUnitException(
+        if (isset($record['semantics'])) {
+            throw new UnsupportedUnitAlgebraException(
                 $record['name'],
-                UnsupportedUnitReason::from($record['unsupportedReason']),
+                UnitSemantics::from($record['semantics']),
                 $record['def'] ?? throw new \UnexpectedValueException(
                     'Unsupported catalog unit is missing definition: ' . $record['name'],
                 ),

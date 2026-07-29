@@ -38,10 +38,10 @@ namespace jbboehr\Yumemi\Tests\Analyzer;
 
 use jbboehr\Yumemi\Analyzer\DimensionResolver;
 use jbboehr\Yumemi\Analyzer\UnitNormalizer;
-use jbboehr\Yumemi\Exception\UnsupportedUnitDimensionException;
-use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Exception\UnresolvableUnitDimensionException;
+use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
-use jbboehr\Yumemi\Expr\Term;
+use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
 use PHPUnit\Framework\TestCase;
 
@@ -63,10 +63,10 @@ final class DimensionResolverTest extends TestCase
     public function testResolvesCompoundDimension(): void
     {
         $resolver = new DimensionResolver(new UnitNormalizer());
-        $dimension = $resolver->resolve(new Compound([
+        $dimension = $resolver->resolve(new Product([
             new Unit('kilogram'),
             new Unit('meter'),
-            new Term(new Unit('second'), -2),
+            new Power(new Unit('second'), -2),
         ]));
 
         $this->assertSame([1, 1, -2, 0, 0, 0, 0], $dimension->powers());
@@ -76,7 +76,7 @@ final class DimensionResolverTest extends TestCase
     public function testIgnoresConstants(): void
     {
         $resolver = new DimensionResolver(new UnitNormalizer());
-        $dimension = $resolver->resolve(new Compound([
+        $dimension = $resolver->resolve(new Product([
             new Constant(1000),
             new Unit('meter'),
         ]));
@@ -89,10 +89,10 @@ final class DimensionResolverTest extends TestCase
         $meter = new Unit('meter');
         $second = new Unit('second');
         $kilogram = new Unit('kilogram');
-        $newton = new Unit('newton', new Compound([
+        $newton = new Unit('newton', new Product([
             $kilogram,
             $meter,
-            new Term($second, -2),
+            new Power($second, -2),
         ]));
 
         $resolver = new DimensionResolver(new UnitNormalizer());
@@ -104,7 +104,7 @@ final class DimensionResolverTest extends TestCase
     {
         $resolver = new DimensionResolver(new UnitNormalizer());
 
-        $this->expectException(UnsupportedUnitDimensionException::class);
+        $this->expectException(UnresolvableUnitDimensionException::class);
 
         $resolver->resolve(new Unit('widget'));
     }

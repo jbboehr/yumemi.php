@@ -353,10 +353,10 @@ assert($kilo->canonicalName === 'kilo');
 assert($kilo->definitionExpression === '1e3');
 ```
 
-`describe()` and `describePrefix()` perform exact catalog lookup. They do not parse unit expressions, substitute unit
-definitions, or synthesize descriptions for dynamically prefixed names. See the [catalog reference](docs/catalog.md) for
-catalog customization, affine conversion boundaries, structured reasons for expression-level affine limitations and
-unsupported logarithmic units, and regeneration.
+`describe()` performs exact catalog lookup and can synthesize a descriptor for one dynamically prefixed unit name;
+`describePrefix()` performs exact prefix lookup. Neither parses compound unit expressions or substitutes unit
+definitions. See the [catalog reference](docs/catalog.md) for catalog customization, semantic capabilities, affine
+conversion boundaries, logarithmic limitations, and regeneration.
 
 Formatting policies can canonicalize aliases and generated plurals, select catalog symbols, use Unicode typography, and
 control dimensionless output. Formatting does not normalize or substitute unit definitions:
@@ -516,7 +516,8 @@ assert($rate->toString() === '1/50 * meter / second');
 assert($rate->valueIn('meter / second')->toString() === '1/50');
 ```
 
-Use `simplify()` when you want to substitute unit definitions and fold the unit scale factor into the value.
+Use `simplify()` when you want to substitute unit definitions and fold the unit scale factor into the value. It follows
+the configured definitions; it does not select preferred display units or guarantee a particular catalog spelling.
 
 ```php
 <?php

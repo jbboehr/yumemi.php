@@ -150,7 +150,7 @@ final class Quantity
         return $this->compareTo($other) === 0;
     }
 
-    public function expr(): Expr
+    public function toExpr(): Expr
     {
         return (new Constant($this->value))->mul($this->unit);
     }
@@ -160,7 +160,7 @@ final class Quantity
         return $this->compareTo($other) > 0;
     }
 
-    public function greaterThanOrEqual(self $other): bool
+    public function greaterThanOrEqualTo(self $other): bool
     {
         return $this->compareTo($other) >= 0;
     }
@@ -195,7 +195,7 @@ final class Quantity
         return $this->compareTo($other) < 0;
     }
 
-    public function lessThanOrEqual(self $other): bool
+    public function lessThanOrEqualTo(self $other): bool
     {
         return $this->compareTo($other) <= 0;
     }
@@ -321,7 +321,7 @@ final class Quantity
 
     public function format(?FormatOptions $options = null): string
     {
-        return $this->units->format($this->expr(), $options);
+        return $this->units->format($this->toExpr(), $options);
     }
 
     public function formatUnit(?FormatOptions $options = null): string
@@ -377,7 +377,7 @@ final class Quantity
     {
         // Fast path: symbolically identical units. Also the robust path for
         // bare symbolic units that may not normalize through the catalog.
-        if (ExprComparer::equal($this->unit, $other->unit)) {
+        if (ExprComparer::areEqual($this->unit, $other->unit)) {
             return;
         }
 
@@ -386,7 +386,7 @@ final class Quantity
         // factor of exactly 1, so raw magnitude addition stays exact and no
         // value conversion is needed. This matches the PHPStan operator layer,
         // which accepts the same definitionally-equivalent units for + / -.
-        if (ExprComparer::equal($this->normalizedUnit(), $other->normalizedUnit())) {
+        if (ExprComparer::areEqual($this->normalizedUnit(), $other->normalizedUnit())) {
             return;
         }
 

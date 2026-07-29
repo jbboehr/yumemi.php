@@ -36,12 +36,13 @@
 
 namespace jbboehr\Yumemi\Tests;
 
-use jbboehr\Yumemi\Catalog\UnsupportedUnitReason;
+use jbboehr\Yumemi\Catalog\UnitSemantics;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\Exception\NonMultiplicativeConversionException;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
-use jbboehr\Yumemi\Exception\UnsupportedUnitException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
 use jbboehr\Yumemi\Units;
@@ -93,7 +94,7 @@ final class AffineConversionTest extends TestCase
         $units = Units::default();
 
         $this->assertSame('5463/20', $units->convert(0, 'kelvin @ 273.15', 'kelvin')->toString());
-        $this->assertTrue($units->compatible('kelvin @ 273.15', 'degree_Celsius'));
+        $this->assertTrue($units->areCompatible('kelvin @ 273.15', 'degree_Celsius'));
 
         $this->expectException(UnsupportedSyntaxException::class);
         $units->parse('kelvin @ 273.15');
@@ -104,8 +105,8 @@ final class AffineConversionTest extends TestCase
         $units = Units::default();
 
         $this->assertSame('temperature', $units->dimension('celsius')->toString());
-        $this->assertTrue($units->compatible('fahrenheit', 'kelvin'));
-        $this->assertFalse($units->compatible('celsius', 'meter'));
+        $this->assertTrue($units->areCompatible('fahrenheit', 'kelvin'));
+        $this->assertFalse($units->areCompatible('celsius', 'meter'));
     }
 
     public function testConversionFactorRejectsValueDependentConversion(): void
@@ -204,10 +205,18 @@ final class AffineConversionTest extends TestCase
 
     public function testLogarithmicUnitsRemainUnsupportedAtConversionBoundary(): void
     {
-        $this->expectException(UnsupportedUnitException::class);
-        $this->expectExceptionMessage('unsupported logarithmic semantics');
-
-        Units::default()->convert(1, 'B', '1');
+        try {
+            Units::default()->convert(1, 'B', '1');
+            self::fail('Expected logarithmic conversion to be rejected.');
+        } catch (UnsupportedUnitConversionException $exception) {
+            $this->assertSame('B', $exception->unitName);
+            $this->assertSame(UnitSemantics::Logarithmic, $exception->semantics);
+            $this->assertSame('lg(re 1)', $exception->definition);
+            $this->assertStringContainsString(
+                'Conversion of unit "B" with logarithmic semantics is not supported',
+                $exception->getMessage(),
+            );
+        }
     }
 
     public function testCustomAffineDefinitionsComposeExactly(): void
@@ -224,9 +233,9 @@ final class AffineConversionTest extends TestCase
         $this->assertSame('110', $units->convert(0, 'warmer_widget', 'kelvin')->toString());
         $this->assertSame('10', $units->convert(0, 'warmer_widget', 'degW')->toString());
         $this->assertSame('100', $units->convert(0, 'widget_temperature', 'kelvin')->toString());
-        $this->assertSame(UnsupportedUnitReason::Affine, $units->describe('degree_widget')?->unsupportedReason);
+        $this->assertSame(UnitSemantics::Affine, $units->describe('degree_widget')?->semantics);
 
-        $this->expectException(UnsupportedUnitException::class);
+        $this->expectException(UnsupportedUnitAlgebraException::class);
         $units->parse('degree_widget');
     }
 

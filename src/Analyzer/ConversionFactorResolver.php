@@ -52,7 +52,7 @@ final class ConversionFactorResolver
         $this->dimensionResolver = $dimensionResolver ?? new DimensionResolver($this->unitNormalizer);
     }
 
-    public function compatible(Expr $left, Expr $right): bool
+    public function areCompatible(Expr $left, Expr $right): bool
     {
         return $this->dimension($left)->equals($this->dimension($right));
     }

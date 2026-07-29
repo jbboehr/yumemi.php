@@ -41,5 +41,4 @@ enum UnitKind: string
     case Base = 'base';
     case Dimensionless = 'dimensionless';
     case Derived = 'derived';
-    case Prebuilt = 'prebuilt';
 }

@@ -36,12 +36,13 @@
 
 namespace jbboehr\Yumemi\Tests;
 
+use jbboehr\Yumemi\Catalog\UnitSemantics;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
-use jbboehr\Yumemi\Exception\UnsupportedUnitException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
 use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
-use jbboehr\Yumemi\Expr\Compound;
-use jbboehr\Yumemi\Expr\Term;
+use jbboehr\Yumemi\Expr\Product;
+use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Quantity;
 use jbboehr\Yumemi\Units;
@@ -61,8 +62,8 @@ final class UnitsTest extends TestCase
     {
         $units = Units::default();
 
-        $this->assertTrue($units->compatible('kilometer', 'meter'));
-        $this->assertFalse($units->compatible('meter', 'second'));
+        $this->assertTrue($units->areCompatible('kilometer', 'meter'));
+        $this->assertFalse($units->areCompatible('meter', 'second'));
     }
 
     public function testDefaultUnitsExposeDimensions(): void
@@ -80,9 +81,9 @@ final class UnitsTest extends TestCase
     {
         $units = Units::default();
 
-        // Units::unit() returns an Expr that may be a Compound (prefixed/derived),
+        // Units::unit() returns an Expr that may be a Product (prefixed/derived),
         // yet dimension() now resolves on any node, not just Unit leaves.
-        $this->assertInstanceOf(Compound::class, $units->unit('centimeter'));
+        $this->assertInstanceOf(Product::class, $units->unit('centimeter'));
         $this->assertSame('length', $units->unit('centimeter')->dimension()->toString());
         $this->assertSame('length', $units->unit('kilometer')->dimension()->toString());
 
@@ -123,13 +124,13 @@ final class UnitsTest extends TestCase
     {
         $units = Units::default();
 
-        $metersPerSecond = new Compound([
+        $metersPerSecond = new Product([
             $units->unit('meter'),
-            new Term($units->unit('second'), -1),
+            new Power($units->unit('second'), -1),
         ]);
-        $kilometersPerMinute = new Compound([
+        $kilometersPerMinute = new Product([
             $units->unit('kilometer'),
-            new Term($units->unit('minute'), -1),
+            new Power($units->unit('minute'), -1),
         ]);
 
         $this->assertSame('3/50', $units->convert(1, $metersPerSecond, $kilometersPerMinute)->toString());
@@ -239,7 +240,7 @@ final class UnitsTest extends TestCase
 
     public function testParseQuantityRejectsUnsupportedCatalogUnits(): void
     {
-        $this->expectException(UnsupportedUnitException::class);
+        $this->expectException(UnsupportedUnitAlgebraException::class);
 
         self::parseQuantity(Units::default(), '2 degree_Celsius');
     }
@@ -268,7 +269,7 @@ final class UnitsTest extends TestCase
         $units = Units::default();
 
         $this->assertSame('1000 * meter', $units->normalize('kilometer')->toString());
-        $this->assertTrue($units->compatible('meter / second', 'kilometer / minute'));
+        $this->assertTrue($units->areCompatible('meter / second', 'kilometer / minute'));
         $this->assertSame('3/50', $units->conversionFactor('meter / second', 'kilometer / minute')->toString());
         $this->assertSame('3/50', $units->convert(1, 'meter / second', 'kilometer / minute')->toString());
         $this->assertSame('5 * meter', $units->quantity(5, 'meter')->toString());
@@ -296,12 +297,12 @@ final class UnitsTest extends TestCase
 
         try {
             $units->normalize('degree_Celsius');
-            self::fail('Expected UnsupportedUnitException');
-        } catch (UnsupportedUnitException $exception) {
-            $this->assertSame('affine', $exception->reason->value);
+            self::fail('Expected UnsupportedUnitAlgebraException');
+        } catch (UnsupportedUnitAlgebraException $exception) {
+            $this->assertSame(UnitSemantics::Affine, $exception->semantics);
             $this->assertSame('degree_Celsius', $exception->unitName);
             $this->assertStringContainsString('@', $exception->definition);
-            $this->assertStringContainsString('unsupported affine semantics', $exception->getMessage());
+            $this->assertStringContainsString('not supported by multiplicative unit algebra', $exception->getMessage());
         }
     }
 

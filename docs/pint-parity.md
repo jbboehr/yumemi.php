@@ -89,7 +89,7 @@ Current codebase facts:
 - Public runtime facade: `Units`
 - Public quantity object: `Quantity`
 - Exact numeric representation: `Number\Rational`
-- Expression model: `Expr`, `Expr\Constant`, `Expr\Unit`, `Expr\Term`, `Expr\Compound`
+- Expression model: `Expr`, `Expr\Constant`, `Expr\Unit`, `Expr\Power`, `Expr\Product`
 - Parser stack: Bison grammar, lexer, AST nodes, generated parser
 - Runtime analyzers: `ExprReducer`, `UnitNormalizer`, `ConversionFactorResolver`, `UnitConversionResolver`,
   `UnitResolver`
@@ -110,7 +110,7 @@ The architecture is good enough to keep:
 ```text
 UDUNITS2 XML -> Udunits2CatalogImporter -> PhpCatalogExporter -> data/udunits2.php
 data/udunits2.php -> Udunits2UnitRegistry (catalog records only)
-UnitResolver -> record()/lookup() -> Expr
+UnitResolver -> findCatalogRecord()/findPrebuiltUnit() -> Expr
 Parser string -> Parser\Ast -> AstConverter (resolving or symbolic) -> Expr
 Expr -> ExprReducer -> reduced Expr
 Expr -> UnitNormalizer -> normalized Expr
@@ -459,7 +459,7 @@ identifies logarithmic UDUNITS2 definitions but deliberately rejects their evalu
 Why it is hard:
 
 - Conversions are nonlinear.
-- Compound log units have subtle semantics.
+- Composite logarithmic units have subtle semantics.
 - Static analysis can check dimensions, but value-level conversion needs special cases.
 - Rational arithmetic is not enough for logarithmic conversion.
 
@@ -557,9 +557,9 @@ Implemented API:
 $a->equals($b);
 $a->compareTo($b);
 $a->lessThan($b);
-$a->lessThanOrEqual($b);
+$a->lessThanOrEqualTo($b);
 $a->greaterThan($b);
-$a->greaterThanOrEqual($b);
+$a->greaterThanOrEqualTo($b);
 ```
 
 These methods convert compatible right operands exactly into the left unit. Incompatible dimensions throw, and the
@@ -589,7 +589,7 @@ Useful subset:
 - `reciprocal()`
 - dimensionless-only `sin`, `cos`, `tan`, `exp`, `log`
 
-Difficulty comes from fractional powers. Current `Term` powers are integers, which is good for static analysis but
+Difficulty comes from fractional powers. Current `Power` exponents are integers, which is good for static analysis but
 restrictive for `sqrt(meter^2)`.
 
 Recommendation: Add integer `pow()` soon. Defer fractional powers and transcendental functions.

@@ -58,7 +58,7 @@ final class UnitExpressionParserTest extends TestCase
     #[DataProvider('parsedQuantityUnitProvider')]
     public function testParsesQuantityUnit(string $input, string $expectedUnit): void
     {
-        $result = (new UnitExpressionParser())->parseQuantity($input);
+        $result = (new UnitExpressionParser())->parseQuantityUnit($input);
 
         $this->assertTrue($result->isOk());
         $this->assertSame($expectedUnit, $result->expression()->displayString);
@@ -75,7 +75,7 @@ final class UnitExpressionParserTest extends TestCase
 
     public function testRejectsInvalidQuantity(): void
     {
-        $result = (new UnitExpressionParser())->parseQuantity('2 not_a_real_unit_xyz');
+        $result = (new UnitExpressionParser())->parseQuantityUnit('2 not_a_real_unit_xyz');
 
         $this->assertFalse($result->isOk());
         $this->assertStringContainsString('Unit not found', $result->errorMessage() ?? '');
@@ -83,7 +83,7 @@ final class UnitExpressionParserTest extends TestCase
 
     public function testRejectsEmptyQuantity(): void
     {
-        $result = (new UnitExpressionParser())->parseQuantity('   ');
+        $result = (new UnitExpressionParser())->parseQuantityUnit('   ');
 
         $this->assertFalse($result->isOk());
         $this->assertStringContainsString('empty', strtolower($result->errorMessage() ?? ''));
@@ -151,7 +151,10 @@ final class UnitExpressionParserTest extends TestCase
         $result = $parser->parse($unit);
 
         $this->assertFalse($result->isOk());
-        $this->assertStringContainsString('known but uses unsupported ' . $reason . ' semantics', $result->errorMessage() ?? '');
+        $this->assertStringContainsString(
+            $reason . ' semantics, which are not supported by multiplicative unit algebra',
+            $result->errorMessage() ?? '',
+        );
         $this->assertNull($result->errorSpan());
     }
 
@@ -190,7 +193,7 @@ final class UnitExpressionParserTest extends TestCase
         $parser = new UnitExpressionParser(new Units($registry));
 
         $result = $parser->parse('widget / second');
-        $quantityResult = $parser->parseQuantity('2 widget / second');
+        $quantityResult = $parser->parseQuantityUnit('2 widget / second');
 
         $this->assertTrue($result->isOk());
         $this->assertSame('widget / second', $result->expression()->displayString);

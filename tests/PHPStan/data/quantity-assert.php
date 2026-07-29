@@ -115,17 +115,17 @@ assertType("Quantity<'meter'>", $m->sub($units->quantity(1, 'foot')));
 assertType('-1|0|1', $m->compareTo($feet));
 assertType('bool', $m->equals($feet));
 assertType('bool', $m->lessThan($feet));
-assertType('bool', $m->lessThanOrEqual($feet));
+assertType('bool', $m->lessThanOrEqualTo($feet));
 assertType('bool', $m->greaterThan($feet));
-assertType('bool', $m->greaterThanOrEqual($feet));
+assertType('bool', $m->greaterThanOrEqualTo($feet));
 
 // incompatible branded comparisons are statically invalid
 assertType('*ERROR*', $m->compareTo($s));
 assertType('*ERROR*', $m->equals($s));
 assertType('*ERROR*', $m->lessThan($s));
-assertType('*ERROR*', $m->lessThanOrEqual($s));
+assertType('*ERROR*', $m->lessThanOrEqualTo($s));
 assertType('*ERROR*', $m->greaterThan($s));
-assertType('*ERROR*', $m->greaterThanOrEqual($s));
+assertType('*ERROR*', $m->greaterThanOrEqualTo($s));
 
 // same-unit variants keep the left unit without conversion
 assertType("Quantity<'meter'>", $m->addWithSameUnit($m));
@@ -218,9 +218,9 @@ function compareDynamic(\jbboehr\Yumemi\Quantity $q, \jbboehr\Yumemi\Units $unit
     assertType('-1|0|1', $meters->compareTo($q));
     assertType('bool', $meters->equals($q));
     assertType('bool', $meters->lessThan($q));
-    assertType('bool', $meters->lessThanOrEqual($q));
+    assertType('bool', $meters->lessThanOrEqualTo($q));
     assertType('bool', $meters->greaterThan($q));
-    assertType('bool', $meters->greaterThanOrEqual($q));
+    assertType('bool', $meters->greaterThanOrEqualTo($q));
 }
 
 function extractDynamic(\jbboehr\Yumemi\Quantity $q, string $unit): void

@@ -34,67 +34,22 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\Catalog;
+namespace jbboehr\Yumemi\Exception;
 
-/**
- * @internal
- */
-final class UnitDefinitionClassifier
+use jbboehr\Yumemi\Catalog\UnitSemantics;
+
+final class UnsupportedUnitAlgebraException extends \RuntimeException
 {
-    public static function classify(string $definition): UnitSemantics
-    {
-        if (str_contains($definition, '@')) {
-            return UnitSemantics::Affine;
-        }
-
-        return str_contains($definition, 'lg(')
-            ? UnitSemantics::Logarithmic
-            : UnitSemantics::Multiplicative;
-    }
-
-    /**
-     * Inherit non-multiplicative semantics through exact-name definitions and aliases.
-     *
-     * @param array<string, mixed> $record
-     * @param callable(string): (array<string, mixed>|null) $findRecord
-     * @param array<string, true> $seen
-     */
-    public static function inheritedSemantics(
-        array $record,
-        callable $findRecord,
-        array $seen = [],
-    ): UnitSemantics {
-        $semantics = $record['semantics'] ?? null;
-        if (is_string($semantics)) {
-            return UnitSemantics::from($semantics);
-        }
-
-        $name = $record['name'] ?? null;
-        if (!is_string($name)) {
-            return UnitSemantics::Multiplicative;
-        }
-
-        if (isset($seen[$name])) {
-            return UnitSemantics::Multiplicative;
-        }
-
-        $targetName = $record['def'] ?? null;
-        if (!is_string($targetName)) {
-            return UnitSemantics::Multiplicative;
-        }
-
-        $directSemantics = self::classify($targetName);
-        if ($directSemantics !== UnitSemantics::Multiplicative) {
-            return $directSemantics;
-        }
-
-        $target = $findRecord($targetName);
-        if ($target === null) {
-            return UnitSemantics::Multiplicative;
-        }
-
-        $seen[$name] = true;
-
-        return self::inheritedSemantics($target, $findRecord, $seen);
+    public function __construct(
+        public readonly string $unitName,
+        public readonly UnitSemantics $semantics,
+        public readonly string $definition,
+    ) {
+        parent::__construct(sprintf(
+            'Unit "%s" uses %s semantics, which are not supported by multiplicative unit algebra (definition: %s).',
+            $unitName,
+            $semantics->value,
+            $definition,
+        ));
     }
 }

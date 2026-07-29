@@ -44,20 +44,20 @@ trait MathTrait
 {
     public function div(Expr $expr): Expr
     {
-        return ExprReducer::reduce(new Expr\Compound([
+        return ExprReducer::reduce(new Expr\Product([
             $this,
-            new Expr\Term($expr, -1),
+            new Expr\Power($expr, -1),
         ]));
     }
 
     public function equals(Expr $expr): bool
     {
-        return ExprComparer::equal($this, $expr);
+        return ExprComparer::areEqual($this, $expr);
     }
 
     public function mul(Expr $expr): Expr
     {
-        return ExprReducer::reduce(new Expr\Compound([
+        return ExprReducer::reduce(new Expr\Product([
             $this,
             $expr,
         ]));
@@ -65,6 +65,6 @@ trait MathTrait
 
     public function pow(int $power): Expr
     {
-        return ExprReducer::reduce(new Expr\Term($this, $power));
+        return ExprReducer::reduce(new Expr\Power($this, $power));
     }
 }

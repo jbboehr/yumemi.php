@@ -38,8 +38,8 @@ namespace jbboehr\Yumemi\Tests\Registry;
 
 use jbboehr\Yumemi\Analyzer\UnitResolver;
 use jbboehr\Yumemi\Catalog\CatalogNameKind;
-use jbboehr\Yumemi\Catalog\UnsupportedUnitReason;
-use jbboehr\Yumemi\Exception\UnsupportedUnitException;
+use jbboehr\Yumemi\Catalog\UnitSemantics;
+use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
 use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\TestCase;
@@ -103,12 +103,12 @@ final class Udunits2CatalogSmokeTest extends TestCase
         $lookedUpCount = 0;
 
         foreach ($catalog['units'] as $name => $unit) {
-            if ($this->unsupportedReason($catalog, $name) !== null) {
+            if ($this->semantics($catalog, $name) !== null) {
                 continue;
             }
 
             try {
-                if ($registry->record($name) === null) {
+                if ($registry->findCatalogRecord($name) === null) {
                     $failures[] = $name . ' missing catalog record';
                     continue;
                 }
@@ -136,7 +136,7 @@ final class Udunits2CatalogSmokeTest extends TestCase
         $aliasCount = 0;
 
         foreach ($catalog['units'] as $name => $unit) {
-            if ($unit['type'] !== 'alias' || $this->unsupportedReason($catalog, $name) !== null) {
+            if ($unit['type'] !== 'alias' || $this->semantics($catalog, $name) !== null) {
                 continue;
             }
 
@@ -192,9 +192,9 @@ final class Udunits2CatalogSmokeTest extends TestCase
                 continue;
             }
 
-            $unsupportedReason = $this->unsupportedReason($catalog, $name);
-            if ($unsupportedReason !== null) {
-                $unsupported[$unsupportedReason][] = $name;
+            $semantics = $this->semantics($catalog, $name);
+            if ($semantics !== null) {
+                $unsupported[$semantics][] = $name;
                 continue;
             }
 
@@ -221,14 +221,14 @@ final class Udunits2CatalogSmokeTest extends TestCase
     {
         $units = Units::default();
 
-        foreach (self::EXPECTED_UNSUPPORTED_BY_REASON as $reason => $names) {
+        foreach (self::EXPECTED_UNSUPPORTED_BY_REASON as $semantics => $names) {
             foreach ($names as $name) {
                 try {
                     $units->normalize($name);
                     self::fail('Expected unsupported-unit failure for UDUNITS2 unit: ' . $name);
-                } catch (UnsupportedUnitException $exception) {
-                    $this->assertSame(UnsupportedUnitReason::from($reason), $exception->reason, $name);
-                    $this->assertStringContainsString($reason, $exception->getMessage(), $name);
+                } catch (UnsupportedUnitAlgebraException $exception) {
+                    $this->assertSame(UnitSemantics::from($semantics), $exception->semantics, $name);
+                    $this->assertStringContainsString($semantics, $exception->getMessage(), $name);
                 }
             }
         }
@@ -242,33 +242,33 @@ final class Udunits2CatalogSmokeTest extends TestCase
         $this->assertNotNull($descriptor);
         $this->assertSame('deciB', $descriptor->canonicalName);
         $this->assertSame(CatalogNameKind::Prefixed, $descriptor->matchedAs);
-        $this->assertSame(UnsupportedUnitReason::Logarithmic, $descriptor->unsupportedReason);
-        $this->assertNotNull($descriptor->prefixApplication);
-        $this->assertSame('deci', $descriptor->prefixApplication->prefix->canonicalName);
-        $this->assertSame('B', $descriptor->prefixApplication->unit->canonicalName);
+        $this->assertSame(UnitSemantics::Logarithmic, $descriptor->semantics);
+        $this->assertNotNull($descriptor->prefixDecomposition);
+        $this->assertSame('deci', $descriptor->prefixDecomposition->prefix->canonicalName);
+        $this->assertSame('B', $descriptor->prefixDecomposition->unit->canonicalName);
 
         try {
             $units->normalize('dB');
             self::fail('Expected unsupported-unit failure for dB.');
-        } catch (UnsupportedUnitException $exception) {
+        } catch (UnsupportedUnitAlgebraException $exception) {
             $this->assertSame('B', $exception->unitName);
-            $this->assertSame(UnsupportedUnitReason::Logarithmic, $exception->reason);
+            $this->assertSame(UnitSemantics::Logarithmic, $exception->semantics);
         }
     }
 
     /**
      * @phpstan-param Udunits2Catalog $catalog
      */
-    private function unsupportedReason(array $catalog, string $name): ?string
+    private function semantics(array $catalog, string $name): ?string
     {
-        return $this->unsupportedReasonInner($catalog, $name, []);
+        return $this->semanticsInner($catalog, $name, []);
     }
 
     /**
      * @param array<string, true> $seen
      * @phpstan-param Udunits2Catalog $catalog
      */
-    private function unsupportedReasonInner(array $catalog, string $name, array $seen): ?string
+    private function semanticsInner(array $catalog, string $name, array $seen): ?string
     {
         if (isset($seen[$name])) {
             return null;
@@ -290,7 +290,7 @@ final class Udunits2CatalogSmokeTest extends TestCase
         }
 
         if (isset($catalog['units'][$unit['def']])) {
-            return $this->unsupportedReasonInner($catalog, $unit['def'], $seen);
+            return $this->semanticsInner($catalog, $unit['def'], $seen);
         }
 
         return null;

@@ -38,9 +38,9 @@ namespace jbboehr\Yumemi\Tests\Analyzer;
 
 use jbboehr\Yumemi\Analyzer\UnitNormalizer;
 use jbboehr\Yumemi\Analyzer\ExprReducer;
-use jbboehr\Yumemi\Expr\Compound;
+use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
-use jbboehr\Yumemi\Expr\Term;
+use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
 use PHPUnit\Framework\TestCase;
 
@@ -49,7 +49,7 @@ final class UnitNormalizerTest extends TestCase
     public function testDerivedUnitNormalizesToBaseDefinition(): void
     {
         $meter = new Unit('meter');
-        $kilometer = new Unit('kilometer', new Compound([
+        $kilometer = new Unit('kilometer', new Product([
             new Constant(1000),
             $meter,
         ]));
@@ -62,14 +62,14 @@ final class UnitNormalizerTest extends TestCase
     public function testDerivedUnitPowersNormalizeToBaseDefinition(): void
     {
         $meter = new Unit('meter');
-        $kilometer = new Unit('kilometer', new Compound([
+        $kilometer = new Unit('kilometer', new Product([
             new Constant(1000),
             $meter,
         ]));
 
         $normalizer = new UnitNormalizer();
 
-        $expr = $normalizer->normalize(new Term($kilometer, 2));
+        $expr = $normalizer->normalize(new Power($kilometer, 2));
 
         $this->assertSame('1000000 * meter ^ 2', $expr->toString());
     }
@@ -78,16 +78,16 @@ final class UnitNormalizerTest extends TestCase
     {
         $meter = new Unit('meter');
         $second = new Unit('second');
-        $minute = new Unit('minute', new Compound([
+        $minute = new Unit('minute', new Product([
             new Constant(60),
             $second,
         ]));
 
         $normalizer = new UnitNormalizer();
 
-        $expr = $normalizer->normalize(new Compound([
+        $expr = $normalizer->normalize(new Product([
             $meter,
-            new Term($minute, -1),
+            new Power($minute, -1),
             $second,
         ]));
 
@@ -97,7 +97,7 @@ final class UnitNormalizerTest extends TestCase
     public function testInitialReductionPreservesDefinitionsForSubstitution(): void
     {
         $meter = new Unit('meter');
-        $kilometer = new Unit('kilometer', new Compound([
+        $kilometer = new Unit('kilometer', new Product([
             new Constant(1000),
             $meter,
         ]));

@@ -38,7 +38,8 @@ namespace jbboehr\Yumemi;
 
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\Exception\NonMultiplicativeConversionException;
-use jbboehr\Yumemi\Exception\UnsupportedUnitException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
 
 /**
  * Brand a native int/float with a unit for static analysis (and light runtime checks).
@@ -81,7 +82,7 @@ function unit_factor(string $from, string $to): float
         $toUnit = $units->parse($to);
 
         $factor = $units->conversionFactor($fromUnit, $toUnit);
-    } catch (IncompatibleUnitException|NonMultiplicativeConversionException|UnsupportedUnitException $exception) {
+    } catch (IncompatibleUnitException|NonMultiplicativeConversionException|UnsupportedUnitAlgebraException $exception) {
         throw new \InvalidArgumentException(
             'Cannot calculate unit_factor(): ' . $exception->getMessage(),
             0,
@@ -118,7 +119,7 @@ function unit_to(int|float $value, string $from, string $to): float
         return is_int($value)
             ? $units->convert($value, $from, $to)->toFloat()
             : $units->convertFloat($value, $from, $to);
-    } catch (IncompatibleUnitException $exception) {
+    } catch (IncompatibleUnitException|UnsupportedUnitConversionException $exception) {
         throw new \InvalidArgumentException(
             'Cannot convert with unit_to(): ' . $exception->getMessage(),
             0,

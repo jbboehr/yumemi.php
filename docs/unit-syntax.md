@@ -31,7 +31,7 @@ point.
 
 At explicit conversion boundaries, `identifier @ number` defines an affine coordinate origin. For example,
 `kelvin @ 273.15` maps zero in the new coordinate system to exactly `273.15 kelvin`. This form is accepted by
-`convert()`, `convertFloat()`, `compatible()`, `dimension()`, `conversionFactor()`, `unit_to()`, and custom registry
+`convert()`, `convertFloat()`, `areCompatible()`, `dimension()`, `conversionFactor()`, `unit_to()`, and custom registry
 definitions. It is not part of ordinary multiplicative expression or quantity algebra.
 
 For example:
@@ -104,7 +104,7 @@ second⁻²
 Unicode formatter output remains parser-compatible when the dimensionless style is numeric. See the
 [runtime reference](runtime.md#formatting) for formatting policy.
 
-## Unsupported Semantics
+## Semantic Capabilities
 
 The parser recognizes a few UDUNITS2 forms that the multiplicative expression model deliberately does not implement:
 
@@ -118,8 +118,9 @@ can be converted as standalone units, but cannot be multiplied, divided, raised 
 `unit()`, or stored in `Quantity`. Affine PHPStan targets from `unit_to()` remain plain `float`; a multiplicative target
 such as `kelvin` retains its `unit_float<'kelvin'>` brand.
 
-Known logarithmic catalog entries remain available for exact introspection with structured support reasons, but
-evaluation throws `UnsupportedUnitException`. They therefore remain distinct from unknown names.
+Known logarithmic catalog entries remain available for exact introspection with structured `UnitSemantics`, but
+expression evaluation throws `UnsupportedUnitAlgebraException` and conversion throws
+`UnsupportedUnitConversionException`. They therefore remain distinct from unknown names.
 
 `Quantity::pow()` and PHPStan's unit exponent inference likewise accept only integer powers. Exact rational roots and
 explicit approximate powers are deferred features; a `float` exponent will not be silently accepted.

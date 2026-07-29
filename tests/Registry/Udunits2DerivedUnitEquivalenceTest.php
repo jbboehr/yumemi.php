@@ -46,7 +46,7 @@ final class Udunits2DerivedUnitEquivalenceTest extends TestCase
         $units = Units::default();
 
         foreach (self::namedDerivedUnits() as [$name, $definition]) {
-            $this->assertTrue($units->compatible($name, $definition), $name);
+            $this->assertTrue($units->areCompatible($name, $definition), $name);
             $this->assertSame('1', $units->conversionFactor($name, $definition)->toString(), $name);
             $this->assertSame('1', $units->conversionFactor($definition, $name)->toString(), $name);
         }

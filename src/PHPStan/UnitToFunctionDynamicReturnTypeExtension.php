@@ -97,7 +97,7 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
         }
 
         try {
-            $compatible = $this->units->compatible($fromString, $toString);
+            $compatible = $this->units->areCompatible($fromString, $toString);
         } catch (\Throwable $exception) {
             return new ErrorType($exception->getMessage());
         }

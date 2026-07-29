@@ -55,9 +55,9 @@ final class InvalidQuantityComparisonRule implements Rule
         'compareTo',
         'equals',
         'lessThan',
-        'lessThanOrEqual',
+        'lessThanOrEqualTo',
         'greaterThan',
-        'greaterThanOrEqual',
+        'greaterThanOrEqualTo',
     ];
 
     public function __construct(
