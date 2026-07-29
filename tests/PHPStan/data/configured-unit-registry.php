@@ -7,6 +7,7 @@ namespace jbboehr\Yumemi\Tests\PHPStan\Data\ConfiguredUnitRegistry;
 use jbboehr\Yumemi\Units;
 
 use function jbboehr\Yumemi\unit;
+use function jbboehr\Yumemi\unit_factor;
 use function jbboehr\Yumemi\unit_to;
 use function PHPStan\Testing\assertType;
 
@@ -18,6 +19,10 @@ assertType("unit_int<'widget'>", $widgets);
 
 $meters = unit_to($widget, 'widget', 'meter');
 assertType("unit_float<'meter'>", $meters);
+
+$widgetToMeter = unit_factor('widget', 'meter');
+assertType("unit_float<'meter / widget'>", $widgetToMeter);
+assertType("unit_float<'meter'>", $widget * $widgetToMeter);
 
 assertType("unit_float<'kelvin'>", unit_to(0, 'degree_widget', 'kelvin'));
 assertType('float', unit_to(100, 'kelvin', 'degree_widget'));

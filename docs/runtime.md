@@ -76,6 +76,26 @@ The `Units` facade exposes expression-level operations:
 
 Incompatible conversions throw `IncompatibleUnitException`; unknown names throw `UnitNotFoundException`.
 
+For native arithmetic, `unit_factor()` returns the conversion factor as a `float`. PHPStan brands that value as the
+target unit divided by the source unit, so ordinary multiplication cancels the source brand:
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+use function jbboehr\Yumemi\unit;
+use function jbboehr\Yumemi\unit_factor;
+
+$meters = unit(3, 'meter');
+$feet = $meters * unit_factor('meter', 'foot');
+
+assert(abs($feet - 9.84251968503937) < 1e-12);
+```
+
+Use `conversionFactor()` when the exact `Rational` is required. Both factor APIs reject conversions involving an offset;
+use `convert()`, `convertFloat()`, or `unit_to()` for affine conversion.
+
 ### Affine Conversion
 
 Explicit conversion supports UDUNITS2 affine temperature units and custom `@` definitions. The exact conversion core

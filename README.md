@@ -12,9 +12,10 @@ meaning for `meter / second` whether PHPStan is reading it or your code is compu
 **Status**
 
 - **PHPStan extension** (the headline): usable, not yet a tagged stable release. Implemented — unit-branded native types
-  (`unit_int<'…'>` / `unit_float<'…'>`), arithmetic operator inference (`+ - * / ** %`), `unit()` / `unit_to()` helpers,
-  invalid-unit-string diagnostics, `Quantity<'…'>` object types with fluent-method inference, and extension-optional
-  `@yumemi-param` / `@yumemi-return` / `@yumemi-var` annotations through an opt-in parser integration.
+  (`unit_int<'…'>` / `unit_float<'…'>`), arithmetic operator inference (`+ - * / ** %`), `unit()`, `unit_factor()`, and
+  `unit_to()` helpers, invalid-unit-string diagnostics, `Quantity<'…'>` object types with fluent-method inference, and
+  extension-optional `@yumemi-param` / `@yumemi-return` / `@yumemi-var` annotations through an opt-in parser
+  integration.
 - **Runtime library:** usable — unit expressions, UDUNITS2 catalog, quantities, exact rational conversion (including
   Celsius/Fahrenheit affine conversions), and dimensional checks.
 
@@ -106,7 +107,7 @@ mere shared dimension is not enough — `foot` is not accepted where `meter` is 
 formulas that must pass or fail lives in
 [`tests/PHPStan/data/unit-real-world-native.php`](tests/PHPStan/data/unit-real-world-native.php).
 
-Use the `unit()` and `unit_to()` helpers to brand and convert at the boundaries of your code:
+Use the `unit()`, `unit_factor()`, and `unit_to()` helpers to brand and convert at the boundaries of your code:
 
 ```php
 <?php
@@ -114,18 +115,28 @@ Use the `unit()` and `unit_to()` helpers to brand and convert at the boundaries 
 require 'vendor/autoload.php';
 
 use function jbboehr\Yumemi\unit;
+use function jbboehr\Yumemi\unit_factor;
 use function jbboehr\Yumemi\unit_to;
 
 // unit() brands a native magnitude (and validates the unit string).
 // PHPStan infers unit_int<'foot'>; the runtime value is the untouched int.
 $height = unit(6, 'foot');
 
+// unit_factor() returns a native conversion ratio branded as target/source.
+// Multiplication cancels the source, so PHPStan infers unit_float<'meter'>.
+$heightInMetersByFactor = $height * unit_factor('foot', 'meter');
+
 // unit_to() converts across the catalog. PHPStan infers unit_float<'meter'>.
 $heightInMeters = unit_to(6, 'foot', 'meter');
 
 assert($height === 6);
+assert(abs($heightInMetersByFactor - $heightInMeters) < 1e-12);
 assert($heightInMeters > 1.82 && $heightInMeters < 1.83);
 ```
+
+`unit_factor()` accepts multiplicative units only. `Units::conversionFactor()` is the corresponding exact API and
+returns a `Rational`; the native helper returns `float` so multiplication promotes a branded integer magnitude to a
+branded float.
 
 `unit_to()` also validates affine conversions. A target such as `kelvin` retains its `unit_float<'kelvin'>` brand; an
 affine target such as `celsius` is currently plain `float` because absolute and delta-temperature brands are not yet

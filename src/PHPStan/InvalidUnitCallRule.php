@@ -45,7 +45,7 @@ use PHPStan\Rules\RuleErrorBuilder;
 use PHPStan\Type\ErrorType;
 
 /**
- * Emits standalone diagnostics for invalid unit() / unit_to() calls.
+ * Emits standalone diagnostics for invalid unit() / unit_factor() / unit_to() calls.
  *
  * The dynamic return type extensions infer an {@see ErrorType} for invalid unit strings,
  * dimensional mismatches, and value/from mismatches, but PHPStan does not report a call
@@ -57,10 +57,12 @@ use PHPStan\Type\ErrorType;
 final class InvalidUnitCallRule implements Rule
 {
     private const UNIT = 'jbboehr\\Yumemi\\unit';
+    private const UNIT_FACTOR = 'jbboehr\\Yumemi\\unit_factor';
     private const UNIT_TO = 'jbboehr\\Yumemi\\unit_to';
 
     public function __construct(
         private readonly UnitFunctionDynamicReturnTypeExtension $unitExtension,
+        private readonly UnitFactorFunctionDynamicReturnTypeExtension $unitFactorExtension,
         private readonly UnitToFunctionDynamicReturnTypeExtension $unitToExtension,
     ) {
     }
@@ -81,6 +83,7 @@ final class InvalidUnitCallRule implements Rule
 
         $type = match ($scope->resolveName($node->name)) {
             self::UNIT => $this->unitExtension->inferType($node, $scope),
+            self::UNIT_FACTOR => $this->unitFactorExtension->inferType($node, $scope),
             self::UNIT_TO => $this->unitToExtension->inferType($node, $scope),
             default => null,
         };

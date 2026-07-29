@@ -3,6 +3,7 @@
 namespace jbboehr\Yumemi\Tests\PHPStan\Fixtures;
 
 use function jbboehr\Yumemi\unit;
+use function jbboehr\Yumemi\unit_factor;
 use function jbboehr\Yumemi\unit_to;
 
 // unit(): unknown unit string — diagnostic even though the result is discarded.
@@ -20,9 +21,20 @@ unit_to(1.0, 'meter', 'second');
 // unit_to(): branded value unit does not match the "from" unit.
 unit_to(unit(3.0, 'foot'), 'meter', 'foot');
 
+// unit_factor(): incompatible dimensions and unsupported multiplicative semantics.
+unit_factor('meter', 'second');
+unit_factor('celsius', 'kelvin');
+unit_factor('celsius', 'celsius');
+unit_factor('B', 'B');
+unit_factor('not_a_real_unit_xyz', 'meter');
+unit_factor('meter', 'not_a_real_unit_xyz');
+unit_factor('meter /', 'meter');
+unit_factor('meter', 'second /');
+
 // Valid calls — no diagnostics expected.
 unit(1.0, 'meter');
 unit_to(3.0, 'foot', 'meter');
+unit_factor('meter', 'foot');
 
 // Malformed constant strings include expression-local source diagnostics.
 unit(1.0, 'meter * / second');

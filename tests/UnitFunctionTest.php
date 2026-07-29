@@ -42,6 +42,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 use function jbboehr\Yumemi\unit;
+use function jbboehr\Yumemi\unit_factor;
 use function jbboehr\Yumemi\unit_to;
 
 final class UnitFunctionTest extends TestCase
@@ -58,6 +59,84 @@ final class UnitFunctionTest extends TestCase
         $this->expectExceptionMessage('Invalid unit expression');
 
         unit(1.0, 'not_a_real_unit_xyz'); // @phpstan-ignore yumemi.invalidUnitCall (intentional: exercises the runtime rejection path)
+    }
+
+    /**
+     * @return iterable<string, array{0: string, 1: string, 2: float}>
+     */
+    public static function unitFactorProvider(): iterable
+    {
+        yield 'meter to foot' => ['meter', 'foot', 1250 / 381];
+        yield 'foot to meter' => ['foot', 'meter', 0.3048];
+        yield 'compound speed' => ['meter / second', 'kilometer / hour', 3.6];
+        yield 'integral factor' => ['meter', 'centimeter', 100.0];
+        yield 'derived identity' => ['newton', 'kilogram * meter / second^2', 1.0];
+        yield 'identity' => ['meter', 'meter', 1.0];
+        yield 'alias identity' => ['foot', 'feet', 1.0];
+    }
+
+    #[DataProvider('unitFactorProvider')]
+    public function testUnitFactorReturnsNativeConversionRatio(string $from, string $to, float $expected): void
+    {
+        $this->assertEqualsWithDelta($expected, unit_factor($from, $to), 1e-12);
+    }
+
+    public function testUnitFactorAlwaysReturnsFloat(): void
+    {
+        $this->assertSame(1.0, unit_factor('meter', 'meter'));
+        $this->assertSame(100.0, unit_factor('meter', 'centimeter'));
+    }
+
+    public function testUnitFactorConvertsNativeMagnitudeByMultiplication(): void
+    {
+        $meters = unit(3, 'meter');
+        $feet = $meters * unit_factor('meter', 'foot');
+
+        $this->assertEqualsWithDelta(3 * 1250 / 381, $feet, 1e-12);
+    }
+
+    /**
+     * @return iterable<string, array{0: string, 1: string, 2: string}>
+     */
+    public static function invalidUnitFactorProvider(): iterable
+    {
+        yield 'incompatible dimensions' => ['meter', 'second', 'Cannot calculate unit_factor()'];
+        yield 'unknown source' => ['not_a_real_unit_xyz', 'meter', 'Invalid unit expression for unit_factor()'];
+        yield 'unknown target' => ['meter', 'not_a_real_unit_xyz', 'Invalid unit expression for unit_factor()'];
+        yield 'malformed source' => ['meter /', 'meter', 'Invalid unit expression for unit_factor()'];
+        yield 'malformed target' => ['meter', 'second /', 'Invalid unit expression for unit_factor()'];
+        yield 'affine conversion' => ['celsius', 'kelvin', 'Invalid unit expression for unit_factor()'];
+        yield 'affine identity' => ['celsius', 'celsius', 'Invalid unit expression for unit_factor()'];
+        yield 'logarithmic unit' => ['B', 'B', 'Invalid unit expression for unit_factor()'];
+    }
+
+    #[DataProvider('invalidUnitFactorProvider')]
+    public function testUnitFactorRejectsInvalidOrNonMultiplicativeUnits(
+        string $from,
+        string $to,
+        string $message,
+    ): void {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage($message);
+
+        unit_factor($from, $to);
+    }
+
+    public function testUnitFactorRejectsFloatOverflowAndUnderflow(): void
+    {
+        $powerOfTen = '1' . str_repeat('0', 400);
+
+        try {
+            unit_factor('meter', '1 / ' . $powerOfTen . ' * meter');
+            self::fail('Expected an overflowing conversion factor to be rejected.');
+        } catch (\OverflowException $exception) {
+            $this->assertStringContainsString('does not fit in a finite float', $exception->getMessage());
+        }
+
+        $this->expectException(\UnderflowException::class);
+        $this->expectExceptionMessage('rounds to zero as a float');
+
+        unit_factor('meter', $powerOfTen . ' * meter');
     }
 
     /**

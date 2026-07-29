@@ -64,6 +64,39 @@ function unit(int|float $value, string $unit): int|float
 }
 
 /**
+ * Return a native conversion factor branded as the target unit divided by the source unit.
+ *
+ * Multiplying a source-branded value by this factor lets PHPStan reduce the result to the
+ * target unit. This native helper is limited to multiplicative units; use {@see unit_to()}
+ * for affine conversions and {@see Units::conversionFactor()} for an exact Rational.
+ */
+function unit_factor(string $from, string $to): float
+{
+    $units = Units::default();
+
+    try {
+        $fromUnit = $units->parse($from);
+        $toUnit = $units->parse($to);
+
+        $factor = $units->conversionFactor($fromUnit, $toUnit);
+    } catch (IncompatibleUnitException $exception) {
+        throw new \InvalidArgumentException(
+            'Cannot calculate unit_factor(): ' . $exception->getMessage(),
+            0,
+            $exception,
+        );
+    } catch (\Throwable $exception) {
+        throw new \InvalidArgumentException(
+            'Invalid unit expression for unit_factor(): ' . $exception->getMessage(),
+            0,
+            $exception,
+        );
+    }
+
+    return $factor->toFloat();
+}
+
+/**
  * Convert a native magnitude from one unit to another.
  *
  * Use when units share a dimension but not a normalized form (e.g. foot → meter,

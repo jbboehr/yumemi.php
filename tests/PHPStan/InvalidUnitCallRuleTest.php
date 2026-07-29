@@ -41,7 +41,7 @@ use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;
 
 /**
- * Standalone diagnostics for invalid unit() / unit_to() calls (review finding #2).
+ * Standalone diagnostics for invalid unit() / unit_factor() / unit_to() calls (review finding #2).
  *
  * @extends RuleTestCase<InvalidUnitCallRule>
  */
@@ -64,59 +64,96 @@ final class InvalidUnitCallRuleTest extends RuleTestCase
         $this->analyse([__DIR__ . '/Fixtures/InvalidUnitCalls.php'], [
             [
                 'Unit not found: not_a_real_unit_xyz.',
-                9,
+                10,
             ],
             [
                 'Unit not found: not_a_real_unit_xyz.',
-                12,
+                13,
             ],
             [
                 'Unit not found: not_a_real_unit_xyz.',
-                15,
+                16,
             ],
             [
                 'Cannot convert with unit_to(): units meter and second are not dimensionally compatible.',
-                18,
+                19,
             ],
             [
                 'unit_to() value unit international_foot does not match from unit meter (normalized forms differ).',
-                21,
+                22,
             ],
             [
-                "Syntax error, unexpected '/' at line 1, column 9 (byte offset 8).\n"
-                    . "| meter * / second\n"
-                    . '|         ^',
+                'Cannot calculate unit_factor(): Incompatible unit expressions: meter and second. '
+                    . 'Dimensions: length vs time.',
+                25,
+            ],
+            [
+                'Unit "celsius" is known but uses unsupported affine semantics (definition: degree_Celsius).',
+                26,
+            ],
+            [
+                'Unit "celsius" is known but uses unsupported affine semantics (definition: degree_Celsius).',
+                27,
+            ],
+            [
+                'Unit "B" is known but uses unsupported logarithmic semantics (definition: lg(re 1)).',
                 28,
+            ],
+            [
+                'Unit not found: not_a_real_unit_xyz.',
+                29,
+            ],
+            [
+                'Unit not found: not_a_real_unit_xyz.',
+                30,
+            ],
+            [
+                "Syntax error, unexpected 'end of file' at line 1, column 8 (byte offset 7).\n"
+                    . "| meter /\n"
+                    . '|        ^',
+                31,
             ],
             [
                 "Syntax error, unexpected 'end of file' at line 1, column 9 (byte offset 8).\n"
                     . "| second /\n"
                     . '|         ^',
-                29,
-            ],
-            [
-                'Unit "B" is known but uses unsupported logarithmic semantics (definition: lg(re 1)).',
                 32,
             ],
             [
+                "Syntax error, unexpected '/' at line 1, column 9 (byte offset 8).\n"
+                    . "| meter * / second\n"
+                    . '|         ^',
+                40,
+            ],
+            [
+                "Syntax error, unexpected 'end of file' at line 1, column 9 (byte offset 8).\n"
+                    . "| second /\n"
+                    . '|         ^',
+                41,
+            ],
+            [
+                'Unit "B" is known but uses unsupported logarithmic semantics (definition: lg(re 1)).',
+                44,
+            ],
+            [
                 'Unit "degree_Celsius" is known but uses unsupported affine semantics (definition: K @ 273.15).',
-                33,
+                45,
             ],
             [
                 'Cannot convert with unit_to(): units degree_Celsius and meter are not dimensionally compatible.',
-                36,
+                48,
             ],
             [
                 'unit_to() cannot use a unit-branded value with affine from unit celsius.',
-                37,
+                49,
             ],
             [
                 'Affine units cannot be multiplied, divided, or raised to powers: (celsius * meter).',
-                38,
+                50,
             ],
             [
                 'Affine unit "celsius" cannot be prefixed.',
-                39,
+                51,
             ],
         ]);
     }

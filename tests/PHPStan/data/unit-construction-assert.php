@@ -10,6 +10,7 @@
  */
 
 use function jbboehr\Yumemi\unit;
+use function jbboehr\Yumemi\unit_factor;
 use function jbboehr\Yumemi\unit_to;
 use function PHPStan\Testing\assertType;
 
@@ -20,6 +21,47 @@ assertType("unit_int<'second'>", unit(3, 'second'));
 assertType("unit_int<'kilogram * meter / second'>", unit(1, 'meter / second kilogram'));
 assertType("unit_float<'kilogram * meter / second ^ 2'>", unit(1500.0, 'kilogram') * unit(3.0, 'meter / second^2'));
 assertType('*ERROR*', unit(1.0, 'not_a_real_unit_xyz'));
+
+// --- unit_factor(): quotient brand and cancellation through ordinary unit algebra ---
+
+assertType("unit_float<'international_foot / meter'>", unit_factor('meter', 'foot'));
+assertType("unit_float<'international_foot'>", unit(1, 'meter') * unit_factor('meter', 'foot'));
+assertType("unit_float<'international_foot'>", unit_factor('meter', 'foot') * unit(1, 'meter'));
+assertType("unit_float<'meter'>", unit(1.0, 'foot') * unit_factor('foot', 'meter'));
+assertType("unit_float<'1000 * meter / hour'>", unit(1, 'meter / second') * unit_factor(
+    'meter / second',
+    'kilometer / hour',
+));
+assertType("unit_float<'1'>", unit_factor('meter', 'meter'));
+assertType("unit_float<'meter'>", unit(1, 'meter') * unit_factor('meter', 'meter'));
+assertType("unit_float<'1/100'>", unit_factor('meter', 'centimeter'));
+assertType("unit_float<'1/100 * meter'>", unit(1, 'meter') * unit_factor('meter', 'centimeter'));
+
+/** @param 'meter'|'foot' $from */
+function finiteFactorSource(string $from): void
+{
+    assertType('float', unit_factor($from, 'meter'));
+}
+
+/** @param 'meter'|'foot' $to */
+function finiteFactorTarget(string $to): void
+{
+    assertType('float', unit_factor('meter', $to));
+}
+
+function dynamicFactor(string $from, string $to): void
+{
+    assertType('float', unit_factor($from, $to));
+}
+
+assertType('*ERROR*', unit_factor('meter', 'second'));
+assertType('*ERROR*', unit_factor('not_a_real_unit_xyz', 'meter'));
+assertType('*ERROR*', unit_factor('meter', 'not_a_real_unit_xyz'));
+assertType('*ERROR*', unit_factor('meter /', 'meter'));
+assertType('*ERROR*', unit_factor('meter', 'second /'));
+assertType('*ERROR*', unit_factor('celsius', 'kelvin'));
+assertType('*ERROR*', unit_factor('celsius', 'celsius'));
+assertType('*ERROR*', unit_factor('B', 'B'));
 
 // --- unit_to() success: result branded with parsed *to* unit (always float) ---
 

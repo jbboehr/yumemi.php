@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Add `unit_factor()` with PHPStan target/source quotient inference for typed native conversion-factor arithmetic.
 - Add exact affine conversion for UDUNITS2 and custom offset units, including `Units::convertFloat()` and PHPStan-aware
   `unit_to()` results.
 

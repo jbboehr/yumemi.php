@@ -4,9 +4,10 @@
 # Piece 3: arithmetic operator type inference (+ - * / ** % and unary +/-)
 # Piece 4: unit() construction helper (dynamic return type)
 # Piece 5: unit_to() conversion helper (dynamic return type)
-# Piece 6: invalid unit() / unit_to() call diagnostics (rule)
+# Piece 6: invalid unit() / unit_factor() / unit_to() call diagnostics (rule)
 # Piece 7: Quantity<'...'> object type + Units::quantity() return type
 # Piece 13: Quantity construction/conversion validation + native integer extraction bridges
+# Piece 14: unit_factor() conversion-ratio helper (dynamic return type)
 # Optional @yumemi-* tag promotion is registered separately by yumemi-tags.neon.
 
 parameters:
@@ -61,6 +62,13 @@ services:
             - phpstan.broker.unaryOperatorTypeSpecifyingExtension
     -
         class: jbboehr\Yumemi\PHPStan\UnitFunctionDynamicReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicFunctionReturnTypeExtension
+    -
+        class: jbboehr\Yumemi\PHPStan\UnitFactorFunctionDynamicReturnTypeExtension
+        arguments:
+            parser: @yumemiUnitExpressionParser
+            units: @yumemiUnits
         tags:
             - phpstan.broker.dynamicFunctionReturnTypeExtension
     -

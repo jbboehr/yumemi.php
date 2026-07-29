@@ -195,8 +195,9 @@ Implemented PHPStan behavior:
   requires a constant integer exponent, and modulo requires equivalent `unit_int` operands.
 - Native `+` / `-` require normalized-equivalent units. Merely compatible dimensions are insufficient because native
   arithmetic cannot convert the right magnitude.
-- `unit()` brands a native multiplicative magnitude. `unit_to()` performs multiplicative or affine runtime conversion;
-  multiplicative targets return a branded float while affine targets remain plain `float`.
+- `unit()` brands a native multiplicative magnitude. `unit_factor()` returns a native float branded as target/source,
+  allowing ordinary multiplication to cancel the source and infer the target. `unit_to()` performs multiplicative or
+  affine runtime conversion; multiplicative targets return a branded float while affine targets remain plain `float`.
 - `Units::quantity()`, `Units::parseQuantity()`, and all current unit-bearing `Quantity` methods preserve or transform
   the static unit brand.
 - Quantity arithmetic, conversion, extraction, and comparisons receive standalone diagnostics even when an invalid
@@ -494,6 +495,8 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
 ### Known Limitations And Risks
 
 - Dynamic unit strings cannot be validated statically and intentionally fall back to native PHPStan return types.
+- Direct `Units::conversionFactor()` calls retain their declared `Rational` type. Use `unit_factor()` when native
+  target/source branding is needed for PHPStan arithmetic.
 - Affine units are currently absolute coordinate systems only. Delta-temperature units, affine `Quantity` construction
   and arithmetic, direct affine PHPDoc brands, and prefixed affine units remain unsupported.
 - `unit_to()` returns plain `float` for affine targets because native affine brands cannot yet express absolute-versus-
@@ -536,6 +539,9 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
   base aliases continue to follow overlay replacements; expression resolution remains in `UnitResolver`.
 - Quantity serialization and ecosystem integrations
 - Strict same-unit comparison variants and PHP object comparison operators unless a concrete use case appears
+- Constant-valued native unit types. A future `UnitConstantFloatType` can extend `UnitFloatType` and implement PHPStan's
+  `ConstantScalarType`, preserving a known binary float and unit expression through supported operators; this would not
+  make an approximate float mathematically exact.
 - Bundled third-party stubs until specific libraries are selected; ordinary PHPStan stubs already work
 
 The broader feature comparison and intentionally deferred Pint-style capabilities remain in
