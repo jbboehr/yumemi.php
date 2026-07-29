@@ -97,4 +97,36 @@ final class UnitExpressionParser
             );
         }
     }
+
+    public function parseQuantity(string $quantityString): UnitExpressionParseResult
+    {
+        if (trim($quantityString) === '') {
+            return UnitExpressionParseResult::invalid('Quantity expression must not be empty.');
+        }
+
+        try {
+            $quantity = $this->units->parseQuantity($quantityString);
+
+            return $this->parse(ExprRenderer::format($quantity->unit()));
+        } catch (UnitNotFoundException $exception) {
+            return UnitExpressionParseResult::invalid($exception->getMessage());
+        } catch (UnsupportedSyntaxException $exception) {
+            return UnitExpressionParseResult::invalid($exception->getMessage());
+        } catch (UnsupportedUnitException $exception) {
+            return UnitExpressionParseResult::invalid($exception->getMessage());
+        } catch (UnsupportedUnitDimensionException $exception) {
+            return UnitExpressionParseResult::invalid($exception->getMessage());
+        } catch (ParseException $exception) {
+            $message = $exception->getMessage();
+            if ($message === '') {
+                $message = 'Invalid quantity expression syntax.';
+            }
+
+            return UnitExpressionParseResult::invalid($message, $exception->getSpan());
+        } catch (\Throwable $exception) {
+            return UnitExpressionParseResult::invalid(
+                'Failed to parse quantity expression: ' . $exception->getMessage(),
+            );
+        }
+    }
 }

@@ -39,9 +39,13 @@ namespace jbboehr\Yumemi\Tests;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitException;
+use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
 use jbboehr\Yumemi\Expr\Compound;
 use jbboehr\Yumemi\Expr\Term;
+use jbboehr\Yumemi\Parser\ParseException;
+use jbboehr\Yumemi\Quantity;
 use jbboehr\Yumemi\Units;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class UnitsTest extends TestCase
@@ -141,6 +145,105 @@ final class UnitsTest extends TestCase
         )->toString());
     }
 
+    public function testParseUnitAliasesParse(): void
+    {
+        $units = Units::default();
+
+        $this->assertTrue($units->parse('kilometer / minute')->equals(
+            $units->parseUnit('kilometer / minute'),
+        ));
+    }
+
+    public function testParseUnitPropagatesLookupErrors(): void
+    {
+        $this->expectException(UnitNotFoundException::class);
+
+        Units::default()->parseUnit('not_a_real_unit_xyz');
+    }
+
+    #[DataProvider('parsedQuantityProvider')]
+    public function testParseQuantityExtractsTheCompleteExplicitConstant(
+        string $input,
+        string $expectedValue,
+        string $expectedUnit,
+    ): void {
+        $quantity = Units::default()->parseQuantity($input);
+
+        $this->assertSame($expectedValue, $quantity->valueToString());
+        $this->assertSame($expectedUnit, $quantity->unitToString());
+    }
+
+    public static function parsedQuantityProvider(): iterable
+    {
+        yield 'integer' => ['12 foot', '12', 'foot'];
+        yield 'negative decimal and scientific notation' => [
+            '-1.25e2 kilometer / (5 second)',
+            '-25',
+            'kilometer / second',
+        ];
+        yield 'constants throughout expression' => ['2 meter / (4 second)', '1/2', 'meter / second'];
+        yield 'powered constant' => ['(2 meter)^2', '4', 'meter ^ 2'];
+        yield 'implicit one' => ['meter / second', '1', 'meter / second'];
+        yield 'dimensionless constant' => ['1000', '1000', '1'];
+        yield 'zero retains unit' => ['0 meter', '0', 'meter'];
+    }
+
+    public function testParseQuantityKeepsCatalogScaleInTheUnit(): void
+    {
+        $units = Units::default();
+        $feet = $units->parseQuantity('12 foot');
+        $centimeters = $units->parseQuantity('100 centimeter');
+        $percent = $units->parseQuantity('2 percent');
+
+        $this->assertSame('12', $feet->valueToString());
+        $this->assertSame('foot', $feet->unitToString());
+        $this->assertSame('144', $feet->valueIn('inch')->toString());
+        $this->assertSame('100', $centimeters->valueToString());
+        $this->assertSame('centimeter', $centimeters->unitToString());
+        $this->assertSame('1', $centimeters->valueIn('meter')->toString());
+        $this->assertSame('2', $percent->valueToString());
+        $this->assertSame('percent', $percent->unitToString());
+        $this->assertSame('1/50', $percent->valueIn('1')->toString());
+    }
+
+    public function testParsedCompoundQuantityRetainsItsResolvedUnit(): void
+    {
+        $quantity = Units::default()->parseQuantity('2 kilometer / (4 minute)');
+
+        $this->assertSame('1/2', $quantity->valueToString());
+        $this->assertSame('kilometer / minute', $quantity->unitToString());
+        $this->assertSame('25/3', $quantity->valueIn('meter / second')->toString());
+        $this->assertSame('length / time', $quantity->dimension()->toString());
+    }
+
+    public function testParseQuantityRejectsUnknownUnits(): void
+    {
+        $this->expectException(UnitNotFoundException::class);
+
+        self::parseQuantity(Units::default(), '2 not_a_real_unit_xyz');
+    }
+
+    public function testParseQuantityRejectsMalformedSyntax(): void
+    {
+        $this->expectException(ParseException::class);
+
+        self::parseQuantity(Units::default(), 'meter * / second');
+    }
+
+    public function testParseQuantityRejectsUnsupportedSyntax(): void
+    {
+        $this->expectException(UnsupportedSyntaxException::class);
+
+        self::parseQuantity(Units::default(), 'meter + second');
+    }
+
+    public function testParseQuantityRejectsUnsupportedCatalogUnits(): void
+    {
+        $this->expectException(UnsupportedUnitException::class);
+
+        self::parseQuantity(Units::default(), '2 degree_Celsius');
+    }
+
     public function testParseReducesZeroPowersToDimensionless(): void
     {
         $units = Units::default();
@@ -200,5 +303,10 @@ final class UnitsTest extends TestCase
             $this->assertStringContainsString('@', $exception->definition);
             $this->assertStringContainsString('unsupported affine semantics', $exception->getMessage());
         }
+    }
+
+    private static function parseQuantity(Units $units, string $input): Quantity
+    {
+        return $units->parseQuantity($input);
     }
 }

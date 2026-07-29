@@ -136,7 +136,8 @@ direction, passing a `unit_int<'foot'>` magnitude to `Units::quantity(..., 'mete
 existing magnitude and does not implicitly convert it. Finite literal-string target unions are preserved, so a target
 typed as `'meter'|'foot'` produces the corresponding union of branded results. An explicit known target also brands
 `to()` and integer-extraction results from a plain, unbranded `Quantity`; PHPStan cannot check the source dimension in
-that case, but it can still represent the requested result unit.
+that case, but it can still represent the requested result unit. Constant and finite-union strings passed to
+`parseQuantity()` likewise infer the resulting `Quantity<'...'>` unit; dynamic strings return an unbranded `Quantity`.
 
 ### Custom PHPStan registries
 
@@ -266,10 +267,17 @@ use jbboehr\Yumemi\Units;
 $units = Units::default();
 
 $length = $units->quantity(1488, 'inch')->to('foot');
+$speed = $units->parseQuantity('2 meter / (4 second)');
 
 assert($length->toString() === '124 * foot');
 assert($length->valueIn('inch')->toString() === '1488');
+assert($speed->valueToString() === '1/2');
+assert($speed->unitToString() === 'meter / second');
 ```
+
+`parseQuantity()` folds every explicit numeric factor into the exact magnitude. Catalog scales remain attached to the
+unit, so `100 centimeter` is stored as value `100` in `centimeter`, not value `1` in `meter`. A unit expression without
+an explicit number implies a magnitude of one. `parseUnit()` is an explicit alias of the canonical `parse()` method.
 
 `valueIn()` keeps the converted magnitude exact as a `Rational`. Native output is explicit: decimal output uses a fixed
 number of places and a required PHP 8.4 `RoundingMode` (polyfilled on PHP 8.2 and 8.3), exact decimal output rejects

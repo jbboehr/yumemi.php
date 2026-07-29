@@ -38,6 +38,7 @@ namespace jbboehr\Yumemi\PHPStan;
 
 use jbboehr\Yumemi\Units;
 use PhpParser\Node\Expr\MethodCall;
+use PhpParser\Node\Identifier;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\MethodReflection;
 use PHPStan\Type\DynamicMethodReturnTypeExtension;
@@ -46,8 +47,8 @@ use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
 
 /**
- * Infers Quantity<'meter'> from Units::quantity($value, 'meter') when the unit type is a finite
- * set of constant strings.
+ * Infers Quantity<'meter'> from Units::quantity($value, 'meter') and
+ * Units::parseQuantity('2 meter') when the relevant string type is finite and constant.
  *
  * The PHPStan-configured registry is authoritative: every statically known target must parse, while
  * a genuinely dynamic string falls back to the native `Quantity` return. A branded integer input
@@ -67,7 +68,7 @@ final class UnitsQuantityReturnTypeExtension implements DynamicMethodReturnTypeE
 
     public function isMethodSupported(MethodReflection $methodReflection): bool
     {
-        return $methodReflection->getName() === 'quantity';
+        return in_array($methodReflection->getName(), ['quantity', 'parseQuantity'], true);
     }
 
     public function getTypeFromMethodCall(
@@ -82,6 +83,19 @@ final class UnitsQuantityReturnTypeExtension implements DynamicMethodReturnTypeE
      * Shared inference used by the return-type extension and construction diagnostic rule.
      */
     public function inferType(MethodCall $methodCall, Scope $scope): ?Type
+    {
+        if (!$methodCall->name instanceof Identifier) {
+            return null;
+        }
+
+        return match ($methodCall->name->toString()) {
+            'quantity' => $this->inferQuantityType($methodCall, $scope),
+            'parseQuantity' => $this->inferParsedQuantityType($methodCall, $scope),
+            default => null,
+        };
+    }
+
+    private function inferQuantityType(MethodCall $methodCall, Scope $scope): ?Type
     {
         $args = $methodCall->getArgs();
         if (count($args) < 2) {
@@ -116,6 +130,34 @@ final class UnitsQuantityReturnTypeExtension implements DynamicMethodReturnTypeE
                     ));
                 }
             }
+        }
+
+        return TypeCombinator::union(...array_map(
+            static fn (UnitExpression $targetUnit): QuantityType => new QuantityType($targetUnit),
+            $targetUnits,
+        ));
+    }
+
+    private function inferParsedQuantityType(MethodCall $methodCall, Scope $scope): ?Type
+    {
+        $args = $methodCall->getArgs();
+        if (count($args) < 1) {
+            return null;
+        }
+
+        $constantStrings = $scope->getType($args[0]->value)->getConstantStrings();
+        if ($constantStrings === []) {
+            return null;
+        }
+
+        $targetUnits = [];
+        foreach ($constantStrings as $constantString) {
+            $parsed = $this->parser->parseQuantity($constantString->getValue());
+            if (!$parsed->isOk()) {
+                return new ErrorType($parsed->errorMessage() ?? 'Invalid quantity expression.');
+            }
+
+            $targetUnits[] = $parsed->expression();
         }
 
         return TypeCombinator::union(...array_map(

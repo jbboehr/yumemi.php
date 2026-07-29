@@ -70,13 +70,16 @@ These operations intentionally answer different questions:
 
 - `Units::parse()` parses the complete expression, resolves every identifier through the catalog, and reduces the
   resulting expression.
+- `Units::parseUnit()` is an explicit alias of `Units::parse()`.
+- `Units::parseQuantity()` folds all explicit constants into one exact magnitude and preserves the remaining symbolic
+  unit. Catalog conversion factors are not extracted from named units.
 - `Units::unit()` resolves one catalog unit name, including dynamic prefix decomposition.
 - `Units::format()` parses string input symbolically and formats the supplied spelling without requiring every name to
   exist in the catalog.
 - `Units::normalize()` parses and resolves string input, then substitutes derived-unit definitions.
 
-Formatting is therefore not a unit-validation API. Use `parse()`, `unit()`, conversion, compatibility, or quantity
-construction when unknown names must fail.
+Formatting is therefore not a unit-validation API. Use `parse()`, `parseUnit()`, `parseQuantity()`, `unit()`,
+conversion, compatibility, or quantity construction when unknown names must fail.
 
 ## Unicode Syntax
 

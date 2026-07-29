@@ -243,7 +243,8 @@ Remaining work:
 
 - Add convenient constructors for decimal strings once numeric policy is settled.
 - Decide whether floats are accepted directly or require explicit opt-in.
-- Consider `Units::parseQuantity('12 foot')` for user input.
+- ~~Add `Units::parseQuantity('12 foot')` for user input.~~ **Done, including exact extraction of all explicit constants
+  and PHPStan inference for finite constant strings.**
 - Consider `Quantity::of(...)` only if it can avoid losing the `Units` context.
 
 Recommendation: Keep `Units::quantity()` as the primary constructor. It makes registry context explicit.
@@ -924,7 +925,7 @@ Goal: make the runtime feel pleasant enough that the static analyzer has a good 
 
 Work:
 
-- Add quantity parsing from strings.
+- ~~Add quantity parsing from strings.~~ **Done.**
 - Add JSON serialization helpers.
 - Add better format presets.
 - Add `toBaseUnits()` or rename/alias `simplify()` if needed.

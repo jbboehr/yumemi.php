@@ -40,6 +40,7 @@ use jbboehr\Yumemi\Analyzer\AstConverter;
 use jbboehr\Yumemi\Analyzer\ConversionFactorResolver;
 use jbboehr\Yumemi\Analyzer\DimensionResolver;
 use jbboehr\Yumemi\Analyzer\ExprReducer;
+use jbboehr\Yumemi\Analyzer\NormalizedExpr;
 use jbboehr\Yumemi\Analyzer\UnitNormalizer;
 use jbboehr\Yumemi\Analyzer\UnitResolver;
 use jbboehr\Yumemi\Catalog\PrefixDescriptor;
@@ -157,6 +158,32 @@ final class Units
         );
     }
 
+    /**
+     * Explicit alias for parsing a unit expression.
+     */
+    public function parseUnit(string $input): Expr
+    {
+        return $this->parse($input);
+    }
+
+    /**
+     * Parse a quantity, folding explicit constants into its exact magnitude.
+     */
+    public function parseQuantity(string $input): Quantity
+    {
+        $symbolicExpr = ExprReducer::reduce(
+            AstConverter::symbolic()->convert(Parser::parseString($input)),
+        );
+        $unit = NormalizedExpr::withoutConstant($symbolicExpr);
+
+        return new Quantity(
+            NormalizedExpr::constant($symbolicExpr),
+            $unit,
+            $this,
+            $this->bindContext(ExprReducer::reduce($this->resolveSymbolicExpr($unit))),
+        );
+    }
+
     public function quantity(int|Rational $value, Expr|string $unit): Quantity
     {
         return new Quantity($value, $unit, $this);
@@ -178,6 +205,26 @@ final class Units
     private function expr(Expr|string $expr): Expr
     {
         return is_string($expr) ? $this->parse($expr) : $expr;
+    }
+
+    private function resolveSymbolicExpr(Expr $expr): Expr
+    {
+        if ($expr instanceof Unit) {
+            return $this->unitResolver->resolveOrFail($expr->name);
+        }
+
+        if ($expr instanceof Term) {
+            return new Term($this->resolveSymbolicExpr($expr->value), $expr->power);
+        }
+
+        if ($expr instanceof Compound) {
+            return new Compound(array_map(
+                fn (Expr $subexpr): Expr => $this->resolveSymbolicExpr($subexpr),
+                $expr->exprs,
+            ));
+        }
+
+        return $expr;
     }
 
     /**

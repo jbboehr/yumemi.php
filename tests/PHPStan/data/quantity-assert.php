@@ -18,6 +18,29 @@ assertType("Quantity<'meter'>", $units->quantity(1, 'meter'));
 assertType("Quantity<'meter / second'>", $units->quantity(1, 'meter / second'));
 assertType("Quantity<'newton'>", $units->quantity(2, 'newton'));
 
+// --- Units::parseQuantity() construction ---
+
+assertType("Quantity<'meter'>", $units->parseQuantity('2 meter'));
+assertType("Quantity<'international_foot'>", $units->parseQuantity('12 foot'));
+assertType("Quantity<'meter / second'>", $units->parseQuantity('2 meter / (4 second)'));
+assertType("Quantity<'meter ^ 2'>", $units->parseQuantity('(2 meter)^2'));
+assertType("Quantity<'meter / second'>", $units->parseQuantity('meter / second'));
+assertType("Quantity<'1'>", $units->parseQuantity('1000'));
+assertType('*ERROR*', $units->parseQuantity('2 not_a_real_unit_xyz'));
+assertType('*ERROR*', $units->parseQuantity('meter * / second'));
+assertType('*ERROR*', $units->parseQuantity('2 B'));
+
+function dynamicParsedQuantity(Units $units, string $expression): void
+{
+    assertType('jbboehr\\Yumemi\\Quantity', $units->parseQuantity($expression));
+}
+
+/** @param '2 meter'|'3 foot' $expression */
+function finiteParsedQuantities(Units $units, string $expression): void
+{
+    assertType("Quantity<'international_foot'>|Quantity<'meter'>", $units->parseQuantity($expression));
+}
+
 // A branded native integer is already expressed in its branded unit: quantity() does not convert it.
 $nativeFeet = unit(3, 'foot');
 assertType("Quantity<'international_foot'>", $units->quantity($nativeFeet, 'foot'));

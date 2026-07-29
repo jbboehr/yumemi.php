@@ -47,7 +47,7 @@ use PHPStan\Type\ErrorType;
 use PHPStan\Type\ObjectType;
 
 /**
- * Emits standalone diagnostics when a branded native integer is constructed as a different Quantity unit.
+ * Emits standalone diagnostics for invalid Quantity construction and parsing.
  *
  * @implements Rule<MethodCall>
  */
@@ -68,7 +68,10 @@ final class InvalidQuantityConstructionRule implements Rule
      */
     public function processNode(Node $node, Scope $scope): array
     {
-        if (!$node->name instanceof Identifier || $node->name->toString() !== 'quantity') {
+        if (
+            !$node->name instanceof Identifier
+            || !in_array($node->name->toString(), ['quantity', 'parseQuantity'], true)
+        ) {
             return [];
         }
 

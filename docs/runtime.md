@@ -34,6 +34,27 @@ assert($distance->valueIn('meter')->toString() === '1500');
 assert($distance->dimension()->toString() === 'length');
 ```
 
+Quantity strings use the same expression grammar:
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+use jbboehr\Yumemi\Units;
+
+$units = Units::default();
+$speed = $units->parseQuantity('2 meter / (4 second)');
+
+assert($speed->valueToString() === '1/2');
+assert($speed->unitToString() === 'meter / second');
+assert($units->parseQuantity('meter')->valueToString() === '1');
+```
+
+`parseQuantity()` combines every explicit numeric factor into the exact `Rational` magnitude. It does not extract scales
+introduced by catalog resolution: `100 centimeter` retains value `100` and unit `centimeter`, while conversions still
+account for the centi prefix. A constant-only expression is dimensionless.
+
 The public `value()` and `unit()` accessors return the exact `Rational` magnitude and symbolic `Expr`. The corresponding
 public readonly properties remain available.
 
@@ -42,6 +63,8 @@ public readonly properties remain available.
 The `Units` facade exposes expression-level operations:
 
 - `parse()` resolves and reduces a unit expression.
+- `parseUnit()` is an explicit alias of `parse()`.
+- `parseQuantity()` separates explicit constants from a symbolic unit expression and returns a `Quantity`.
 - `unit()` resolves one catalog unit name.
 - `dimension()` returns the seven-axis SI dimension vector.
 - `compatible()` checks dimensional compatibility.

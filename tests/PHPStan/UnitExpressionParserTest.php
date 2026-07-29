@@ -55,6 +55,40 @@ final class UnitExpressionParserTest extends TestCase
         $this->assertSame('length / time', $expression->dimension->toString());
     }
 
+    #[DataProvider('parsedQuantityUnitProvider')]
+    public function testParsesQuantityUnit(string $input, string $expectedUnit): void
+    {
+        $result = (new UnitExpressionParser())->parseQuantity($input);
+
+        $this->assertTrue($result->isOk());
+        $this->assertSame($expectedUnit, $result->expression()->displayString);
+    }
+
+    public static function parsedQuantityUnitProvider(): iterable
+    {
+        yield 'catalog alias' => ['2 foot', 'international_foot'];
+        yield 'distributed constants' => ['2 meter / (4 second)', 'meter / second'];
+        yield 'powered constant' => ['(2 meter)^2', 'meter ^ 2'];
+        yield 'implicit one' => ['meter / second', 'meter / second'];
+        yield 'dimensionless' => ['1000', '1'];
+    }
+
+    public function testRejectsInvalidQuantity(): void
+    {
+        $result = (new UnitExpressionParser())->parseQuantity('2 not_a_real_unit_xyz');
+
+        $this->assertFalse($result->isOk());
+        $this->assertStringContainsString('Unit not found', $result->errorMessage() ?? '');
+    }
+
+    public function testRejectsEmptyQuantity(): void
+    {
+        $result = (new UnitExpressionParser())->parseQuantity('   ');
+
+        $this->assertFalse($result->isOk());
+        $this->assertStringContainsString('empty', strtolower($result->errorMessage() ?? ''));
+    }
+
     public function testParsesReorderedFactorsAsEqual(): void
     {
         $parser = new UnitExpressionParser();
@@ -156,10 +190,13 @@ final class UnitExpressionParserTest extends TestCase
         $parser = new UnitExpressionParser(new Units($registry));
 
         $result = $parser->parse('widget / second');
+        $quantityResult = $parser->parseQuantity('2 widget / second');
 
         $this->assertTrue($result->isOk());
         $this->assertSame('widget / second', $result->expression()->displayString);
         $this->assertSame('length / time', $result->expression()->dimension->toString());
+        $this->assertTrue($quantityResult->isOk());
+        $this->assertSame('widget / second', $quantityResult->expression()->displayString);
     }
 
     /**

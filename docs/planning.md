@@ -100,6 +100,8 @@ Already implemented:
 - Public `Units` facade with `Expr|string` ergonomics:
   - `unit()`
   - `parse()`
+  - `parseUnit()` alias
+  - `parseQuantity()` with exact explicit-constant extraction
   - `normalize()`
   - `compatible()`
   - `conversionFactor()`
@@ -133,6 +135,7 @@ Already implemented:
 - Runtime `Quantity` value object:
   - explicit `Units` context
   - exact `Rational` value storage
+  - parsing complete quantity expressions while preserving catalog scale in the symbolic unit
   - symbolic unit storage for display/chosen syntax
   - resolved unit storage for catalog-aware conversion
   - `to()` and `valueIn()` explicit conversion
@@ -186,10 +189,12 @@ Implemented PHPStan behavior:
 - Native `+` / `-` require normalized-equivalent units. Merely compatible dimensions are insufficient because native
   arithmetic cannot convert the right magnitude.
 - `unit()` brands a native magnitude and `unit_to()` performs a runtime conversion while returning a branded float.
-- `Units::quantity()` and all current unit-bearing `Quantity` methods preserve or transform the static unit brand.
+- `Units::quantity()`, `Units::parseQuantity()`, and all current unit-bearing `Quantity` methods preserve or transform
+  the static unit brand.
 - Quantity arithmetic, conversion, extraction, and comparisons receive standalone diagnostics even when an invalid
   result is unused.
-- Finite literal-string target unions are preserved for Quantity construction, conversion, and native extraction.
+- Finite literal-string unions are preserved for Quantity construction, quantity parsing, conversion, and native
+  extraction.
 - One configured registry is authoritative for a PHPStan run and is fingerprinted for result-cache invalidation.
 
 Stable rule identifiers currently include:

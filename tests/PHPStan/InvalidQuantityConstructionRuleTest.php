@@ -86,6 +86,20 @@ final class InvalidQuantityConstructionRuleTest extends RuleTestCase
                 'Unit "B" is known but uses unsupported logarithmic semantics (definition: lg(re 1)).',
                 30,
             ],
+            [
+                'Unit not found: not_a_real_unit_xyz.',
+                32,
+            ],
+            [
+                "Syntax error, unexpected '/' at line 1, column 9 (byte offset 8).\n"
+                    . "| meter * / second\n"
+                    . '|         ^',
+                33,
+            ],
+            [
+                'Unit "B" is known but uses unsupported logarithmic semantics (definition: lg(re 1)).',
+                34,
+            ],
         ]);
     }
 }
