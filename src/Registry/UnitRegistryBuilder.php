@@ -207,13 +207,13 @@ final class UnitRegistryBuilder
 
     public function build(): UnitRegistry
     {
-        $overlay = $this->buildOverlayRegistry();
+        $base = $this->includeUdunits2
+            ? new Udunits2UnitRegistry($this->udunits2DataFile ?? Udunits2UnitRegistry::DATA_FILE)
+            : null;
+        $records = $this->materializeUnsupportedReasons($base);
+        $overlay = $this->buildOverlayRegistry($records);
 
-        if ($this->includeUdunits2) {
-            $base = new Udunits2UnitRegistry(
-                $this->udunits2DataFile ?? Udunits2UnitRegistry::DATA_FILE,
-            );
-
+        if ($base !== null) {
             if ($overlay === null) {
                 return $base;
             }
@@ -224,13 +224,13 @@ final class UnitRegistryBuilder
         return $overlay ?? new UnitRegistry();
     }
 
-    private function buildOverlayRegistry(): ?UnitRegistry
+    /**
+     * @phpstan-param array<string, CatalogRecord> $records
+     */
+    private function buildOverlayRegistry(array $records): ?UnitRegistry
     {
         /** @var array<string, Unit> $map */
         $map = $this->units;
-
-        /** @var array<string, CatalogRecord> $records */
-        $records = $this->records;
 
         if ($map === [] && $records === []) {
             return null;
@@ -252,6 +252,42 @@ final class UnitRegistryBuilder
         }
 
         return new UnitRegistry($map, $records);
+    }
+
+    /**
+     * @return array<string, CatalogRecord>
+     */
+    private function materializeUnsupportedReasons(?UnitRegistry $base): array
+    {
+        $records = $this->records;
+
+        $findRecord = fn (string $name): ?array => $this->findEffectiveRecord($name, $records, $base);
+
+        foreach ($records as $name => $record) {
+            if ($record['type'] === 'alias' || isset($record['unsupportedReason'])) {
+                continue;
+            }
+
+            $reason = UnitDefinitionClassifier::inheritedUnsupportedReason($record, $findRecord);
+            if ($reason !== null) {
+                $records[$name]['unsupportedReason'] = $reason->value;
+            }
+        }
+
+        return $records;
+    }
+
+    /**
+     * @phpstan-param array<string, CatalogRecord> $records
+     * @phpstan-return CatalogRecord|null
+     */
+    private function findEffectiveRecord(string $name, array $records, ?UnitRegistry $base): ?array
+    {
+        if (isset($this->units[$name])) {
+            return null;
+        }
+
+        return $records[$name] ?? $base?->record($name);
     }
 
     private function assertNameAvailable(string $name): void

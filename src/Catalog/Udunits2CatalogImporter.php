@@ -375,24 +375,19 @@ final class Udunits2CatalogImporter
      */
     private function materializeUnsupportedReasons(array &$catalog): void
     {
-        do {
-            $changed = false;
-
-            foreach ($catalog['units'] as $name => $unit) {
-                $definition = $unit['def'] ?? null;
-                if ($unit['type'] === 'alias' || isset($unit['unsupportedReason']) || !is_string($definition)) {
-                    continue;
-                }
-
-                $target = $catalog['units'][$definition] ?? null;
-                if ($target === null || !isset($target['unsupportedReason'])) {
-                    continue;
-                }
-
-                $catalog['units'][$name]['unsupportedReason'] = $target['unsupportedReason'];
-                $changed = true;
+        foreach ($catalog['units'] as $name => $unit) {
+            if ($unit['type'] === 'alias' || isset($unit['unsupportedReason'])) {
+                continue;
             }
-        } while ($changed);
+
+            $reason = UnitDefinitionClassifier::inheritedUnsupportedReason(
+                $unit,
+                static fn (string $target): ?array => $catalog['units'][$target] ?? null,
+            );
+            if ($reason !== null) {
+                $catalog['units'][$name]['unsupportedReason'] = $reason->value;
+            }
+        }
     }
 
     private static function isPluralizableName(string $name): bool

@@ -49,4 +49,45 @@ final class UnitDefinitionClassifier
 
         return str_contains($definition, 'lg(') ? UnsupportedUnitReason::Logarithmic : null;
     }
+
+    /**
+     * Inherit support metadata through exact-name definitions and aliases.
+     *
+     * @param array<string, mixed> $record
+     * @param callable(string): (array<string, mixed>|null) $findRecord
+     * @param array<string, true> $seen
+     */
+    public static function inheritedUnsupportedReason(
+        array $record,
+        callable $findRecord,
+        array $seen = [],
+    ): ?UnsupportedUnitReason {
+        $unsupportedReason = $record['unsupportedReason'] ?? null;
+        if (is_string($unsupportedReason)) {
+            return UnsupportedUnitReason::from($unsupportedReason);
+        }
+
+        $name = $record['name'] ?? null;
+        if (!is_string($name)) {
+            return null;
+        }
+
+        if (isset($seen[$name])) {
+            return null;
+        }
+
+        $targetName = $record['def'] ?? null;
+        if (!is_string($targetName)) {
+            return null;
+        }
+
+        $target = $findRecord($targetName);
+        if ($target === null) {
+            return null;
+        }
+
+        $seen[$name] = true;
+
+        return self::inheritedUnsupportedReason($target, $findRecord, $seen);
+    }
 }

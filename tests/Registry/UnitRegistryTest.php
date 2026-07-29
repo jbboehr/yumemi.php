@@ -292,6 +292,19 @@ final class UnitRegistryTest extends TestCase
         $registry->describe('left');
     }
 
+    public function testCircularPrebuiltAliasDescriptionFailsDeterministically(): void
+    {
+        $registry = new UnitRegistry([
+            'left' => new Unit('right'),
+            'right' => new Unit('left'),
+        ]);
+
+        $this->expectException(\UnexpectedValueException::class);
+        $this->expectExceptionMessage('Circular catalog alias while describing unit: left');
+
+        $registry->describe('left');
+    }
+
     public function testDescriptionRejectsAliasWithoutTarget(): void
     {
         $registry = new UnitRegistry([], [

@@ -36,7 +36,11 @@
 
 namespace jbboehr\Yumemi\Tests;
 
+use jbboehr\Yumemi\Exception\IncompatibleUnitException;
+use jbboehr\Yumemi\Exception\UnitNotFoundException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitException;
 use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -96,30 +100,78 @@ final class UnitFunctionTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{0: string, 1: string, 2: string}>
+     * @return iterable<string, array{0: string, 1: string, 2: string, 3: class-string<\Throwable>}>
      */
     public static function invalidUnitFactorProvider(): iterable
     {
-        yield 'incompatible dimensions' => ['meter', 'second', 'Cannot calculate unit_factor()'];
-        yield 'unknown source' => ['not_a_real_unit_xyz', 'meter', 'Invalid unit expression for unit_factor()'];
-        yield 'unknown target' => ['meter', 'not_a_real_unit_xyz', 'Invalid unit expression for unit_factor()'];
-        yield 'malformed source' => ['meter /', 'meter', 'Invalid unit expression for unit_factor()'];
-        yield 'malformed target' => ['meter', 'second /', 'Invalid unit expression for unit_factor()'];
-        yield 'affine conversion' => ['celsius', 'kelvin', 'Invalid unit expression for unit_factor()'];
-        yield 'affine identity' => ['celsius', 'celsius', 'Invalid unit expression for unit_factor()'];
-        yield 'logarithmic unit' => ['B', 'B', 'Invalid unit expression for unit_factor()'];
+        yield 'incompatible dimensions' => [
+            'meter',
+            'second',
+            'Cannot calculate unit_factor()',
+            IncompatibleUnitException::class,
+        ];
+        yield 'unknown source' => [
+            'not_a_real_unit_xyz',
+            'meter',
+            'Invalid unit expression for unit_factor()',
+            UnitNotFoundException::class,
+        ];
+        yield 'unknown target' => [
+            'meter',
+            'not_a_real_unit_xyz',
+            'Invalid unit expression for unit_factor()',
+            UnitNotFoundException::class,
+        ];
+        yield 'malformed source' => [
+            'meter /',
+            'meter',
+            'Invalid unit expression for unit_factor()',
+            ParseException::class,
+        ];
+        yield 'malformed target' => [
+            'meter',
+            'second /',
+            'Invalid unit expression for unit_factor()',
+            ParseException::class,
+        ];
+        yield 'affine conversion' => [
+            'celsius',
+            'kelvin',
+            'Cannot calculate unit_factor()',
+            UnsupportedUnitException::class,
+        ];
+        yield 'affine identity' => [
+            'celsius',
+            'celsius',
+            'Cannot calculate unit_factor()',
+            UnsupportedUnitException::class,
+        ];
+        yield 'logarithmic unit' => [
+            'B',
+            'B',
+            'Cannot calculate unit_factor()',
+            UnsupportedUnitException::class,
+        ];
     }
 
+    /**
+     * @param non-empty-string $message
+     * @param class-string<object> $cause
+     */
     #[DataProvider('invalidUnitFactorProvider')]
     public function testUnitFactorRejectsInvalidOrNonMultiplicativeUnits(
         string $from,
         string $to,
         string $message,
+        string $cause,
     ): void {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage($message);
-
-        unit_factor($from, $to);
+        try {
+            unit_factor($from, $to);
+            self::fail('Expected an invalid unit factor to be rejected.');
+        } catch (\InvalidArgumentException $exception) {
+            $this->assertStringStartsWith($message, $exception->getMessage());
+            $this->assertInstanceOf($cause, $exception->getPrevious());
+        }
     }
 
     public function testUnitFactorRejectsFloatOverflowAndUnderflow(): void

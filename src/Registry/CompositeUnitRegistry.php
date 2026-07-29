@@ -55,7 +55,11 @@ final class CompositeUnitRegistry extends UnitRegistry
 
     public function lookup(string $name): ?Unit
     {
-        return $this->overlay->lookup($name) ?? $this->base->lookup($name);
+        if ($this->overlayContains($name)) {
+            return $this->overlay->lookup($name);
+        }
+
+        return $this->base->lookup($name);
     }
 
     /**
@@ -74,7 +78,11 @@ final class CompositeUnitRegistry extends UnitRegistry
      */
     public function record(string $name): ?array
     {
-        return $this->overlay->record($name) ?? $this->base->record($name);
+        if ($this->overlayContains($name)) {
+            return $this->overlay->record($name);
+        }
+
+        return $this->base->record($name);
     }
 
     /**
@@ -93,5 +101,10 @@ final class CompositeUnitRegistry extends UnitRegistry
         }
 
         return $this->base->describePrefix($name);
+    }
+
+    private function overlayContains(string $name): bool
+    {
+        return $this->overlay->lookup($name) !== null || $this->overlay->record($name) !== null;
     }
 }

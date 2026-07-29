@@ -174,6 +174,58 @@ final class UnitRegistryBuilderTest extends TestCase
         $this->assertSame(UnsupportedUnitReason::Logarithmic, $registry->describe('bel_widget')?->unsupportedReason);
     }
 
+    public function testDefineInheritsUnsupportedReasonsThroughExactNameChains(): void
+    {
+        $registry = UnitRegistryBuilder::default()
+            ->define('degree_widget = kelvin @ 100')
+            ->define('widget_temperature = degree_widget')
+            ->define('absolute_widget_temperature = widget_temperature')
+            ->alias('degW', 'degree_widget')
+            ->define('aliased_widget_temperature = degW')
+            ->define('bel_widget = lg(re 1)')
+            ->define('widget_level = bel_widget')
+            ->define('celsius_synonym = celsius')
+            ->define('bel_synonym = B')
+            ->build();
+
+        foreach (
+            [
+                'widget_temperature',
+                'absolute_widget_temperature',
+                'aliased_widget_temperature',
+                'celsius_synonym',
+            ] as $name
+        ) {
+            $this->assertSame('affine', $registry->record($name)['unsupportedReason'] ?? null, $name);
+            $this->assertSame(UnsupportedUnitReason::Affine, $registry->describe($name)?->unsupportedReason, $name);
+        }
+
+        foreach (['widget_level', 'bel_synonym'] as $name) {
+            $this->assertSame('logarithmic', $registry->record($name)['unsupportedReason'] ?? null, $name);
+            $this->assertSame(UnsupportedUnitReason::Logarithmic, $registry->describe($name)?->unsupportedReason, $name);
+        }
+
+        $prefixed = $registry->describe('kilowidget_temperature');
+        $this->assertNotNull($prefixed);
+        $this->assertSame(UnsupportedUnitReason::Affine, $prefixed->unsupportedReason);
+    }
+
+    public function testPrebuiltOverlayPreventsInheritedBaseCatalogReason(): void
+    {
+        $registry = UnitRegistryBuilder::default()
+            ->add(new Unit('celsius'))
+            ->define('custom_temperature = celsius')
+            ->build();
+
+        $this->assertArrayNotHasKey('unsupportedReason', $registry->record('custom_temperature') ?? []);
+        $this->assertTrue($registry->describe('custom_temperature')?->isSupported());
+
+        $units = new Units($registry);
+        $customTemperature = $units->unit('custom_temperature');
+        $this->assertInstanceOf(Unit::class, $customTemperature);
+        $this->assertSame('celsius', $customTemperature->definition?->toString());
+    }
+
     public function testDefineWorksOnEmptyBuilderWithExplicitUnits(): void
     {
         $registry = UnitRegistryBuilder::empty()

@@ -485,6 +485,8 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
 
 - Before creating the first release tag, remove `:dev-master` from the README installation command; after Packagist
   imports the tag, verify that the unqualified command installs the tagged release.
+- Complete the public API naming pass, especially registry entry terminology and capability-oriented names for affine
+  and logarithmic unit semantics.
 
 ### Near-Term Work
 
@@ -515,6 +517,9 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
 - Very large parsed integer exponents may exceed PHP integer range before reaching the expression model.
 - The UDUNITS2 importer still special-cases `cm2` syntax, and generated `prefixRegex` metadata is currently unused by
   resolution.
+- Custom registry support metadata propagates through direct affine/logarithmic markers and exact-name synonym chains.
+  Compound definitions that reference affine or logarithmic units are rejected lazily during resolution but do not yet
+  receive transitive descriptor metadata.
 - Expression arithmetic reduces eagerly and has not been benchmarked as a hot path.
 - Dimensional analysis intentionally cannot distinguish semantically different quantities with the same dimension, such
   as gray and sievert.
@@ -533,7 +538,10 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
 - Preferred/compact unit selection and broader formatting presets
 - Optimize bulk catalog introspection by pre-grouping canonical aliases, symbols, and plurals during generation, then
   lazily caching an effective index per immutable registry. Composite registries must build a composition-aware index so
-  base aliases continue to follow overlay replacements; expression resolution remains in `UnitResolver`.
+  base aliases continue to follow overlay replacements. The same index should serve canonical/symbol formatter lookups
+  so newly constructed formatters do not repeat catalog scans; expression resolution remains in `UnitResolver`.
+- Replace the registry's split prebuilt-unit and catalog-record lookup channels with a typed effective-entry model.
+  Until then, composite registries must mask both base channels whenever an overlay contains either representation.
 - Quantity serialization and ecosystem integrations
 - Strict same-unit comparison variants and PHP object comparison operators unless a concrete use case appears
 - Constant-valued native unit types. A future `UnitConstantFloatType` can extend `UnitFloatType` and implement PHPStan's

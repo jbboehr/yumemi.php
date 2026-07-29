@@ -39,6 +39,7 @@ namespace jbboehr\Yumemi\Tests\PHPStan;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\PHPStan\UnitRegistryResultCacheMetaExtension;
+use jbboehr\Yumemi\Registry\CompositeUnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 use PHPUnit\Framework\TestCase;
 
@@ -92,6 +93,23 @@ final class UnitRegistryResultCacheMetaExtensionTest extends TestCase
         $second = new PrefixUnitRegistry(['kilo' => '1024']);
 
         $this->assertNotSame($this->hash($first), $this->hash($second));
+    }
+
+    public function testHashUsesEffectiveCompositeEntryAcrossStorageKinds(): void
+    {
+        $record = ['shared' => ['type' => 'unit', 'name' => 'shared', 'def' => '3']];
+        $recordOverlay = new CompositeUnitRegistry(
+            new UnitRegistry(['shared' => new Unit('shared', new Constant(2))]),
+            new UnitRegistry([], $record),
+        );
+        $prebuilt = new Unit('shared', new Constant(3));
+        $prebuiltOverlay = new CompositeUnitRegistry(
+            new UnitRegistry([], ['shared' => ['type' => 'unit', 'name' => 'shared', 'def' => '2']]),
+            new UnitRegistry(['shared' => $prebuilt]),
+        );
+
+        $this->assertSame($this->hash(new UnitRegistry([], $record)), $this->hash($recordOverlay));
+        $this->assertSame($this->hash(new UnitRegistry(['shared' => $prebuilt])), $this->hash($prebuiltOverlay));
     }
 
     private function hash(UnitRegistry $registry): string

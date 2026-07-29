@@ -370,7 +370,8 @@ class UnitRegistry
             return null;
         }
 
-        if ($unit->name !== $name && !isset($seen[$unit->name])) {
+        if ($unit->name !== $name) {
+            $seen[$name] = true;
             $canonical = $this->resolveCanonicalEntry($unit->name, $seen);
             if ($canonical !== null) {
                 return $canonical;

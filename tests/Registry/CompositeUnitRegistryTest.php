@@ -36,11 +36,14 @@
 
 namespace jbboehr\Yumemi\Tests\Registry;
 
+use jbboehr\Yumemi\Analyzer\UnitResolver;
 use jbboehr\Yumemi\Catalog\CatalogNameKind;
 use jbboehr\Yumemi\Catalog\UnitKind;
+use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Registry\CompositeUnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistry;
+use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -75,6 +78,42 @@ final class CompositeUnitRegistryTest extends TestCase
         $this->assertNull($composite->lookup('missing'));
 
         $this->assertSame('OVERLAY', $composite->record('rec_shared')['def'] ?? null);
+    }
+
+    public function testOverlayRecordMasksBasePrebuiltUnitAcrossAllConsumers(): void
+    {
+        $composite = new CompositeUnitRegistry(
+            $this->registry(['shared' => new Unit('shared', new Constant(2))], [], []),
+            $this->registry([], [
+                'shared' => ['type' => 'unit', 'name' => 'shared', 'def' => '3'],
+            ], []),
+        );
+
+        $this->assertNull($composite->lookup('shared'));
+        $this->assertSame('3', $composite->record('shared')['def'] ?? null);
+        $this->assertSame('3', $composite->describe('shared')?->definitionExpression);
+
+        $resolved = (new UnitResolver($composite))->resolveOrFail('shared');
+        $this->assertInstanceOf(Unit::class, $resolved);
+        $this->assertSame('3', $resolved->definition?->toString());
+        $this->assertSame('3', (new Units($composite))->conversionFactor('shared', '1')->toString());
+    }
+
+    public function testOverlayPrebuiltUnitMasksBaseRecordAcrossAllConsumers(): void
+    {
+        $overlayUnit = new Unit('shared', new Constant(3));
+        $composite = new CompositeUnitRegistry(
+            $this->registry([], [
+                'shared' => ['type' => 'unit', 'name' => 'shared', 'def' => '2'],
+            ], []),
+            $this->registry(['shared' => $overlayUnit], [], []),
+        );
+
+        $this->assertSame($overlayUnit, $composite->lookup('shared'));
+        $this->assertNull($composite->record('shared'));
+        $this->assertSame('3', $composite->describe('shared')?->definitionExpression);
+        $this->assertSame($overlayUnit, (new UnitResolver($composite))->resolveOrFail('shared'));
+        $this->assertSame('3', (new Units($composite))->conversionFactor('shared', '1')->toString());
     }
 
     public function testNamesAreTheDeduplicatedUnion(): void
