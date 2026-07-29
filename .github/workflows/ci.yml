@@ -101,8 +101,8 @@ jobs:
             - name: Install dependencies
               run: composer install --prefer-dist --no-interaction --no-progress
 
-            - name: Run core mutation tests
-              run: composer infection:core
+            - name: Run mutation tests
+              run: composer infection
 
             - name: Upload mutation reports
               if: always()

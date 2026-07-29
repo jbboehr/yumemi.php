@@ -828,7 +828,7 @@ Remaining work:
 
 - Decide whether Composer metadata currently overpromises static-analysis support before the extension exists.
 - Add release workflow later.
-- Add mutation or property-based tests only if bugs justify it.
+- Extend mutation testing to the PHPStan adapter only after its process-global test harness can support it reliably.
 - Add lowest-dependency and highest-dependency Composer CI jobs eventually.
 - Verify generated parser/catalog regeneration in CI or document it as a maintainer task.
 

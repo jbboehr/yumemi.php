@@ -39,9 +39,11 @@ namespace jbboehr\Yumemi\Tests\Registry;
 use jbboehr\Yumemi\Catalog\CatalogNameKind;
 use jbboehr\Yumemi\Catalog\UnitKind;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
+use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
+use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\TestCase;
 
 final class UnitRegistryTest extends TestCase
@@ -55,12 +57,53 @@ final class UnitRegistryTest extends TestCase
         $this->assertFalse($registry->get('kilometer')->isBase());
     }
 
+    public function testBuiltinDefinitionsHaveExactScales(): void
+    {
+        $units = new Units(UnitRegistry::defaults());
+
+        $this->assertSame('381/1250', $units->quantity(1, 'foot')->valueIn('meter')->toString());
+        $this->assertSame('1000', $units->quantity(1, 'kilometer')->valueIn('meter')->toString());
+        $this->assertSame('60', $units->quantity(1, 'minute')->valueIn('second')->toString());
+        $this->assertCount(5, UnitRegistry::builtinDefaultUnits());
+    }
+
     public function testMissingUnitFails(): void
     {
         $registry = UnitRegistry::defaults();
 
         $this->expectException(UnitNotFoundException::class);
         $registry->get('league');
+    }
+
+    public function testMissingUnitSuggestsOnlyCaseInsensitiveExactMatchesAsAList(): void
+    {
+        $registry = new UnitRegistry([
+            'second' => new Unit('second'),
+            'Meter' => new Unit('Meter'),
+            'metre' => new Unit('metre'),
+        ]);
+
+        try {
+            $registry->get('meter');
+            self::fail('Expected a missing-unit exception.');
+        } catch (UnitNotFoundException $exception) {
+            $this->assertSame('meter', $exception->unitName);
+            $this->assertSame(['Meter'], $exception->suggestions);
+        }
+    }
+
+    public function testNamesAreUniqueAndDenselyIndexed(): void
+    {
+        $meter = new Unit('meter');
+        $registry = new UnitRegistry(
+            ['meter' => $meter, 'metre' => $meter],
+            [
+                'metre' => ['type' => 'alias', 'name' => 'metre', 'def' => 'meter'],
+                'second' => ['type' => 'base', 'name' => 'second'],
+            ],
+        );
+
+        $this->assertSame(['meter', 'metre', 'second'], $registry->names());
     }
 
     public function testEmptyUnitNameIsRejected(): void
@@ -128,6 +171,61 @@ final class UnitRegistryTest extends TestCase
         $this->assertSame(['widgets'], $descriptor->aliases);
     }
 
+    public function testDescriptionClassifiesAndSortsEveryNameKind(): void
+    {
+        $registry = new UnitRegistry([], [
+            'widget' => [
+                'type' => 'unit',
+                'name' => 'widget',
+                'def' => '2 * meter',
+                'documentation' => 'preferred documentation',
+                'definition' => 'fallback documentation',
+                'comment' => 'a comment',
+            ],
+            'zeta' => ['type' => 'alias', 'name' => 'zeta', 'def' => 'widget'],
+            'alpha' => ['type' => 'alias', 'name' => 'alpha', 'def' => 'widget'],
+            'Z' => ['type' => 'alias', 'name' => 'Z', 'def' => 'widget', 'aliasKind' => 'symbol'],
+            'A' => ['type' => 'alias', 'name' => 'A', 'def' => 'widget', 'aliasKind' => 'symbol'],
+            'widgetz' => [
+                'type' => 'alias',
+                'name' => 'widgetz',
+                'def' => 'widget',
+                'aliasKind' => 'explicit_plural',
+            ],
+            'widgets' => [
+                'type' => 'alias',
+                'name' => 'widgets',
+                'def' => 'widget',
+                'aliasKind' => 'explicit_plural',
+            ],
+            'widgetzz' => [
+                'type' => 'alias',
+                'name' => 'widgetzz',
+                'def' => 'widget',
+                'aliasKind' => 'generated_plural',
+            ],
+            'widgetses' => [
+                'type' => 'alias',
+                'name' => 'widgetses',
+                'def' => 'widget',
+                'aliasKind' => 'generated_plural',
+            ],
+            'radian' => ['type' => 'dimensionless', 'name' => 'radian', 'def' => '1'],
+        ]);
+
+        $descriptor = $registry->describe('widget');
+        $this->assertNotNull($descriptor);
+        $this->assertSame(UnitKind::Derived, $descriptor->kind);
+        $this->assertSame('preferred documentation', $descriptor->documentation);
+        $this->assertSame('a comment', $descriptor->comment);
+        $this->assertSame(['alpha', 'zeta'], $descriptor->aliases);
+        $this->assertSame(['A', 'Z'], $descriptor->symbols);
+        $this->assertSame(['widgets', 'widgetz'], $descriptor->explicitPlurals);
+        $this->assertSame(['widgetses', 'widgetzz'], $descriptor->generatedPlurals);
+        $this->assertSame(CatalogNameKind::Symbol, $registry->describe('A')?->matchedAs);
+        $this->assertSame(UnitKind::Dimensionless, $registry->describe('radian')?->kind);
+    }
+
     public function testPrebuiltAliasRemainsAvailableToGetAndIntrospection(): void
     {
         $widget = new Unit('widget');
@@ -146,6 +244,11 @@ final class UnitRegistryTest extends TestCase
         $this->assertNull(UnitRegistry::defaults()->describe('league'));
     }
 
+    public function testBaseRegistryExposesPrefixDescriptionApi(): void
+    {
+        $this->assertNull(UnitRegistry::defaults()->describePrefix('kilo'));
+    }
+
     public function testCircularAliasDescriptionFailsDeterministically(): void
     {
         $registry = new UnitRegistry([], [
@@ -157,5 +260,45 @@ final class UnitRegistryTest extends TestCase
         $this->expectExceptionMessage('Circular catalog alias while describing unit: left');
 
         $registry->describe('left');
+    }
+
+    public function testDescriptionRejectsAliasWithoutTarget(): void
+    {
+        $registry = new UnitRegistry([], [
+            'orphan' => ['type' => 'alias', 'name' => 'orphan'],
+        ]);
+
+        $this->expectException(\UnexpectedValueException::class);
+        $this->expectExceptionMessage('missing target');
+
+        $registry->describe('orphan');
+    }
+
+    public function testDescriptionRejectsUnknownAliasTarget(): void
+    {
+        $registry = new UnitRegistry([], [
+            'orphan' => ['type' => 'alias', 'name' => 'orphan', 'def' => 'missing'],
+        ]);
+
+        $this->expectException(\UnexpectedValueException::class);
+        $this->expectExceptionMessage('target is unknown');
+
+        $registry->describe('orphan');
+    }
+
+    public function testPrebuiltAliasUsesCanonicalCatalogMetadata(): void
+    {
+        $widget = new Unit('widget', new Constant(99));
+        $registry = new UnitRegistry(
+            ['thing' => $widget],
+            ['widget' => ['type' => 'unit', 'name' => 'widget', 'def' => '2 * meter']],
+        );
+
+        $descriptor = $registry->describe('thing');
+
+        $this->assertNotNull($descriptor);
+        $this->assertSame('widget', $descriptor->canonicalName);
+        $this->assertSame(UnitKind::Derived, $descriptor->kind);
+        $this->assertSame('2 * meter', $descriptor->definitionExpression);
     }
 }

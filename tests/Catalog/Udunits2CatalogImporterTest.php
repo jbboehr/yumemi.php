@@ -38,6 +38,7 @@ namespace jbboehr\Yumemi\Tests\Catalog;
 
 use jbboehr\Yumemi\Catalog\PhpCatalogExporter;
 use jbboehr\Yumemi\Catalog\Udunits2CatalogImporter;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -287,6 +288,203 @@ final class Udunits2CatalogImporterTest extends TestCase
         $this->assertSame(1, preg_match($regex, 'kilometer'));
     }
 
+    public function testTrimsImportedUnitAndAliasText(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <unit-system>
+              <unit>
+                <name><singular> widget </singular><plural> widgets </plural></name>
+                <symbol> W </symbol>
+                <aliases>
+                  <singular> gadget </singular>
+                  <plural> gadgets </plural>
+                  <symbol> G </symbol>
+                </aliases>
+                <definition> documentation </definition>
+                <comment> a comment </comment>
+                <def> 2 meter </def>
+              </unit>
+            </unit-system>
+            XML;
+
+        $units = $this->import($xml)['units'];
+
+        $this->assertSame('2 meter', $units['widget']['def'] ?? null);
+        $this->assertSame('documentation', $units['widget']['definition'] ?? null);
+        $this->assertSame('a comment', $units['widget']['comment'] ?? null);
+        $this->assertSame('widgets', $units['widget']['plural'] ?? null);
+        $this->assertSame('widget', $units['widgets']['def'] ?? null);
+        $this->assertSame('widget', $units['W']['def'] ?? null);
+        $this->assertSame('widget', $units['G']['def'] ?? null);
+        $this->assertSame('widget', $units['gadget']['def'] ?? null);
+        $this->assertSame('widget', $units['gadgets']['def'] ?? null);
+    }
+
+    public function testImportsAcrossMultipleFilesBeforeMaterializingPlurals(): void
+    {
+        $first = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <unit-system>
+              <unit><name><singular>widget</singular></name><def>1</def></unit>
+              <unit><name><singular>widgets</singular><noplural/></name><def>2</def></unit>
+            </unit-system>
+            XML;
+        $second = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <unit-system>
+              <unit><name><singular>gadget</singular></name><def>3</def></unit>
+            </unit-system>
+            XML;
+
+        $units = $this->importMany($first, $second)['units'];
+
+        $this->assertSame('2', $units['widgets']['def'] ?? null);
+        $this->assertSame(
+            ['type' => 'alias', 'name' => 'gadgets', 'def' => 'gadget', 'aliasKind' => 'generated_plural'],
+            $units['gadgets'],
+        );
+    }
+
+    public function testImportsSymbolFallbacksAndSkipsUnidentifiedUnits(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <unit-system>
+              <unit><def>ignored</def></unit>
+              <unit><symbol>!</symbol><def>1</def></unit>
+              <unit><aliases><symbol>@</symbol></aliases><def>2</def></unit>
+            </unit-system>
+            XML;
+
+        $units = $this->import($xml)['units'];
+
+        $this->assertSame(['!', '@'], array_keys($units));
+        $this->assertSame(['type' => 'unit', 'name' => '!', 'def' => '1'], $units['!']);
+        $this->assertSame(['type' => 'unit', 'name' => '@', 'def' => '2'], $units['@']);
+    }
+
+    public function testPrimarySymbolPrecedesAliasSymbolsForNamelessUnits(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <unit-system>
+              <unit>
+                <symbol>!</symbol>
+                <aliases><symbol>@</symbol></aliases>
+                <def>1</def>
+              </unit>
+            </unit-system>
+            XML;
+
+        $units = $this->import($xml)['units'];
+
+        $this->assertSame(['type' => 'unit', 'name' => '!', 'def' => '1'], $units['!']);
+        $this->assertSame(
+            ['type' => 'alias', 'name' => '@', 'def' => '!', 'aliasKind' => 'symbol'],
+            $units['@'],
+        );
+    }
+
+    public function testGeneratesPluralFormsForSupportedIdentifierEndings(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <unit-system>
+              <unit><name><singular>category</singular></name><def>1</def></unit>
+              <unit><name><singular>boy</singular></name><def>1</def></unit>
+              <unit><name><singular>glass</singular></name><def>1</def></unit>
+              <unit><name><singular>box</singular></name><def>1</def></unit>
+              <unit><name><singular>blitz</singular></name><def>1</def></unit>
+              <unit><name><singular>church</singular></name><def>1</def></unit>
+              <unit><name><singular>brush</singular></name><def>1</def></unit>
+              <unit><name><singular>ab</singular></name><def>1</def></unit>
+              <unit><name><singular>Widget</singular></name><def>1</def></unit>
+              <unit><name><singular>widget-</singular></name><def>1</def></unit>
+            </unit-system>
+            XML;
+
+        $units = $this->import($xml)['units'];
+
+        foreach ([
+            'categories' => 'category',
+            'boys' => 'boy',
+            'glasses' => 'glass',
+            'boxes' => 'box',
+            'blitzes' => 'blitz',
+            'churches' => 'church',
+            'brushes' => 'brush',
+        ] as $plural => $singular) {
+            $this->assertSame($singular, $units[$plural]['def'] ?? null);
+        }
+
+        $this->assertArrayNotHasKey('abs', $units);
+        $this->assertArrayNotHasKey('Widgets', $units);
+        $this->assertArrayNotHasKey('widget-s', $units);
+    }
+
+    public function testImportsPrefixFallbacksAndEscapesPrefixRegex(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <unit-system>
+              <prefix><name> ignored </name></prefix>
+              <prefix><value> 2 </value></prefix>
+              <prefix><symbol> q </symbol><value> 3 </value><ignored/></prefix>
+              <prefix><name> micro~ </name><symbol> u~ </symbol><value> .25 </value></prefix>
+            </unit-system>
+            XML;
+
+        $catalog = $this->import($xml);
+
+        $this->assertSame(['q' => '3', 'micro~' => '0.25', 'u~' => '0.25'], $catalog['prefixes']);
+        $this->assertArrayHasKey('prefixMetadata', $catalog);
+        $this->assertSame(
+            ['name' => 'q', 'kind' => 'canonical', 'value' => '3'],
+            $catalog['prefixMetadata']['q'],
+        );
+        $this->assertSame(
+            ['name' => 'micro~', 'kind' => 'symbol', 'value' => '0.25'],
+            $catalog['prefixMetadata']['u~'],
+        );
+
+        $regex = $catalog['prefixRegex'] ?? null;
+        $this->assertNotNull($regex);
+        $this->assertSame(1, preg_match($regex, 'u~meter', $matches));
+        $this->assertSame('u~', $matches[1]);
+        $this->assertSame(0, preg_match($regex, 'xu~meter'));
+    }
+
+    #[DataProvider('malformedNestedElementProvider')]
+    public function testRejectsMalformedNestedElements(string $unit, string $message): void
+    {
+        $xml = '<?xml version="1.0" encoding="UTF-8"?><unit-system>' . $unit . '</unit-system>';
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage($message);
+
+        $this->import($xml);
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function malformedNestedElementProvider(): iterable
+    {
+        yield 'missing singular name' => [
+            '<unit><name><plural>widgets</plural></name></unit>',
+            'non-empty singular form',
+        ];
+        yield 'unknown name child' => [
+            '<unit><name><singular>widget</singular><bogus/></name></unit>',
+            'Unhandled UDUNITS2 name tag: bogus',
+        ];
+        yield 'unknown alias child' => [
+            '<unit><name><singular>widget</singular></name><aliases><bogus/></aliases></unit>',
+            'Unhandled UDUNITS2 alias tag: bogus',
+        ];
+    }
+
     public function testEmptyFileListIsRejected(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -342,15 +540,51 @@ final class Udunits2CatalogImporterTest extends TestCase
         $this->assertSame($catalog, $restored);
     }
 
+    public function testExporterHasDeterministicLayoutWithAndWithoutHeader(): void
+    {
+        $exporter = new PhpCatalogExporter();
+        $withoutHeader = <<<'PHP'
+            <?php
+
+            return [
+                'answer' => 42
+            ];
+            PHP;
+        $withHeader = <<<'PHP'
+            <?php
+
+            // generated
+
+            return [
+                'answer' => 42
+            ];
+            PHP;
+
+        $this->assertSame($withoutHeader . "\n", $exporter->export(['answer' => 42]));
+        $this->assertSame($withHeader . "\n", $exporter->export(['answer' => 42], '// generated'));
+    }
+
     /**
      * @phpstan-return Udunits2Catalog
      */
     private function import(string $xml): array
     {
-        $file = $this->tempFile();
-        file_put_contents($file, $xml);
+        return $this->importMany($xml);
+    }
 
-        return (new Udunits2CatalogImporter())->importFiles([$file]);
+    /**
+     * @phpstan-return Udunits2Catalog
+     */
+    private function importMany(string ...$documents): array
+    {
+        $files = [];
+
+        foreach ($documents as $xml) {
+            $files[] = $file = $this->tempFile();
+            file_put_contents($file, $xml);
+        }
+
+        return (new Udunits2CatalogImporter())->importFiles($files);
     }
 
     private function tempFile(): string

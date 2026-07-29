@@ -10,13 +10,13 @@ Infection uses to select tests.
 
 ## Running Infection
 
-Run the initial, CI-sized campaign over `Rational`, `Dimension`, and the core analyzer layer:
+Run a focused campaign over `Rational`, `Dimension`, and the core analyzer layer:
 
 ```console
 composer infection:core
 ```
 
-Run the broader campaign over all configured handwritten runtime source:
+Run the full CI campaign over all configured handwritten runtime source:
 
 ```console
 composer infection
@@ -43,7 +43,7 @@ The most useful result categories are:
 
 The mutation score indicator (MSI) is the percentage of all generated mutants that were defeated. Covered MSI ignores
 uncovered mutants and is usually the clearer measure of assertion quality. Neither score is currently enforced in CI;
-the initial job reports results and fails only for an infrastructure or test-suite failure.
+the job reports results and fails only for an infrastructure or test-suite failure.
 
 ## Investigating An Escape
 

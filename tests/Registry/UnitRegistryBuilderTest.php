@@ -49,6 +49,18 @@ use PHPUnit\Framework\TestCase;
 
 final class UnitRegistryBuilderTest extends TestCase
 {
+    /** @var list<string> */
+    private array $tempFiles = [];
+
+    protected function tearDown(): void
+    {
+        foreach ($this->tempFiles as $file) {
+            @unlink($file);
+        }
+
+        $this->tempFiles = [];
+    }
+
     public function testEmptyBuilderStartsWithNothing(): void
     {
         $registry = UnitRegistryBuilder::empty()->build();
@@ -66,6 +78,22 @@ final class UnitRegistryBuilderTest extends TestCase
         $this->assertNotNull($registry->record('meter'));
     }
 
+    public function testBuilderUsesExplicitUdunits2CatalogPath(): void
+    {
+        $catalogFile = $this->catalogFile();
+
+        $defaultRegistry = UnitRegistryBuilder::default($catalogFile)->build();
+        $emptyBuilder = UnitRegistryBuilder::empty();
+        $optInRegistry = $emptyBuilder->withUdunits2($catalogFile)->build();
+
+        foreach ([$defaultRegistry, $optInRegistry] as $registry) {
+            $this->assertSame(['type' => 'base', 'name' => 'widget'], $registry->record('widget'));
+            $this->assertNull($registry->record('meter'));
+        }
+
+        $this->assertSame([], $emptyBuilder->build()->names());
+    }
+
     public function testBuilderProducesImmutablePrebuiltRegistry(): void
     {
         $meter = new Unit('meter');
@@ -78,6 +106,15 @@ final class UnitRegistryBuilderTest extends TestCase
         $this->assertSame($meter, $registry->lookup('metres'));
         $this->assertNull($registry->lookup('foot'));
         $this->assertFalse(method_exists($registry, 'register'));
+    }
+
+    public function testAddAllPreservesTheOriginalBuilder(): void
+    {
+        $base = UnitRegistryBuilder::empty();
+        $extended = $base->addAll([new Unit('meter'), new Unit('second')]);
+
+        $this->assertSame([], $base->build()->names());
+        $this->assertSame(['meter', 'second'], $extended->build()->names());
     }
 
     public function testUnitRegistryDefaultsIsBuiltinFixture(): void
@@ -213,17 +250,112 @@ final class UnitRegistryBuilderTest extends TestCase
             ->define('widget = 13 * meter');
     }
 
+    public function testBuilderRejectsDuplicateAddedUnit(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Duplicate unit name');
+
+        UnitRegistryBuilder::empty()
+            ->add(new Unit('widget'))
+            ->add(new Unit('widget'));
+    }
+
+    public function testBuilderRejectsAliasCollidingWithDefinition(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Duplicate unit or alias name');
+
+        UnitRegistryBuilder::empty()
+            ->define('widget = 1')
+            ->alias('widget', 'other');
+    }
+
+    public function testBuilderRejectsEmptyAliasName(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Alias name must not be empty');
+
+        UnitRegistryBuilder::empty()->alias('', 'widget');
+    }
+
+    public function testBuilderRejectsEmptyAliasTarget(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Alias target must not be empty');
+
+        UnitRegistryBuilder::empty()->alias('thing', '');
+    }
+
     public function testBuilderIsImmutableFluent(): void
     {
         $base = UnitRegistryBuilder::empty();
         $withMeter = $base->add(new Unit('meter'));
+        $withDefinition = $base->define('widget = 1');
+        $withAlias = $withDefinition->alias('thing', 'widget');
 
         $this->assertNull($base->build()->lookup('meter'));
+        $this->assertNull($base->build()->record('widget'));
         $this->assertNotNull($withMeter->build()->lookup('meter'));
+        $this->assertNotNull($withDefinition->build()->record('widget'));
+        $this->assertNull($withDefinition->build()->record('thing'));
+        $this->assertNotNull($withAlias->build()->record('thing'));
+    }
+
+    public function testOverlayAliasCollectionContinuesPastOtherRecords(): void
+    {
+        $widget = new Unit('widget');
+        $registry = UnitRegistryBuilder::empty()
+            ->define('definition = 1')
+            ->add($widget)
+            ->alias('unresolved', 'missing')
+            ->alias('thing', 'widget')
+            ->build();
+
+        $this->assertNull($registry->lookup('unresolved'));
+        $this->assertSame($widget, $registry->lookup('thing'));
+    }
+
+    public function testDefinitionAssignmentTrimsOuterAndExpressionWhitespace(): void
+    {
+        $registry = UnitRegistryBuilder::empty()
+            ->define(" \n widget \t = \n 12 *\n meter \n ")
+            ->build();
+
+        $this->assertSame([
+            'type' => 'unit',
+            'name' => 'widget',
+            'def' => "12 *\n meter",
+        ], $registry->record('widget'));
+    }
+
+    public function testDefinitionAssignmentRejectsLeadingGarbage(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('name = expression');
+
+        UnitRegistryBuilder::empty()->define('garbage widget = 1');
     }
 
     public function testUnitRegistryBuilderDelegatesToEmpty(): void
     {
         $this->assertSame([], UnitRegistry::builder()->build()->names());
+    }
+
+    private function catalogFile(): string
+    {
+        $file = tempnam(sys_get_temp_dir(), 'yumemi-builder-catalog-');
+        $this->assertNotFalse($file);
+        $this->tempFiles[] = $file;
+
+        $catalog = [
+            'units' => [
+                'widget' => ['type' => 'base', 'name' => 'widget'],
+            ],
+            'base' => ['widget'],
+            'prefixes' => [],
+        ];
+        file_put_contents($file, "<?php\n\nreturn " . var_export($catalog, true) . ";\n");
+
+        return $file;
     }
 }
