@@ -12,7 +12,7 @@ create-missing = false
 [output.html]
 additional-css = ["theme/yumemi.css"]
 additional-js = ["theme/yumemi.js"]
-default-theme = "light"
+default-theme = "ayu"
 preferred-dark-theme = "ayu"
 no-section-label = true
 git-repository-url = "https://github.com/jbboehr/yumemi.php"
