@@ -9,16 +9,15 @@ The examples below assume the Composer autoloader has already been loaded as sho
 
 ## Choose An API
 
-| Need                                                              | Use                                     |
-| ----------------------------------------------------------------- | --------------------------------------- |
-| Add unit checking to existing PHP numbers and operators           | `unit_int<'...'>` / `unit_float<'...'>` |
-| Perform exact conversion or unit-aware runtime arithmetic         | `Quantity<'...'>`                       |
-| Convert at an application boundary and return a native number     | `unit_to()`                             |
-| Compute a native conversion factor whose static units will cancel | `unit_factor()`                         |
+| Need                                                          | Use                                     |
+| ------------------------------------------------------------- | --------------------------------------- |
+| Add unit checking to existing PHP numbers and operators       | `unit_int<'...'>` / `unit_float<'...'>` |
+| Perform exact conversion or unit-aware runtime arithmetic     | `Quantity<'...'>`                       |
+| Convert at an application boundary and return a native number | `unit_to()`                             |
 
 A branded native value is an ordinary PHP `int` or `float`; the unit exists only in PHPStan. Branded values therefore
 fit naturally into existing signatures, arrays, frameworks, serialization, and numerical code, with normal scalar
-precision. Conversion is explicit through `unit_factor()` or `unit_to()`.
+precision. Conversion is explicit through `unit_to()`.
 
 `Quantity` is the ergonomic precision path. Use it when results such as `1/3` must remain exact, rounding must be
 deferred, or compatible-unit operations should be expressed through one runtime object.
@@ -34,13 +33,13 @@ use jbboehr\Yumemi\Quantity;
 use jbboehr\Yumemi\Units;
 
 use function jbboehr\Yumemi\unit;
-use function jbboehr\Yumemi\unit_factor;
+use function jbboehr\Yumemi\unit_to;
 
 /** @param unit_float<'kilometer / hour'> $speed */
 function sendVehicleSpeed(float $speed): void {}
 
 $nativeSpeed = unit(100.0, 'meter') / unit(10.0, 'second');
-$nativeKilometersPerHour = $nativeSpeed * unit_factor('meter / second', 'kilometer / hour');
+$nativeKilometersPerHour = unit_to($nativeSpeed, 'meter / second', 'kilometer / hour');
 
 sendVehicleSpeed($nativeKilometersPerHour);
 assert(abs($nativeKilometersPerHour - 36.0) < 1e-12);
@@ -51,6 +50,10 @@ $exactSpeed = $units->quantity(100, 'meter')->div($units->quantity(10, 'second')
 
 assert($exactSpeed->valueIn('kilometer / hour')->toString() === '36');
 ```
+
+PHPStan knows that `$nativeSpeed` is branded as `unit_float<'meter / second'>`, but that brand does not exist at
+runtime: PHP receives only an ordinary `float`. Runtime code therefore cannot recover the source unit, so `unit_to()`
+requires both `'meter / second'` and `'kilometer / hour'` explicitly.
 
 See the [PHPStan reference](reference/phpstan.md) for branded-native behavior and the
 [runtime reference](reference/runtime.md) for exact quantities.

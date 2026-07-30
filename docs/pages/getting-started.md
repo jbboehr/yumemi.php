@@ -4,19 +4,37 @@ Yumemi requires PHP 8.2 or later and the GMP extension.
 
 ## Installation
 
-Until the first tagged release, install the development branch with Composer:
+Yumemi and PHPStan have different Composer roles. The examples in this guide call Yumemi at runtime, so install the
+development branch as a normal application dependency until the first tagged release:
 
 ```shell
 composer require jbboehr/yumemi:dev-master
 ```
 
-When [`phpstan/extension-installer`](https://github.com/phpstan/extension-installer) is installed, Yumemi's primary
-PHPStan extension is registered automatically. Otherwise, include it explicitly:
+Applications using the PHPStan extension must install PHPStan as a development dependency; Yumemi does not install it
+automatically in consuming projects:
+
+```shell
+composer require --dev phpstan/phpstan:^2.1
+```
+
+For automatic extension registration, also install
+[`phpstan/extension-installer`](https://github.com/phpstan/extension-installer) as a development dependency:
+
+```shell
+composer require --dev phpstan/extension-installer
+```
+
+Without the extension installer, include Yumemi explicitly from `phpstan.neon`:
 
 ```neon
 includes:
     - vendor/jbboehr/yumemi/extension.neon
 ```
+
+Keep `jbboehr/yumemi` as a normal dependency whenever application code calls functions such as `unit()` or `unit_to()`,
+or uses runtime classes such as `Units` and `Quantity`. A project using Yumemi only during static analysis, with no
+runtime calls or classes, may install it as a development dependency instead.
 
 Most applications should use Yumemi's PHPDoc types directly. Libraries that cannot require Yumemi from every consumer
 can instead use the deliberately opt-in

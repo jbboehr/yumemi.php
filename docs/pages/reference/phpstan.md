@@ -6,6 +6,10 @@ operations. The runtime values remain native numbers; the additional unit identi
 The extension uses the same parser, catalog, reduction, normalization, and conversion semantics as the
 [runtime API](runtime.md). See the [unit syntax reference](unit-syntax.md) for accepted expressions and name resolution.
 
+Most applications primarily need branded native types, operator inference, and boundary helpers. Quantity type inference
+becomes relevant when exact runtime objects cross analyzed code; registry configuration and optional annotation
+integration are advanced topics for projects extending the catalog or integrating third-party libraries.
+
 | I need to...                            | Start with                                          |
 | --------------------------------------- | --------------------------------------------------- |
 | Add a unit to an existing native number | [`unit()` and branded types](#branded-native-types) |

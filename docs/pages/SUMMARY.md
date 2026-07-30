@@ -5,11 +5,8 @@
 
 # Guides
 
-- [Recipes](recipes.md)
-
-# Concepts
-
 - [Core Concepts](core-concepts.md)
+- [Recipes](recipes.md)
 
 # Reference
 

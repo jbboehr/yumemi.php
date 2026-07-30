@@ -6,19 +6,28 @@ type; conversion to native integers, decimals, or floats is always explicit.
 See the [unit syntax reference](unit-syntax.md) for accepted expressions and the [catalog reference](catalog.md) for
 default units and custom registries.
 
+Most applications can start with quantity construction, arithmetic, conversion, and native numeric output. The
+expression, dimension, formatting, and string-form sections cover lower-level manipulation and presentation when those
+needs arise.
+
 ## Common Tasks
 
-| I need to...                       | Use                                    |
-| ---------------------------------- | -------------------------------------- |
-| Construct an exact quantity        | `Units::quantity()`                    |
-| Parse a value and unit together    | `Units::parseQuantity()`               |
-| Convert a quantity                 | `Quantity::to()`                       |
-| Obtain only the converted value    | `Quantity::valueIn()`                  |
-| Convert a native scalar            | `unit_to()`                            |
-| Add compatible quantities          | `Quantity::add()`                      |
-| Reject implicit unit conversion    | `Quantity::addWithSameUnit()`          |
-| Produce a decimal for display      | `Quantity::decimalValueIn()`           |
-| Select symbols or Unicode notation | `FormatOptions` and formatting methods |
+| I need to...                                        | Use                                    |
+| --------------------------------------------------- | -------------------------------------- |
+| Construct an exact quantity                         | `Units::quantity()`                    |
+| Parse a value and unit together                     | `Units::parseQuantity()`               |
+| Convert a quantity                                  | `Quantity::to()`                       |
+| Preserve the exact rational result after conversion | `Quantity::valueIn()`                  |
+| Obtain a minimal exact terminating decimal          | `Quantity::exactDecimalValueIn()`      |
+| Obtain a rounded decimal with a requested scale     | `Quantity::decimalValueIn()`           |
+| Obtain a native binary floating-point result        | `Quantity::floatValueIn()`             |
+| Convert a native scalar                             | `unit_to()`                            |
+| Add compatible quantities                           | `Quantity::add()`                      |
+| Reject implicit unit conversion                     | `Quantity::addWithSameUnit()`          |
+| Select symbols or Unicode notation                  | `FormatOptions` and formatting methods |
+
+`exactDecimalValueIn()` throws when the exact rational result has a non-terminating decimal expansion. Use
+`decimalValueIn()` with an explicit scale and rounding mode in that case.
 
 ## Contexts And Construction
 

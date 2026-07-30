@@ -1,3 +1,5 @@
+{{#title Yumemi - Static dimensional analysis for PHPStan}}
+
 ![Iudex Mensurarum Mysticarum Yumemi](images/yumemi-banner.png)
 
 # Yumemi

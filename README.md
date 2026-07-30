@@ -19,13 +19,22 @@ Yumemi requires PHP 8.2 or later and the GMP extension. Until the first tagged r
 composer require jbboehr/yumemi:dev-master
 ```
 
-When [`phpstan/extension-installer`](https://github.com/phpstan/extension-installer) is installed, Yumemi's primary
-PHPStan extension is registered automatically. Otherwise, include it from `phpstan.neon`:
+Applications using the extension must install PHPStan separately as a development dependency:
+
+```shell
+composer require --dev phpstan/phpstan:^2.1
+```
+
+When [`phpstan/extension-installer`](https://github.com/phpstan/extension-installer) is also installed as a development
+dependency, Yumemi's primary PHPStan extension is registered automatically. Otherwise, include it from `phpstan.neon`:
 
 ```neon
 includes:
     - vendor/jbboehr/yumemi/extension.neon
 ```
+
+Keep Yumemi as a normal dependency when application code calls its runtime functions or classes. Static-analysis-only
+projects with no runtime Yumemi usage may install it with `--dev` instead.
 
 The extension-optional `@yumemi-*` annotation integration is deliberately opt-in. See
 [Extension-Optional Annotations](docs/pages/reference/phpstan.md#extension-optional-annotations) for configuration and
