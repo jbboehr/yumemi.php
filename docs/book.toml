@@ -1,0 +1,30 @@
+[book]
+title = "Yumemi"
+authors = ["John Boehr and contributors"]
+description = "Static dimensional analysis for PHPStan and exact runtime unit conversion for PHP."
+language = "en"
+src = "pages"
+
+[build]
+build-dir = "../build/docs"
+create-missing = false
+
+[output.html]
+additional-css = ["theme/yumemi.css"]
+additional-js = ["theme/yumemi.js"]
+default-theme = "light"
+preferred-dark-theme = "ayu"
+no-section-label = true
+git-repository-url = "https://github.com/jbboehr/yumemi.php"
+git-repository-icon = "fab-github"
+edit-url-template = "https://github.com/jbboehr/yumemi.php/edit/master/docs/{path}"
+site-url = "/yumemi.php/"
+sidebar-header-nav = true
+
+[output.html.fold]
+enable = false
+
+[output.html.search]
+enable = true
+heading-split-level = 3
+use-boolean-and = true

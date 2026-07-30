@@ -3,8 +3,9 @@
 Yumemi ships a generated unit catalog derived from UDUNITS2. The same catalog drives runtime name resolution,
 conversion, formatting, and PHPStan analysis.
 
-The imported UDUNITS2 material is distributed under the terms in [UDUNITS-COPYRIGHT](UDUNITS-COPYRIGHT). Yumemi's own
-code remains under the project license described in the root README and license files.
+The imported UDUNITS2 material is distributed under the terms in
+[UDUNITS-COPYRIGHT](https://github.com/jbboehr/yumemi.php/blob/master/docs/UDUNITS-COPYRIGHT). Yumemi's own code remains
+under the project license described in the root README and license files.
 
 ## Default Catalog
 

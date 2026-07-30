@@ -1,0 +1,117 @@
+:root {
+    --content-max-width: 900px;
+}
+
+main {
+    letter-spacing: 0;
+}
+
+#mdbook-menu-bar {
+    position: sticky;
+    top: 0 !important;
+}
+
+main img[alt^="Iudex Mensurarum"] {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0 0 2rem;
+}
+
+.yumemi-page-outline {
+    margin-left: 34px;
+}
+
+.yumemi-page-outline > ol {
+    padding-left: 0;
+}
+
+@media (min-width: 1081px) {
+    .nav-wide-wrapper {
+        position: fixed;
+        top: 0;
+        left: 50%;
+        z-index: 102;
+        display: flex;
+        align-items: center;
+        width: 180px;
+        height: var(--menu-bar-height);
+        transform: translateX(-50%);
+        pointer-events: none;
+    }
+
+    html.sidebar-visible .nav-wide-wrapper {
+        left: calc(50% + var(--sidebar-width) / 2);
+    }
+
+    .nav-chapters {
+        position: absolute;
+        top: 50%;
+        display: grid;
+        place-items: center;
+        width: 32px;
+        min-width: 32px;
+        max-width: 32px;
+        height: 32px;
+        margin: 0;
+        font-size: 1.4rem;
+        transform: translateY(-50%);
+        transition: color 0.5s;
+        pointer-events: auto;
+    }
+
+    .nav-chapters:hover {
+        background-color: transparent;
+    }
+
+    .nav-chapters.previous {
+        left: 0;
+    }
+
+    .nav-chapters.next {
+        right: 0;
+    }
+
+    #mdbook-sidebar-toggle-anchor:checked ~ .page-wrapper .nav-wide-wrapper {
+        display: flex;
+    }
+
+    .nav-chapters .fa-svg {
+        width: 0.65em;
+        height: 0.65em;
+    }
+}
+
+@media (max-width: 1080px) {
+    .nav-wrapper,
+    .nav-wide-wrapper {
+        display: none;
+    }
+}
+
+.logion {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 1fr);
+    gap: 2rem;
+    align-items: center;
+    margin: 2rem 0;
+    padding: 1.5rem 0;
+    border-top: 1px solid currentcolor;
+    border-bottom: 1px solid currentcolor;
+}
+
+.logion blockquote {
+    margin: 0;
+}
+
+.logion img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+}
+
+@media (max-width: 700px) {
+    .logion {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

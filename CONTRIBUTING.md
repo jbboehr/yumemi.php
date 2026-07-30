@@ -21,6 +21,21 @@ that you have the right to license it under these terms.
 See [`docs/mutation-testing.md`](docs/mutation-testing.md) for the optional mutation-testing workflow and guidance on
 interpreting escaped mutants.
 
+## Documentation
+
+The public mdBook sources live under [`docs/pages`](docs/pages). Internal planning, doctrine, legal, and contributor
+documents remain directly under [`docs`](docs) and are not included in the generated site.
+
+Enter the Nix development shell, then build or preview the public documentation with:
+
+```shell
+make docs
+make docs-serve
+```
+
+The generated site is written to `build/docs`. PHP examples in the public reference documents are also executed and
+analyzed by the PHPUnit documentation test suite.
+
 ## Definitions
 
 The project as a whole is distributed under:

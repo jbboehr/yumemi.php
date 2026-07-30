@@ -1,5 +1,5 @@
 .DEFAULT: all
-.PHONY: all clean generate-catalog
+.PHONY: all clean docs docs-serve generate-catalog
 
 UDUNITS_XML_FILES := \
 	$(UDUNITS_XML_DIR)/udunits2-prefixes.xml \
@@ -12,6 +12,12 @@ all: src/Parser/Parser.php
 
 clean:
 	rm -f src/Parser/Parser.php
+
+docs:
+	mdbook build docs
+
+docs-serve:
+	mdbook serve docs --hostname 127.0.0.1
 
 ifneq ($(strip $(UDUNITS_XML_DIR)),)
 generate-catalog: $(UDUNITS_XML_FILES)

@@ -84,6 +84,9 @@
       rec {
         checks = {
           inherit pre-commit-check;
+          documentation = pkgs.runCommand "yumemi-documentation" { nativeBuildInputs = [ pkgs.mdbook ]; } ''
+            mdbook build ${src}/docs --dest-dir "$out"
+          '';
           formatting = treefmt.config.build.check self;
         };
 
@@ -91,6 +94,7 @@
           buildInputs = with pkgs; [
             actionlint
             bison
+            mdbook
             php
             php.packages.composer
             pre-commit

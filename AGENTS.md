@@ -2,6 +2,17 @@
 
 Guidance for automated agents (and humans) working in this repository.
 
+## Public documentation
+
+Public mdBook sources live under `docs/pages/`, with chapter order defined by `docs/pages/SUMMARY.md`.
+
+The persistent sidebar outline in `docs/theme/yumemi.js` mirrors the `h2` and `h3` headings in each public page. When
+adding, removing, renaming, or reparenting those headings, update `headingsByChapter` in the same change. Keep cohesive
+reference material on its existing page; do not split short sections into separate chapters solely to produce sidebar
+nesting.
+
+Build the book with `composer docs` and preview it with `composer docs:serve`.
+
 ## Changelog
 
 This project keeps a [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) file at [`CHANGELOG.md`](CHANGELOG.md).

@@ -24,9 +24,12 @@ Architecture, implementation status, and roadmap: [docs/planning.md](docs/planni
 
 **Reference documentation**
 
-- [Unit syntax](docs/unit-syntax.md): expressions, case sensitivity, prefixes, Unicode, and unsupported semantics.
-- [Runtime API](docs/runtime.md): quantities, conversion, arithmetic, numeric output, dimensions, and formatting.
-- [Catalog](docs/catalog.md): UDUNITS2 behavior, custom registries, introspection, and deterministic regeneration.
+- [Unit syntax](docs/pages/reference/unit-syntax.md): expressions, case sensitivity, prefixes, Unicode, and unsupported
+  semantics.
+- [Runtime API](docs/pages/reference/runtime.md): quantities, conversion, arithmetic, numeric output, dimensions, and
+  formatting.
+- [Catalog](docs/pages/reference/catalog.md): UDUNITS2 behavior, custom registries, introspection, and deterministic
+  regeneration.
 
 ## Installation
 
@@ -251,8 +254,9 @@ valid.
 
 When you need actual computed values — not just static guarantees — the runtime library does exact, rational unit
 conversion. It is also the engine the PHPStan layer reads from, so its `meter / second` means exactly what the
-analyser's does. The [runtime reference](docs/runtime.md) defines the complete value and arithmetic semantics; the
-[unit syntax reference](docs/unit-syntax.md) defines the expression language shared with PHPStan.
+analyser's does. The [runtime reference](docs/pages/reference/runtime.md) defines the complete value and arithmetic
+semantics; the [unit syntax reference](docs/pages/reference/unit-syntax.md) defines the expression language shared with
+PHPStan.
 
 The runtime API keeps unit arithmetic and unit conversion separate. Quantity operations reduce the unit expression that
 the caller chose, while `to()` and `valueIn()` explicitly convert through the unit catalog.
@@ -355,8 +359,8 @@ assert($kilo->definitionExpression === '1e3');
 
 `describe()` performs exact catalog lookup and can synthesize a descriptor for one dynamically prefixed unit name;
 `describePrefix()` performs exact prefix lookup. Neither accepts compound unit expressions as lookup names or
-substitutes unit definitions in the returned spelling. See the [catalog reference](docs/catalog.md) for catalog
-customization, semantic capabilities, affine conversion boundaries, logarithmic limitations, and regeneration.
+substitutes unit definitions in the returned spelling. See the [catalog reference](docs/pages/reference/catalog.md) for
+catalog customization, semantic capabilities, affine conversion boundaries, logarithmic limitations, and regeneration.
 
 Formatting policies can canonicalize aliases and generated plurals, select catalog symbols, use Unicode typography, and
 control dimensionless output. Formatting does not normalize or substitute unit definitions:
