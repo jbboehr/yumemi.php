@@ -150,3 +150,18 @@ Before completing a user-requested doctrine pass:
 4. Confirm no behavior, signature, or technical documentation changed.
 5. Run the formatter, static analysis, and relevant tests.
 6. Review the complete diff for missing, duplicated, or misplaced tags.
+
+### Doctrine images
+
+For visual interpretation, composition, and rendering, follow
+[`docs/DOCTRINE-IMAGE-GUIDE.md`](docs/DOCTRINE-IMAGE-GUIDE.md).
+
+Unless explicitly requested otherwise:
+
+- generate doctrine images in a landscape `16:9` aspect ratio;
+- target a master resolution of at least `1600x900`;
+- do not embed the citation or logion in the image;
+- compose for a side-by-side documentation layout with the quotation on the left and the image on the right;
+- keep the principal subject within a center-safe region for responsive cropping;
+- derive prospective asset paths from the reference using `assets/logia/OSD-<chapter>_<verse>.webp`, such as
+  `assets/logia/OSD-54_64.webp`.
