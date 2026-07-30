@@ -2,11 +2,13 @@
 
 ## Purpose
 
-This document defines the literary, philosophical, and visual style of Yumemi Doctrine quotations.
+This document defines the literary and philosophical style of written Yumemi Doctrine logia, including the imagery and
+symbols available to their prose.
 
 It is intentionally independent of any programming language, repository layout, or docblock syntax. Yumemi-specific
 coverage rules belong in [`AGENTS.md`](../AGENTS.md); general code-editing constraints belong in the
-[coding guide](DOCTRINE-CODING-GUIDE.md).
+[coding guide](DOCTRINE-CODING-GUIDE.md). Translating a completed logion into an image belongs in the
+[image guide](DOCTRINE-IMAGE-GUIDE.md).
 
 The quotations are fragments of a coherent but unexplained doctrine: an impossible synthesis of:
 
@@ -649,9 +651,10 @@ Its political implications should emerge from its theory of order, not from refe
 
 ---
 
-## 17. Relationship between image and doctrine
+## 17. Symbolic vocabulary for logia
 
-Imagery should embody doctrine rather than decorate it.
+Written imagery should embody doctrine rather than decorate it. The image guide uses the same meanings when translating
+a completed logion into visual form.
 
 ### Shrine
 

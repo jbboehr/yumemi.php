@@ -84,6 +84,8 @@ convert compatible operands exactly; multiplication and division reduce the call
 ## Documentation
 
 - [Getting Started](docs/pages/getting-started.md) covers installation and the shortest complete examples.
+- [Core Concepts](docs/pages/core-concepts.md) helps choose between branded native values and exact quantities, then
+  points each operation to its authoritative reference.
 - [PHPStan Reference](docs/pages/reference/phpstan.md) defines branded types, operators, conversion helpers, generic
   quantities, configuration, optional annotations, diagnostics, and limitations.
 - [Unit Syntax](docs/pages/reference/unit-syntax.md) defines expressions, name resolution, Unicode forms, and errors.

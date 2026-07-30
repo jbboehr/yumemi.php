@@ -58,110 +58,23 @@ registration.
 
 ## Current Status
 
-Already implemented:
+The implemented foundation now includes:
 
-- Composer/Nix/project scaffold
-- Exact `Rational` number type:
-  - fixed-scale decimal output with all PHP 8.4 rounding modes
-  - minimal exact decimal output for terminating rationals
-  - correctly rounded binary64 output with strict overflow and underflow detection
-- Core expression model:
-  - `Expr`
-  - `Expr\Constant`
-  - `Expr\Unit`
-  - `Expr\Power`
-  - `Expr\Product`
-- Canonical expression reduction:
-  - flatten compounds
-  - combine constants
-  - combine unit powers
-  - cancel inverse units
-  - deterministic unit ordering
-- Derived-unit normalization
-- Generated UDUNITS2 catalog data in `data/udunits2.php`
-- Catalog import/export tooling:
-  - `Udunits2CatalogImporter`
-  - `PhpCatalogExporter`
-  - `GenerateUdunits2CatalogCommand`
-  - `bin/generate-udunits2-catalog`
-- Runtime registry layer:
-  - `UnitRegistry`
-  - `Udunits2UnitRegistry`
-  - generated aliases
-  - generated plural aliases honoring explicit plurals and `<noplural>` metadata
-  - generated prefix data
-  - exact and dynamically prefixed catalog introspection preserving canonical names, component provenance, aliases,
-    symbols, plural provenance, comments, and documentation
-  - structured semantics for retained affine and logarithmic definitions
-  - lazily cached complete-name capability classification for exact and dynamically prefixed descriptors, including
-    transitive custom definitions, invalid expressions, and effective overlay behavior
-  - mutable fluent registry construction producing immutable registry snapshots
-  - resolver-side prefix handling
-  - fail-closed, case-sensitive name resolution without runtime morphology
-- Exact conversion resolver for multiplicative and affine scale-and-offset transforms
-- Public `Units` facade with `Expr|string` ergonomics:
-  - `unit()`
-  - `parse()`
-  - `parseUnit()` alias
-  - `parseQuantity()` with exact explicit-constant extraction
-  - `normalize()`
-  - `areCompatible()`
-  - `conversionFactor()`
-  - `convert()`
-  - `convertFloat()`
-  - `quantity()`
-  - `format()` and reusable registry-aware formatters
-  - `describe()`
-  - `describePrefix()`
-- Explicit affine conversion support:
-  - exact UDUNITS2 Celsius/Fahrenheit conversion through `Rational` scale and offset transforms
-  - custom affine definitions and chained aliases through `UnitRegistryBuilder`
-  - affine-aware dimensional compatibility and dimension lookup
-  - value-independent `conversionFactor()` rejection through `NonMultiplicativeConversionException`
-  - strict rejection of affine multiplication, division, powers, prefixes, quantities, and ordinary unit brands
-- Ported generated parser from `units.php`:
-  - grammar
-  - lexer
-  - AST nodes
-  - generated `Parser.php`
-  - Composer/Makefile generation wiring
-  - exact half-open byte spans for syntax errors
-  - bounded expression-local caret diagnostics shared by runtime and PHPStan
-  - Unicode middle-dot multiplication and signed superscript integer powers
-- AST converter for supported runtime syntax:
-  - identifiers
-  - integer constants
-  - decimal/scientific constants
-  - multiplication
-  - division
-  - integer powers
-- Explicit rejection for parsed-but-unsupported syntax:
-  - addition
-  - subtraction
-  - `@`
-- Focused public references for PHPStan types and configuration, unit syntax, runtime guarantees, catalog behavior, and
-  deterministic regeneration; executable PHP blocks and PHPStan-relevant examples are verified in-process
-- Runtime `Quantity` value object:
-  - explicit `Units` context
-  - exact `Rational` value storage
-  - parsing complete quantity expressions while preserving catalog scale in the symbolic unit
-  - symbolic unit storage for display/chosen syntax
-  - resolved unit storage for catalog-aware conversion
-  - `to()` and `valueIn()` explicit conversion
-  - explicit integer, fixed-scale decimal, exact decimal, and float extraction in a requested unit
-  - `add()` and `sub()` with exact conversion of compatible right operands into the left unit
-  - `addWithSameUnit()` and `subWithSameUnit()` for normalized-equivalent units without conversion
-  - `mul()` and `div()` for unit arithmetic
-  - `normalize()` for unit-definition substitution without changing stored value
-  - `simplify()` for unit-definition substitution with scale folded into the stored value
-  - context checks that reject arithmetic between quantities from different `Units` instances
-- Configurable expression formatting:
-  - preserved, canonical, or symbol unit names
-  - ASCII or round-trippable Unicode typography
-  - numeric, word, or empty dimensionless presentation
-  - fraction or negative-power division layout
-  - direct named construction or immutable fluent option building
-  - exact-before-prefix name resolution shared with the runtime resolver
+- exact `Rational` arithmetic with explicit integer, decimal, and binary64 output policies;
+- a reduced symbolic expression model, Bison parser, seven-axis `Dimension`, and derived-unit normalization;
+- a generated UDUNITS2 catalog with exact aliases, plurals, prefixes, introspection, and deterministic regeneration;
+- mutable custom-registry construction producing immutable snapshots;
+- exact multiplicative and affine scale-and-offset conversion at explicit boundaries;
+- exact `Quantity` construction, parsing, arithmetic, comparison, conversion, normalization, simplification, and output;
+- configurable ASCII and Unicode formatting with catalog-aware names and fraction or negative-power division;
+- native `unit_int` / `unit_float` and object `Quantity<'...'>` PHPStan types with arithmetic inference, diagnostics,
+  custom registries, finite literal-string unions, and optional `@yumemi-*` promotion;
+- focused public documentation whose executable PHP and PHPStan examples are verified in process.
+
+The public behavior is documented in [Core Concepts](../pages/core-concepts.md) and the
+[PHPStan](../pages/reference/phpstan.md), [Unit Syntax](../pages/reference/unit-syntax.md),
+[Runtime](../pages/reference/runtime.md), and [Catalog](../pages/reference/catalog.md) references. This document tracks
+architecture, rationale, risks, and future work rather than duplicating those references.
 
 Current verification:
 
@@ -182,67 +95,25 @@ Yumemi intentionally has two presentation layers over the same unit engine:
 | Runtime `Quantity`     | Exact `Rational`                          | Code opting into value objects              |
 | PHPStan branded values | Native PHP `int` / `float` plus an `Expr` | Existing application code using native data |
 
-The PHPStan path does not introduce runtime wrappers for native values. `unit_int<'meter'>` remains an `int`, and
-`unit_float<'meter / second'>` remains a `float`; the extension attaches unit identity during analysis. Runtime object
-code can instead use `Quantity<'meter'>`, whose magnitude remains `Rational`.
+The native path introduces no runtime wrapper; the object path retains exact `Rational` state. Both reuse the runtime
+parser, resolver, registry, reducer, dimensions, formatter, and conversion engine. Unit identity remains a reduced
+Yumemi `Expr`, not a class-per-unit hierarchy or a second PHPStan-only expression model.
 
-Both paths reuse the runtime parser, resolver, registry, reducer, dimension resolver, comparer, formatter, and
-conversion semantics. Unit identity is always a reduced Yumemi `Expr`, never a class-per-unit hierarchy or a duplicated
-PHPStan expression model.
-
-Implemented PHPStan behavior:
-
-- `unit_int<'…'>`, `unit_float<'…'>`, and `Quantity<'…'>` resolve in ordinary PHPDoc type positions.
-- Native unary and binary inference supports `+ - * / ** %`; multiplication and division combine units, exponentiation
-  requires a constant integer exponent, and modulo requires equivalent `unit_int` operands.
-- Native `+` / `-` require normalized-equivalent units. Merely compatible dimensions are insufficient because native
-  arithmetic cannot convert the right magnitude.
-- `unit()` brands a native multiplicative magnitude. `unit_factor()` returns a native float branded as target/source,
-  allowing ordinary multiplication to cancel the source and infer the target. `unit_to()` performs multiplicative or
-  affine runtime conversion; multiplicative targets return a branded float while affine targets remain plain `float`.
-- `Units::quantity()`, `Units::parseQuantity()`, and all current unit-bearing `Quantity` methods preserve or transform
-  the static unit brand.
-- Quantity arithmetic, conversion, extraction, and comparisons receive standalone diagnostics even when an invalid
-  result is unused.
-- Finite literal-string unions are preserved for `unit()`, Quantity construction, quantity parsing, conversion, and
-  native extraction.
-- One configured registry is authoritative for a PHPStan run and is fingerprinted for result-cache invalidation.
-
-Stable rule identifiers currently include:
-
-- `yumemi.invalidUnitCall`
-- `yumemi.invalidQuantityArithmetic`
-- `yumemi.invalidQuantityConstruction`
-- `yumemi.invalidQuantityConversion`
-- `yumemi.invalidQuantityComparison`
-- the `yumemi.docTag*` family for optional annotation promotion
-
-Invalid native binary operations use PHPStan's `binaryOp.invalid` diagnostic. Genuinely dynamic unit strings fail open
-to native return types because their unit cannot be proven; unknown constant strings fail closed with a diagnostic.
+The current type behavior, helper inference, diagnostic identifiers, and limitations are maintained in the
+[PHPStan reference](../pages/reference/phpstan.md).
 
 ### Annotation Surfaces
 
-Direct `unit_int<'…'>`, `unit_float<'…'>`, and `Quantity<'…'>` types require Yumemi's PHPStan extension. They work in
-normal `@param`, `@return`, `@var`, generic, union, intersection, and nullable positions.
-
-Libraries that want optional Yumemi support can pair ordinary fallback tags with `@yumemi-param`, `@yumemi-return`, or
-`@yumemi-var`. Promotion is deliberately opt-in through `yumemi-tags.neon`. A Yumemi tag may replace a fallback only
-when erasing its unit leaves produces the same PHPDoc structure, including parameter reference and variadic markers. A
-mismatch leaves the fallback effective and reports a diagnostic.
-
-The opt-in promoter replaces internal PHPStan parser services for analyzed source and stubs. That coupling is isolated
-and integration-tested, but remains an upgrade risk and a potential conflict with another extension replacing the same
-services. Ordinary third-party integrations should use standard PHPStan stub files containing direct Yumemi types
-instead of parser promotion.
+Direct unit types are the normal surface. Optional `@yumemi-param`, `@yumemi-return`, and `@yumemi-var` promotion exists
+for libraries that require ordinary fallback PHPDoc, but replaces internal PHPStan parser services and remains an
+upgrade and extension-conflict risk. The exact structural rules belong in
+[Extension-Optional Annotations](../pages/reference/phpstan.md#extension-optional-annotations).
 
 ### Registry Configuration
 
-`parameters.yumemi.registryFactory` names a class implementing `UnitRegistryFactory`. Its `create()` method returns the
-complete immutable registry used by every extension path. The factory runs once and the resulting names, records,
-prebuilt units, and prefixes contribute to PHPStan's result-cache fingerprint.
-
-Runtime code should construct `Units` from the same registry when custom units are used in both layers. PHPStan does not
-track a separate registry identity on every branded value, so one shared catalog is the supported static-analysis model.
+PHPStan uses one configured immutable registry and fingerprints it for result-cache invalidation. Runtime code should
+construct `Units` from the same registry when custom units are shared across both layers. Configuration is documented in
+[Registry Configuration](../pages/reference/phpstan.md#registry-configuration).
 
 ### PHPStan Testing Notes
 
@@ -256,74 +127,18 @@ child-process coverage is intentionally not merged; correctness matters more tha
 
 ## Runtime API Direction
 
-The runtime API is intentionally small, but it now has both expression-level and value-level entry points.
+The runtime deliberately has expression-level operations on `Units` and value-level operations on exact `Quantity`
+objects. The complete API and examples live in the [runtime reference](../pages/reference/runtime.md).
 
-```php
-$units = Units::default();
-
-$units->normalize('kilometer'); // 1000 * meter
-$units->areCompatible('meter / second', 'kilometer / minute'); // true
-$units->conversionFactor('meter / second', 'kilometer / minute'); // 3/50
-$units->convert(1, 'kilometer', 'meter'); // 1000
-```
-
-The main user-facing value API is `Quantity`:
-
-```php
-$distance = $units->quantity(12, 'foot');
-$meters = $distance->to('meter');
-
-$speed = $units->quantity(1, 'meter / second');
-$pace = $speed->to('kilometer / minute');
-```
-
-Current `Quantity` methods:
-
-- `value(): Rational`
-- `unit(): Expr`
-- `toExpr(): Expr`
-- `to(Expr|string $unit): self`
-- `valueIn(Expr|string $unit): Rational`
-- `intValueIn(Expr|string $unit): int`
-- `exactIntValueIn(Expr|string $unit): int`
-- `decimalValueIn(Expr|string $unit, int $scale, RoundingMode $mode): string`
-- `exactDecimalValueIn(Expr|string $unit): string`
-- `floatValueIn(Expr|string $unit): float`
-- `add(self $other): self`
-- `sub(self $other): self`
-- `addWithSameUnit(self $other): self`
-- `subWithSameUnit(self $other): self`
-- `compareTo(self $other): int`
-- `equals(self $other): bool`
-- `lessThan(self $other): bool`
-- `lessThanOrEqualTo(self $other): bool`
-- `greaterThan(self $other): bool`
-- `greaterThanOrEqualTo(self $other): bool`
-- `mul(self|int|Rational $other): self`
-- `div(self|int|Rational $other): self`
-- `neg(): self`
-- `pow(int $power): self`
-- `normalize(): self`
-- `simplify(): self`
-- `valueToString(): string`
-- `unitToString(): string`
-- `toString(): string`
-
-Important runtime rule:
+Important design rule:
 
 > Quantity addition and subtraction convert the right operand into the left operand's unit and preserve the left unit.
 > The explicit `*WithSameUnit()` variants reject operands that would require conversion.
 
-Quantity comparisons likewise convert compatible right operands exactly into the left unit. They return only a scalar
-comparison result, so strict `*WithSameUnit()` comparison variants are deferred until a concrete use case needs them.
-
-For example, `(meter / second) * second` reduces to `meter`, but `centimeter / second / foot` stays in chosen symbolic
-units until the caller explicitly asks for conversion or simplification.
-
-There are currently two catalog-aware operations with different intent:
-
-- `normalize()`: substitutes unit definitions without changing the stored quantity value.
-- `simplify()`: substitutes unit definitions and folds any unit scale factor into the stored quantity value.
+Comparisons follow the same compatible-unit conversion rule but return only a scalar result, so strict same-unit
+comparison variants remain deferred. Multiplication and division reduce chosen symbolic syntax without silently
+substituting catalog definitions. `normalize()`, `simplify()`, and explicit target conversion remain distinct
+operations.
 
 ## Parser And Syntax Direction
 
@@ -335,32 +150,10 @@ license while the incorporated upstream portions remain subject to the UCAR Lice
 UDUNITS2: adjacency, `*`, `.`, `·`, and `/` associate left at one tier, while powers bind more tightly. Consequently,
 `meter / second kilogram` means `(meter / second) * kilogram`; a compound denominator requires parentheses.
 
-Supported by parser and converter now:
-
-- `meter`
-- `meter * second`
-- `meter second`
-- `meter / second`
-- `meter^2`
-- `second^-2`
-- `(meter / second)^2`
-- `meter · second`
-- `meter²` and `second⁻²`
-- decimal constants such as `1.25 meter`
-- scientific notation accepted by the lexer
-
-Parsed but unsupported by the multiplicative expression converter:
-
-- `meter + second`
-- `meter - second`
-- `meter @ 2`
-
-The exact conversion resolver separately supports a standalone `identifier @ number` at explicit conversion boundaries
-and in catalog definitions. Affine units still cannot participate in multiplicative expression or quantity algebra.
-
-The parser can read more UDUNITS2 syntax than the runtime chooses to support semantically. The catalog retains
-logarithmic and affine definitions with explicit semantics. Affine definitions now execute only through conversion,
-compatibility, and dimension APIs; logarithmic definitions remain unevaluable.
+The accepted public grammar and semantic boundaries are maintained in the
+[Unit Syntax reference](../pages/reference/unit-syntax.md). The exact conversion resolver separately interprets
+standalone affine definitions at explicit conversion boundaries; logarithmic definitions remain introspectable but
+unevaluable.
 
 ## Rational Powers And Exact Roots
 
@@ -396,16 +189,9 @@ by the degree, keeping the resulting unit powers integral. This is useful but no
 
 ## Numeric Output Policy
 
-Exact `Rational` storage remains authoritative. Converting a rational to a native representation is always explicit:
-
-- `toDecimal($scale, $mode)` returns fixed decimal places and requires a `RoundingMode`.
-- `toDecimalExact()` returns a minimal plain decimal or throws when the denominator has factors other than 2 and 5.
-- `toFloat()` rounds to the nearest binary64 value with ties to even. It accepts representable subnormals, throws
-  `OverflowException` instead of returning infinity, and throws `UnderflowException` when a nonzero value rounds to
-  zero.
-
-The corresponding `Quantity` methods convert to the requested compatible unit before extraction. PHPStan validates
-constant target units, and `floatValueIn()` returns a `unit_float<'target'>` brand when the target is known.
+Exact `Rational` storage remains authoritative, and every native conversion is explicit. The complete rounding,
+termination, overflow, underflow, and PHPStan-branding policies are maintained in
+[Native Numeric Output](../pages/reference/runtime.md#native-numeric-output).
 
 Future formatting work should add significant-digit and scientific-notation APIs separately rather than overloading
 fixed-scale semantics. A future policy API may also allow callers to request IEEE infinity or zero on float range loss;
@@ -439,16 +225,11 @@ to use ordinary `Units` and `Quantity` objects.
 
 ## Compatibility And Conversion
 
-Dimensional compatibility and conversion are related but distinct:
-
-- `meter` and `foot` are dimensionally compatible.
-- Converting between them requires a scale factor.
-- `meter` and `second` are incompatible.
-
-Runtime `Quantity::add()` and `Quantity::sub()` use dimension compatibility because the object can perform the required
-exact conversion. `addWithSameUnit()` and `subWithSameUnit()` expose the exact-unit policy. Native PHPStan unit types
-remain exact-unit-only for `+` / `-`: ordinary PHP numbers cannot perform the magnitude conversion required by an
-operation such as `meter + foot`, so accepting merely compatible dimensions would be unsound.
+The runtime comparer remains the source of truth for definitional equivalence and dimensional compatibility. Native
+arithmetic uses the stricter relation because it cannot convert operands; exact `Quantity` methods may use compatibility
+because they perform conversion. Public semantics live in
+[Definitional Equivalence And Compatibility](../pages/reference/phpstan.md#definitional-equivalence-and-compatibility)
+and [Quantity Arithmetic](../pages/reference/runtime.md#quantity-arithmetic).
 
 ## Formula Interpolation Idea
 

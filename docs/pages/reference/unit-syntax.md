@@ -106,21 +106,17 @@ Unicode formatter output remains parser-compatible when the dimensionless style 
 
 ## Semantic Capabilities
 
-The parser recognizes a few UDUNITS2 forms that the multiplicative expression model deliberately does not implement:
+The parser recognizes a few UDUNITS2 forms that ordinary multiplicative expressions deliberately do not implement:
 
 - addition and subtraction inside unit expressions, such as `meter + second`;
 - affine-offset syntax using `@` outside explicit conversion boundaries;
 - non-integer powers, such as `meter^0.5`;
 - logarithmic unit definitions.
 
-Unsupported syntax written through an expression API throws `UnsupportedSyntaxException`. Known affine catalog entries
-can be converted as standalone units, but cannot be multiplied, divided, raised to powers, prefixed, branded with
-`unit()`, or stored in `Quantity`. Affine PHPStan targets from `unit_to()` remain plain `float`; a multiplicative target
-such as `kelvin` retains its `unit_float<'kelvin'>` brand.
-
-Known logarithmic catalog entries remain available for exact introspection with structured `UnitSemantics`, but
-expression evaluation throws `UnsupportedUnitAlgebraException` and conversion throws
-`UnsupportedUnitConversionException`. They therefore remain distinct from unknown names.
+Unsupported syntax written through an expression API throws `UnsupportedSyntaxException`. The
+[runtime reference](runtime.md#affine-conversion) defines where standalone affine units can execute, and
+[Catalog Semantic Support](catalog.md#catalog-semantic-support) defines the introspection model for affine, logarithmic,
+and unsupported expressions.
 
 `Quantity::pow()` and PHPStan's unit exponent inference likewise accept only integer powers. Exact rational roots and
 explicit approximate powers are deferred features; a `float` exponent will not be silently accepted.
@@ -133,5 +129,5 @@ in the decoded unit expression. The exception message renders a one-based line a
 Unknown names throw `UnitNotFoundException`. Parsed but unsupported constructs throw `UnsupportedSyntaxException`. Those
 failures occur after parsing and currently do not carry source spans.
 
-The PHPStan extension uses the same parser and resolver. Constant invalid unit strings fail analysis with the runtime
-diagnostic text; genuinely dynamic strings cannot be validated and fall back to native PHPStan types.
+The PHPStan extension uses the same parser and resolver. Its handling of constant and dynamic strings is documented in
+[Limitations](phpstan.md#limitations).

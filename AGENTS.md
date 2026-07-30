@@ -48,7 +48,8 @@ New in-scope named declarations must contain exactly one `@logion` PHPDoc tag.
 Do not add, replace, or revise a logion on a preexisting declaration unless the user explicitly requests a doctrine
 pass. A doctrine pass may backfill preexisting declarations within the scope requested by the user.
 
-For literary style, imagery, tone, and quotation construction, follow:
+When writing or revising a logion, follow this guide for literary style, imagery, tone, symbolism, and quotation
+construction:
 
 - [`docs/DOCTRINE-STYLE-GUIDE.md`](docs/DOCTRINE-STYLE-GUIDE.md)
 
@@ -164,7 +165,8 @@ Before completing a user-requested doctrine pass:
 
 ### Doctrine images
 
-For visual interpretation, composition, and rendering, follow
+When generating or revising an image derived from a logion, use the source logion and the style guide for doctrinal
+meaning, then follow this guide for visual interpretation, composition, and rendering:
 [`docs/DOCTRINE-IMAGE-GUIDE.md`](docs/DOCTRINE-IMAGE-GUIDE.md).
 
 Unless explicitly requested otherwise:

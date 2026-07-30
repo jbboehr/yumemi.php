@@ -3,6 +3,10 @@
 - [Introduction](README.md)
 - [Getting Started](getting-started.md)
 
+# Concepts
+
+- [Core Concepts](core-concepts.md)
+
 # Reference
 
 - [PHPStan](reference/phpstan.md)

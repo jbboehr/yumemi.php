@@ -11,6 +11,7 @@ normalization engine for quantity arithmetic and conversion.
 ## Start Here
 
 - [Getting Started](getting-started.md) covers installation and the shortest static-analysis and runtime examples.
+- [Core Concepts](core-concepts.md) helps choose between branded native values and exact quantities.
 - [PHPStan](reference/phpstan.md) defines branded native types, operator inference, helpers, generic quantities,
   configuration, and diagnostics.
 - [Unit Syntax](reference/unit-syntax.md) defines the expression language shared by PHPStan and the runtime.

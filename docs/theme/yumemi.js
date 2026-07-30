@@ -11,6 +11,10 @@
             { id: "static-analysis", title: "Static Analysis" },
             { id: "runtime-conversion", title: "Runtime Conversion" },
         ],
+        "core-concepts.html": [
+            { id: "choosing-a-magnitude-model", title: "Choosing A Magnitude Model" },
+            { id: "choosing-an-operation", title: "Choosing An Operation" },
+        ],
         "reference/phpstan.html": [
             {
                 id: "branded-native-types",
@@ -27,7 +31,8 @@
             { id: "quantity-types", title: "Quantity Types" },
             { id: "registry-configuration", title: "Registry Configuration" },
             { id: "extension-optional-annotations", title: "Extension-Optional Annotations" },
-            { id: "diagnostics-and-limitations", title: "Diagnostics And Limitations" },
+            { id: "diagnostics", title: "Diagnostics" },
+            { id: "limitations", title: "Limitations" },
         ],
         "reference/unit-syntax.html": [
             { id: "supported-expressions", title: "Supported Expressions" },

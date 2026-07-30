@@ -272,19 +272,30 @@ conflict with another extension replacing the same services and remains an upgra
 normally use direct Yumemi types; integrations for third-party libraries should normally use ordinary PHPStan stub files
 containing direct Yumemi types.
 
-## Diagnostics And Limitations
+## Diagnostics
 
-Stable Yumemi rule identifiers currently include:
+Yumemi emits stable rule identifiers so errors can be suppressed or included in a PHPStan baseline at the appropriate
+scope:
 
-- `yumemi.invalidUnitCall`
-- `yumemi.invalidQuantityArithmetic`
-- `yumemi.invalidQuantityConstruction`
-- `yumemi.invalidQuantityConversion`
-- `yumemi.invalidQuantityComparison`
-- the `yumemi.docTag*` family for optional annotation promotion
+| Identifier                           | Reported condition                                                                                   |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| `yumemi.invalidUnitCall`             | An invalid constant `unit()`, `unit_factor()`, or `unit_to()` call                                   |
+| `yumemi.invalidQuantityConstruction` | Invalid `Units::quantity()` or `parseQuantity()` input, including a branded-magnitude mismatch       |
+| `yumemi.invalidQuantityArithmetic`   | Invalid `add()`, `sub()`, `addWithSameUnit()`, or `subWithSameUnit()` operands                       |
+| `yumemi.invalidQuantityConversion`   | An invalid or incompatible `Quantity` conversion or native-extraction target                         |
+| `yumemi.invalidQuantityComparison`   | A `Quantity` comparison whose statically known units are incompatible                                |
+| `yumemi.docTagSyntax`                | Invalid `@yumemi-param`, `@yumemi-return`, or `@yumemi-var` syntax                                   |
+| `yumemi.docTagDuplicate`             | More than one Yumemi tag targets the same fallback position                                          |
+| `yumemi.docTagUnsupported`           | A Yumemi tag appears on a declaration that does not support that tag kind                            |
+| `yumemi.docTagParameter`             | A parameter name is unknown or an unnamed `@yumemi-var` fallback is ambiguous                        |
+| `yumemi.docTagType`                  | A Yumemi tag contains an invalid unit-bearing type                                                   |
+| `yumemi.docTagTransform`             | Erasing the units does not reproduce the fallback PHPDoc structure                                   |
+| `binaryOp.invalid`                   | Invalid native unit arithmetic; this is PHPStan's standard binary-operation identifier, not Yumemi's |
 
-Invalid native binary operations use PHPStan's `binaryOp.invalid` identifier. Syntax diagnostics preserve the runtime
+The first five identifiers apply even when an invalid call's result is unused. Syntax diagnostics preserve the runtime
 parser's bounded caret excerpt while PHPStan anchors the error to the containing PHP or PHPDoc line.
+
+## Limitations
 
 Important limits of the current static model are:
 

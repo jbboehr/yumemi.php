@@ -130,15 +130,11 @@ Raw rows returned by `findCatalogRecord()` remain declaration metadata: they sto
 and logarithmic markers, but do not eagerly materialize `UnsupportedExpression` or transitive composite results. This
 keeps catalog generation deterministic and avoids resolving the full catalog merely for introspection.
 
-Affine classification currently means "unsupported by multiplicative `Expr` algebra," not "unsupported everywhere."
-`convert()`, `convertFloat()`, `areCompatible()`, `dimension()`, and `unit_to()` evaluate affine definitions exactly.
-`conversionFactor()` works only when the composed conversion has no offset. Affine units remain invalid in `parse()`,
-`unit()`, quantities, multiplication, division, powers, and prefixes.
-
-Logarithmic definitions remain unsupported at every execution boundary. Attempting to evaluate one throws
-`UnsupportedUnitAlgebraException` from expression APIs or `UnsupportedUnitConversionException` from conversion APIs.
-Both carry the canonical unit name, semantics, and original definition. PHPStan reports the same operation-specific
-message for constant unit strings.
+Affine classification means "unsupported by multiplicative `Expr` algebra," not "unsupported everywhere." See
+[Affine Conversion](runtime.md#affine-conversion) for executable boundaries and [Limitations](phpstan.md#limitations)
+for static-analysis behavior. Logarithmic definitions remain unsupported at every execution boundary; their descriptors
+nevertheless distinguish them from unknown names and preserve the canonical unit, semantics, and original definition for
+diagnostics.
 
 ## Regenerating The Catalog
 

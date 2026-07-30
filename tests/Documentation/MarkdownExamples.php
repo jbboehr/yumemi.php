@@ -45,6 +45,7 @@ final class MarkdownExamples
     private const DOCUMENTS = [
         'README.md',
         'docs/pages/getting-started.md',
+        'docs/pages/core-concepts.md',
         'docs/pages/reference/phpstan.md',
         'docs/pages/reference/unit-syntax.md',
         'docs/pages/reference/runtime.md',

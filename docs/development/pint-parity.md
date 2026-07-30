@@ -1,967 +1,405 @@
-# Pint Parity Analysis
+# Pint Feature Comparison
 
-Snapshot date: 2026-07-24
+Snapshot date: 2026-07-29
 
-This document compares Yumemi's current direction with Pint, the mature Python unit/quantity library. It is not a
-commitment to clone Pint. Pint is useful as a feature checklist and as prior art for user expectations, but Yumemi's
-distinctive goal is runtime unit handling plus PHPStan-backed static dimensional analysis for PHP.
+This document compares Yumemi with Python's Pint library to identify useful capabilities and deliberate differences. It
+is a feature comparison, not the project roadmap. Current priorities, architectural risks, and deferred work belong in
+[planning.md](planning.md).
 
-Relevant Pint documentation:
-
-- Tutorial: <https://pint.readthedocs.io/en/stable/getting/tutorial.html>
-- API facets: <https://pint.readthedocs.io/en/stable/api/facets.html>
-- Defining units: <https://pint.readthedocs.io/en/stable/advanced/defining.html>
-- Contexts: <https://pint.readthedocs.io/en/stable/user/contexts.html>
-- Unit systems: <https://pint.readthedocs.io/en/stable/user/systems.html>
-- Temperature conversion: <https://pint.readthedocs.io/en/stable/user/nonmult.html>
-- Logarithmic units: <https://pint.readthedocs.io/en/stable/user/log_units.html>
-- Formatting: <https://pint.readthedocs.io/en/stable/getting/tutorial.html#string-formatting>
-- NumPy support: <https://pint.readthedocs.io/en/stable/user/numpy.html>
-- Typing: <https://pint.readthedocs.io/en/stable/advanced/typing.html>
-- Wrapping/checking functions: <https://pint.readthedocs.io/en/stable/advanced/wrapping.html>
-- Measurements: <https://pint.readthedocs.io/en/stable/advanced/measurement.html>
-- Buckingham Pi theorem: <https://pint.readthedocs.io/en/stable/advanced/pitheorem.html>
+Yumemi is not intended to reproduce every Python or NumPy integration in Pint. Its distinguishing goal is static
+dimensional analysis for ordinary PHP values, backed by the same exact runtime engine used by `Quantity`.
 
 ## Rating Scale
 
-Importance is rated for Yumemi, not for Pint:
-
-- P0: Required for Yumemi to be credible at its own stated goal.
-- P1: Important for a useful first public release.
-- P2: Valuable, but can wait until the core is stable.
-- P3: Optional, niche, or probably better as a separate package.
-
-Difficulty is a rough estimate for implementation in this codebase:
-
-- S: Small. Usually one focused change.
-- M: Moderate. Several files and tests, but no major model change.
-- L: Large. Requires new design surface or changes to core semantics.
-- XL: Very large. Cross-cutting, high-risk, or likely multi-stage.
-
 Status labels:
 
-- Done: Implemented well enough to rely on.
-- Partial: Useful behavior exists, but important semantics or API polish are missing.
-- Absent: No meaningful implementation yet.
-- Deliberately absent: Not a current goal unless project scope changes.
+- **Done:** implemented well enough to rely on for the stated scope.
+- **Partial:** useful behavior exists, but a meaningful portion of the feature remains.
+- **Absent:** no meaningful implementation exists.
+- **Deliberately absent:** excluded from the current product direction unless a concrete use case changes it.
+
+Importance measures value to Yumemi rather than importance to Pint:
+
+- **P0:** foundational to Yumemi's purpose.
+- **P1:** important for a broadly useful first stable version.
+- **P2:** valuable after the core is stable.
+- **P3:** specialized or ecosystem-dependent.
+
+Difficulty estimates the remaining work: **S**, **M**, **L**, or **XL**.
 
 ## Executive Summary
 
-Yumemi has the hard center of a scalar, multiplicative unit runtime:
+Yumemi now has a reliable scalar multiplicative runtime, exact explicit affine conversion, a configurable formatter,
+custom registries, and a substantial PHPStan extension for both branded native values and `Quantity<'...'>`. The core
+architecture remains sound: one parser, registry, expression model, and conversion engine serve both runtime and static
+analysis.
 
-- exact rational arithmetic
-- a unit expression AST
-- a reducer/canceller
-- a UDUNITS2-backed generated catalog
-- alias and prefix resolution
-- explicit conversion factors
-- a `Quantity` value object
-- `normalize()` and `simplify()` semantics
-- real-world formula tests and runtime invariants
+Pint remains much broader in runtime convenience, unit systems, contexts, localization, nonlinear units, measurements,
+NumPy integration, and serialization patterns. Much of that breadth is Python-specific or secondary to Yumemi's static
+analysis goal.
 
-That is enough foundation to continue. Starting over would mostly repeat solved work.
-
-Yumemi is not close to full Pint parity. Pint is a mature runtime library with extensive ergonomics, contexts, systems,
-formatters, nonmultiplicative units, NumPy integration, measurements, function wrappers, and more. A fair estimate is:
-
-- Scalar multiplicative runtime parity: about 50-65%.
-- Full Pint runtime parity: about 15-25%.
-- Yumemi's intended static-analysis feature set: about 0-5%.
-
-The right strategy is not "be Pint in PHP." The right strategy is:
-
-1. Keep the current runtime engine as the single source of truth.
-2. Make the scalar multiplicative runtime boring and reliable.
-3. Build the PHPStan extension on top of the same parser, registry, reducer, and conversion logic.
-4. Add advanced runtime features only when they support real user workflows or static analysis.
-
-The most important missing feature is not an exotic unit feature. It is the PHPStan type layer.
-
-> **Update 2026-07-25:** The static-analysis estimate above (0–5%) is stale. The native `unit_int` / `unit_float`
-> PHPStan path now ships — PHPDoc types, diagnostics, operator inference, and `unit()` / `unit_to()` helpers — so the
-> intended static feature set is meaningfully underway. The `Quantity<'…'>` object path is the main piece still missing
-> (see §21).
-
-## Current Yumemi Foundation
-
-Current codebase facts:
-
-- Public runtime facade: `Units`
-- Public quantity object: `Quantity`
-- Exact numeric representation: `Number\Rational`
-- Expression model: `Expr`, `Expr\Constant`, `Expr\Unit`, `Expr\Power`, `Expr\Product`
-- Parser stack: Bison grammar, lexer, AST nodes, generated parser
-- Runtime analyzers: `ExprReducer`, `UnitNormalizer`, `ConversionFactorResolver`, `UnitConversionResolver`,
-  `UnitResolver`
-- Catalog: generated `data/udunits2.php`
-- Generated catalog size at this snapshot:
-  - 559 total unit names/aliases
-  - 261 derived unit entries
-  - 290 aliases
-  - 7 base units
-  - 1 dimensionless unit entry
-  - 40 prefixes
-- Catalog smoke tests currently expect 526 supported definitions to normalize.
-- Affine temperature definitions support exact explicit conversion but not quantity or multiplicative algebra.
-- Logarithmic definitions are retained and classified but remain unevaluable.
-
-The architecture is good enough to keep:
-
-```text
-UDUNITS2 XML -> Udunits2CatalogImporter -> PhpCatalogExporter -> data/udunits2.php
-data/udunits2.php -> Udunits2UnitRegistry (catalog records only)
-UnitResolver -> findCatalogRecord()/findPrebuiltUnit() -> Expr
-Parser string -> Parser\Ast -> AstConverter (resolving or symbolic) -> Expr
-Expr -> ExprReducer -> reduced Expr
-Expr -> UnitNormalizer -> normalized Expr
-normalized Expr -> ConversionFactorResolver -> Rational factor
-Units facade -> Quantity/runtime expression API
-PHPStan extension -> same parser/registry/reducer/conversion semantics
-```
+The useful comparison is therefore not a single parity percentage. Yumemi has strong coverage of its chosen exact scalar
+and PHPStan scope, partial coverage of general-purpose formatting and advanced unit semantics, and intentionally little
+coverage of scientific-array and uncertainty ecosystems.
 
 ## Feature Analysis
 
 ### 1. Expression Model And Reduction
 
-Status: Implemented for multiplicative and affine boundaries Importance: P0 Difficulty to finish: S
+Status: **Done** | Importance: **P0** | Remaining difficulty: **S**
 
-Yumemi has the core expression representation and deterministic reduction:
+Yumemi represents constants, units, products, and integer powers explicitly. Reduction flattens products, combines
+constants and powers, cancels inverse units, and orders factors deterministically. Structural equality and the public
+seven-axis `Dimension` model no longer depend on formatted-string comparisons.
 
-- constants combine
-- compound expressions flatten
-- inverse units cancel
-- powers combine
-- output ordering is stable
-
-This is the foundation for runtime conversion and static analysis. It is one of the best parts of the current code.
-
-Remaining work:
-
-- Add a first-class equality/comparison helper instead of comparing formatted strings in some call paths.
-- Consider a `Dimension` or `NormalizedExpr` public-ish value object for dimensional identity.
-- Add more tests for negative powers, nested powers, dimensionless terms, and repeated constants.
-- Decide whether expression objects are intended to be immutable public API or internal implementation details.
-
-Recommendation: Keep the strategy. Improve equality and dimensions before building too much PHPStan logic.
+The remaining concern is performance under repeated analysis, not missing algebra for the supported multiplicative
+model. Rational powers are a separate advanced feature.
 
 ### 2. Unit Parser
 
-Status: Partial Importance: P0 Difficulty to finish: M
+Status: **Done for the documented grammar** | Importance: **P0** | Remaining difficulty: **M**
 
-Yumemi already parses a useful unit expression language:
+The generated Bison parser supports identifiers, exact decimal and scientific constants, multiplication, division,
+integer powers, grouping, Unicode middle dots, and signed superscript powers. Product precedence follows UDUNITS2.
+Malformed syntax receives bounded caret diagnostics with byte spans.
 
-- identifiers
-- integer constants
-- decimal and scientific constants
-- multiplication with `*`
-- implicit multiplication by adjacency
-- division with `/`
-- powers with `^`
-- parentheses
-- parsed but semantically rejected additions, subtractions, and affine `@`
-
-This maps well to UDUNITS2-style definitions and is much better than hand-written parsing.
-
-Remaining work:
-
-- Improve parse error messages and locations.
-- Define the exact public grammar for user-facing strings.
-- Add corpus tests from generated UDUNITS2 definitions and from README examples.
-- Decide whether to accept more Pint-like expression syntax, such as `**`, if users expect it.
-- Decide whether `+` and `-` should remain parsed but unsupported or be rejected lexically for public runtime strings.
-
-Recommendation: Keep the Bison parser. Do not hand-write a parser unless the generator becomes a serious maintenance
-problem.
+The grammar intentionally recognizes some upstream forms that semantic layers reject. Pint-style `**`, source spans for
+post-parse semantic errors, and arbitrary real powers remain possible extensions rather than gaps in the documented
+language.
 
 ### 3. Registry And Default Catalog
 
-Status: Partial Importance: P0 Difficulty to finish: M
+Status: **Done for the current model** | Importance: **P0** | Remaining difficulty: **S/M**
 
-Yumemi uses generated UDUNITS2 catalog data and resolves aliases and prefixes. This is the right foundation. It avoids
-inventing definitions and gives immediate coverage across SI, common derived units, US/imperial units, astronomical
-units, and assorted constants.
+Yumemi ships deterministic generated UDUNITS2 data with base and derived units, aliases, symbols, prefixes, explicit
+plurals, and safe generated plurals. Lookup is case-sensitive, exact names precede prefix decomposition, and
+introspection preserves spelling provenance and semantic capabilities.
 
-Current behavior:
-
-- `UnitRegistryBuilder` provides mutable composition, definitions, aliases, and immutable built snapshots.
-- Generated plural aliases are now authoritative; explicit plurals and `<noplural>` are honored, symbols remain exact,
-  and runtime lookup performs no suffix stripping.
-- Lookup is deliberately case-sensitive.
-- Catalog introspection exposes canonical names, aliases, prefixes, symbols, comments, and unsupported reasons.
-
-Recommendation: Do registry extensibility before advanced unit semantics. A usable registry builder will unblock many
-other features.
+Future work is primarily indexing and performance optimization for bulk introspection and formatting.
 
 ### 4. Custom Unit Definitions
 
-Status: Partial Importance: P0/P1 Difficulty to finish: M/L
+Status: **Partial** | Importance: **P1** | Remaining difficulty: **M/L**
 
-Pint lets users define units in text files and programmatically. Yumemi supports programmatic definitions and aliases
-through `UnitRegistryBuilder`; definition-file loading and user-defined base dimensions remain absent.
+`UnitRegistryBuilder` supports mutable programmatic definitions and aliases over either the default catalog or an empty
+registry. Each build creates an immutable snapshot, overlays correctly mask base records, and PHPStan can consume the
+same registry through a configured factory.
 
-Current API (mutable builder, immutable built registry):
+Definition files and user-defined base dimensions outside the fixed seven SI axes are absent. Those features should be
+added only when an application requires them; programmatic custom units already cover ordinary project-specific scales.
 
-```php
-use jbboehr\Yumemi\Registry\UnitRegistry;
-use jbboehr\Yumemi\Units;
+### 5. Quantity Creation
 
-$registry = UnitRegistryBuilder::default()
-    ->define('widget = 12 * meter')
-    ->alias('widgets', 'widget')
-    ->build();
+Status: **Done for exact inputs** | Importance: **P0** | Remaining difficulty: **S**
 
-$units = new Units($registry);
-$units->quantity(1, 'widget')->valueIn('meter')->toString(); // "12"
-```
+`Units::quantity()` accepts `int` or `Rational` magnitudes, and `parseQuantity()` parses exact constants from complete
+quantity strings. Catalog scale remains in the symbolic unit unless the caller explicitly simplifies or converts.
 
-Still missing: user-defined base dimensions (new SI axes).
-
-Design questions:
-
-- Is the definition language the same as runtime unit expressions?
-- How do we represent base dimensions defined by users?
-- Are redefinitions rejected, ignored, or allowed with an explicit override mode?
-- Do aliases, plural aliases, and symbols share one namespace?
-- Should custom registries be immutable after construction?
-
-Recommendation: Implement this before a public release. It is essential for real applications and for PHPStan config.
-
-### 5. Quantity Creation API
-
-Status: Partial Importance: P0 Difficulty to finish: S/M
-
-Current API:
-
-```php
-$units = Units::default();
-$distance = $units->quantity(12, 'foot');
-```
-
-This is clear and PHP-appropriate. Pint's Python syntax can use `12 * ureg.foot`, but PHP operator overloading does not
-exist, so Yumemi should not try to mimic that directly.
-
-Remaining work:
-
-- Add convenient constructors for decimal strings once numeric policy is settled.
-- Decide whether floats are accepted directly or require explicit opt-in.
-- ~~Add `Units::parseQuantity('12 foot')` for user input.~~ **Done, including exact extraction of all explicit constants
-  and PHPStan inference for finite constant strings.**
-- Consider `Quantity::of(...)` only if it can avoid losing the `Units` context.
-
-Recommendation: Keep `Units::quantity()` as the primary constructor. It makes registry context explicit.
+Direct float construction is intentionally absent because it would undermine the exact input contract. Decimal strings
+can be represented through `Rational::fromDecimalString()` or parsed quantity expressions.
 
 ### 6. Quantity Arithmetic
 
-Status: Partial Importance: P0 Difficulty to finish: M
+Status: **Done for multiplicative quantities** | Importance: **P0** | Remaining difficulty: **M**
 
-Yumemi supports:
+Yumemi supports exact compatible-unit addition and subtraction, strict same-unit variants, multiplication, division,
+integer powers, negation, comparisons, symbolic cancellation, and context checks. Addition and subtraction convert the
+right operand into the left unit; multiplication and division preserve caller-selected symbolic units.
 
-- addition/subtraction with exact conversion of compatible right operands into the left unit
-- no-conversion addition/subtraction through `addWithSameUnit()` / `subWithSameUnit()`
-- multiplication/division by quantities
-- multiplication/division by integers and rationals
-- symbolic unit cancellation during multiplication/division
-- explicit context checks
-
-Like Pint, `add()` and `sub()` convert compatible operands and preserve the left-hand unit. Yumemi performs that
-conversion through its exact `Rational` engine. Callers that need to prohibit conversion can use the explicit same-unit
-variants.
-
-Remaining work:
-
-- Add comparisons: `eq`, `lt`, `lte`, `gt`, `gte`, `compareTo`.
-- Add unary negation and absolute value.
-- Decide scalar behavior for dimensionless quantities.
-- Decide whether numeric methods should accept `numeric-string`.
-
-Recommendation: Keep converting `add()` / `sub()` as the ergonomic default and retain explicit same-unit operations for
-scale-sensitive workflows.
+Absolute value, convenience predicates, and affine absolute-versus-delta arithmetic remain optional additions.
 
 ### 7. Explicit Conversion And Compatibility
 
-Status: Partial Importance: P0 Difficulty to finish: M
+Status: **Done** | Importance: **P0** | Remaining difficulty: **S/M**
 
-Yumemi computes value-independent conversion factors, converts exact and float values, checks compatibility, and
-converts `Quantity` instances to a multiplicative target. Exact affine conversion supports Celsius, Fahrenheit, and
-custom `@` definitions at explicit boundaries.
+The runtime provides exact factors, exact value conversion, float conversion, dimensional compatibility, quantity
+conversion, and native helpers. Explicit conversion supports exact affine scale-and-offset transforms; factor APIs
+reject offset-dependent conversions.
 
-Remaining work:
-
-- Cache parsed target expressions and normalized dimensions where it matters.
-- Extend affine support into quantities only after absolute-versus-delta semantics are designed.
-
-Recommendation: The explicit conversion boundary is usable. Keep affine arithmetic out of `Quantity` until delta units
-have an explicit model.
+Further work belongs to affine quantity semantics rather than the conversion boundary itself.
 
 ### 8. Normalization, Simplification, Base Units, And Root Units
 
-Status: Partial Importance: P1 Difficulty to finish: M/L
+Status: **Done for explicit definition substitution** | Importance: **P1** | Remaining difficulty: **M**
 
-Yumemi currently has:
+`normalize()` substitutes definitions without changing a quantity's stored magnitude. `simplify()` also folds resulting
+scale into the magnitude. Explicit `to()` conversion requests a caller-selected target. These semantics are documented
+and intentionally distinct.
 
-- `normalize()`: substitute unit definitions without changing the stored quantity value.
-- `simplify()`: substitute unit definitions and fold unit scale into the stored quantity value.
-
-Pint has several related operations:
-
-- `to_base_units()`
-- `to_root_units()`
-- `to_reduced_units()`
-- `to_preferred()`
-- `to_compact()`
-
-Yumemi's `simplify()` is closest to a root/base-unit conversion. It does not yet support preferred units, compact
-display, or named derived-unit output.
-
-Remaining work:
-
-- Decide names around "base", "root", "reduced", "normalized", and "simplified".
-- Add `toBaseUnits()` or `toRootUnits()` if the current `simplify()` name is not explicit enough.
-- Add preferred unit selection later.
-- Add compact prefix selection later.
-
-Recommendation: Keep current semantics, but document them precisely. Naming matters here because Pint users will expect
-specific distinctions.
+Pint's preferred-unit and compact-unit selection are separate absent features. Yumemi should not alias `simplify()` to a
+system-specific base-unit operation unless unit systems are designed first.
 
 ### 9. Dimensionality API
 
-Status: Partial/internal Importance: P0/P1 Difficulty to finish: M
+Status: **Done for SI dimensions** | Importance: **P0** | Remaining difficulty: **M/L**
 
-Yumemi can determine compatibility internally by normalizing units and comparing dimension expressions. It does not yet
-expose a clean public dimensionality object.
+`Dimension` exposes the seven SI axes, integer powers, arithmetic, equality, accessors, and deterministic strings.
+`Units`, `Quantity`, and resolved expressions expose dimensions publicly.
 
-Useful public API:
-
-```php
-$units->dimension('newton')->toString(); // mass * length / time^2, or equivalent canonical form
-$quantity->dimension();
-$units->sameDimension('meter', 'foot');
-```
-
-Design questions:
-
-- Should dimensions use base unit names like `meter`, `second`, `kilogram`, or abstract names like `[length]`?
-- UDUNITS2 data is unit-centered, while Pint has explicit dimension definitions.
-- Static analysis probably wants dimensions independent of display units.
-
-Recommendation: Add this before or during PHPStan MVP. Static diagnostics need good dimension rendering.
+The fixed vector cannot represent user-defined base dimensions and deliberately cannot distinguish semantic meanings
+that share physical axes, such as gray and sievert.
 
 ### 10. Numeric Types And Output Policy
 
-Status: Partial Importance: P1 Difficulty to finish: M
+Status: **Done for the exact core** | Importance: **P1** | Remaining difficulty: **M**
 
-Yumemi currently uses exact rational values, which is a strong choice for conversion correctness and deterministic
-tests. It avoids hidden float rounding in core logic.
+`Rational` supports exact integer and decimal construction, arithmetic, truncating and exact integer output, all PHP 8.4
+fixed-scale rounding modes, terminating-decimal output, and correctly rounded binary64 conversion with strict overflow
+and underflow handling. Quantity extraction converts to the requested unit first.
 
-What exists:
-
-- `Rational`
-- exact decimal-string parsing for unit constants
-- rational output strings
-- integer truncation with `toInt()`
-- exact integer conversion with `toIntExact()`
-
-Missing:
-
-- direct float inputs
-- decimal string quantity inputs
-- decimal output with precision/rounding modes
-- float output
-- policy for overflow/huge rationals
-- maybe integration with `brick/math`
-
-Recommendation: Keep rational as the core. Add opt-in output adapters:
-
-- `toFloat()`
-- `toDecimal(int $scale, RoundingMode $mode)`
-- `toInt()` with `intdiv()`-like truncation, already implemented
-- `toIntExact()`, already implemented
-
-Do not let floats become the internal representation.
+Significant-digit and scientific-notation formatting remain absent. Approximate decimal arithmetic should remain a
+separate explicit model rather than replacing rational storage.
 
 ### 11. Formatting And Display Units
 
-Status: Partial Importance: P1 Difficulty to finish: M/L
+Status: **Partial** | Importance: **P1** | Remaining difficulty: **M/L**
 
-Yumemi has a basic expression formatter and string methods. Pint has extensive formatting: plain, abbreviated, pretty,
-HTML, LaTeX, siunitx, localized output, and custom magnitude formatting.
+Formatting supports preserved, canonical, or symbol names; ASCII or Unicode typography; three dimensionless styles; and
+fraction or negative-power division. Unicode numeric output round-trips through the parser, and reusable formatters
+cache resolved names.
 
-Yumemi does not need all of that immediately, but it does need a deliberate display model.
-
-Likely near-term API:
-
-```php
-$quantity->format();
-$quantity->format(UnitFormat::symbols());
-$quantity->format(UnitFormat::canonical());
-$quantity->format(UnitFormat::ascii());
-```
-
-Things to decide:
-
-- canonical names vs symbols
-- ASCII vs Unicode output
-- whether constants in units should display separately from quantity values
-- whether derived units are preserved, expanded, or selected by preference
-- how dimensionless quantities render
-
-Recommendation: Build a small formatter now, not a Pint-sized formatter. Aim for stable plain text first.
+Pint additionally supports rich magnitude formatting, HTML, LaTeX, siunitx, localization, compact units, and broader
+presets. Yumemi should add those only as concrete output targets emerge.
 
 ### 12. Aliases, Prefixes, Plurals, Symbols, And Case Sensitivity
 
-Status: Partial Importance: P1 Difficulty to finish: M
+Status: **Done for the declared catalog** | Importance: **P1** | Remaining difficulty: **S/M**
 
-Yumemi currently resolves generated aliases, generated plurals, and prefixes through exact catalog records. Runtime
-lookup performs no plural morphology, which keeps the PHPStan trust boundary fail-closed.
+Generated aliases, explicit and generated plurals, symbols, and longest-prefix-first decomposition use exact catalog
+metadata. Exact names win before prefix decomposition, lookup remains case-sensitive, and introspection exposes
+canonical identity and spelling provenance.
 
-Remaining work:
-
-- Generated plural aliases from UDUNITS2 names are authoritative. **Done.**
-- Keep longest-prefix-first behavior.
-- Decide whether symbols are preferred for output.
-- Decide if lookup is case-sensitive by default.
-- Provide explicit canonicalization: `canonicalName('meters') -> meter`.
-
-Recommendation: Tighten this before calling the catalog "UDUNITS2-compatible" in public docs.
+The main remaining work is performance-oriented indexing, not unresolved lookup policy.
 
 ### 13. Offset And Affine Units
 
-Status: Partial (exact conversion core implemented) Importance: P1 Difficulty to finish: L/XL
+Status: **Partial: explicit conversion only** | Importance: **P1** | Remaining difficulty: **L/XL**
 
-This is the biggest runtime semantic gap for ordinary users. Celsius and Fahrenheit matter in everyday software, and
-Pint supports them with nonmultiplicative conversion rules and delta units.
+Yumemi exactly converts UDUNITS2 and custom affine definitions at explicit conversion boundaries. Compatibility and
+dimensions understand their reference axes, while expression algebra, quantities, prefixes, powers, and ordinary brands
+reject affine units.
 
-Why it is hard:
-
-- Affine conversion is not just multiplication by a scale factor.
-- `10 degC + 10 kelvin` is ambiguous unless kelvin is treated as a delta.
-- Multiplication and division involving offset units need restrictions.
-- Static analysis must distinguish absolute temperature from temperature difference.
-- Quantity and native branded-unit models currently assume multiplicative unit identity.
-
-Likely model:
-
-- Keep multiplicative units on the current `Expr` path. **Done.**
-- Resolve exact scale-and-offset transforms outside `Expr`. **Done for explicit conversion.**
-- Add delta units for temperature differences.
-- Reject ambiguous arithmetic by default.
-
-Recommendation: Preserve the current conversion-only boundary. The next affine phase should begin with delta-unit and
-absolute-temperature semantics, not by allowing offset units into existing multiplication or quantity arithmetic.
+The next phase requires explicit absolute-temperature and delta-temperature types. Allowing offset units directly into
+the multiplicative model would make addition and compound algebra ambiguous.
 
 ### 14. Logarithmic Units
 
-Status: Recognized but not evaluable Importance: P2/P3 Difficulty: XL
+Status: **Recognized but not evaluable** | Importance: **P3** | Remaining difficulty: **XL**
 
-Pint supports logarithmic units such as decibels, though its own docs present the feature carefully. Yumemi retains and
-identifies logarithmic UDUNITS2 definitions but deliberately rejects their evaluation.
+The catalog classifies logarithmic definitions and preserves their metadata for introspection and diagnostics. Runtime
+expression and conversion APIs reject evaluation with operation-specific exceptions.
 
-Why it is hard:
+Nonlinear conversion, reference values, compound behavior, and approximation policy make this unsuitable for the exact
+rational core until a real application justifies a separate model.
 
-- Conversions are nonlinear.
-- Composite logarithmic units have subtle semantics.
-- Static analysis can check dimensions, but value-level conversion needs special cases.
-- Rational arithmetic is not enough for logarithmic conversion.
+### 15. Pint Contexts
 
-Recommendation: Defer. It is not needed for a useful first version.
+Status: **Absent** | Importance: **P2** | Remaining difficulty: **XL**
 
-### 15. Contexts
+Pint contexts permit transformations that are not ordinarily dimensionally compatible, such as wavelength to frequency
+through the speed of light. Yumemi's `Units` object is a registry identity and must not be confused with this feature.
 
-Status: Absent Importance: P2 Difficulty: XL
-
-Pint contexts allow conversions that are dimensionally invalid under normal rules, such as wavelength to frequency via
-the speed of light. They can also be parameterized and scoped.
-
-This is powerful, but it cuts across Yumemi's static-analysis goal:
-
-- Runtime contexts can use arbitrary value transformations.
-- Static analysis can represent some context conversions by dimension graph edges.
-- Parameterized contexts make inference and diagnostics much harder.
-- Scoped contexts in PHP would need an API that does not rely on Python's `with` statement.
-
-Possible PHP shape:
-
-```php
-$units->withContext('spectroscopy', fn (Units $u) => $wavelength->to('hertz'));
-```
-
-Recommendation: Defer until after the static analyzer has ordinary dimensional checks. Contexts are useful, but they are
-not necessary for the first compelling version.
+Parameterized transformation graphs would complicate static inference and exactness. Defer them until an important
+workflow requires cross-dimensional conversion.
 
 ### 16. Unit Systems
 
-Status: Absent Importance: P2 Difficulty: L
+Status: **Absent** | Importance: **P2** | Remaining difficulty: **L**
 
-Pint has systems such as MKS, CGS, SI, US, and imperial. A system changes what "base units" or preferred reductions
-mean.
-
-Yumemi has the unit data to convert many of these units, but not the metadata to choose system-specific base/preferred
-units.
-
-Remaining work:
-
-- Define system metadata.
-- Decide how systems interact with UDUNITS2's root definitions.
-- Add `toSystem('si')`, `toBaseUnits(system: 'cgs')`, or similar.
-- Resolve name collisions like US pint vs imperial pint.
-
-Recommendation: Useful, but secondary. Preferred units are probably more valuable than full systems at first.
+The catalog contains units from several systems but no metadata describing MKS, CGS, SI, US, or imperial preferences.
+System-aware base-unit or preferred-unit conversion would require explicit system metadata and collision policy.
 
 ### 17. Preferred And Compact Units
 
-Status: Absent Importance: P2 Difficulty: M/L
+Status: **Absent** | Importance: **P2** | Remaining difficulty: **M/L**
 
-Pint can choose more readable units, such as turning a very large hertz value into terahertz. Yumemi does not currently
-do this.
-
-Needed pieces:
-
-- Unit metadata with preferred symbols/names.
-- Prefix selection.
-- Heuristics for magnitude ranges.
-- User-provided preference lists.
-
-Recommendation: Defer until formatting and custom registry composition exist.
+Yumemi never chooses a more readable target automatically. Prefix selection and preferred derived units require
+magnitude heuristics, user preferences, and system metadata. Explicit `to()` conversion remains predictable in the
+meantime.
 
 ### 18. Constants
 
-Status: Partial Importance: P2 Difficulty: M
+Status: **Partial** | Importance: **P2** | Remaining difficulty: **M**
 
-UDUNITS2 includes constants such as `pi`, `gravity`, and `avogadro_constant`. Yumemi imports many of them as units or
-dimensionless units with decimal definitions. Because Yumemi parses decimal definitions into rationals, constants become
-exact rational approximations of the catalog values.
+UDUNITS2 constants are available through the catalog as dimensionless definitions. Decimal source values become exact
+rationals representing the catalog's finite decimal, not symbolic irrational values.
 
-This is good for reproducibility, but users need to understand that `pi` is not symbolic or irrational. It is the exact
-rational represented by the catalog decimal string.
-
-Remaining work:
-
-- Decide whether constants are units, quantities, or both.
-- Expose constants intentionally instead of only as catalog entries.
-- Document exact-decimal approximation behavior.
-- Maybe allow symbolic constants later if formulas need them.
-
-Recommendation: Keep current behavior, document it, and avoid pretending constants are mathematically exact unless the
-catalog says they are exact.
+A dedicated constants API and symbolic constants are absent. Documentation must continue distinguishing an exact stored
+decimal approximation of pi from mathematical pi.
 
 ### 19. Comparisons, Equality, And Predicates
 
-Status: Partial Importance: P1 Difficulty: M
+Status: **Done for quantity ordering** | Importance: **P1** | Remaining difficulty: **S/M**
 
-Pint quantities can participate in many mathematical and comparison operations. PHP cannot overload operators, but
-Yumemi can still provide explicit methods.
+`Quantity` provides exact compatible-unit equality, three-way comparison, and all ordered predicates. Incompatible
+dimensions and registry contexts fail explicitly, and PHPStan diagnoses known invalid comparisons.
 
-Implemented API:
-
-```php
-$a->equals($b);
-$a->compareTo($b);
-$a->lessThan($b);
-$a->lessThanOrEqualTo($b);
-$a->greaterThan($b);
-$a->greaterThanOrEqualTo($b);
-```
-
-These methods convert compatible right operands exactly into the left unit. Incompatible dimensions throw, and the
-PHPStan extension reports them statically when both quantities are branded.
-
-Still useful later:
-
-```php
-$a->isCompatibleWith($b);
-$q->isDimensionless();
-$q->isZero();
-```
-
-Strict same-unit comparison variants remain deferred because comparisons do not produce a unit-bearing result.
+Convenience predicates such as `isZero()` or `isCompatibleWith()` may be useful. Strict same-unit comparison variants
+remain low value because comparisons do not produce a unit-bearing result.
 
 ### 20. Math Functions
 
-Status: Absent Importance: P2 Difficulty: L
+Status: **Partial** | Importance: **P2** | Remaining difficulty: **L**
 
-Pint integrates with many NumPy functions and enforces dimensional rules for functions like trig, sqrt, exp, and log. In
-PHP, the equivalent would be explicit methods or utility functions.
+Exact integer `pow()` exists for rational magnitudes, expressions, dimensions, quantities, and PHPStan inference.
+Rational roots, approximate real powers, trigonometric functions, logarithms, and exponentials are absent.
 
-Useful subset:
-
-- `sqrt()` for units with even powers
-- `pow(int $power)`
-- `reciprocal()`
-- dimensionless-only `sin`, `cos`, `tan`, `exp`, `log`
-
-Difficulty comes from fractional powers. Current `Power` exponents are integers, which is good for static analysis but
-restrictive for `sqrt(meter^2)`.
-
-Recommendation: Add integer `pow()` soon. Defer fractional powers and transcendental functions.
+An exact `root(int)` could succeed only when both the rational magnitude and normalized unit powers have exact roots.
+Approximate functions need a separate precision and rounding contract.
 
 ### 21. Static Analysis With PHPStan
 
-Status: Implemented core; integration polish remains Importance: P0 Difficulty: XL
+Status: **Done for the current core** | Importance: **P0** | Remaining difficulty: **M/L**
 
-> **Update 2026-07-25:** The **native `unit_int` / `unit_float`** static path is implemented: PHPDoc type resolution,
-> invalid-unit and standalone invalid-call diagnostics (`yumemi.invalidUnitCall`), operator inference (`+ - * / ** %`),
-> `unit()` / `unit_to()` dynamic return types, and assignment/parameter checks via the branded types' `accepts()`.
+Yumemi resolves `unit_int<'...'>`, `unit_float<'...'>`, and `Quantity<'...'>`; infers native and object arithmetic;
+validates construction, conversion, extraction, and comparisons; supports native conversion helpers; preserves finite
+literal-string unions; configures custom registries; and provides stable diagnostics.
 
-> **Update 2026-07-26:** The `Quantity<'…'>` object path is now implemented, including construction and fluent-method
-> inference. Addition/subtraction diagnostics mirror runtime behavior: `add()` / `sub()` accept compatible dimensions,
-> while `addWithSameUnit()` / `subWithSameUnit()` require normalized-equivalent units. `simplify()` inference is also
-> complete.
-
-> **Update 2026-07-27:** Custom PHPStan registries are configured through `UnitRegistryFactory` and participate in
-> result-cache invalidation. Native/`Quantity` bridges now validate branded construction and conversion targets, and
-> `intValueIn()` / `exactIntValueIn()` return target-branded `unit_int` values.
-
-This is Yumemi's main differentiator. Pint has Python typing for magnitude types, but it is not primarily a static
-dimensional analyzer. Yumemi should aim to make PHPDoc unit strings meaningful to PHPStan.
-
-MVP target:
-
-```php
-/** @var Quantity<'meter'> $distance */
-/** @var Quantity<'second'> $time */
-$speed = $distance->div($time);
-// inferred: Quantity<'meter / second'>
-```
-
-Must-have pieces:
-
-- Parse `Quantity<'...'>` PHPDoc generic strings.
-- Report invalid unit syntax and unknown unit names.
-- Infer `Units::quantity($value, 'meter')`.
-- Infer `Quantity::to('foot')`.
-- Infer `mul()` and `div()` unit expressions.
-- Check `add()` and `sub()` compatibility.
-- Keep runtime and static semantics shared.
-
-Likely PHPStan integration points:
-
-- custom type class for unit-bearing quantities
-- type node resolver extension for generic unit strings, if needed
-- dynamic method return type extensions
-- method type-specifying extensions or custom rules for diagnostics
-- optional config for registry data and strictness mode
-
-Main risks:
-
-- PHPStan's extension APIs are detailed and easy to misuse.
-- Literal-string inference matters. If unit strings are dynamic, diagnostics must degrade gracefully.
-- Static analysis cannot run arbitrary runtime code safely.
-- User-defined registries need a config story, not just runtime APIs.
-
-Recommendation: This should be the next major feature track. Start with static parsing and diagnostics, then return type
-inference, then arithmetic checks.
+Remaining work is integration breadth: selected casts, built-ins, third-party stubs, more precise diagnostics, and
+future advanced unit semantics. Dynamic strings intentionally fall back to unbranded types.
 
 ### 22. Function Boundary Checking
 
-Status: Absent Importance: P1/P2 Difficulty: M/L
+Status: **Done statically; runtime decorators absent** | Importance: **P1/P2** | Remaining difficulty: **M**
 
-Pint has runtime decorators such as `wraps()` to convert and check function arguments. PHP has a better opportunity:
-attributes plus PHPStan rules.
+Ordinary PHPDoc parameters and returns enforce branded native and generic quantity types through PHPStan. Optional
+`@yumemi-*` tags support extension-optional libraries, and standard PHPStan stubs support third-party APIs.
 
-Possible runtime/static design:
-
-```php
-#[UnitParam('meter')]
-#[UnitReturn('second')]
-function pendulumPeriod(Quantity $length): Quantity
-{
-    // ...
-}
-```
-
-Or PHPDoc-only:
-
-```php
-/**
- * @param Quantity<'meter'> $length
- * @return Quantity<'second'>
- */
-function pendulumPeriod(Quantity $length): Quantity
-{
-    // ...
-}
-```
-
-Recommendation: Prefer PHPDoc generics first. Attributes can be added later if they provide real ergonomics.
+Pint-style runtime decorators or PHP attributes that convert arguments are absent. They should be introduced only if
+static contracts and explicit runtime conversion prove insufficient.
 
 ### 23. Serialization
 
-Status: Absent Importance: P2 Difficulty: M
+Status: **Absent** | Importance: **P2** | Remaining difficulty: **M**
 
-Applications will eventually need to store quantities in JSON, databases, messages, and config files.
+There is no canonical JSON or persistence representation for `Quantity`. A design must choose whether to preserve
+symbolic display syntax, how to represent exact rationals, and how stored values identify custom registry versions.
 
-Reasonable JSON shape:
+### 24. Arrays, Collections, And Scientific Ecosystems
 
-```json
-{
-  "value": "355/113",
-  "unit": "meter / second"
-}
-```
+Status: **Partial through native brands** | Importance: **P3** | Remaining difficulty: **L/XL**
 
-Design questions:
+Branded native values remain ordinary scalars and therefore interoperate naturally with PHP arrays and ordinary APIs.
+Yumemi has no quantity-array type, vectorized conversion, or dedicated Scientific PHP integration.
 
-- Should serialized units preserve display syntax or canonicalize?
-- How do custom registry definitions version with stored data?
-- Are decimals stored as decimals or rationals?
-
-Recommendation: Add after the public quantity API stabilizes.
-
-### 24. Arrays, Collections, And Scientific-PHP Integration
-
-Status: Absent Importance: P3 Difficulty: L/XL
-
-Pint has major NumPy, xarray, Dask, and ecosystem integration. PHP does not have an equivalent dominant numerical array
-ecosystem.
-
-Possible PHP use cases:
-
-- arrays of `Quantity`
-- column metadata for tabular data
-- integration with math/statistics packages
-
-Recommendation: Do not chase Pint here. Add small helpers only when a real PHP use case appears.
+Targeted PHPStan extensions for real libraries are preferable to a speculative generic collection framework.
 
 ### 25. Measurements And Uncertainty
 
-Status: Absent Importance: P3 Difficulty: M/L
+Status: **Absent** | Importance: **P3** | Remaining difficulty: **M/L**
 
-Pint supports measurements with uncertainty. Yumemi does not.
-
-This can probably be a separate package or later layer:
-
-```php
-Measurement<Quantity<'meter'>>
-```
-
-Recommendation: Defer. It is not needed for dimensional analysis MVP.
+Uncertainty propagation is a distinct mathematical layer. It should be a separate package or value type composed with
+`Quantity`, not embedded in the unit engine.
 
 ### 26. Buckingham Pi Theorem
 
-Status: Absent Importance: P3 Difficulty: M/L
+Status: **Absent** | Importance: **P3** | Remaining difficulty: **M/L**
 
-Pint includes Buckingham Pi theorem helpers for dimensional analysis. This is mathematically related but not central to
-runtime conversion or PHPStan diagnostics.
-
-Recommendation: Defer indefinitely unless Yumemi grows a scientific-computing audience.
+The public `Dimension` model supplies useful prerequisites, but no Buckingham Pi helpers exist. Add them only if Yumemi
+develops a scientific-computing audience.
 
 ### 27. Currency
 
-Status: Absent Importance: P3 Difficulty: L
+Status: **Deliberately absent** | Importance: **P3** | Remaining difficulty: **L**
 
-Pint documents currency conversion as an advanced topic. Yumemi should avoid this in core because exchange rates are
-time-varying, jurisdictional, and application-specific.
-
-Recommendation: Keep currency out of core. A custom registry can support fixed contractual conversions if the user
-really needs them.
+Exchange rates are time-varying, jurisdictional, and application-specific. Currency should remain outside core. A custom
+registry can represent fixed contractual relationships where appropriate.
 
 ### 28. Localization
 
-Status: Absent Importance: P3 Difficulty: M/L
+Status: **Absent** | Importance: **P3** | Remaining difficulty: **M/L**
 
-Pint can localize formatted unit names with Babel. PHP has internationalization tooling, but this is not central to
-Yumemi's static-analysis goal.
-
-Recommendation: Defer. Make formatter internals extensible enough that localization can be added later.
+Formatting has no translated names, plural rules, or locale-aware number output. The formatter architecture can grow a
+localization layer later without making locale part of expression identity.
 
 ### 29. Performance And Caching
 
-Status: Partial Importance: P1 Difficulty: M
+Status: **Partial** | Importance: **P1** | Remaining difficulty: **M**
 
-Current performance is probably fine for tests and small runtime use, but PHPStan integration will stress the parser,
-normalizer, and registry repeatedly.
+Resolvers and formatters cache several name, definition, conversion, and semantic lookups, and registries are immutable
+after construction. Bulk catalog introspection still performs repeated grouping and sorting, expression operations
+reduce eagerly, and there is no benchmark suite.
 
-Likely needs:
+Optimize from measured workloads when PHPStan or runtime usage identifies a hot path. Catalog-build indexing remains a
+reasonable deferred optimization even without changing expression semantics.
 
-- parse cache by unit string
-- normalized expression cache
-- conversion factor cache
-- immutable registry snapshot
-- benchmark suite with common expressions and whole-catalog checks
+### 30. Error Messages And Developer Experience
 
-Recommendation: Add caches when PHPStan work begins. Static analysis will make performance problems obvious.
+Status: **Partial but strong** | Importance: **P1** | Remaining difficulty: **M**
 
-### 30. Error Messages And Developer UX
+Syntax errors include bounded caret excerpts and source spans. Runtime exceptions distinguish unknown units,
+incompatibility, unsupported syntax, affine factor misuse, logarithmic evaluation, context mismatch, and native range
+loss. PHPStan supplies stable identifiers and operation-specific diagnostics.
 
-Status: Partial Importance: P1 Difficulty: M
-
-Current exceptions exist, but user-facing diagnostics need more detail.
-
-Needed improvements:
-
-- Unknown unit messages with spelling suggestions.
-- Parse errors with source positions.
-- Incompatible unit errors showing source and target dimensions.
-- Unsupported syntax errors that explain whether the blocker is affine, logarithmic, addition, subtraction, or `@`.
-- PHPStan diagnostics that point at the exact PHPDoc or string literal.
-
-Recommendation: Treat this as part of the PHPStan MVP, not as later polish.
+Unknown-unit suggestions and source spans for post-parse semantic errors remain absent. Diagnostic identifiers may be
+split further only where users need more precise suppression.
 
 ### 31. Documentation And Examples
 
-Status: Partial Importance: P1 Difficulty: M
+Status: **Done for the current public surface** | Importance: **P1** | Remaining difficulty: **S/M**
 
-The README examples are executable tests, which is good. Documentation now needs to separate current behavior from
-future intent.
+The root README is a concise landing page, and mdBook contains focused concept, PHPStan, syntax, runtime, and catalog
+guides. Public PHP examples execute under PHPUnit, PHPStan-relevant examples verify expected diagnostics, and mdBook is
+built through Composer and Make.
 
-Potential docs:
-
-- runtime quickstart
-- unit syntax reference
-- registry/custom units guide
-- generated catalog regeneration guide
-- numeric precision guide
-- PHPStan setup guide
-- unsupported units and semantics page
-
-Recommendation: Keep README small. Put deeper material in `docs/`.
+Documentation must continue to evolve with behavior, but the missing infrastructure and organization from the original
+comparison are now present.
 
 ### 32. Packaging, CI, And Release Hygiene
 
-Status: Partial Importance: P0/P1 Difficulty: M
+Status: **Done for development; release automation absent** | Importance: **P0/P1** | Remaining difficulty: **M**
 
-The project has Composer, Nix, treefmt, pre-commit hooks, PHP-CS-Fixer, PHPStan, PHPUnit, and GitHub Actions. That is a
-good base.
+Composer, Nix, treefmt, pre-commit hooks, PHP-CS-Fixer, PHPStan, PHPUnit, generated artifacts, GitHub Actions, and
+Infection with enforced mutation-score floors are configured. Catalog and parser regeneration are documented.
 
-Remaining work:
-
-- Decide whether Composer metadata currently overpromises static-analysis support before the extension exists.
-- Add release workflow later.
-- Extend mutation testing to the PHPStan adapter only after its process-global test harness can support it reliably.
-- Add lowest-dependency and highest-dependency Composer CI jobs eventually.
-- Verify generated parser/catalog regeneration in CI or document it as a maintainer task.
-
-Recommendation: Keep the current setup. Do not spend more time here until feature work needs it.
+The project still lacks a tagged release and release workflow. Lowest- and highest-dependency jobs may be useful after
+the first release establishes a compatibility promise.
 
 ## Parity Matrix
 
-| Feature                        | Yumemi status    | Importance | Difficulty | Priority          |
-| ------------------------------ | ---------------- | ---------- | ---------- | ----------------- |
-| Expression model and reduction | Partial          | P0         | M          | Now               |
-| Parser                         | Partial          | P0         | M          | Now               |
-| Default catalog                | Partial          | P0         | M          | Now               |
-| Custom unit definitions        | Absent           | P0/P1      | M/L        | Soon              |
-| Quantity creation              | Partial          | P0         | S/M        | Now               |
-| Quantity arithmetic            | Partial          | P0         | M          | Now               |
-| Explicit conversion            | Implemented      | P0         | S          | Maintain          |
-| Dimensionality API             | Internal/partial | P0/P1      | M          | Soon              |
-| Numeric output policies        | Partial          | P1         | M          | Soon              |
-| Formatting                     | Partial          | P1         | M/L        | Soon              |
-| Prefix/plural/symbol semantics | Partial          | P1         | M          | Soon              |
-| Offset temperature units       | Conversion only  | P1         | L/XL       | Later             |
-| Logarithmic units              | Absent           | P2/P3      | XL         | Defer             |
-| Contexts                       | Absent           | P2         | XL         | Defer             |
-| Unit systems                   | Absent           | P2         | L          | Later             |
-| Preferred/compact units        | Absent           | P2         | M/L        | Later             |
-| Constants                      | Partial          | P2         | M          | Later             |
-| Comparisons/predicates         | Partial          | P1         | M          | Soon              |
-| Math functions                 | Absent           | P2         | L          | Later             |
-| PHPStan unit types             | Partial (native) | P0         | XL         | Now               |
-| Function boundary checking     | Absent           | P1/P2      | M/L        | After PHPStan MVP |
-| Serialization                  | Absent           | P2         | M          | Later             |
-| Arrays/scientific ecosystem    | Absent           | P3         | L/XL       | Defer             |
-| Measurements/uncertainty       | Absent           | P3         | M/L        | Defer             |
-| Buckingham Pi theorem          | Absent           | P3         | M/L        | Defer             |
-| Currency                       | Absent           | P3         | L          | Avoid core        |
-| Localization                   | Absent           | P3         | M/L        | Defer             |
-| Performance/caching            | Partial          | P1         | M          | During PHPStan    |
-| Error messages                 | Partial          | P1         | M          | Soon              |
-| Documentation                  | Partial          | P1         | M          | Ongoing           |
-| Packaging/CI                   | Partial          | P0/P1      | M          | Ongoing           |
-
-## Recommended Roadmap
-
-### Milestone 1: Runtime Core Hardening
-
-Goal: make scalar multiplicative units boringly reliable.
-
-Work:
-
-- Add a dimensionality API.
-- Add expression equality helpers.
-- Improve incompatible-unit and parse errors.
-- Tighten plural/alias/canonical-name behavior.
-- ~~Add public comparison methods.~~ **Done for exact, dimension-compatible quantity comparisons.**
-- Add minimal formatter options.
-- Decide numeric input/output policy.
-
-This is mostly P0/P1 work and should happen before broad PHPStan inference.
-
-### Milestone 2: Custom Registry And Definitions
-
-Goal: allow real projects to use project-specific units.
-
-Work:
-
-- Add a registry builder or immutable registry composition layer.
-- Add programmatic `define()` and `alias()` APIs.
-- Consider a definition-file parser, likely reusing the unit expression parser.
-- Add config shape that PHPStan can consume without executing arbitrary app code.
-
-This should be done before claiming the library is generally useful outside canned UDUNITS2 conversions.
-
-### Milestone 3: PHPStan MVP
-
-Goal: make `Quantity<'meter / second'>` meaningful.
-
-Work:
-
-- ~~Parse PHPDoc unit generics.~~ **Done for native `unit_int` / `unit_float` and `Quantity<…>`.**
-- ~~Diagnose invalid unit strings and unknown units.~~ **Done** (incl. standalone invalid-call diagnostics).
-- ~~Infer `Units::quantity()`.~~ **Done, including finite literal target unions.**
-- ~~Infer `Quantity::to()`, `mul()`, `div()`, `normalize()`, and `simplify()`.~~ **Done; explicit finite targets also
-  brand results from otherwise unbranded quantities.**
-- ~~Check `add()` and `sub()`.~~ **Done for native types and the `Quantity` object path.**
-- Decide strict exact-unit vs dimension-compatible modes. **Exact done; dimension mode + config pending.**
-
-This is the project's main differentiator and should take priority over Pint-style convenience features.
-
-> **Update 2026-07-25:** The native-type half of this milestone is delivered; the runtime `Quantity<…>` object generic +
-> method inference and the dimension-mode config are what's left.
-
-### Milestone 4: Runtime API Polish
-
-Goal: make the runtime feel pleasant enough that the static analyzer has a good companion library.
-
-Work:
-
-- ~~Add quantity parsing from strings.~~ **Done.**
-- Add JSON serialization helpers.
-- Add better format presets.
-- Add `toBaseUnits()` or rename/alias `simplify()` if needed.
-- Add preferred unit lists only if there is a real use case.
-
-### Milestone 5: Advanced Semantics
-
-Goal: cover important nonmultiplicative real-world cases without destabilizing the core.
-
-Work:
-
-- Delta temperatures and affine quantity arithmetic; explicit offset conversion is implemented.
-- Unit systems.
-- Contexts, if still desired.
-- Logarithmic units only after affine units are solved.
-
-This is where Pint's feature set becomes expensive. Avoid pulling this milestone forward unless a user workflow demands
-it.
+| Feature                          | Yumemi status                      | Importance | Remaining difficulty |
+| -------------------------------- | ---------------------------------- | ---------- | -------------------- |
+| Expression model and reduction   | Done                               | P0         | S                    |
+| Parser                           | Done for documented grammar        | P0         | M                    |
+| Default catalog                  | Done                               | P0         | S/M                  |
+| Custom unit definitions          | Partial                            | P1         | M/L                  |
+| Quantity creation                | Done for exact inputs              | P0         | S                    |
+| Quantity arithmetic              | Done for multiplicative quantities | P0         | M                    |
+| Explicit conversion              | Done                               | P0         | S/M                  |
+| Normalization and simplification | Done                               | P1         | M                    |
+| Dimensionality API               | Done for SI dimensions             | P0         | M/L                  |
+| Numeric output                   | Done for exact core                | P1         | M                    |
+| Formatting                       | Partial                            | P1         | M/L                  |
+| Names, prefixes, and plurals     | Done                               | P1         | S/M                  |
+| Affine units                     | Conversion only                    | P1         | L/XL                 |
+| Logarithmic units                | Recognized, not evaluable          | P3         | XL                   |
+| Pint contexts                    | Absent                             | P2         | XL                   |
+| Unit systems                     | Absent                             | P2         | L                    |
+| Preferred and compact units      | Absent                             | P2         | M/L                  |
+| Constants                        | Partial                            | P2         | M                    |
+| Comparisons                      | Done for quantities                | P1         | S/M                  |
+| Math functions                   | Integer powers only                | P2         | L                    |
+| PHPStan                          | Done for current core              | P0         | M/L                  |
+| Function boundaries              | Static contracts only              | P1/P2      | M                    |
+| Serialization                    | Absent                             | P2         | M                    |
+| Collections and ecosystems       | Native-brand interoperability only | P3         | L/XL                 |
+| Measurements and uncertainty     | Absent                             | P3         | M/L                  |
+| Buckingham Pi theorem            | Absent                             | P3         | M/L                  |
+| Currency                         | Deliberately absent                | P3         | L                    |
+| Localization                     | Absent                             | P3         | M/L                  |
+| Performance and caching          | Partial                            | P1         | M                    |
+| Errors and developer UX          | Partial but strong                 | P1         | M                    |
+| Documentation                    | Done for current surface           | P1         | S/M                  |
+| Packaging and CI                 | Done except release automation     | P0/P1      | M                    |
 
 ## Strategic Conclusions
 
-Do not restart from scratch. The current code has the right core shape:
+Yumemi should continue to optimize for shared runtime and static semantics rather than headline parity with Pint. Its
+strongest choices remain string unit expressions, generated catalog data, exact rational conversion, explicit registry
+contexts, and native PHPStan brands alongside exact quantity objects.
 
-- string units instead of one class per unit
-- generated catalog instead of hand-written definitions
-- exact rational core instead of float-first conversion
-- shared runtime machinery intended for PHPStan
-- explicit registry context via `Units`
+The highest-value Pint gaps are those that improve ordinary PHP workflows: selected serialization, better formatting,
+delta-temperature semantics, and integrations proven by actual applications. Contexts, nonlinear units, uncertainty, and
+scientific-array features should remain independent decisions rather than a presumed route to parity.
 
-The parts to change are mostly API boundaries and missing layers, not the underlying strategy.
-
-Do not chase full Pint parity as the product goal. Pint parity is too broad and too Python-specific. Yumemi should
-instead target:
-
-1. A reliable scalar multiplicative runtime.
-2. Strong PHPStan diagnostics and inference.
-3. Enough runtime ergonomics that users can adopt the static analysis without resenting the companion API.
-
-If Yumemi gets those right, it can be meaningfully useful long before it supports every advanced Pint feature.
+See [planning.md](planning.md) for the current ordering of work.
