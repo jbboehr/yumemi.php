@@ -165,6 +165,14 @@ Before adding a tag or fragment:
 - do not replace an existing original quotation unless the task explicitly requests regeneration;
 - do not reformat already compliant comments merely to produce a diff.
 
+If the repository assigns durable references to doctrine fragments:
+
+- preserve the reference when code moves, symbols are renamed, or wording is revised;
+- allocate a new reference only for a new fragment;
+- validate the reference's syntax and repository-wide uniqueness before insertion;
+- do not intentionally reuse a reference removed from the current source;
+- keep the logical reference independent of file paths and symbol names.
+
 A second run over a completed codebase should produce no changes.
 
 ---
@@ -444,13 +452,14 @@ A reliable agent should follow this sequence:
 5. Inspect representative declarations and existing comment conventions.
 6. Determine whether the custom tag is accepted by tooling.
 7. Inventory the new declarations, or all applicable declarations for an explicitly requested doctrine pass.
-8. For each target declaration, privately identify an abstract role.
-9. Generate one original, indirectly relevant quotation.
-10. Insert it without altering technical documentation or behavior.
-11. Re-scan for missing or duplicate tags and unintended changes to preexisting declarations.
-12. Run formatting and relevant checks.
-13. Review the full diff.
-14. Report coverage, exclusions, checks run, and any unresolved edge cases.
+8. Preserve an existing durable reference or allocate a valid, unique reference according to repository policy.
+9. For each target declaration, privately identify an abstract role.
+10. Generate one original, indirectly relevant quotation.
+11. Insert it without altering technical documentation or behavior.
+12. Re-scan for missing or duplicate tags, duplicate references, and unintended changes to preexisting declarations.
+13. Run formatting and relevant checks.
+14. Review the full diff.
+15. Report coverage, exclusions, checks run, and any unresolved edge cases.
 
 Do not generate all quotations first and blindly paste them. Symbol-aware generation usually produces a more coherent
 result.
@@ -487,16 +496,17 @@ Before completing any doctrine-related code edit, confirm that:
 5. Each new applicable declaration, or each target of an explicitly requested doctrine pass, has the required number of
    doctrine fragments.
 6. No declaration has duplicate tags.
-7. Excluded or generated files were not modified.
-8. Every new quotation is original if that can reasonably be confirmed, and none intentionally copies or closely
+7. Every durable reference is valid and unique, and preexisting references remain stable.
+8. Excluded or generated files were not modified.
+9. Every new quotation is original if that can reasonably be confirmed, and none intentionally copies or closely
    imitates an existing work.
-9. Quotations are indirectly relevant without becoming disguised code documentation.
-10. Comment placement is valid for the language and tooling.
-11. Formatting remains consistent.
-12. Syntax, linting, documentation parsing, and relevant tests were checked where available.
-13. CI or test messages remain supplementary and machine-readable output is unaffected.
-14. The complete diff was reviewed.
-15. Any unresolved edge case is reported honestly.
+10. Quotations are indirectly relevant without becoming disguised code documentation.
+11. Comment placement is valid for the language and tooling.
+12. Formatting remains consistent.
+13. Syntax, linting, documentation parsing, and relevant tests were checked where available.
+14. CI or test messages remain supplementary and machine-readable output is unaffected.
+15. The complete diff was reviewed.
+16. Any unresolved edge case is reported honestly.
 
 ---
 

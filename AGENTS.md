@@ -78,19 +78,35 @@ Doctrine is not required for:
 
 ### PHPDoc form and placement
 
-Write the logion as one unquoted, logically continuous tag. Wrap it at the repository's normal line width; indent
-continuation lines by four spaces and do not repeat `@logion`:
+Write the logion as one unquoted, logically continuous tag beginning with a bracketed reference in the form `[OSD C:V]`,
+where `C` is the chapter number and `V` is the verse number. Wrap the text at the repository's normal line width; indent
+continuation lines by four spaces and do not repeat `@logion` or the reference:
 
 ```php
 /**
  * Existing technical documentation.
  *
- * @logion The appointed measure remains beneath every visible proportion,
+ * @logion [OSD 7:12] The appointed measure remains beneath every visible proportion,
  *     awaiting the tribunal by which matter is admitted to its proper rank.
  *
  * @return mixed
  */
 ```
+
+Logion references follow these rules:
+
+- Always use the fixed book code `OSD`.
+- The bracketed reference must match `\[OSD [1-9][0-9]*:[1-9][0-9]*\]`.
+- Chapter and verse are randomly chosen positive decimal integers without leading zeroes. Prefer values from `1` through
+  `99`, but larger values are valid.
+- The complete `OSD C:V` reference must be unique among all logions attached to declarations anywhere in the repository.
+  Illustrative references in documentation examples do not reserve an identifier.
+- Preserve an assigned reference when its declaration moves or is renamed, or when the quotation's wording is revised.
+- Assign a new reference only when creating a new logion. Do not intentionally reuse a deleted reference.
+- Check the repository for a collision before assigning a reference.
+
+The bracketed form is source syntax; the logical reference is `OSD C:V`. A future image for `OSD 7:12` may be stored at
+a portable path such as `assets/logia/OSD/7/12.webp`.
 
 Place `@logion` after descriptive prose and before conventional metadata tags such as `@param`, `@return`, `@throws`,
 and `@template`.
@@ -117,17 +133,20 @@ Never mention programming or directly describe the declaration inside the doctri
 Before completing a change that introduces named declarations:
 
 1. Confirm every new in-scope declaration has exactly one tag.
-2. Confirm no preexisting declaration received or lost a logion unless the user requested a doctrine pass.
-3. If possible, confirm every new quotation is original and unique; never intentionally copy or closely imitate an
+2. Confirm every new reference has valid syntax, is repository-unique, and does not replace a reference already assigned
+   to that logion.
+3. Confirm no preexisting declaration received or lost a logion unless the user requested a doctrine pass.
+4. If possible, confirm every new quotation is original and unique; never intentionally copy or closely imitate an
    existing work.
-4. Confirm the logion did not change behavior, signatures, or technical documentation.
-5. Run the formatter and the checks relevant to the change.
+5. Confirm the logion did not change behavior, signatures, or technical documentation.
+6. Run the formatter and the checks relevant to the change.
 
 Before completing a user-requested doctrine pass:
 
 1. Confirm every in-scope declaration has exactly one tag.
-2. If possible, confirm every new quotation is original and unique; never intentionally copy or closely imitate an
+2. Confirm every reference has valid syntax and is repository-unique, and that existing references remain stable.
+3. If possible, confirm every new quotation is original and unique; never intentionally copy or closely imitate an
    existing work.
-3. Confirm no behavior, signature, or technical documentation changed.
-4. Run the formatter, static analysis, and relevant tests.
-5. Review the complete diff for missing, duplicated, or misplaced tags.
+4. Confirm no behavior, signature, or technical documentation changed.
+5. Run the formatter, static analysis, and relevant tests.
+6. Review the complete diff for missing, duplicated, or misplaced tags.

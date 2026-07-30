@@ -489,7 +489,8 @@ Do not:
 
 - fabricate quotations from scripture;
 - imitate a recognizable biblical passage too closely;
-- attach fake chapter-and-verse references;
+- fabricate references to real scripture or other authorities; the repository-assigned `OSD C:V` logion reference is
+  permitted because it identifies the fictional doctrine corpus;
 - attribute invented sayings to saints or theologians;
 - parody the Beatitudes;
 - use Christianity merely for shock value;
