@@ -11,6 +11,24 @@
             { id: "static-analysis", title: "Static Analysis" },
             { id: "runtime-conversion", title: "Runtime Conversion" },
         ],
+        "reference/phpstan.html": [
+            {
+                id: "branded-native-types",
+                title: "Branded Native Types",
+                children: [
+                    {
+                        id: "definitional-equivalence-and-compatibility",
+                        title: "Definitional Equivalence And Compatibility",
+                    },
+                ],
+            },
+            { id: "native-operators", title: "Native Operators" },
+            { id: "boundary-helpers", title: "Boundary Helpers" },
+            { id: "quantity-types", title: "Quantity Types" },
+            { id: "registry-configuration", title: "Registry Configuration" },
+            { id: "extension-optional-annotations", title: "Extension-Optional Annotations" },
+            { id: "diagnostics-and-limitations", title: "Diagnostics And Limitations" },
+        ],
         "reference/unit-syntax.html": [
             { id: "supported-expressions", title: "Supported Expressions" },
             { id: "unit-names", title: "Unit Names" },

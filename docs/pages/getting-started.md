@@ -68,5 +68,5 @@ assert($length->exactDecimalValueIn('kilometer') === '1.609344');
 assert($length->unitToString() === 'kilometer');
 ```
 
-Continue with the [unit syntax](reference/unit-syntax.md) and [runtime API](reference/runtime.md) references. The root
-[README](https://github.com/jbboehr/yumemi.php#readme) contains the complete PHPStan feature overview and more examples.
+Continue with the [PHPStan](reference/phpstan.md), [unit syntax](reference/unit-syntax.md), and
+[runtime API](reference/runtime.md) references.

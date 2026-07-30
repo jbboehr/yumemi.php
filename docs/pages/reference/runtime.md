@@ -183,6 +183,27 @@ compatible right operand exactly before comparing. Incompatible dimensions throw
 Do not use PHP's object comparison operators as unit-aware comparisons. They compare PHP object state rather than
 Yumemi's conversion semantics.
 
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+use jbboehr\Yumemi\Units;
+
+$units = Units::default();
+$meter = $units->quantity(1, 'meter');
+
+assert($meter->equals($units->quantity(100, 'centimeter')));
+assert($meter->greaterThan($units->quantity(3, 'foot')));
+assert($meter->lessThan($units->quantity(4, 'foot')));
+assert($meter->compareTo($units->quantity(1000, 'millimeter')) === 0);
+
+$rate = $units->quantity(2, 'centimeter / second')->div($units->quantity(3, 'foot'));
+
+assert($rate->toString() === '2/3 * centimeter / (foot * second)');
+assert($rate->valueIn('1 / second')->toString() === '25/1143');
+```
+
 ## Normalization And Simplification
 
 `normalize()` and `simplify()` deliberately have different value behavior:
@@ -223,6 +244,21 @@ Exact `Rational` values can be extracted after conversion:
 
 PHP 8.2 and 8.3 receive the PHP 8.4 `RoundingMode` enum through `symfony/polyfill-php84`.
 
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+use jbboehr\Yumemi\Units;
+
+$length = Units::default()->quantity(1, 'foot');
+
+assert($length->intValueIn('meter') === 0);
+assert($length->exactDecimalValueIn('meter') === '0.3048');
+assert($length->decimalValueIn('meter', 2, \RoundingMode::HalfEven) === '0.30');
+assert($length->floatValueIn('meter') === 0.3048);
+```
+
 ## Dimensions
 
 `Units::dimension()`, `Quantity::dimension()`, and resolved expressions expose a `Dimension` containing seven integer
@@ -240,16 +276,53 @@ dimension, such as gray and sievert.
 
 `Units::format()`, `Quantity::format()`, and `Quantity::formatUnit()` accept immutable `FormatOptions`. Options control:
 
-- preserved, canonical, or symbol unit names;
-- ASCII or Unicode typography;
-- numeric, word, or empty dimensionless output;
-- fraction or negative-power division layout.
+- `UnitNameStyle::Preserve`, `Canonical`, or `Symbol` unit names;
+- `Typography::Ascii` or `Unicode` operators and powers;
+- `DimensionlessStyle::One`, `Word`, or `Empty` output;
+- `DivisionStyle::Fraction` or `NegativePowers` layout.
 
 Formatting changes presentation only. It does not normalize derived definitions, convert magnitudes, or choose compact
 units. `Units::formatter()` returns a reusable formatter for repeated calls with the same options.
 
 The default format preserves supplied names, uses parser-compatible ASCII, renders dimensionless expressions as `1`, and
 uses fraction layout. Unicode output with numeric dimensionless style is also parser-compatible.
+
+Options may be constructed with named arguments or an immutable `create()->with...()` chain:
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+use jbboehr\Yumemi\Formatter\DivisionStyle;
+use jbboehr\Yumemi\Formatter\FormatOptions;
+use jbboehr\Yumemi\Formatter\Typography;
+use jbboehr\Yumemi\Formatter\UnitNameStyle;
+use jbboehr\Yumemi\Units;
+
+$units = Units::default();
+$options = FormatOptions::create()
+    ->withUnitNameStyle(UnitNameStyle::Symbol)
+    ->withTypography(Typography::Unicode)
+    ->withDivisionStyle(DivisionStyle::NegativePowers);
+
+assert($units->format('kilometers / second^2', $options) === 'km · s⁻²');
+assert($units->quantity(3, 'kilometers / second^2')->formatUnit($options) === 'km · s⁻²');
+```
+
+`Preserve` keeps the names supplied by the caller. `Canonical` resolves aliases, generated plurals, and one dynamic
+prefix to canonical names. `Symbol` selects the shortest deterministic catalog symbol; ASCII falls back to a canonical
+name when only Unicode symbols exist. Unknown expression leaves are preserved.
+
+Unicode typography emits `·` and superscript integer powers. The parser accepts those forms, so Unicode output remains
+round-trippable when the dimensionless style is `One`. `Word` and `Empty` are presentation-only.
+
+`NegativePowers` moves denominator units to negative powers without rewriting exact rational coefficients. For example,
+`1/2 * meter / second` becomes `1/2 * meter * second ^ -1` in ASCII. The default `Fraction` style retains the
+denominator.
+
+`Units::format()` parses string input symbolically before rendering, whereas an `Expr` returned by `Units::parse()` has
+already been catalog-resolved. Formatting never recovers source spelling that has already been resolved away.
 
 ## String Forms
 

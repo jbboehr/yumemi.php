@@ -139,8 +139,8 @@ Already implemented:
   - addition
   - subtraction
   - `@`
-- Focused user references for unit syntax, runtime guarantees, catalog behavior, and deterministic regeneration;
-  executable PHP blocks and PHPStan-relevant examples are verified in-process
+- Focused public references for PHPStan types and configuration, unit syntax, runtime guarantees, catalog behavior, and
+  deterministic regeneration; executable PHP blocks and PHPStan-relevant examples are verified in-process
 - Runtime `Quantity` value object:
   - explicit `Units` context
   - exact `Rational` value storage
@@ -480,8 +480,8 @@ semantics are stable enough that formula strings can share the same runtime/stat
 
 ## Remaining Issues And Deferred Work
 
-The multiplicative runtime and the PHPStan native/Quantity paths are usable. Remaining work is mostly release-facing
-documentation, API polish, catalog semantics beyond multiplication, and explicitly deferred advanced features.
+The multiplicative runtime and the PHPStan native/Quantity paths are usable. Remaining work is mostly documentation
+expansion and polish, API polish, catalog semantics beyond multiplication, and explicitly deferred advanced features.
 
 ### Pre-Release Checklist
 
