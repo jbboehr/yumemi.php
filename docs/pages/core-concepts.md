@@ -1,28 +1,31 @@
 # Core Concepts
 
-Yumemi exposes two representations over the same unit engine. Branded native values preserve ordinary PHP scalars, while
-`Quantity` provides exact rational arithmetic and a unit-aware object API.
+Yumemi exposes two representations over the same unit engine. Use native values when existing PHP numbers primarily need
+PHPStan protection. Use `Quantity` when the program must retain a unit, perform conversions, or preserve exact
+fractions.
 
 The examples below assume the Composer autoloader has already been loaded as shown in
 [Getting Started](getting-started.md).
 
-## Choosing A Magnitude Model
+## Choose An API
 
-| Representation                          | Best suited to                                                     | Tradeoff                                                     |
-| --------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------------------ |
-| `unit_int<'...'>` / `unit_float<'...'>` | Existing PHP APIs, ordinary operators, and low-overhead arithmetic | Precision and runtime unit identity remain those of a scalar |
-| `Quantity<'...'>`                       | Exact conversion, arithmetic, comparison, and formatting           | Uses an object wrapper and exact-rational machinery          |
+| Need                                                              | Use                                     |
+| ----------------------------------------------------------------- | --------------------------------------- |
+| Add unit checking to existing PHP numbers and operators           | `unit_int<'...'>` / `unit_float<'...'>` |
+| Perform exact conversion or unit-aware runtime arithmetic         | `Quantity<'...'>`                       |
+| Convert at an application boundary and return a native number     | `unit_to()`                             |
+| Compute a native conversion factor whose static units will cancel | `unit_factor()`                         |
 
-Branded values fit naturally into existing signatures, arrays, frameworks, serialization, and numerical code. Their
-runtime values remain ordinary `int` or `float` values; PHPStan carries the additional unit information. Conversion is
-explicit through `unit_factor()` or `unit_to()`.
+A branded native value is an ordinary PHP `int` or `float`; the unit exists only in PHPStan. Branded values therefore
+fit naturally into existing signatures, arrays, frameworks, serialization, and numerical code, with normal scalar
+precision. Conversion is explicit through `unit_factor()` or `unit_to()`.
 
 `Quantity` is the ergonomic precision path. Use it when results such as `1/3` must remain exact, rounding must be
 deferred, or compatible-unit operations should be expressed through one runtime object.
 
 Both paths use the same parser, catalog, dimensions, and conversion semantics, but they are not equivalent interfaces.
-Native operators must remain sound without changing either operand, while `Quantity` methods can perform exact runtime
-conversion.
+PHP cannot make native `1 meter + 1 foot` produce a correct number without converting one operand. Yumemi therefore
+rejects that branded-native addition. `Quantity::add()` performs the conversion at runtime and accepts the same pair.
 
 ```php
 <?php
@@ -34,12 +37,12 @@ use function jbboehr\Yumemi\unit;
 use function jbboehr\Yumemi\unit_factor;
 
 /** @param unit_float<'kilometer / hour'> $speed */
-function recordConceptSpeed(float $speed): void {}
+function sendVehicleSpeed(float $speed): void {}
 
 $nativeSpeed = unit(100.0, 'meter') / unit(10.0, 'second');
 $nativeKilometersPerHour = $nativeSpeed * unit_factor('meter / second', 'kilometer / hour');
 
-recordConceptSpeed($nativeKilometersPerHour);
+sendVehicleSpeed($nativeKilometersPerHour);
 assert(abs($nativeKilometersPerHour - 36.0) < 1e-12);
 
 $units = Units::default();
@@ -52,7 +55,7 @@ assert($exactSpeed->valueIn('kilometer / hour')->toString() === '36');
 See the [PHPStan reference](reference/phpstan.md) for branded-native behavior and the
 [runtime reference](reference/runtime.md) for exact quantities.
 
-## Choosing An Operation
+## Choose An Operation
 
 | Goal                                                     | Operation                                            |
 | -------------------------------------------------------- | ---------------------------------------------------- |

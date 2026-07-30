@@ -4,7 +4,21 @@ Yumemi's runtime API provides exact unit conversion and quantity arithmetic. `Ra
 type; conversion to native integers, decimals, or floats is always explicit.
 
 See the [unit syntax reference](unit-syntax.md) for accepted expressions and the [catalog reference](catalog.md) for
-default units, custom registries, and catalog regeneration.
+default units and custom registries.
+
+## Common Tasks
+
+| I need to...                       | Use                                    |
+| ---------------------------------- | -------------------------------------- |
+| Construct an exact quantity        | `Units::quantity()`                    |
+| Parse a value and unit together    | `Units::parseQuantity()`               |
+| Convert a quantity                 | `Quantity::to()`                       |
+| Obtain only the converted value    | `Quantity::valueIn()`                  |
+| Convert a native scalar            | `unit_to()`                            |
+| Add compatible quantities          | `Quantity::add()`                      |
+| Reject implicit unit conversion    | `Quantity::addWithSameUnit()`          |
+| Produce a decimal for display      | `Quantity::decimalValueIn()`           |
+| Select symbols or Unicode notation | `FormatOptions` and formatting methods |
 
 ## Contexts And Construction
 
@@ -19,8 +33,6 @@ Create quantities through the context:
 
 ```php
 <?php
-
-require 'vendor/autoload.php';
 
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Units;
@@ -38,8 +50,6 @@ Quantity strings use the same expression grammar:
 
 ```php
 <?php
-
-require 'vendor/autoload.php';
 
 use jbboehr\Yumemi\Units;
 
@@ -82,8 +92,6 @@ target unit divided by the source unit, so ordinary multiplication cancels the s
 ```php
 <?php
 
-require 'vendor/autoload.php';
-
 use function jbboehr\Yumemi\unit;
 use function jbboehr\Yumemi\unit_factor;
 
@@ -104,8 +112,6 @@ maps each coordinate into canonical base units as `scale * value + offset`; deci
 
 ```php
 <?php
-
-require 'vendor/autoload.php';
 
 use jbboehr\Yumemi\Units;
 
@@ -137,8 +143,6 @@ definitions or automatically convert compatible units:
 ```php
 <?php
 
-require 'vendor/autoload.php';
-
 use jbboehr\Yumemi\Units;
 
 $units = Units::default();
@@ -157,8 +161,6 @@ unit, and the result preserves the left symbolic unit:
 
 ```php
 <?php
-
-require 'vendor/autoload.php';
 
 use jbboehr\Yumemi\Units;
 
@@ -186,8 +188,6 @@ Yumemi's conversion semantics.
 ```php
 <?php
 
-require 'vendor/autoload.php';
-
 use jbboehr\Yumemi\Units;
 
 $units = Units::default();
@@ -214,8 +214,6 @@ assert($rate->valueIn('1 / second')->toString() === '25/1143');
 
 ```php
 <?php
-
-require 'vendor/autoload.php';
 
 use jbboehr\Yumemi\Units;
 
@@ -246,8 +244,6 @@ PHP 8.2 and 8.3 receive the PHP 8.4 `RoundingMode` enum through `symfony/polyfil
 
 ```php
 <?php
-
-require 'vendor/autoload.php';
 
 use jbboehr\Yumemi\Units;
 
@@ -291,8 +287,6 @@ Options may be constructed with named arguments or an immutable `create()->with.
 
 ```php
 <?php
-
-require 'vendor/autoload.php';
 
 use jbboehr\Yumemi\Formatter\DivisionStyle;
 use jbboehr\Yumemi\Formatter\FormatOptions;

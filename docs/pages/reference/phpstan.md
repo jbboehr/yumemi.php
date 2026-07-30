@@ -6,27 +6,42 @@ operations. The runtime values remain native numbers; the additional unit identi
 The extension uses the same parser, catalog, reduction, normalization, and conversion semantics as the
 [runtime API](runtime.md). See the [unit syntax reference](unit-syntax.md) for accepted expressions and name resolution.
 
+| I need to...                            | Start with                                          |
+| --------------------------------------- | --------------------------------------------------- |
+| Add a unit to an existing native number | [`unit()` and branded types](#branded-native-types) |
+| Infer units through PHP operators       | [Native Operators](#native-operators)               |
+| Convert a native magnitude              | [Boundary Helpers](#boundary-helpers)               |
+| Track an exact runtime quantity         | [Quantity Types](#quantity-types)                   |
+| Add project-specific units              | [Registry Configuration](#registry-configuration)   |
+| Suppress or baseline an error           | [Diagnostics](#diagnostics)                         |
+
+> **Current boundaries:** Genuinely dynamic unit strings cannot be validated, casts and unsupported built-ins may erase
+> a brand, and dimensional analysis cannot distinguish concepts with identical physical dimensions. See
+> [Limitations](#limitations) for the complete list.
+
 ## Branded Native Types
 
 `unit_int<'unit'>` and `unit_float<'unit'>` are PHPDoc types for native integers and floats with a statically known
-unit. They work in ordinary `@param`, `@return`, `@var`, generic, union, intersection, and nullable positions.
+unit. A branded value is not a wrapper or subclass: it remains an ordinary PHP number at runtime. The types work in
+ordinary `@param`, `@return`, `@var`, generic, union, intersection, and nullable positions.
 
 Feet are therefore distinct from meters even though both values are native floats:
 
 ```php
 <?php
 
-require 'vendor/autoload.php';
-
 /** @param unit_float<'meter'> $length */
-function recordReferenceLength(float $length): void {}
+function setPlatformHeight(float $length): void {}
 
 /** @var unit_float<'foot'> $height */
 $height = 6.0;
 
 //! expects unit_float<'meter'>, unit_float<'international_foot'> given
-recordReferenceLength($height);
+setPlatformHeight($height);
 ```
+
+In tested examples, a `//!` comment records part of the PHPStan diagnostic expected on the following line. It is an
+ordinary comment used by the documentation tests, not a Yumemi annotation.
 
 The catalog canonicalizes aliases when it constructs a brand, which is why the diagnostic names `international_foot`.
 The [catalog reference](catalog.md) describes canonical names, aliases, symbols, plurals, and prefixes.
@@ -62,20 +77,18 @@ boundary:
 ```php
 <?php
 
-require 'vendor/autoload.php';
-
 /** @param unit_float<'meter / second'> $speed */
-function recordReferenceSpeed(float $speed): void {}
+function saveSprintSpeed(float $speed): void {}
 
 /** @var unit_float<'meter'> $distance */
 $distance = 100.0;
 /** @var unit_float<'second'> $elapsed */
 $elapsed = 9.58;
 
-recordReferenceSpeed($distance / $elapsed);
+saveSprintSpeed($distance / $elapsed);
 
 //! expects unit_float<'meter / second'>, unit_float<'meter * second'> given
-recordReferenceSpeed($distance * $elapsed);
+saveSprintSpeed($distance * $elapsed);
 ```
 
 Definitional equivalence understands catalog definitions such as `newton = kilogram * meter / second^2`. It does not
@@ -98,21 +111,19 @@ Yumemi provides three functions for introducing and converting native unit value
 ```php
 <?php
 
-require 'vendor/autoload.php';
-
 use function jbboehr\Yumemi\unit;
 use function jbboehr\Yumemi\unit_factor;
 use function jbboehr\Yumemi\unit_to;
 
 /** @param unit_float<'meter'> $meters */
-function recordReferenceMeters(float $meters): void {}
+function acceptHeightInMeters(float $meters): void {}
 
 $height = unit(6, 'foot');
 $byFactor = $height * unit_factor('foot', 'meter');
 $converted = unit_to($height, 'foot', 'meter');
 
-recordReferenceMeters($byFactor);
-recordReferenceMeters($converted);
+acceptHeightInMeters($byFactor);
+acceptHeightInMeters($converted);
 
 assert($height === 6);
 assert(abs($byFactor - $converted) < 1e-12);
@@ -142,20 +153,18 @@ generic brand while performing the real exact operation at runtime.
 ```php
 <?php
 
-require 'vendor/autoload.php';
-
 use jbboehr\Yumemi\Quantity;
 use jbboehr\Yumemi\Units;
 
 /** @param Quantity<'meter / second'> $speed */
-function recordReferenceQuantitySpeed(Quantity $speed): void {}
+function storeAverageSpeed(Quantity $speed): void {}
 
 $units = Units::default();
 $distance = $units->quantity(100, 'meter');
 $duration = $units->quantity(10, 'second');
 $speed = $distance->div($duration);
 
-recordReferenceQuantitySpeed($speed);
+storeAverageSpeed($speed);
 assert($speed->toString() === '10 * meter / second');
 ```
 
@@ -247,8 +256,6 @@ tag. A mismatch leaves the fallback unchanged and reports a diagnostic.
 ```php
 <?php
 
-require 'vendor/autoload.php';
-
 use function jbboehr\Yumemi\unit;
 
 /**
@@ -256,13 +263,13 @@ use function jbboehr\Yumemi\unit;
  *
  * @yumemi-param unit_int<'meter'> $length
  */
-function storeReferenceLength(int $length): void {}
+function storeWarehouseLength(int $length): void {}
 
 //! expects unit_int<'meter'>, int given
-storeReferenceLength(5);
+storeWarehouseLength(5);
 
 //! expects unit_int<'meter'>, unit_int<'international_foot'> given
-storeReferenceLength(unit(3, 'foot'));
+storeWarehouseLength(unit(3, 'foot'));
 ```
 
 Without tag promotion, both calls are checked against the ordinary `int` fallback and are valid.

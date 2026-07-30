@@ -1,8 +1,8 @@
 # Unit Syntax Reference
 
-Yumemi uses the same unit-expression parser and catalog resolver at runtime and in its PHPStan extension. Multiplicative
-unit strings therefore have the same meaning in `Units::parse()`, `Quantity`, `unit_int<'...'>`, and
-`unit_float<'...'>`. Explicit conversion APIs additionally understand the affine `@` form described below.
+Unit strings can be simple names such as `meter`, products such as `kilogram * meter / second^2`, or exact constants
+such as `100 centimeter`. Yumemi uses the same parser and catalog resolver at runtime and in its PHPStan extension, so
+these strings have the same meaning in `Units::parse()`, `Quantity`, `unit_int<'...'>`, and `unit_float<'...'>`.
 
 ## Supported Expressions
 
@@ -17,10 +17,12 @@ The semantic unit language supports:
 | Grouping       | `(meter / second)^2`                         | Parenthesized subexpression                        |
 | Exact constant | `1000`, `1.25`, `1e3`, `1000 meter`          | Exact rational alone or scaling a unit expression  |
 
-Whitespace is ignored except that adjacent simple expressions imply multiplication. Exponentiation binds more tightly
-than multiplication and division. Adjacency, `*`, `.`, `·`, and `/` share precedence and associate left, matching
-UDUNITS2: `meter / foot second` is equivalent to `(meter / foot) * second`. Parentheses are therefore required for a
-compound denominator:
+> **Precedence warning:** Exponentiation binds more tightly than multiplication and division. Adjacency, `*`, `.`, `·`,
+> and `/` otherwise share precedence and associate left, matching UDUNITS2. Therefore `meter / foot second` means
+> `(meter / foot) * second`, not `meter / (foot * second)`.
+
+Whitespace is ignored except that adjacent simple expressions imply multiplication. Use parentheses around a compound
+denominator:
 
 ```text
 centimeter / (foot * second)
@@ -29,17 +31,10 @@ centimeter / (foot * second)
 Decimal and scientific constants are parsed exactly as rational numbers. They are not converted through binary floating
 point.
 
-At explicit conversion boundaries, `identifier @ number` defines an affine coordinate origin. For example,
-`kelvin @ 273.15` maps zero in the new coordinate system to exactly `273.15 kelvin`. This form is accepted by
-`convert()`, `convertFloat()`, `areCompatible()`, `dimension()`, `conversionFactor()`, `unit_to()`, and custom registry
-definitions. It is not part of ordinary multiplicative expression or quantity algebra.
-
 For example:
 
 ```php
 <?php
-
-require 'vendor/autoload.php';
 
 use jbboehr\Yumemi\Units;
 
@@ -51,6 +46,11 @@ assert($units->parse('1.25 meter')->toString() === '5/4 * meter');
 assert($units->parse('meter / second kilogram')->equals($units->parse('meter / second * kilogram')));
 assert($units->dimension('(meter / second)^2')->toString() === 'length ^ 2 / time ^ 2');
 ```
+
+At explicit conversion boundaries, `identifier @ number` defines an affine coordinate origin. For example,
+`kelvin @ 273.15` maps zero in the new coordinate system to exactly `273.15 kelvin`. This form is accepted by
+`convert()`, `convertFloat()`, `areCompatible()`, `dimension()`, `conversionFactor()`, `unit_to()`, and custom registry
+definitions. It is not part of ordinary multiplicative expression or quantity algebra.
 
 ## Unit Names
 

@@ -44,18 +44,21 @@ require 'vendor/autoload.php';
 use function jbboehr\Yumemi\unit;
 
 /** @param unit_float<'meter / second'> $speed */
-function recordReadmeSpeed(float $speed): void {}
+function storeTelemetrySpeed(float $speed): void {}
 
 $distance = unit(100.0, 'meter');
 $elapsed = unit(10.0, 'second');
 
-recordReadmeSpeed($distance / $elapsed);
+storeTelemetrySpeed($distance / $elapsed);
 
 //! expects unit_float<'meter / second'>, unit_float<'meter * second'> given
-recordReadmeSpeed($distance * $elapsed);
+storeTelemetrySpeed($distance * $elapsed);
 
 assert($distance / $elapsed === 10.0);
 ```
+
+A `//!` comment records part of the PHPStan diagnostic expected on the following line in Yumemi's tested documentation.
+It is documentation-test notation, not Yumemi syntax.
 
 `unit_int<'...'>` and `unit_float<'...'>` work in ordinary PHPDoc positions. Yumemi also models runtime objects as
 `Quantity<'unit'>`, preserving their units through arithmetic, conversion, and native extraction.
@@ -86,13 +89,14 @@ convert compatible operands exactly; multiplication and division reduce the call
 - [Getting Started](docs/pages/getting-started.md) covers installation and the shortest complete examples.
 - [Core Concepts](docs/pages/core-concepts.md) helps choose between branded native values and exact quantities, then
   points each operation to its authoritative reference.
+- [Recipes](docs/pages/recipes.md) provides task-oriented examples for common integration and conversion workflows.
 - [PHPStan Reference](docs/pages/reference/phpstan.md) defines branded types, operators, conversion helpers, generic
   quantities, configuration, optional annotations, diagnostics, and limitations.
 - [Unit Syntax](docs/pages/reference/unit-syntax.md) defines expressions, name resolution, Unicode forms, and errors.
 - [Runtime Reference](docs/pages/reference/runtime.md) documents exact conversion, quantity arithmetic, native output,
   dimensions, formatting, and string forms.
-- [Catalog Reference](docs/pages/reference/catalog.md) documents UDUNITS2 data, introspection, custom registries,
-  semantic capabilities, and regeneration.
+- [Built-in and Custom Units](docs/pages/reference/catalog.md) documents UDUNITS2 data, introspection, custom
+  registries, and semantic capabilities.
 
 Architecture, implementation status, and deferred work are tracked in the
 [planning document](docs/development/planning.md). The broader feature comparison is in

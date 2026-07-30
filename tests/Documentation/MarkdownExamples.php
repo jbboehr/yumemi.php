@@ -44,8 +44,10 @@ final class MarkdownExamples
     /** @var list<string> */
     private const DOCUMENTS = [
         'README.md',
+        'docs/pages/README.md',
         'docs/pages/getting-started.md',
         'docs/pages/core-concepts.md',
+        'docs/pages/recipes.md',
         'docs/pages/reference/phpstan.md',
         'docs/pages/reference/unit-syntax.md',
         'docs/pages/reference/runtime.md',

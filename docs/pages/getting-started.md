@@ -18,18 +18,14 @@ includes:
     - vendor/jbboehr/yumemi/extension.neon
 ```
 
-The optional `@yumemi-param`, `@yumemi-return`, and `@yumemi-var` integration replaces internal PHPStan parser services
-and is therefore deliberately opt-in:
+Most applications should use Yumemi's PHPDoc types directly. Libraries that cannot require Yumemi from every consumer
+can instead use the deliberately opt-in
+[`@yumemi-*` annotation integration](reference/phpstan.md#extension-optional-annotations).
 
-```neon
-includes:
-    - vendor/jbboehr/yumemi/extension.neon
-    - vendor/jbboehr/yumemi/yumemi-tags.neon
-```
+## Verify Static Analysis
 
-## Static Analysis
-
-Use `unit()` to brand an ordinary native value at a system boundary. PHPStan then carries the unit through arithmetic:
+Use `unit()` to brand an ordinary native value at a system boundary. PHPStan then carries the unit through arithmetic
+and rejects a deliberately incorrect result:
 
 ```php
 <?php
@@ -39,17 +35,30 @@ require 'vendor/autoload.php';
 use function jbboehr\Yumemi\unit;
 
 /** @param unit_float<'meter / second'> $speed */
-function recordGettingStartedSpeed(float $speed): void {}
+function saveJourneySpeed(float $speed): void {}
 
 $distance = unit(100.0, 'meter');
 $duration = unit(10.0, 'second');
 $speed = $distance / $duration;
 
-recordGettingStartedSpeed($speed);
+saveJourneySpeed($speed);
 assert($speed === 10.0);
+
+//! expects unit_float<'meter / second'>, unit_float<'meter * second'> given
+saveJourneySpeed($distance * $duration);
 ```
 
-The runtime values remain ordinary floats. The additional unit information exists in PHPStan's type system.
+Run the PHPStan command used by your project, or the default executable directly:
+
+```shell
+vendor/bin/phpstan analyse
+```
+
+PHPStan should accept `$speed` and report the expected unit mismatch for the final call. The `//!` line records the
+diagnostic expected by Yumemi's documentation tests; it is an ordinary comment, not a required annotation. Remove the
+incorrect call once the extension is working.
+
+The runtime values remain ordinary floats. The additional unit information exists only in PHPStan's type system.
 
 ## Runtime Conversion
 

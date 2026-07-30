@@ -5,15 +5,25 @@
 
     // mdBook only supplies headings for the active page. Keep this outline synchronized with public h2/h3 headings.
     const headingsByChapter = {
-        "index.html": [{ id: "start-here", title: "Start Here" }],
+        "index.html": [
+            { id: "start-here", title: "Start Here" },
+            { id: "browse-documentation", title: "Browse Documentation" },
+        ],
         "getting-started.html": [
             { id: "installation", title: "Installation" },
-            { id: "static-analysis", title: "Static Analysis" },
+            { id: "verify-static-analysis", title: "Verify Static Analysis" },
             { id: "runtime-conversion", title: "Runtime Conversion" },
         ],
         "core-concepts.html": [
-            { id: "choosing-a-magnitude-model", title: "Choosing A Magnitude Model" },
-            { id: "choosing-an-operation", title: "Choosing An Operation" },
+            { id: "choose-an-api", title: "Choose An API" },
+            { id: "choose-an-operation", title: "Choose An Operation" },
+        ],
+        "recipes.html": [
+            { id: "protect-an-existing-api", title: "Protect An Existing API" },
+            { id: "preserve-exact-conversion", title: "Preserve Exact Conversion" },
+            { id: "convert-temperatures", title: "Convert Temperatures" },
+            { id: "define-application-units", title: "Define Application Units" },
+            { id: "format-units-for-display", title: "Format Units For Display" },
         ],
         "reference/phpstan.html": [
             {
@@ -43,6 +53,7 @@
             { id: "errors-and-source-locations", title: "Errors And Source Locations" },
         ],
         "reference/runtime.html": [
+            { id: "common-tasks", title: "Common Tasks" },
             { id: "contexts-and-construction", title: "Contexts And Construction" },
             {
                 id: "expression-operations",
@@ -62,7 +73,11 @@
             { id: "introspection", title: "Introspection" },
             { id: "custom-registries", title: "Custom Registries" },
             { id: "catalog-semantic-support", title: "Catalog Semantic Support" },
-            { id: "regenerating-the-catalog", title: "Regenerating The Catalog" },
+        ],
+        "contributing/catalog-generation.html": [
+            { id: "rebuild", title: "Rebuild" },
+            { id: "source-inputs", title: "Source Inputs" },
+            { id: "verify", title: "Verify" },
         ],
     };
 

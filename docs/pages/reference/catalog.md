@@ -1,4 +1,4 @@
-# Catalog Reference
+# Built-In and Custom Units
 
 Yumemi ships a generated unit catalog derived from UDUNITS2. The same catalog drives runtime name resolution,
 conversion, formatting, and PHPStan analysis.
@@ -34,8 +34,6 @@ through `prefixDecomposition`:
 
 ```php
 <?php
-
-require 'vendor/autoload.php';
 
 use jbboehr\Yumemi\Catalog\CatalogNameKind;
 use jbboehr\Yumemi\Catalog\UnitSemantics;
@@ -84,8 +82,6 @@ unaffected by later builder changes.
 
 ```php
 <?php
-
-require 'vendor/autoload.php';
 
 use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
 use jbboehr\Yumemi\Units;
@@ -136,38 +132,5 @@ for static-analysis behavior. Logarithmic definitions remain unsupported at ever
 nevertheless distinguish them from unknown names and preserve the canonical unit, semantics, and original definition for
 diagnostics.
 
-## Regenerating The Catalog
-
-Do not edit `data/udunits2.php` manually. Rebuild it from the UDUNITS2 XML source in the Nix development shell:
-
-```shell
-composer generate-catalog
-```
-
-The equivalent Make target is:
-
-```shell
-make generate-catalog
-```
-
-The flake sets `UDUNITS_XML_DIR` to the installed UDUNITS2 XML directory. Outside the development shell, specify an
-equivalent directory explicitly:
-
-```shell
-UDUNITS_XML_DIR=/path/to/share/udunits make generate-catalog
-```
-
-The Make target supplies these files in the order declared by the upstream `udunits2.xml` manifest:
-
-1. `udunits2-prefixes.xml`
-2. `udunits2-base.xml`
-3. `udunits2-derived.xml`
-4. `udunits2-accepted.xml`
-5. `udunits2-common.xml`
-
-The generator imports the XML, materializes aliases and plural metadata, and exports deterministic PHP through
-`brick/varexporter`. A successful rebuild should leave no diff unless the importer, exporter, source package, or
-generated header changed.
-
-After regeneration, run the full test suite. The catalog smoke tests resolve every supported definition and pin the
-known unsupported affine and logarithmic sets, making source-data drift explicit.
+Contributors changing the imported data or generator should follow
+[Regenerating the UDUNITS2 Catalog](../contributing/catalog-generation.md).
