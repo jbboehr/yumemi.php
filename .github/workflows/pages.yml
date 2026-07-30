@@ -1,0 +1,54 @@
+name: documentation
+
+on:
+    push:
+        branches:
+            - master
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: pages
+    cancel-in-progress: false
+
+jobs:
+    build:
+        name: Build documentation
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Install Nix
+              uses: cachix/install-nix-action@v31
+              with:
+                  github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Build documentation
+              run: nix develop --command composer docs
+
+            - name: Upload GitHub Pages artifact
+              uses: actions/upload-pages-artifact@v4
+              with:
+                  path: build/docs
+
+    deploy:
+        name: Deploy documentation
+        if: github.ref == 'refs/heads/master'
+        needs: build
+        runs-on: ubuntu-latest
+        permissions:
+            pages: write
+            id-token: write
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
+        steps:
+            - name: Configure GitHub Pages
+              uses: actions/configure-pages@v5
+
+            - name: Deploy to GitHub Pages
+              id: deployment
+              uses: actions/deploy-pages@v4
