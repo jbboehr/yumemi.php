@@ -1,0 +1,95 @@
+# Benchmarking
+
+Yumemi uses [PHPBench](https://phpbench.readthedocs.io/) to measure representative runtime workflows. Benchmarks live
+under `benchmarks/` and use isolated UDUNITS2 registries so measurements do not depend on process-global state from
+`Units::default()`.
+
+## Running The Suite
+
+Run the complete suite from the repository root:
+
+```console
+composer benchmark
+```
+
+PHPBench records multiple iterations and warmup revolutions, then reports aggregate timing and relative standard
+deviation. A high relative standard deviation means the result should not be used to justify an optimization without
+rerunning it under quieter conditions.
+
+Run one group while investigating a subsystem:
+
+```console
+composer benchmark -- --group=parsing
+composer benchmark -- --group=quantity
+composer benchmark -- --group=catalog
+```
+
+The CI smoke command overrides each subject to one measured revolution and one warmup revolution:
+
+```console
+composer benchmark:smoke
+```
+
+It verifies benchmark discovery, setup, and execution. It does not establish a performance floor.
+
+## Hardware Performance Counters
+
+On Linux, the Nix development shell builds and loads [`php-perfidious`](https://github.com/jbboehr/php-perfidious). Its
+[`phpbench-perfidious`](https://github.com/jbboehr/phpbench-perfidious) adapter adds a separate PHPBench executor and
+report for Linux `perf_events` counters:
+
+```console
+nix develop
+composer benchmark:perf
+composer benchmark:perf -- --group=comparison
+```
+
+The profile records CPU clock, retired instructions, page faults, and context switches. The adapter is installed from
+its unreleased `develop` branch because that branch normalizes counters by revolutions and supplies the custom report.
+Composer locks the exact commit.
+
+The normal `benchmark` and `benchmark:smoke` commands do not load the adapter or require `ext-perfidious`. Hardware
+counters are deliberately excluded from CI because GitHub-hosted virtualization may not expose them. Local execution may
+also require a less restrictive `kernel.perf_event_paranoid` setting or `CAP_PERFMON` depending on the host and selected
+events.
+
+Counter values include PHPBench executor and dynamic method-call overhead. Use them for comparisons between equivalent
+subjects on the same host, not as exact instruction counts for an isolated PHP expression.
+
+## Comparing A Change
+
+Store a tagged run before changing an implementation:
+
+```console
+composer benchmark -- --store --tag=before_change
+```
+
+Run the candidate implementation against that local reference:
+
+```console
+composer benchmark -- --ref=before_change
+```
+
+PHPBench stores tagged runs under `.phpbench/`, which is intentionally ignored. Results depend on the PHP version,
+extensions, INI configuration, CPU scaling, system load, and operating system; machine-specific measurements are not
+committed as project-wide guarantees.
+
+## Interpreting Subjects
+
+Cold subjects construct their registry and `Units` context inside the measured method. They represent startup and first
+resolution costs. Warm subjects build isolated state in a PHPBench setup hook and explicitly prime the relevant lookup
+before measurement. They represent repeated work within a long-lived runtime or PHPStan process.
+
+Expression subjects receive preconstructed expressions when isolating reduction or normalization. Quantity subjects
+reuse immutable operands. Formatting subjects distinguish construction and first lookup from repeated use of one
+formatter. Catalog descriptor subjects remain separate because introspection is informational work rather than a normal
+arithmetic hot path.
+
+Native-versus-quantity subjects keep boundary construction separate from repeated arithmetic. Plain and pre-branded
+native values measure the same scalar operation, while separate subjects include `unit()` validation, `Quantity`
+construction, and native or exact unit conversion. Compare equivalent subjects rather than treating one result as a
+summary of an entire representation.
+
+Use measurements to identify an optimization target before changing cache ownership or expression semantics. A faster
+microbenchmark is not sufficient if the corresponding operation does not materially contribute to an application or
+PHPStan analysis workload.

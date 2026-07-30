@@ -4,6 +4,7 @@
 .php-cs-fixer.cache
 .phpunit.result.cache
 .phpunit.cache/
+.phpbench/
 .pre-commit-cache
 *.log
 clover.xml

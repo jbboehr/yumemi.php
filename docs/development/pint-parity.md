@@ -317,11 +317,11 @@ localization layer later without making locale part of expression identity.
 Status: **Partial** | Importance: **P1** | Remaining difficulty: **M**
 
 Resolvers and formatters cache several name, definition, conversion, and semantic lookups, and registries are immutable
-after construction. Bulk catalog introspection still performs repeated grouping and sorting, expression operations
-reduce eagerly, and there is no benchmark suite.
+after construction. PHPBench now covers representative cold and warm runtime workflows. Bulk catalog introspection still
+performs repeated grouping and sorting, and expression operations still reduce eagerly.
 
-Optimize from measured workloads when PHPStan or runtime usage identifies a hot path. Catalog-build indexing remains a
-reasonable deferred optimization even without changing expression semantics.
+Use repeated local benchmarks and real PHPStan or runtime profiles to identify hot paths before optimizing.
+Catalog-build indexing remains a reasonable deferred optimization even without changing expression semantics.
 
 ### 30. Error Messages And Developer Experience
 

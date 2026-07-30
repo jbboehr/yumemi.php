@@ -40,6 +40,7 @@ $finder = PhpCsFixer\Finder::create()
     ->files()
     ->name('*.php')
     ->in([
+        __DIR__ . '/benchmarks',
         __DIR__ . '/src',
         __DIR__ . '/tests',
     ])

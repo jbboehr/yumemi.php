@@ -1,0 +1,22 @@
+{
+    "$schema": "./vendor/phpbench/phpbench/phpbench.schema.json",
+    "core.extensions": ["jbboehr\\PhpBenchPerfidious\\PerfidiousExtension"],
+    "runner.bootstrap": "vendor/autoload.php",
+    "runner.executor": "perfidious",
+    "runner.file_pattern": "*Bench.php",
+    "runner.iterations": 5,
+    "runner.path": "benchmarks",
+    "runner.progress": "perfidious",
+    "runner.warmup": 2,
+    "report.generators": {
+        "perfidious": {
+            "generator": "perfidious"
+        }
+    },
+    "perfidious.metrics": [
+        "perf::PERF_COUNT_SW_CPU_CLOCK",
+        "perf::PERF_COUNT_HW_INSTRUCTIONS",
+        "perf::PERF_COUNT_SW_PAGE_FAULTS",
+        "perf::PERF_COUNT_SW_CONTEXT_SWITCHES"
+    ]
+}

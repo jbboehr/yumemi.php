@@ -8,6 +8,12 @@
         "issues": "https://github.com/jbboehr/yumemi.php/issues",
         "source": "https://github.com/jbboehr/yumemi.php"
     },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/jbboehr/phpbench-perfidious"
+        }
+    ],
     "authors": [
         {
             "name": "John Boehr",
@@ -39,7 +45,9 @@
         "brick/varexporter": "^0.6",
         "friendsofphp/php-cs-fixer": "^3",
         "infection/infection": "^0.32.6",
+        "jbboehr/phpbench-perfidious": "dev-develop",
         "mrsuh/php-bison-skeleton": "^1.2",
+        "phpbench/phpbench": "^1.7",
         "phpstan/phpstan": "^2.1",
         "phpstan/phpstan-phpunit": "^2.0",
         "phpstan/phpstan-strict-rules": "^2.0",
@@ -47,10 +55,14 @@
     },
     "autoload-dev": {
         "psr-4": {
+            "jbboehr\\Yumemi\\Benchmarks\\": "benchmarks",
             "jbboehr\\Yumemi\\Tests\\": "tests"
         }
     },
     "scripts": {
+        "benchmark": "phpbench run --report=aggregate",
+        "benchmark:perf": "phpbench run --config=phpbench-perfidious.json --report=perfidious",
+        "benchmark:smoke": "phpbench run --iterations=1 --revs=1 --warmup=1 --progress=none",
         "cs": "php-cs-fixer fix --config=.php-cs-fixer.dist.php --dry-run --diff",
         "cs:fix": "php-cs-fixer fix --config=.php-cs-fixer.dist.php",
         "docs": "make docs",

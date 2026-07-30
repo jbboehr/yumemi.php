@@ -70,6 +70,22 @@
         "type": "github"
       }
     },
+    "php-perfidious": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1727553411,
+        "narHash": "sha256-3oE1fWScvNALPamJkRN1pFcXMHU1NtTxCUm5lxhrP0U=",
+        "owner": "jbboehr",
+        "repo": "php-perfidious",
+        "rev": "29f0dee27cdf354f414c24ecd0c8ed356722bbf9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jbboehr",
+        "repo": "php-perfidious",
+        "type": "github"
+      }
+    },
     "pre-commit-hooks": {
       "inputs": {
         "flake-compat": "flake-compat",
@@ -96,6 +112,7 @@
         "flake-utils": "flake-utils",
         "gitignore": "gitignore",
         "nixpkgs": "nixpkgs",
+        "php-perfidious": "php-perfidious",
         "pre-commit-hooks": "pre-commit-hooks",
         "treefmt-nix": "treefmt-nix"
       }

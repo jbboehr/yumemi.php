@@ -83,6 +83,8 @@ Current verification:
 - PHP-CS-Fixer passes
 - Composer validation passes
 - Nix flake checks pass
+- PHPBench covers representative cold and warm runtime workflows; CI smoke-tests benchmark discovery without timing
+  floors, while an optional Linux Perfidious profile captures local `perf_events` counters
 - Infection runs against all handwritten runtime source in CI with 86% total and covered MSI floors; the PHPStan adapter
   and generated parser are excluded
 
@@ -298,7 +300,10 @@ expansion and polish, API polish, catalog semantics beyond multiplication, and e
 - Very large parsed integer exponents may exceed PHP integer range before reaching the expression model.
 - The UDUNITS2 importer still special-cases `cm2` syntax, and generated `prefixRegex` metadata is currently unused by
   resolution.
-- Expression arithmetic reduces eagerly and has not been benchmarked as a hot path.
+- Expression arithmetic reduces eagerly. The benchmark suite measures representative reduction and normalization, but no
+  cross-machine regression floor or production-workload profile has established that this is a hot path.
+- Hardware-counter benchmarks depend on unreleased `phpbench-perfidious` adapter code and local Linux `perf_events`
+  permissions; they are optional and intentionally excluded from CI.
 - Dimensional analysis intentionally cannot distinguish semantically different quantities with the same dimension, such
   as gray and sievert.
 - Exact catalog decimals for angles can normalize to large rationals; this is correct but can produce unwieldy display

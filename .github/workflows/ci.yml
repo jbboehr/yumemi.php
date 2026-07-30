@@ -90,6 +90,10 @@ jobs:
             - name: Run PHPUnit
               run: vendor/bin/phpunit --colors=never
 
+            - name: Smoke-test benchmarks
+              if: matrix.php-version == '8.2'
+              run: composer benchmark:smoke
+
     mutation:
         name: Mutation testing
         runs-on: ubuntu-latest

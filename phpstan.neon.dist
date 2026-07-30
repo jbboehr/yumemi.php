@@ -9,6 +9,7 @@ parameters:
     yumemi:
         registryFactory: jbboehr\Yumemi\Tests\PHPStan\Fixtures\ConfiguredUnitRegistryFactory
     paths:
+        - benchmarks
         - src
         - tests
     excludePaths:

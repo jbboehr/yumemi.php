@@ -18,6 +18,10 @@
       url = "github:hercules-ci/gitignore.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    php-perfidious = {
+      url = "github:jbboehr/php-perfidious";
+      flake = false;
+    };
   };
 
   outputs =
@@ -28,10 +32,21 @@
       pre-commit-hooks,
       treefmt-nix,
       gitignore,
+      php-perfidious,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
+        pkgs = nixpkgs.legacyPackages.${system};
+        php-unwrapped = pkgs.php82;
+        perfidious = pkgs.callPackage "${php-perfidious}/nix/derivation.nix" {
+          php = php-unwrapped;
+          src = php-perfidious;
+          buildPecl = pkgs.callPackage "${nixpkgs}/pkgs/build-support/php/build-pecl.nix" {
+            php = php-unwrapped;
+          };
+          valgrindSupport = false;
+        };
         buildEnv =
           php:
           php.buildEnv {
@@ -41,10 +56,9 @@
                 enabled,
                 all,
               }:
-              enabled ++ [ all.pcov ];
+              enabled ++ [ all.pcov ] ++ pkgs.lib.optional pkgs.stdenv.isLinux perfidious;
           };
-        pkgs = nixpkgs.legacyPackages.${system};
-        php = buildEnv pkgs.php82;
+        php = buildEnv php-unwrapped;
         src = gitignore.lib.gitignoreSource ./.;
 
         treefmt = treefmt-nix.lib.evalModule pkgs {
