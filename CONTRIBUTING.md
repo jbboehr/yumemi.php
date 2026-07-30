@@ -18,13 +18,14 @@ A pull request should:
 AI-assisted contributions are permitted, but you remain responsible for reviewing the submitted material and ensuring
 that you have the right to license it under these terms.
 
-See [`docs/mutation-testing.md`](docs/mutation-testing.md) for the optional mutation-testing workflow and guidance on
-interpreting escaped mutants.
+See [`docs/development/mutation-testing.md`](docs/development/mutation-testing.md) for the optional mutation-testing
+workflow and guidance on interpreting escaped mutants.
 
 ## Documentation
 
-The public mdBook sources live under [`docs/pages`](docs/pages). Internal planning, doctrine, legal, and contributor
-documents remain directly under [`docs`](docs) and are not included in the generated site.
+The public mdBook sources live under [`docs/pages`](docs/pages). Internal engineering documents live under
+[`docs/development`](docs/development). Doctrine, legal, and contributor documents remain directly under [`docs`](docs).
+Internal documents are not included in the generated site.
 
 Enter the Nix development shell, then build or preview the public documentation with:
 

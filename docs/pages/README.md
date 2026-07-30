@@ -17,4 +17,4 @@ normalization engine for quantity arithmetic and conversion.
 
 The project is usable but does not yet have a tagged stable release. Architecture, implementation status, and deferred
 work are tracked in the
-[repository planning document](https://github.com/jbboehr/yumemi.php/blob/master/docs/planning.md).
+[repository planning document](https://github.com/jbboehr/yumemi.php/blob/master/docs/development/planning.md).

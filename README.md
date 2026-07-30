@@ -19,8 +19,8 @@ meaning for `meter / second` whether PHPStan is reading it or your code is compu
 - **Runtime library:** usable — unit expressions, UDUNITS2 catalog, quantities, exact rational conversion (including
   Celsius/Fahrenheit affine conversions), and dimensional checks.
 
-Architecture, implementation status, and roadmap: [docs/planning.md](docs/planning.md). Broader feature comparison:
-[docs/pint-parity.md](docs/pint-parity.md).
+Architecture, implementation status, and roadmap: [docs/development/planning.md](docs/development/planning.md). Broader
+feature comparison: [docs/development/pint-parity.md](docs/development/pint-parity.md).
 
 **Reference documentation**
 
