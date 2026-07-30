@@ -22,6 +22,43 @@ assertType("unit_int<'kilogram * meter / second'>", unit(1, 'meter / second kilo
 assertType("unit_float<'kilogram * meter / second ^ 2'>", unit(1500.0, 'kilogram') * unit(3.0, 'meter / second^2'));
 assertType('*ERROR*', unit(1.0, 'not_a_real_unit_xyz'));
 
+/** @param 'meter'|'foot' $unit */
+function finiteUnits(string $unit): void
+{
+    assertType("unit_int<'international_foot'>|unit_int<'meter'>", unit(1, $unit));
+    assertType("unit_float<'international_foot'>|unit_float<'meter'>", unit(1.0, $unit));
+}
+
+/** @param 'meter / second'|'kilogram' $unit */
+function finiteCompoundUnits(string $unit): void
+{
+    assertType("unit_int<'kilogram'>|unit_int<'meter / second'>", unit(1, $unit));
+}
+
+/** @param 'foot'|'international_foot' $unit */
+function finiteEquivalentUnits(string $unit): void
+{
+    assertType("unit_int<'international_foot'>", unit(1, $unit));
+}
+
+/** @param 'meter'|'not_a_real_unit_xyz' $unit */
+function partlyInvalidFiniteUnits(string $unit): void
+{
+    assertType('*ERROR*', unit(1, $unit));
+}
+
+/** @param 'meter'|'meter /' $unit */
+function partlyMalformedFiniteUnits(string $unit): void
+{
+    assertType('*ERROR*', unit(1.0, $unit));
+}
+
+function dynamicUnits(string $unit): void
+{
+    assertType('int', unit(1, $unit));
+    assertType('float', unit(1.0, $unit));
+}
+
 // --- unit_factor(): quotient brand and cancellation through ordinary unit algebra ---
 
 assertType("unit_float<'international_foot / meter'>", unit_factor('meter', 'foot'));

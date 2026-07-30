@@ -17,6 +17,18 @@ assertType("unit_int<'widget'>", $widget);
 $widgets = unit(3, 'widgets');
 assertType("unit_int<'widget'>", $widgets);
 
+/** @param 'widget'|'meter' $unit */
+function configuredFiniteUnits(string $unit): void
+{
+    assertType("unit_int<'meter'>|unit_int<'widget'>", unit(1, $unit));
+}
+
+/** @param 'widget'|'widgets' $unit */
+function configuredEquivalentUnits(string $unit): void
+{
+    assertType("unit_int<'widget'>", unit(1, $unit));
+}
+
 $meters = unit_to($widget, 'widget', 'meter');
 assertType("unit_float<'meter'>", $meters);
 

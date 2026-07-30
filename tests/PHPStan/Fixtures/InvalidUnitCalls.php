@@ -60,5 +60,11 @@ function dynamicUnit(string $u): void
     unit(1.0, $u);
 }
 
+/** @param 'meter'|'not_a_real_unit_xyz' $u */
+function partlyInvalidFiniteUnit(string $u): void
+{
+    unit(1.0, $u);
+}
+
 // Logarithmic conversion is a distinct unsupported operation.
 unit_to(1.0, 'B', '1');

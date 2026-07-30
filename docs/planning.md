@@ -204,8 +204,8 @@ Implemented PHPStan behavior:
   the static unit brand.
 - Quantity arithmetic, conversion, extraction, and comparisons receive standalone diagnostics even when an invalid
   result is unused.
-- Finite literal-string unions are preserved for Quantity construction, quantity parsing, conversion, and native
-  extraction.
+- Finite literal-string unions are preserved for `unit()`, Quantity construction, quantity parsing, conversion, and
+  native extraction.
 - One configured registry is authoritative for a PHPStan run and is fingerprinted for result-cache invalidation.
 
 Stable rule identifiers currently include:
@@ -508,8 +508,8 @@ documentation, API polish, catalog semantics beyond multiplication, and explicit
   parser-replacing extension.
 - Casts and unsupported PHP built-ins can erase native unit brands. Add targeted extensions only for demonstrated
   workflows rather than trying to model every built-in preemptively.
-- Finite target unions are supported on Quantity boundaries. Extending `unit()` is straightforward, but `unit_to()` has
-  independent source and target unions whose Cartesian product loses value correlation.
+- Finite target unions are supported by `unit()` and on Quantity boundaries. `unit_to()` has independent source and
+  target unions whose Cartesian product loses value correlation.
 - Lookup is case-sensitive. Short but valid prefix/symbol compositions such as `pa` (pico-are) and `PA` (peta-ampere)
   remain accepted while `Pa` is pascal; Yumemi does not special-case these catalog-valid ambiguities.
 - Syntax errors carry decoded-expression byte spans. Unknown-unit and unsupported-semantic errors occur after parsing

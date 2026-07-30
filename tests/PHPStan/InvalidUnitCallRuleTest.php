@@ -156,8 +156,12 @@ final class InvalidUnitCallRuleTest extends RuleTestCase
                 51,
             ],
             [
+                'Unit not found: not_a_real_unit_xyz.',
+                66,
+            ],
+            [
                 'Conversion of unit "B" with logarithmic semantics is not supported (definition: lg(re 1)).',
-                64,
+                70,
             ],
         ]);
     }

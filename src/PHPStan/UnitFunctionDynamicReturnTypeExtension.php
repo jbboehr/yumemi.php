@@ -42,9 +42,10 @@ use PHPStan\Reflection\FunctionReflection;
 use PHPStan\Type\DynamicFunctionReturnTypeExtension;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\Type;
+use PHPStan\Type\TypeCombinator;
 
 /**
- * Infers unit_int / unit_float from unit($value, 'meter') when the unit string is constant.
+ * Infers unit_int / unit_float from unit($value, $unit) when the unit string type is finite.
  */
 final class UnitFunctionDynamicReturnTypeExtension implements DynamicFunctionReturnTypeExtension
 {
@@ -71,9 +72,9 @@ final class UnitFunctionDynamicReturnTypeExtension implements DynamicFunctionRet
     /**
      * Shared inference used by both the return-type extension and {@see InvalidUnitCallRule}.
      *
-     * Returns null when the call is not statically analysable (non-constant unit string,
+     * Returns null when the call is not statically analysable (non-finite unit string,
      * too few arguments), an {@see ErrorType} carrying a reason for an invalid unit string,
-     * or the branded unit type otherwise.
+     * or a union of branded unit types otherwise.
      */
     public function inferType(FuncCall $functionCall, Scope $scope): ?Type
     {
@@ -82,25 +83,34 @@ final class UnitFunctionDynamicReturnTypeExtension implements DynamicFunctionRet
             return null;
         }
 
-        $unitType = $scope->getType($args[1]->value);
-        $constantStrings = $unitType->getConstantStrings();
-        if (count($constantStrings) !== 1) {
+        $constantStrings = $scope->getType($args[1]->value)->getConstantStrings();
+        if ($constantStrings === []) {
             return null;
         }
 
-        $parsed = $this->parser->parse($constantStrings[0]->getValue());
-        if (!$parsed->isOk()) {
-            return new ErrorType($parsed->errorMessage() ?? 'Invalid unit expression.');
+        $units = [];
+        foreach ($constantStrings as $constantString) {
+            $parsed = $this->parser->parse($constantString->getValue());
+            if (!$parsed->isOk()) {
+                return new ErrorType($parsed->errorMessage() ?? 'Invalid unit expression.');
+            }
+
+            $units[] = $parsed->expression();
         }
 
-        $unit = $parsed->expression();
         $valueType = $scope->getType($args[0]->value);
 
         // Prefer int branding when the magnitude is definitely an integer (not a float).
         if ($valueType->isInteger()->yes() && !$valueType->isFloat()->yes()) {
-            return new UnitIntegerType($unit);
+            return TypeCombinator::union(...array_map(
+                static fn (UnitExpression $unit): UnitIntegerType => new UnitIntegerType($unit),
+                $units,
+            ));
         }
 
-        return new UnitFloatType($unit);
+        return TypeCombinator::union(...array_map(
+            static fn (UnitExpression $unit): UnitFloatType => new UnitFloatType($unit),
+            $units,
+        ));
     }
 }
