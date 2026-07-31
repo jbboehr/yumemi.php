@@ -12,6 +12,29 @@ $rise = $units->deltaQuantity(18, 'fahrenheit');
 assertType("PointQuantity<'celsius'>", $freezing);
 assertType("PointQuantity<'fahrenheit'>", $boilingFahrenheit);
 assertType("Quantity<'delta_fahrenheit'>", $rise);
+assertType("PointQuantity<'celsius'>", $freezing->add($rise));
+assertType("PointQuantity<'celsius'>", $freezing->sub($rise));
+assertType("Quantity<'delta_fahrenheit'>", $boilingFahrenheit->difference($freezing));
+assertType("PointQuantity<'fahrenheit'>", $freezing->to('fahrenheit'));
+
+assertType('jbboehr\\Yumemi\\Number\\Rational', $freezing->valueIn('fahrenheit'));
+assertType('int', $freezing->intValueIn('fahrenheit'));
+assertType('int', $freezing->exactIntValueIn('fahrenheit'));
+assertType('string', $freezing->decimalValueIn('fahrenheit', 2, \RoundingMode::HalfEven));
+assertType('string', $freezing->exactDecimalValueIn('fahrenheit'));
+assertType('float', $freezing->floatValueIn('fahrenheit'));
+
+assertType('-1|0|1', $freezing->compareTo($boilingFahrenheit));
+assertType('bool', $freezing->equals($boilingFahrenheit));
+assertType('bool', $freezing->lessThan($boilingFahrenheit));
+assertType('bool', $freezing->lessThanOrEqualTo($boilingFahrenheit));
+assertType('bool', $freezing->greaterThan($boilingFahrenheit));
+assertType('bool', $freezing->greaterThanOrEqualTo($boilingFahrenheit));
+
+assertType('*ERROR*', $freezing->add($units->quantity(1, 'meter')));
+assertType('*ERROR*', $freezing->difference($units->point(1, 'meter')));
+assertType('*ERROR*', $freezing->to('meter'));
+assertType('*ERROR*', $freezing->compareTo($units->point(1, 'meter')));
 assertType('*ERROR*', $units->point(1, 'celsius / second'));
 assertType('*ERROR*', $units->deltaQuantity(1, 'B'));
 
@@ -25,9 +48,29 @@ function dynamicPoint(Units $units, string $unit): void
     assertType('jbboehr\\Yumemi\\Quantity', $units->deltaQuantity(1, $unit));
 }
 
+function dynamicPointConversion(PointQuantity $point, string $unit): void
+{
+    assertType(PointQuantity::class, $point->to($unit));
+    assertType('jbboehr\\Yumemi\\Number\\Rational', $point->valueIn($unit));
+}
+
 /** @param 'celsius'|'fahrenheit' $unit */
 function finitePointTargets(Units $units, string $unit): void
 {
+    $point = $units->point(0, 'celsius');
+
     assertType("PointQuantity<'celsius'>|PointQuantity<'fahrenheit'>", $units->point(0, $unit));
     assertType("Quantity<'delta_degree_Celsius'>|Quantity<'delta_fahrenheit'>", $units->deltaQuantity(1, $unit));
+    assertType("PointQuantity<'celsius'>|PointQuantity<'fahrenheit'>", $point->to($unit));
+}
+
+/** @param 'celsius'|'meter' $unit */
+function partlyIncompatiblePointTargets(Units $units, string $unit): void
+{
+    assertType('*ERROR*', $units->point(0, 'celsius')->to($unit));
+}
+
+function knownPointTargetFromUnbranded(PointQuantity $point): void
+{
+    assertType("PointQuantity<'celsius'>", $point->to('celsius'));
 }

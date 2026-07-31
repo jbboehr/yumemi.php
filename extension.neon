@@ -91,6 +91,14 @@ services:
         tags:
             - phpstan.broker.dynamicMethodReturnTypeExtension
     -
+        class: jbboehr\Yumemi\PHPStan\PointQuantityMethodReturnTypeExtension
+        tags:
+            - phpstan.broker.dynamicMethodReturnTypeExtension
+    -
+        class: jbboehr\Yumemi\PHPStan\InvalidPointQuantityMethodRule
+        tags:
+            - phpstan.rules.rule
+    -
         class: jbboehr\Yumemi\PHPStan\InvalidQuantityArithmeticRule
         tags:
             - phpstan.rules.rule
