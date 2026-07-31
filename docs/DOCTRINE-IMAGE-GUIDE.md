@@ -54,21 +54,21 @@ Not every named object must appear. A logion about lawful transformation, inheri
 celestial judgment might center on a tribunal before a gate, a chained artificial sun, or a sealed archive. The source
 logion supplies the meaning; the image chooses the clearest visible argument.
 
-### Register-sensitive interpretation
+### Movement-sensitive interpretation
 
-The source logion's dominant register should influence the visual translation:
+The source logion's compositional movements should influence the visual translation:
 
-- **Ordinances** favor iconographic plates, ceremonial hierarchy, inscriptions, gates, scales, and authoritative
-  stillness;
-- **Unveilings** favor visionary illustration, impossible scale, apparitions, rupture, and celestial administration made
-  visible;
-- **Testimonies** favor sacred-history scenes, remembered judgments, dynastic episodes, ritual precedents, and places
+- **Pronouncement and Injunction** favor iconographic plates, ceremonial hierarchy, inscriptions, gates, scales, and
+  authoritative stillness;
+- **Sign and Vision** favor visionary illustration, impossible scale, apparitions, rupture, and celestial administration
+  made visible;
+- **Remembrance** favors sacred-history scenes, remembered judgments, dynastic episodes, ritual precedents, and places
   marked by a past event;
-- **Scholia** favor emblems, seals, concentrated symbolic objects, restrained environments, and compact visual
+- **Interpretation** favors emblems, seals, concentrated symbolic objects, restrained environments, and compact visual
   arguments.
 
-These are tendencies, not fixed formats. The image should preserve the register's pressure without becoming a literal
-illustration of its prose structure.
+These are tendencies, not fixed formats. When a logion combines movements, the image should preserve their unified
+pressure rather than becoming a literal inventory of its prose structure.
 
 ---
 
@@ -117,9 +117,9 @@ Across an image corpus, aim approximately for:
 - **10% chūnibyō cosmic bureaucracy**;
 - **5% vaporwave scenery**.
 
-These are visual proportions, distinct from the literary balance used when writing logia. They are directional rather
-than mechanical. A single image should usually combine two to four influences rather than forcing all of them into every
-composition.
+These are visual proportions, distinct from the compositional balance used when writing logia. They are directional
+rather than mechanical. A single image should usually combine two to four influences rather than forcing all of them
+into every composition.
 
 Retrowave or synthwave is the one mandatory per-image influence. Every image must include at least one integrated anchor
 from one or more of these classes:
@@ -334,7 +334,7 @@ meaningless ornament, and uniformly hyper-detailed surfaces without hierarchy.
 
 A generation prompt should specify:
 
-1. the source logion, its dominant register, and its doctrinal center;
+1. the source logion, its compositional movements, and its doctrinal center;
 2. the image type and intended use;
 3. the dominant and supporting motifs;
 4. the required retrowave or synthwave anchor and the doctrine it expresses;
@@ -347,17 +347,18 @@ A generation prompt should specify:
 
 ### General prompt skeleton
 
-> Create a [register-sensitive image type] based on this [Ordinance, Unveiling, Testimony, or Scholium]: "[logion]."
-> Center the image on [doctrinal center] through [dominant subject]. Use [retrowave or synthwave anchor] to signify
-> [symbolic function], and combine it with [selected supporting influences] through clear architecture, hierarchy, and
-> ceremonial light. Interpret the judgment rather than illustrating every noun. Use [format and rendering mode], follow
-> [text policy], and avoid [relevant clichés].
+> Create a `[movement-sensitive image type]` based on this logion: "`[logion]`." Center the image on
+> `[doctrinal center]` through `[dominant subject]`, and translate its movement from `[initial movement]` through
+> `[later movement]` into the composition. Let `[retrowave or synthwave anchor]` signify `[symbolic function]`.
+> Integrate `[selected supporting influences]` through clear architecture, hierarchy, and ceremonial light. Interpret
+> the judgment rather than illustrating every noun. Use `[format and rendering mode]`, follow `[text policy]`, and avoid
+> `[relevant clichés]`.
 
 ### Environment prompt skeleton
 
-> Create a ceremonial retrofuturist environment embodying [doctrinal center]. Depict architecture as metaphysical law
-> rather than background. Establish [threshold, rank, procession, or concealment] through [selected motifs]. The space
-> should feel inhabited by an institution even when no figures are present.
+> Create a ceremonial retrofuturist environment embodying `[doctrinal center]`. Depict architecture as metaphysical law
+> rather than background. Establish `[threshold, rank, procession, or concealment]` through `[selected motifs]`. The
+> space should feel inhabited by an institution even when no figures are present.
 
 ---
 
@@ -422,7 +423,7 @@ add one project's names or asset conventions to this general guide.
 
 Before accepting an image, verify that:
 
-1. It visibly derives from the source logion's doctrinal center and preserves its dominant register.
+1. It visibly derives from the source logion's doctrinal center and reflects its compositional movements.
 2. It contains at least one recognizable retrowave or synthwave anchor.
 3. The anchor participates in the image's meaning and is not merely a cyan-magenta tint, arbitrary grid, or background
    prop.

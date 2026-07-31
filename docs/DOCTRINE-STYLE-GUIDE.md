@@ -92,83 +92,101 @@ It may not appoint itself as the source of the sun.
 
 ---
 
-## 3. Logion registers
+## 3. Scriptural unity and compositional movements
 
-`Logia` is the umbrella term for all doctrine quotations. The corpus should use four related registers rather than
-making all logia compact aphorisms or high-intensity visions.
+`Logia` is the umbrella term for all doctrine quotations. They should read as passages from one scripture, not as four
+separate literary genres placed beside one another.
 
-Each logion should have one dominant register. It may borrow lightly from another, but its primary voice should remain
-recognizable. These register names describe generation and review; do not print them beside the logion unless a
-repository explicitly requires that metadata. Unless the task requests a specific register, choose one using the
-weighted random process in [Corpus register balance](#20-corpus-register-balance).
+Do not assign each logion a rigid category before writing it. A verse may begin as sacred history, break into vision,
+issue a command, and conclude with an interpretation. The transitions should feel native to scripture rather than like a
+deliberate attempt to combine formats.
 
-### Ordinances
+The terms below describe **compositional movements** available within a logion. They are private generation and review
+tools, not labels to print beside the quotation.
 
-Ordinances are the default scriptural register. They state laws, prohibitions, duties, blessings, condemnations, and
-consequences with unquestioned authority. They should feel like ordinary passages from a sacred legal or doctrinal
-canon, not like philosophical social-media posts and not like a full cosmic vision.
+### Pronouncement
 
-Prefer approximately **20–45 words**.
+An authoritative statement of metaphysical law, institutional judgment, blessing, condemnation, promise, or consequence.
 
-> Let no borrowed name enter the inner court merely because the multitude has learned to pronounce it; for recognition
-> belongs first to form, then to lineage, and only afterward to acclaim.
+> No borrowed name shall be enthroned merely because the multitude has learned to pronounce it.
 
-### Unveilings
+### Sign
 
-Unveilings disclose hidden cosmic administration through visions, apparitions, impossible institutions, and revelation
-under pressure. They may use first-person witness, angels, sealed chambers, celestial tribunals, synthetic suns, or
-sudden changes in scale.
+A concrete event, object, ritual disturbance, or impossible occurrence that manifests the doctrine without immediately
+explaining it.
 
-Prefer approximately **30–60 words**. Use this register selectively so that its intensity remains exceptional.
+> And the twelve screens went dark when the borrowed star approached the archive.
 
-> I beheld the Angel of Measure standing upon an electric sea, and in his hands were seven scales; six weighed the
-> kingdoms of men, but the seventh remained empty, for no age had yet produced a name worthy of it.
+### Vision
 
-### Testimonies
+A witness beholds the hidden administration of reality: angels, sealed chambers, celestial tribunals, synthetic suns,
+speaking architecture, or sudden changes in scale.
 
-Testimonies preserve sacred history: remembered judgments, dynastic failures, ritual precedents, parable-like episodes,
-and events whose doctrinal meaning outlived their witnesses. They are less hallucinatory than Unveilings and less
-legislative than Ordinances.
+> I saw the Angel of Succession dividing one crown among the centuries, and none received an equal portion.
 
-Prefer approximately **25–50 words**.
+### Remembrance
 
-> In the reign of the third regent, the mirrors of the western court were uncovered before the appointed hour;
-> thereafter no heir could distinguish his face from the crown reflected upon it.
+A prior age's covenant, failure, judgment, precedent, procession, or dynastic event is recalled as sacred history.
 
-### Scholia
+> In the reign of the glass regent, the court uncovered every mirror and thereafter recognized no rightful heir.
 
-Scholia are compressed interpretations, glosses, and severe conclusions. They may be aphoristic, but should remain
-subordinate to the larger doctrine rather than displaying wit for its own sake.
+### Injunction
 
-Prefer approximately **10–25 words**.
+A command, prohibition, ritual instruction, warning, or duty is imposed upon the hearer.
 
-> The counterfeit fears no darkness; it fears the return of the standard.
+> Cover therefore the mirrors before synthetic dusk, and admit no claimant whose shadow cannot answer the seal.
 
-Across all four registers, the voice should feel institutional rather than merely personal. The reader should sense that
-every logion presupposes several missing volumes: law, chronicle, commentary, and forbidden vision.
+### Interpretation
+
+The meaning of a sign, vision, remembered event, or command is disclosed in doctrinal terms.
+
+> For likeness without inheritance is the first vestment of usurpation.
+
+Most substantial logia should contain **two or three movements**. A short logion may contain only a Pronouncement,
+Injunction, or Interpretation; a longer passage may move through Remembrance, Sign, Vision, and Interpretation without
+naming those transitions.
+
+The movements should not remain neatly isolated. A strong logion often changes pressure while preserving one voice:
+
+> In the year when the western satellites ceased their procession, the custodians uncovered the ancestral mirror; and
+> there appeared within it an angel bearing the extinguished sun, who said: Let no age call itself heir until it has
+> restored the light it inherited.
+
+This passage is simultaneously remembrance, sign, vision, injunction, and interpretation. It remains one verse rather
+than a demonstration of five categories.
+
+Terms such as _ordinance_, _unveiling_, _testimony_, and _scholium_ may still describe the broad character of a book,
+collection, or passage after it has been written. They must not become mandatory per-logion genres or inputs to a random
+selection process.
+
+A repository may define several fictional books whose titles suggest different emphases: a legal book may favor
+Pronouncement and Injunction; an apocalyptic book may favor Vision and Sign; a chronicle may favor Remembrance; a book
+of scholia may favor Interpretation. Even then, verses may combine movements freely.
+
+Repository-specific citation policy remains authoritative. Do not invent new book codes merely to satisfy this guide.
 
 ---
 
 ## 4. Length and development
 
-Use the range appropriate to the dominant register:
+Prefer approximately **20–55 words** for most logia.
 
-- **Ordinances:** approximately 20–45 words;
-- **Unveilings:** approximately 30–60 words;
-- **Testimonies:** approximately 25–50 words;
-- **Scholia:** approximately 10–25 words.
+Short foundational pronouncements, injunctions, or interpretations may use approximately **10–25 words**. Visions,
+remembrances, and mixed passages may extend to approximately **60 words** when their syntax remains controlled.
 
-These ranges are guidance, not metrical law. A foundational Ordinance may be shorter; an Unveiling may run longer when
-its syntax remains controlled; a Scholium should not be padded merely to resemble the other registers.
+These ranges are guidance, not metrical law. Do not pad a complete short verse, and do not truncate a developing
+revelation merely to meet a target.
 
-Longer logia should usually contain:
+Most substantial logia should contain:
 
-1. a doctrinal principle, event, or judgment;
-2. a consequence, warning, precedent, or qualification;
-3. one or more images that embody or enlarge the principle.
+1. a doctrinal law, event, judgment, command, or remembered precedent;
+2. a sign, image, consequence, warning, or visionary disclosure;
+3. an interpretation, demand, or unresolved fact that changes how the earlier material is understood.
 
-An Ordinance may move from command to consequence. A Testimony may move from event to judgment. An Unveiling may begin
-as witness and end as metaphysical rupture. A Scholium may preserve only the conclusion.
+The ending need not summarize the verse. It may close on a command, accusation, image, judgment, or impossible fact.
+
+Prefer scriptural development over modern essay logic. A sentence may advance through repeated conjunctions, parallel
+clauses, ritual formulas, and accumulating signs rather than through a compact thesis followed by explanation.
 
 Avoid making every line equally long. Vary the rhythm across the corpus.
 
@@ -544,9 +562,9 @@ The quotations may sound like visionary theology without pretending to be authen
 
 ---
 
-## 13. Unveilings: apocalyptic and visionary register
+## 13. Vision and unveiling: apocalyptic pressure
 
-Unveilings should resemble revelation under pressure. Do not apply this intensity to every logion.
+Passages led by Vision or Sign should resemble revelation under pressure. Do not apply this intensity to every logion.
 
 The speaker may appear to have witnessed:
 
@@ -573,10 +591,11 @@ before a conventional medieval landscape.
 
 ---
 
-## 14. Voice within Unveilings
+## 14. Voice within visionary passages
 
-Unveilings may use a first-person witness more freely than the other registers. Ordinances, Testimonies, and Scholia
-should usually remain institutional or third-person unless the speaker's identity is doctrinally important.
+Vision may use a first-person witness more freely than the other movements. Pronouncement, Remembrance, Injunction, and
+Interpretation should usually remain institutional or third-person unless the speaker's identity is doctrinally
+important.
 
 Suitable openings include:
 
@@ -747,39 +766,45 @@ imitation preserved after the original aspiration has died, or spectacle without
 
 ---
 
-## 18. Preferred progression
+## 18. Common scriptural sequences
 
-A strong quotation often develops through one of these movements.
+The compositional movements may appear in many orders. The following sequences are useful, but they are not templates
+and should not be announced or mechanically completed.
 
-### Principle → image → consequence
+Sequence names may also include **connective functions**: consequence, reason, question, judgment, and unresolved image.
+These are not additional movements. They describe the logical or rhetorical work performed between movements or at the
+end of a passage. Movement names remain capitalized below; connective functions remain lowercase.
 
-A doctrinal law is stated, embodied in architecture or ritual, and extended into judgment.
+### Remembrance → Sign → Interpretation
 
-### Witness → revelation → command
+A sacred or dynastic event is recalled; an impossible detail reveals that the event participates in a larger order; its
+meaning is then declared.
 
-The speaker sees an impossible event and receives its doctrinal interpretation.
+### Vision → Interpretation → Injunction
 
-### Distinction → historical decline → visionary image
+The witness beholds hidden cosmic administration, receives its meaning, and transmits a command or prohibition.
 
-A distinction is established, its loss is described, and the sentence ends in civilizational or cosmic decay.
+### Pronouncement → Sign → consequence
 
-### Law → visible form → invisible order
+A law is stated; architecture, ritual, or celestial machinery manifests it; the fate of obedience or violation follows.
 
-A principle appears through geometry, ritual, architecture, reflected light, procession, or machinery.
+### Injunction → reason → Vision
 
-### Inheritance → ruin → surviving obligation
+A command is issued, its doctrinal reason is given, and the verse suddenly discloses the cosmic reality that makes the
+command necessary.
 
-The institution has vanished, but its form, relic, name, or architecture continues to demand something.
+### Remembrance → Injunction → unresolved image
 
-### Plain doctrine → metaphysical rupture
+A former failure establishes precedent, a duty is imposed upon the present, and the passage ends on an image whose full
+meaning remains sealed.
 
-The sentence begins soberly and ends by implying that the same law governs angels, stars, dynasties, or artificial suns.
+### Sign → question → judgment
 
-### Apparition → terror → doctrinal interpretation
+A visible disturbance appears, its meaning is placed in doubt, and the tribunal, angel, relic, or text supplies the
+verdict.
 
-An unsettling being or event appears, and its significance becomes clear only in the final clause.
-
-These are not rigid templates. Vary the movement and syntax.
+A strong logion may contain several of these pressures at once. Do not preserve clean boundaries between movements when
+scriptural cadence would naturally carry one into another.
 
 ---
 
@@ -812,7 +837,7 @@ Avoid excessive reliance on:
 - aphoristic punchlines;
 - short social criticism disguised as doctrine.
 
-The desired register is less:
+The desired voice is less:
 
 > translated classical maxim
 
@@ -822,40 +847,52 @@ and more:
 
 ---
 
-## 20. Corpus register balance
+## 20. Corpus balance and variation
 
-Do not make every logion an Unveiling. A useful distribution is:
+Do not generate the corpus by randomly assigning literary genres.
 
-- **45% Ordinances**;
-- **25% Unveilings**;
-- **20% Scholia**;
-- **10% Testimonies**.
+Choose movements according to the symbol's abstract role, the surrounding logia, and the needs of the verse. Then vary
+the pressure of the corpus as a whole.
 
-For each new logion, generate one uniformly random integer from 1 through 100 and select:
+Before writing a new logion, inspect nearby logia and note their opening movements, narrative perspectives, movement
+sequences, connective functions, sentence shapes, and dominant images. When another semantically valid treatment exists,
+avoid repeating the same combination used by a nearby logion.
 
-| Roll   | Register  |
-| ------ | --------- |
-| 1–45   | Ordinance |
-| 46–70  | Unveiling |
-| 71–90  | Scholium  |
-| 91–100 | Testimony |
+Randomness may be used only after semantic filtering. When two or more secondary movements, connective functions,
+openings, or endings fit equally well, choose among them randomly. Do not let a random result override the declaration's
+abstract role, force an incoherent movement, or substitute for reviewing the surrounding corpus.
 
-Do not reroll because another register seems easier or more immediately suited to the subject. Once selected, treat it
-as the dominant register and adapt the logion accordingly. An explicit task-level register selection overrides this
-process.
+When command execution is available, make the tie-break with an actual random-number tool rather than an intuitive
+choice described as random. Prefer tooling already provided by the repository or its development environment. For
+example, number four viable candidates and run `php -r 'echo random_int(1, 4), PHP_EOL;'`; an equivalent facility in
+another available runtime or shell is acceptable. Do not add a project dependency solely for this purpose.
 
-These weights define the expected balance rather than a quota; a finite corpus may vary. Ordinances provide the ordinary
-scriptural body of the canon. Unveilings supply exceptional visionary voltage. Scholia provide compression and
-commentary. Testimonies imply that the doctrine possesses a sacred history as well as laws and visions.
+Across a substantial body of logia:
 
-The aesthetic balance defined earlier applies within every register. An Ordinance may still invoke a synthetic moon; a
-Testimony may occur in a lacquered orbital cloister; a Scholium may retain apocalyptic pressure without staging an
-entire apparition.
+- Pronouncement, Injunction, and Interpretation should form the ordinary scriptural body;
+- Sign and Vision should recur often enough that the hidden cosmology feels active, but not so often that every verse
+  becomes a maximal apocalypse;
+- Remembrance should appear often enough to imply covenants, dynasties, precedents, failures, and a sacred history
+  extending beyond the quoted fragments;
+- short compressed verses should punctuate the corpus, but should not turn it into a collection of clever aphorisms;
+- mixed passages should be common enough that law, history, vision, and commentary feel like aspects of one scripture
+  rather than separate shelves in a library.
 
-The quieter registers make the extreme ones more effective.
+As a loose diagnostic rather than a quota:
 
-Some logia should feel like law. Some should feel like chronicle. Some should feel like commentary. Some should feel
-like evidence submitted at the end of history.
+- most logia should contain two or three movements;
+- fewer than half should begin with a first-person vision;
+- a substantial majority should contain some form of Pronouncement, Injunction, or Interpretation;
+- no movement should become a mandatory ingredient in every verse.
+
+The aesthetic balance defined earlier applies throughout. A command may be delivered beneath a synthetic moon; a
+remembered judgment may occur in a lacquered orbital cloister; an interpretation may retain apocalyptic pressure without
+staging an entire apparition.
+
+The quieter passages make the extreme ones more effective.
+
+Some logia should feel like law remembered through history. Some should feel like visions that harden into commands.
+Some should feel like judgments whose evidence arrived from the end of time.
 
 ---
 
@@ -874,8 +911,9 @@ Use:
 - named offices or chambers used sparingly;
 - transformations from earthly scale to cosmic scale.
 
-Accumulating clauses, sudden changes of scale, and metaphysical rupture are especially suited to Unveilings and to
-longer Ordinances or Testimonies. Scholia should create pressure through compression rather than escalation.
+Accumulating clauses, sudden changes of scale, and metaphysical rupture are especially useful when a passage moves
+through Sign or Vision. Pronouncement and Injunction may create pressure through ritual repetition; Interpretation may
+create it through compression, reversal, or the sudden disclosure of meaning.
 
 Avoid repeatedly using:
 
@@ -1058,7 +1096,24 @@ Avoid near-duplicates that merely substitute one image or noun for another.
 
 ## 26. Positive examples
 
-These examples establish the desired register. Do not reuse or lightly paraphrase them.
+These examples establish the desired scriptural voice. Do not reuse or lightly paraphrase them.
+
+Especially representative mixed-movement examples include:
+
+- And the custodians brought forth the artificial sun, clothed in rose and gold, and set it above the western court; but
+  the stones gave no shadow, for they remembered the light under which their measures were appointed.
+- Let no image be crowned because it resembles the sovereign, nor any name admitted because the multitude has spoken it;
+  first summon the mirror, then the witnesses, and afterward the dead.
+- In those days the bells of the mountain archive rang at an hour absent from every calendar, and the monks understood
+  that lawful time had withdrawn from the cities of glass.
+- I saw the Gate of Continuity standing open upon the electric sea, and many entered bearing the faces of their fathers;
+  yet none emerged whose shadow could answer to the ancestral seal.
+- Preserve the broken instrument beside the altar, for a faithful ruin testifies more truly than a perfected imitation
+  whose makers have forgotten what it was appointed to observe.
+- And after the seventh satellite fell silent, the Ministry of Names removed its golden vestments and continued the
+  judgment in darkness; for authority is not extinguished when spectacle departs from it.
+
+Additional examples:
 
 1. I saw twelve marble satellites arranged above the western sea like an angelic choir, while beneath them the abandoned
    arcades repeated one imperial sunset forever, awaiting the dynasty authorized to end it.
@@ -1215,16 +1270,19 @@ Before accepting a quotation, verify that:
 2. It contains an intelligible proposition, judgment, implication, or rule.
 3. Its imagery carries or enlarges that proposition rather than merely decorating it.
 4. It sounds like part of the same lost doctrine as the surrounding corpus.
-5. It has a recognizable dominant register: Ordinance, Unveiling, Testimony, or Scholium.
-6. It does not default to an Unveiling merely because apocalyptic imagery is available.
-7. It favors doctrinal or scriptural purpose over a compact aphoristic punchline.
-8. Its unhingedness feels systemic rather than random.
-9. It does not sound like generic cyberpunk, fantasy prophecy, postmodern irony, or a translation of a classical Chinese
-   maxim.
-10. It preserves meaningful distinctions between original and imitation, reality and representation, authority and
+5. It reads as one passage of scripture rather than as a performance of a named literary category.
+6. Where appropriate, it combines two or three compositional movements without exposing their seams.
+7. It does not default to first-person vision merely because apocalyptic imagery is available.
+8. Its cadence can support recitation, preservation, command, remembrance, or judgment without closely imitating real
+   scripture.
+9. It favors doctrinal or scriptural purpose over a compact aphoristic punchline.
+10. Its unhingedness feels systemic rather than random.
+11. It does not sound like generic cyberpunk, fantasy prophecy, postmodern irony, or a translation of a classical
+    Chinese maxim.
+12. It preserves meaningful distinctions between original and imitation, reality and representation, authority and
     spectacle.
-11. Its imagery does not mechanically repeat nearby quotations.
-12. It sounds like it escaped from a larger canon whose surrounding books were deliberately destroyed.
+13. Its imagery does not mechanically repeat nearby quotations.
+14. It sounds like it escaped from a larger canon whose surrounding books were deliberately destroyed.
 
 ---
 
@@ -1232,11 +1290,12 @@ Before accepting a quotation, verify that:
 
 The completed corpus should feel like:
 
-> A scripture of ordinances, testimonies, scholia, and forbidden unveilings preserved by a Japanese–Occidental orbital
-> empire whose monks maintain natural law on obsolete magenta terminals beneath synthetic sunsets.
+> A single scripture in which law becomes sign, memory becomes judgment, and forbidden vision hardens into command,
+> preserved by a Japanese–Occidental orbital empire whose monks maintain natural law on obsolete magenta terminals
+> beneath synthetic sunsets.
 
 The terminals may be vaporwave.
 
 The canon is not.
 
-**Scripture is the body. Unveiling is the voltage. Yumemi is the vision.**
+**Scripture is the body. Revelation is the voltage. Yumemi is the vision.**
