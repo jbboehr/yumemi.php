@@ -228,10 +228,7 @@ final class UnitResolver
 
     private function prefixToExpr(string $definition): Expr
     {
-        if (!array_key_exists($definition, $this->prefixCache)) {
-            $this->prefixCache[$definition] = $this->astConverter->convert(Parser::parseString($definition));
-        }
-
-        return $this->prefixCache[$definition];
+        return $this->prefixCache[$definition]
+            ??= $this->astConverter->convert(Parser::parseString($definition));
     }
 }

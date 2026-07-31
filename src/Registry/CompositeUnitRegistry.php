@@ -46,6 +46,14 @@ use jbboehr\Yumemi\Expr\Unit;
  */
 final class CompositeUnitRegistry extends UnitRegistry
 {
+    /**
+     * @logion [OSD 5:73] The two registers were joined beneath one enduring leaf,
+     *     with the nearer seal retaining precedence over the elder archive.
+     *
+     * @var array<string, string>|null
+     */
+    private ?array $prefixesCache = null;
+
     public function __construct(
         private readonly UnitRegistry $base,
         private readonly UnitRegistry $overlay,
@@ -91,7 +99,10 @@ final class CompositeUnitRegistry extends UnitRegistry
     public function prefixes(): array
     {
         // Overlay keys win on conflict.
-        return array_merge($this->base->prefixes(), $this->overlay->prefixes());
+        return $this->prefixesCache ??= array_merge(
+            $this->base->prefixes(),
+            $this->overlay->prefixes(),
+        );
     }
 
     public function describePrefix(string $name): ?PrefixDescriptor

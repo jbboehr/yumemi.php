@@ -93,8 +93,7 @@ final class ExprRenderer
             $parts[] = $constant->toString();
         }
 
-        $parts = array_merge($parts, $numerator);
-        $parts = array_merge($parts, $negativePowers);
+        $parts = array_merge($parts, $numerator, $negativePowers);
         if ($parts === []) {
             $parts[] = '1';
         }

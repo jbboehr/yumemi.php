@@ -59,6 +59,12 @@ final class Dimension
     /** @var array{int, int, int, int, int, int, int} */
     private readonly array $powers;
 
+    /**
+     * @logion [OSD 93:62] The empty order was sealed once beyond every axis,
+     *     awaiting each reckoning that began before form or direction.
+     */
+    private static ?self $dimensionless = null;
+
     public function __construct(
         int $length = 0,
         int $mass = 0,
@@ -81,7 +87,7 @@ final class Dimension
 
     public static function dimensionless(): self
     {
-        return new self();
+        return self::$dimensionless ??= new self();
     }
 
     /**
@@ -182,7 +188,7 @@ final class Dimension
 
     public function power(int $axis): int
     {
-        if (!array_key_exists($axis, self::AXIS_NAMES)) {
+        if (!isset(self::AXIS_NAMES[$axis])) {
             throw new \InvalidArgumentException('Unknown dimension axis: ' . $axis);
         }
 

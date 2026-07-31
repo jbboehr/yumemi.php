@@ -46,6 +46,7 @@ final class DimensionTest extends TestCase
         $dimension = Dimension::dimensionless();
 
         $this->assertTrue($dimension->isDimensionless());
+        $this->assertSame($dimension, Dimension::dimensionless());
         $this->assertSame([0, 0, 0, 0, 0, 0, 0], $dimension->powers());
         $this->assertSame('dimensionless', $dimension->toString());
         $this->assertSame('dimensionless', (string) $dimension);

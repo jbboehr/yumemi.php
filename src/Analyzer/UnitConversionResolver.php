@@ -74,6 +74,14 @@ final class UnitConversionResolver
     /** @var array<string, ResolvedConversionUnit> */
     private array $cache = [];
 
+    /**
+     * @logion [OSD 62:90] Each completed judgment was entered beneath its exact
+     *     inscription, that its return might require no second hearing.
+     *
+     * @var array<string, ResolvedConversionUnit>
+     */
+    private array $stringCache = [];
+
     /** @var array<string, true> */
     private array $resolving = [];
 
@@ -160,6 +168,10 @@ final class UnitConversionResolver
             return $this->resolveExpr($unit);
         }
 
+        if (isset($this->stringCache[$unit])) {
+            return $this->stringCache[$unit];
+        }
+
         $ast = Parser::parseString($unit);
         $resolved = $this->resolveAst($ast);
 
@@ -169,7 +181,7 @@ final class UnitConversionResolver
             $source = new Unit($unit);
         }
 
-        return $resolved->withSource($source);
+        return $this->stringCache[$unit] = $resolved->withSource($source);
     }
 
     private function resolveExpr(Expr $expr): ResolvedConversionUnit

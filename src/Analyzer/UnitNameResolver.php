@@ -48,6 +48,14 @@ final class UnitNameResolver
     /** @var array<string, ResolvedUnitName|null> */
     private array $cache = [];
 
+    /**
+     * @logion [OSD 14:37] The ordered seals remained upon the archivist's table,
+     *     so each later petitioner might be examined without another procession.
+     *
+     * @var array<string, string>|null
+     */
+    private ?array $sortedPrefixesCache = null;
+
     public function __construct(
         private readonly UnitRegistry $unitRegistry,
     ) {
@@ -94,9 +102,13 @@ final class UnitNameResolver
      */
     private function sortedPrefixes(): array
     {
+        if ($this->sortedPrefixesCache !== null) {
+            return $this->sortedPrefixesCache;
+        }
+
         $prefixes = $this->unitRegistry->prefixes();
         uksort($prefixes, static fn (string $left, string $right): int => strlen($right) <=> strlen($left));
 
-        return $prefixes;
+        return $this->sortedPrefixesCache = $prefixes;
     }
 }

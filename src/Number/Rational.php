@@ -57,6 +57,13 @@ final class Rational
             $denominator = gmp_neg($denominator);
         }
 
+        if (gmp_cmp($denominator, 1) === 0) {
+            $this->numerator = $numerator;
+            $this->denominator = $denominator;
+
+            return;
+        }
+
         $gcd = gmp_gcd(gmp_abs($numerator), $denominator);
 
         $this->numerator = gmp_div_q($numerator, $gcd);

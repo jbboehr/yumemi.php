@@ -36,10 +36,13 @@
 
 namespace jbboehr\Yumemi\Tests\Analyzer;
 
+use jbboehr\Yumemi\Analyzer\UnitConversionResolver;
+use jbboehr\Yumemi\Analyzer\UnitNameResolver;
 use jbboehr\Yumemi\Analyzer\UnitResolver;
 use jbboehr\Yumemi\Catalog\UnitSemantics;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
+use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 use jbboehr\Yumemi\Units;
@@ -61,6 +64,39 @@ final class UnitResolverTest extends TestCase
 
         $this->assertSame('1000 * meter', $resolver->resolveOrFail('kilometer')->toString());
         $this->assertSame('1/100 * meter', $resolver->resolveOrFail('centimeter')->toString());
+    }
+
+    public function testUnitNameResolverSortsImmutableRegistryPrefixesOnce(): void
+    {
+        $registry = new class () extends UnitRegistry {
+            public int $prefixLookups = 0;
+
+            public function __construct()
+            {
+                parent::__construct([new Unit('meter')]);
+            }
+
+            public function prefixes(): array
+            {
+                ++$this->prefixLookups;
+
+                return ['da' => '10', 'd' => '1/10'];
+            }
+        };
+        $resolver = new UnitNameResolver($registry);
+
+        $this->assertSame('da', $resolver->resolve('dameter')?->prefixName);
+        $this->assertSame('d', $resolver->resolve('dmeter')?->prefixName);
+        $this->assertSame(1, $registry->prefixLookups);
+    }
+
+    public function testConversionResolverCachesRawUnitStrings(): void
+    {
+        $resolver = new UnitConversionResolver(new Udunits2UnitRegistry());
+        $resolved = $resolver->resolve('meter / second');
+
+        $this->assertSame($resolved, $resolver->resolve('meter / second'));
+        $this->assertNotSame($resolved, $resolver->resolve('meter * second ^ -1'));
     }
 
     public function testResolvesCatalogBackedPlurals(): void

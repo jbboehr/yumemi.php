@@ -146,6 +146,54 @@ final class CompositeUnitRegistryTest extends TestCase
         );
     }
 
+    public function testMergedPrefixesAreCachedForTheImmutableLayers(): void
+    {
+        $base = new class (['kilo' => '1000']) extends UnitRegistry {
+            public int $prefixLookups = 0;
+
+            /**
+             * @param array<string, string> $configuredPrefixes
+             */
+            public function __construct(
+                private readonly array $configuredPrefixes,
+            ) {
+                parent::__construct();
+            }
+
+            public function prefixes(): array
+            {
+                ++$this->prefixLookups;
+
+                return $this->configuredPrefixes;
+            }
+        };
+        $overlay = new class (['milli' => '0.001']) extends UnitRegistry {
+            public int $prefixLookups = 0;
+
+            /**
+             * @param array<string, string> $configuredPrefixes
+             */
+            public function __construct(
+                private readonly array $configuredPrefixes,
+            ) {
+                parent::__construct();
+            }
+
+            public function prefixes(): array
+            {
+                ++$this->prefixLookups;
+
+                return $this->configuredPrefixes;
+            }
+        };
+        $composite = new CompositeUnitRegistry($base, $overlay);
+
+        $this->assertSame(['kilo' => '1000', 'milli' => '0.001'], $composite->prefixes());
+        $this->assertSame(['kilo' => '1000', 'milli' => '0.001'], $composite->prefixes());
+        $this->assertSame(1, $base->prefixLookups);
+        $this->assertSame(1, $overlay->prefixLookups);
+    }
+
     public function testDescriptionsUseEffectiveOverlayAndVisibleBaseAliases(): void
     {
         $composite = new CompositeUnitRegistry(
