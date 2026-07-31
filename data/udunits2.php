@@ -5160,6 +5160,160 @@ return [
             'name' => 'molecules',
             'def' => 'molecule',
             'aliasKind' => 'generated_plural'
+        ],
+        'Δ°C' => [
+            'type' => 'alias',
+            'name' => 'Δ°C',
+            'def' => 'delta_degree_Celsius',
+            'aliasKind' => 'symbol'
+        ],
+        'delta_degree_Celsius' => [
+            'type' => 'unit',
+            'name' => 'delta_degree_Celsius',
+            'def' => 'K',
+            'plural' => 'delta_degrees_Celsius'
+        ],
+        'delta_degrees_Celsius' => [
+            'type' => 'alias',
+            'name' => 'delta_degrees_Celsius',
+            'def' => 'delta_degree_Celsius',
+            'aliasKind' => 'explicit_plural'
+        ],
+        'delta_degree_C' => [
+            'type' => 'alias',
+            'name' => 'delta_degree_C',
+            'def' => 'delta_celsius',
+            'aliasKind' => 'alias'
+        ],
+        'delta_degrees_C' => [
+            'type' => 'alias',
+            'name' => 'delta_degrees_C',
+            'def' => 'delta_celsius',
+            'aliasKind' => 'explicit_plural'
+        ],
+        'delta_degreeC' => [
+            'type' => 'alias',
+            'name' => 'delta_degreeC',
+            'def' => 'delta_celsius',
+            'aliasKind' => 'alias'
+        ],
+        'delta_degreesC' => [
+            'type' => 'alias',
+            'name' => 'delta_degreesC',
+            'def' => 'delta_celsius',
+            'aliasKind' => 'explicit_plural'
+        ],
+        'delta_deg_C' => [
+            'type' => 'alias',
+            'name' => 'delta_deg_C',
+            'def' => 'delta_celsius',
+            'aliasKind' => 'alias'
+        ],
+        'delta_degs_C' => [
+            'type' => 'alias',
+            'name' => 'delta_degs_C',
+            'def' => 'delta_celsius',
+            'aliasKind' => 'explicit_plural'
+        ],
+        'delta_degC' => [
+            'type' => 'alias',
+            'name' => 'delta_degC',
+            'def' => 'delta_celsius',
+            'aliasKind' => 'alias'
+        ],
+        'delta_degsC' => [
+            'type' => 'alias',
+            'name' => 'delta_degsC',
+            'def' => 'delta_celsius',
+            'aliasKind' => 'explicit_plural'
+        ],
+        'delta_celsius' => [
+            'type' => 'alias',
+            'name' => 'delta_celsius',
+            'def' => 'delta_degree_Celsius'
+        ],
+        'Δ°F' => [
+            'type' => 'alias',
+            'name' => 'Δ°F',
+            'def' => 'delta_fahrenheit',
+            'aliasKind' => 'symbol'
+        ],
+        'delta_degree_fahrenheit' => [
+            'type' => 'alias',
+            'name' => 'delta_degree_fahrenheit',
+            'def' => 'delta_fahrenheit',
+            'aliasKind' => 'alias'
+        ],
+        'delta_degrees_fahrenheit' => [
+            'type' => 'alias',
+            'name' => 'delta_degrees_fahrenheit',
+            'def' => 'delta_fahrenheit',
+            'aliasKind' => 'explicit_plural'
+        ],
+        'delta_degreeF' => [
+            'type' => 'alias',
+            'name' => 'delta_degreeF',
+            'def' => 'delta_fahrenheit',
+            'aliasKind' => 'alias'
+        ],
+        'delta_degreesF' => [
+            'type' => 'alias',
+            'name' => 'delta_degreesF',
+            'def' => 'delta_fahrenheit',
+            'aliasKind' => 'explicit_plural'
+        ],
+        'delta_degree_F' => [
+            'type' => 'alias',
+            'name' => 'delta_degree_F',
+            'def' => 'delta_fahrenheit',
+            'aliasKind' => 'alias'
+        ],
+        'delta_degrees_F' => [
+            'type' => 'alias',
+            'name' => 'delta_degrees_F',
+            'def' => 'delta_fahrenheit',
+            'aliasKind' => 'explicit_plural'
+        ],
+        'delta_degF' => [
+            'type' => 'alias',
+            'name' => 'delta_degF',
+            'def' => 'delta_fahrenheit',
+            'aliasKind' => 'alias'
+        ],
+        'delta_degsF' => [
+            'type' => 'alias',
+            'name' => 'delta_degsF',
+            'def' => 'delta_fahrenheit',
+            'aliasKind' => 'explicit_plural'
+        ],
+        'delta_deg_F' => [
+            'type' => 'alias',
+            'name' => 'delta_deg_F',
+            'def' => 'delta_fahrenheit',
+            'aliasKind' => 'alias'
+        ],
+        'delta_degs_F' => [
+            'type' => 'alias',
+            'name' => 'delta_degs_F',
+            'def' => 'delta_fahrenheit',
+            'aliasKind' => 'explicit_plural'
+        ],
+        'delta_fahrenheit' => [
+            'type' => 'unit',
+            'name' => 'delta_fahrenheit',
+            'def' => '°R'
+        ],
+        'delta_celsiuses' => [
+            'type' => 'alias',
+            'name' => 'delta_celsiuses',
+            'def' => 'delta_celsius',
+            'aliasKind' => 'generated_plural'
+        ],
+        'delta_fahrenheits' => [
+            'type' => 'alias',
+            'name' => 'delta_fahrenheits',
+            'def' => 'delta_fahrenheit',
+            'aliasKind' => 'generated_plural'
         ]
     ],
     'base' => [

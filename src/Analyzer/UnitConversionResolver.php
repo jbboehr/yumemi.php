@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\Analyzer;
 
+use jbboehr\Yumemi\Catalog\AffineDeltaUnitSynthesizer;
 use jbboehr\Yumemi\Catalog\UnitSemantics;
 use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
@@ -135,6 +136,22 @@ final class UnitConversionResolver
     public function dimension(Expr|string $unit): Dimension
     {
         return $this->resolve($unit)->dimension;
+    }
+
+    /**
+     * Return the multiplicative unit expression that measures differences on a coordinate scale.
+     *
+     * @logion [OSD 68:35] The judge removed the throne from the reckoning and returned
+     *     the unshifted measure by which every separation was known.
+     */
+    public function deltaUnitExpression(string $unit): string
+    {
+        $this->resolve($unit);
+
+        return AffineDeltaUnitSynthesizer::linearizeExpression(
+            $unit,
+            fn (string $name): ?array => $this->unitRegistry->findCatalogRecord($name),
+        );
     }
 
     public function resolve(Expr|string $unit): ResolvedConversionUnit

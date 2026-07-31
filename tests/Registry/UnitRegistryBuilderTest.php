@@ -299,6 +299,69 @@ final class UnitRegistryBuilderTest extends TestCase
         $this->assertFalse($descriptor->supportsConversion());
     }
 
+    public function testBuildSynthesizesDifferenceUnitsForCustomAffineDefinitionsAndAliases(): void
+    {
+        $registry = UnitRegistryBuilder::default()
+            ->define('degree_widget = kelvin @ 100')
+            ->define('shifted_widget_temperature = degree_widget @ 5')
+            ->define('widget_temperature = degree_widget')
+            ->alias('widget_temp', 'widget_temperature')
+            ->build();
+        $units = new Units($registry);
+
+        $this->assertSame('kelvin', $registry->findCatalogRecord('delta_degree_widget')['def'] ?? null);
+        $this->assertSame(
+            'delta_degree_widget',
+            $registry->findCatalogRecord('delta_widget_temperature')['def'] ?? null,
+        );
+        $this->assertSame(
+            'delta_widget_temperature',
+            $registry->findCatalogRecord('delta_widget_temp')['def'] ?? null,
+        );
+        $this->assertSame(
+            'delta_degree_widget',
+            $registry->findCatalogRecord('delta_shifted_widget_temperature')['def'] ?? null,
+        );
+        $this->assertSame(
+            '1',
+            $units->conversionFactor('delta_widget_temperature', 'kelvin')->toString(),
+        );
+        $this->assertSame(
+            '1',
+            $units->conversionFactor('delta_shifted_widget_temperature', 'kelvin')->toString(),
+        );
+        $this->assertSame(
+            UnitSemantics::Multiplicative,
+            $registry->describe('delta_widget_temperature')?->semantics,
+        );
+    }
+
+    public function testCustomAffineOverrideAlsoOverridesGeneratedBaseDifferenceUnit(): void
+    {
+        $registry = UnitRegistryBuilder::default()
+            ->define('double_kelvin = 2 * kelvin')
+            ->define('celsius = double_kelvin @ 100')
+            ->build();
+        $units = new Units($registry);
+
+        $this->assertSame(
+            '2',
+            $units->conversionFactor('delta_celsius', 'kelvin')->toString(),
+        );
+    }
+
+    public function testExplicitDifferenceNameCannotConflictWithSynthesis(): void
+    {
+        $builder = UnitRegistryBuilder::default()
+            ->define('degree_widget = kelvin @ 100')
+            ->define('delta_degree_widget = kelvin');
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('conflicts with its synthesized difference unit');
+
+        $builder->build();
+    }
+
     public function testDefineWorksOnEmptyBuilderWithExplicitUnits(): void
     {
         $registry = UnitRegistryBuilder::empty()

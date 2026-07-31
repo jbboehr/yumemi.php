@@ -42,8 +42,9 @@ use DOMXPath;
 
 /**
  * @phpstan-import-type Udunits2Catalog from \jbboehr\Yumemi\Registry\Udunits2UnitRegistry
+ * @phpstan-import-type CatalogRecord from \jbboehr\Yumemi\Registry\UnitRegistry
  * @phpstan-type MutableUdunits2Catalog array{
- *     units: array<string, array<string, mixed>>,
+ *     units: array<string, CatalogRecord>,
  *     base: list<string>,
  *     prefixes: array<string, string>,
  *     prefixMetadata: array<string, array{name: string, kind: 'canonical'|'symbol', value: string}>,
@@ -82,6 +83,7 @@ final class Udunits2CatalogImporter
 
         $this->materializeImplicitPluralAliases($catalog, $implicitPluralTargets);
         $this->materializeSemantics($catalog);
+        $catalog['units'] += AffineDeltaUnitSynthesizer::synthesize($catalog['units']);
         $catalog['prefixRegex'] = $this->createPrefixRegex(array_keys($catalog['prefixes']));
 
         /** @phpstan-var Udunits2Catalog $catalog */

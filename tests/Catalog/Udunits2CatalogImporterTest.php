@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\Tests\Catalog;
 
+use jbboehr\Yumemi\Catalog\AffineDeltaUnitSynthesizer;
 use jbboehr\Yumemi\Catalog\PhpCatalogExporter;
 use jbboehr\Yumemi\Catalog\Udunits2CatalogImporter;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -255,7 +256,7 @@ final class Udunits2CatalogImporterTest extends TestCase
         $this->assertSame('logarithmic', $units['bel']['semantics'] ?? null);
     }
 
-    public function testClassifiesAffineUnitsAsUnsupported(): void
+    public function testClassifiesAffineUnitsAndSynthesizesDifferenceUnits(): void
     {
         $xml = <<<'XML'
             <?xml version="1.0" encoding="UTF-8"?>
@@ -275,7 +276,12 @@ final class Udunits2CatalogImporterTest extends TestCase
               </unit>
               <unit>
                 <name><singular>degree_widget</singular></name>
+                <symbol>°W</symbol>
                 <def>kelvin @ 273.15</def>
+              </unit>
+              <unit>
+                <name><singular>shifted_widget_temperature</singular></name>
+                <def>degree_widget @ 5</def>
               </unit>
             </unit-system>
             XML;
@@ -286,8 +292,108 @@ final class Udunits2CatalogImporterTest extends TestCase
         $this->assertSame('affine', $units['degree_widget']['semantics'] ?? null);
         $this->assertSame('affine', $units['widget_temperature']['semantics'] ?? null);
         $this->assertSame('affine', $units['absolute_widget_temperature']['semantics'] ?? null);
+        $this->assertSame('affine', $units['shifted_widget_temperature']['semantics'] ?? null);
         $this->assertArrayNotHasKey('semantics', $units['widget_temp']);
         $this->assertArrayNotHasKey('semantics', $units['ordinary_widget']);
+
+        $this->assertSame(
+            ['type' => 'unit', 'name' => 'delta_degree_widget', 'def' => 'kelvin'],
+            $units['delta_degree_widget'],
+        );
+        $this->assertSame(
+            ['type' => 'alias', 'name' => 'delta_widget_temperature', 'def' => 'delta_degree_widget'],
+            $units['delta_widget_temperature'],
+        );
+        $this->assertSame(
+            [
+                'type' => 'alias',
+                'name' => 'delta_widget_temp',
+                'def' => 'delta_widget_temperature',
+                'aliasKind' => 'alias',
+            ],
+            $units['delta_widget_temp'],
+        );
+        $this->assertSame(
+            ['type' => 'alias', 'name' => 'Δ°W', 'def' => 'delta_degree_widget', 'aliasKind' => 'symbol'],
+            $units['Δ°W'],
+        );
+        $this->assertSame(
+            [
+                'type' => 'alias',
+                'name' => 'delta_absolute_widget_temperature',
+                'def' => 'delta_widget_temperature',
+            ],
+            $units['delta_absolute_widget_temperature'],
+        );
+        $this->assertSame(
+            ['type' => 'unit', 'name' => 'delta_shifted_widget_temperature', 'def' => 'delta_degree_widget'],
+            $units['delta_shifted_widget_temperature'],
+        );
+        $this->assertArrayNotHasKey('delta_ordinary_widget', $units);
+    }
+
+    public function testDifferenceSynthesisRejectsAnAffineRecordWithoutADefinition(): void
+    {
+        $this->expectException(\UnexpectedValueException::class);
+        $this->expectExceptionMessage('Affine catalog unit is missing definition: broken_scale');
+
+        AffineDeltaUnitSynthesizer::synthesize([
+            'broken_scale' => [
+                'type' => 'unit',
+                'name' => 'broken_scale',
+                'semantics' => 'affine',
+            ],
+        ]);
+    }
+
+    #[DataProvider('compoundAffineDefinitionProvider')]
+    public function testDifferenceSynthesisRejectsAnAffineReferenceInsideACompoundExpression(
+        string $definition,
+        string $rendered,
+    ): void {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage(
+            'Cannot synthesize a difference unit from a compound affine expression: ' . $rendered,
+        );
+
+        AffineDeltaUnitSynthesizer::synthesize([
+            'degree_widget' => [
+                'type' => 'unit',
+                'name' => 'degree_widget',
+                'def' => 'kelvin @ 100',
+                'semantics' => 'affine',
+            ],
+            'scaled_widget_temperature' => [
+                'type' => 'unit',
+                'name' => 'scaled_widget_temperature',
+                'def' => $definition,
+                'semantics' => 'affine',
+            ],
+        ]);
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function compoundAffineDefinitionProvider(): iterable
+    {
+        yield 'affine identifier in product' => ['2 * degree_widget', '(2 * degree_widget)'];
+        yield 'affine origin in product' => ['2 * degree_widget @ 5', '(2 * (degree_widget @ 5))'];
+        yield 'affine identifier in quotient' => ['degree_widget / 2', '(degree_widget / 2)'];
+        yield 'affine identifier in sum' => ['degree_widget + kelvin', '(degree_widget + kelvin)'];
+        yield 'affine identifier in difference' => ['kelvin - degree_widget', '(kelvin - degree_widget)'];
+        yield 'affine identifier in power' => ['degree_widget ^ 2', '(degree_widget ^ 2)'];
+    }
+
+    public function testDifferenceLinearizationPreservesAnOrdinaryCompoundExpression(): void
+    {
+        $this->assertSame(
+            '(2 * meter)',
+            AffineDeltaUnitSynthesizer::linearizeExpression(
+                '2 * meter',
+                static fn (string $name): ?array => null,
+            ),
+        );
     }
 
     public function testRegistersPrimeSymbolAndApostropheAlias(): void

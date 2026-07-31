@@ -213,7 +213,7 @@ final class Udunits2CatalogSmokeTest extends TestCase
         }
 
         $this->assertSame([], $failures);
-        $this->assertSame(784, $normalizedCount);
+        $this->assertSame(810, $normalizedCount);
         $this->assertSame(self::EXPECTED_UNSUPPORTED_BY_REASON, $unsupported);
     }
 

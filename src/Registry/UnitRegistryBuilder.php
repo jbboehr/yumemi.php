@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\Registry;
 
+use jbboehr\Yumemi\Catalog\AffineDeltaUnitSynthesizer;
 use jbboehr\Yumemi\Catalog\UnitDefinitionClassifier;
 use jbboehr\Yumemi\Catalog\UnitSemantics;
 use jbboehr\Yumemi\Expr\Unit;
@@ -212,6 +213,10 @@ final class UnitRegistryBuilder
             ? new Udunits2UnitRegistry($this->udunits2DataFile ?? Udunits2UnitRegistry::DATA_FILE)
             : null;
         $records = $this->materializeSemantics($base);
+        $records += AffineDeltaUnitSynthesizer::synthesize(
+            $records,
+            static fn (string $name): ?array => $base?->findCatalogRecord($name),
+        );
         $overlay = $this->buildOverlayRegistry($records);
 
         if ($base !== null) {
