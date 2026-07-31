@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\PHPStan;
 
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
+use jbboehr\Yumemi\Exception\NonMultiplicativeConversionException;
 use jbboehr\Yumemi\Units;
 use PhpParser\Node\Expr\FuncCall;
 use PHPStan\Analyser\Scope;
@@ -68,7 +69,11 @@ final class UnitFactorFunctionDynamicReturnTypeExtension implements DynamicFunct
         FuncCall $functionCall,
         Scope $scope,
     ): ?Type {
-        return $this->inferType($functionCall, $scope);
+        try {
+            return $this->inferType($functionCall, $scope);
+        } catch (\Throwable $exception) {
+            ShouldNotHappenException::rethrow($exception);
+        }
     }
 
     /**
@@ -109,10 +114,8 @@ final class UnitFactorFunctionDynamicReturnTypeExtension implements DynamicFunct
 
         try {
             $this->units->conversionFactor($fromUnit->expr, $toUnit->expr);
-        } catch (IncompatibleUnitException $exception) {
+        } catch (IncompatibleUnitException|NonMultiplicativeConversionException $exception) {
             return new ErrorType('Cannot calculate unit_factor(): ' . $exception->getMessage());
-        } catch (\Throwable $exception) {
-            return new ErrorType($exception->getMessage());
         }
 
         return new UnitFloatType(UnitExpressionAlgebra::divide($toUnit, $fromUnit));

@@ -67,16 +67,20 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
 
     public function specifyType(string $operatorSigil, Type $leftSide, Type $rightSide): Type
     {
-        $leftUnit = $this->asUnit($leftSide);
-        $rightUnit = $this->asUnit($rightSide);
+        try {
+            $leftUnit = $this->asUnit($leftSide);
+            $rightUnit = $this->asUnit($rightSide);
 
-        return match ($operatorSigil) {
-            '+', '-' => $this->specifyAddSub($operatorSigil, $leftUnit, $rightUnit, $leftSide, $rightSide),
-            '*', '/' => $this->specifyMulDiv($operatorSigil, $leftUnit, $rightUnit, $leftSide, $rightSide),
-            '**' => $this->specifyPow($leftUnit, $rightUnit, $leftSide, $rightSide),
-            '%' => $this->specifyMod($leftUnit, $rightUnit),
-            default => new ErrorType('Unsupported unit operator: ' . $operatorSigil),
-        };
+            return match ($operatorSigil) {
+                '+', '-' => $this->specifyAddSub($operatorSigil, $leftUnit, $rightUnit, $leftSide, $rightSide),
+                '*', '/' => $this->specifyMulDiv($operatorSigil, $leftUnit, $rightUnit, $leftSide, $rightSide),
+                '**' => $this->specifyPow($leftUnit, $rightUnit, $leftSide, $rightSide),
+                '%' => $this->specifyMod($leftUnit, $rightUnit),
+                default => new ErrorType('Unsupported unit operator: ' . $operatorSigil),
+            };
+        } catch (\Throwable $exception) {
+            ShouldNotHappenException::rethrow($exception);
+        }
     }
 
     private function specifyAddSub(

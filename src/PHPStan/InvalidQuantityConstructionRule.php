@@ -68,26 +68,30 @@ final class InvalidQuantityConstructionRule implements Rule
      */
     public function processNode(Node $node, Scope $scope): array
     {
-        if (
-            !$node->name instanceof Identifier
-            || !in_array($node->name->toString(), ['quantity', 'parseQuantity', 'point', 'deltaQuantity'], true)
-        ) {
-            return [];
-        }
+        try {
+            if (
+                !$node->name instanceof Identifier
+                || !in_array($node->name->toString(), ['quantity', 'parseQuantity', 'point', 'deltaQuantity'], true)
+            ) {
+                return [];
+            }
 
-        if (!(new ObjectType(Units::class))->isSuperTypeOf($scope->getType($node->var))->yes()) {
-            return [];
-        }
+            if (!(new ObjectType(Units::class))->isSuperTypeOf($scope->getType($node->var))->yes()) {
+                return [];
+            }
 
-        $type = $this->extension->inferType($node, $scope);
-        if (!$type instanceof ErrorType || $type->getReason() === null) {
-            return [];
-        }
+            $type = $this->extension->inferType($node, $scope);
+            if (!$type instanceof ErrorType || $type->getReason() === null) {
+                return [];
+            }
 
-        return [
-            RuleErrorBuilder::message($type->getReason())
-                ->identifier('yumemi.invalidQuantityConstruction')
-                ->build(),
-        ];
+            return [
+                RuleErrorBuilder::message($type->getReason())
+                    ->identifier('yumemi.invalidQuantityConstruction')
+                    ->build(),
+            ];
+        } catch (\Throwable $exception) {
+            ShouldNotHappenException::rethrow($exception);
+        }
     }
 }

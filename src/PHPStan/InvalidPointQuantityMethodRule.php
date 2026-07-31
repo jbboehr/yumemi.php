@@ -86,41 +86,45 @@ final class InvalidPointQuantityMethodRule implements Rule
      */
     public function processNode(Node $node, Scope $scope): array
     {
-        if (!$node->name instanceof Identifier) {
-            return [];
-        }
+        try {
+            if (!$node->name instanceof Identifier) {
+                return [];
+            }
 
-        $methodName = $node->name->toString();
-        if (!in_array($methodName, [
-            'add',
-            'sub',
-            'difference',
-            'to',
-            'valueIn',
-            'intValueIn',
-            'exactIntValueIn',
-            'decimalValueIn',
-            'exactDecimalValueIn',
-            'floatValueIn',
-            'compareTo',
-            'equals',
-            'lessThan',
-            'lessThanOrEqualTo',
-            'greaterThan',
-            'greaterThanOrEqualTo',
-        ], true)) {
-            return [];
-        }
+            $methodName = $node->name->toString();
+            if (!in_array($methodName, [
+                'add',
+                'sub',
+                'difference',
+                'to',
+                'valueIn',
+                'intValueIn',
+                'exactIntValueIn',
+                'decimalValueIn',
+                'exactDecimalValueIn',
+                'floatValueIn',
+                'compareTo',
+                'equals',
+                'lessThan',
+                'lessThanOrEqualTo',
+                'greaterThan',
+                'greaterThanOrEqualTo',
+            ], true)) {
+                return [];
+            }
 
-        $type = $this->extension->inferType($methodName, $node, $scope);
-        if (!$type instanceof ErrorType || $type->getReason() === null) {
-            return [];
-        }
+            $type = $this->extension->inferType($methodName, $node, $scope);
+            if (!$type instanceof ErrorType || $type->getReason() === null) {
+                return [];
+            }
 
-        return [
-            RuleErrorBuilder::message($type->getReason())
-                ->identifier('yumemi.invalidPointQuantityOperation')
-                ->build(),
-        ];
+            return [
+                RuleErrorBuilder::message($type->getReason())
+                    ->identifier('yumemi.invalidPointQuantityOperation')
+                    ->build(),
+            ];
+        } catch (\Throwable $exception) {
+            ShouldNotHappenException::rethrow($exception);
+        }
     }
 }

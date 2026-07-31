@@ -71,64 +71,68 @@ final class UnitTypeNodeResolverExtension implements TypeNodeResolverExtension
 
     public function resolve(TypeNode $typeNode, NameScope $nameScope): ?Type
     {
-        if (!$typeNode instanceof GenericTypeNode) {
-            return null;
-        }
-
-        $name = strtolower($typeNode->type->name);
-        if (!isset(self::NAMES[$name])) {
-            // Also accept FQCN-style names if users import aliases later.
-            $short = $name;
-            if (str_contains($name, '\\')) {
-                $parts = explode('\\', $name);
-                $short = end($parts);
-            }
-
-            if (!isset(self::NAMES[$short])) {
+        try {
+            if (!$typeNode instanceof GenericTypeNode) {
                 return null;
             }
 
-            $name = $short;
-        }
+            $name = strtolower($typeNode->type->name);
+            if (!isset(self::NAMES[$name])) {
+                // Also accept FQCN-style names if users import aliases later.
+                $short = $name;
+                if (str_contains($name, '\\')) {
+                    $parts = explode('\\', $name);
+                    $short = end($parts);
+                }
 
-        if (count($typeNode->genericTypes) !== 1) {
-            return new ErrorType(sprintf(
-                '%s expects exactly one unit string type argument, e.g. %s<\'meter\'>.',
-                $name,
-                $name,
-            ));
-        }
+                if (!isset(self::NAMES[$short])) {
+                    return null;
+                }
 
-        $unitString = $this->extractStringLiteral($typeNode->genericTypes[0]);
-        if ($unitString === null) {
-            return new ErrorType(sprintf(
-                '%s unit argument must be a string literal, e.g. %s<\'meter / second\'>.',
-                $name,
-                $name,
-            ));
-        }
-
-        if (self::NAMES[$name] === 'point') {
-            $parsed = $this->parser->parsePoint($unitString);
-            if (!$parsed->isOk()) {
-                return new ErrorType($parsed->errorMessage() ?? 'Invalid point unit.');
+                $name = $short;
             }
 
-            return new PointQuantityType($parsed->expression());
+            if (count($typeNode->genericTypes) !== 1) {
+                return new ErrorType(sprintf(
+                    '%s expects exactly one unit string type argument, e.g. %s<\'meter\'>.',
+                    $name,
+                    $name,
+                ));
+            }
+
+            $unitString = $this->extractStringLiteral($typeNode->genericTypes[0]);
+            if ($unitString === null) {
+                return new ErrorType(sprintf(
+                    '%s unit argument must be a string literal, e.g. %s<\'meter / second\'>.',
+                    $name,
+                    $name,
+                ));
+            }
+
+            if (self::NAMES[$name] === 'point') {
+                $parsed = $this->parser->parsePoint($unitString);
+                if (!$parsed->isOk()) {
+                    return new ErrorType($parsed->errorMessage() ?? 'Invalid point unit.');
+                }
+
+                return new PointQuantityType($parsed->expression());
+            }
+
+            $parsed = $this->parser->parse($unitString);
+            if (!$parsed->isOk()) {
+                return new ErrorType($parsed->errorMessage() ?? 'Invalid unit expression.');
+            }
+
+            $unit = $parsed->expression();
+
+            return match (self::NAMES[$name]) {
+                'int' => new UnitIntegerType($unit),
+                'float' => new UnitFloatType($unit),
+                'quantity' => new QuantityType($unit),
+            };
+        } catch (\Throwable $exception) {
+            ShouldNotHappenException::rethrow($exception);
         }
-
-        $parsed = $this->parser->parse($unitString);
-        if (!$parsed->isOk()) {
-            return new ErrorType($parsed->errorMessage() ?? 'Invalid unit expression.');
-        }
-
-        $unit = $parsed->expression();
-
-        return match (self::NAMES[$name]) {
-            'int' => new UnitIntegerType($unit),
-            'float' => new UnitFloatType($unit),
-            'quantity' => new QuantityType($unit),
-        };
     }
 
     private function extractStringLiteral(TypeNode $node): ?string

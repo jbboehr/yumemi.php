@@ -78,7 +78,7 @@ final class UnitExpressionParser
                 $dimension,
                 $normalized,
             ));
-        }, 'Invalid unit expression syntax.', 'Failed to parse unit expression: ');
+        }, 'Invalid unit expression syntax.');
     }
 
     public function parseQuantityUnit(string $quantityString): UnitExpressionParseResult
@@ -91,7 +91,7 @@ final class UnitExpressionParser
             $quantity = $this->units->parseQuantity($quantityString);
 
             return $this->parse(ExprRenderer::format($quantity->unit()));
-        }, 'Invalid quantity expression syntax.', 'Failed to parse quantity expression: ');
+        }, 'Invalid quantity expression syntax.');
     }
 
     /**
@@ -142,10 +142,6 @@ final class UnitExpressionParser
             }
 
             return PointUnitExpressionParseResult::invalid($message, $exception->getSpan());
-        } catch (\Throwable $exception) {
-            return PointUnitExpressionParseResult::invalid(
-                'Failed to parse point unit: ' . $exception->getMessage(),
-            );
         }
     }
 
@@ -155,7 +151,6 @@ final class UnitExpressionParser
     private function guardParse(
         callable $parse,
         string $syntaxFallback,
-        string $failurePrefix,
     ): UnitExpressionParseResult {
         try {
             return $parse();
@@ -172,10 +167,7 @@ final class UnitExpressionParser
             if ($message === '') {
                 $message = $syntaxFallback;
             }
-
             return UnitExpressionParseResult::invalid($message, $exception->getSpan());
-        } catch (\Throwable $exception) {
-            return UnitExpressionParseResult::invalid($failurePrefix . $exception->getMessage());
         }
     }
 }

@@ -36,48 +36,59 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
-use PhpParser\Node;
-use PhpParser\NodeTraverser;
-use PHPStan\Parser\Parser;
+use jbboehr\Yumemi\Exception\RuntimeException;
 
 /**
- * Applies Yumemi tag promotion after PHPStan chooses its rich, simple, or stub parser.
+ * Attributes unexpected extension failures to Yumemi with an actionable issue link.
+ *
+ * @logion [OSD 91:68] When the hidden machinery fractured beyond lawful diagnosis,
+ *     the herald named the court responsible and opened the road of petition.
+ *
+ * @internal
  */
-final class YumemiTagPromotingParser implements Parser
+final class ShouldNotHappenException extends RuntimeException
 {
-    private readonly NodeTraverser $traverser;
+    /**
+     * @logion [OSD 92:12] The western gate of appeals remained inscribed upon
+     *     the final tablet, so no broken judgment wandered without a destination.
+     */
+    private const ISSUES_URL = 'https://github.com/jbboehr/yumemi.php/issues';
 
-    public function __construct(
-        private readonly Parser $wrappedParser,
-        YumemiDocTagPromoter $promoter,
-    ) {
-        $this->traverser = new NodeTraverser($promoter);
-    }
-
-    /** @return array<Node\Stmt> */
-    public function parseFile(string $file): array
+    /**
+     * @logion [OSD 94:87] The fracture and its first cause were bound within one
+     *     testimony, while the appointed gate was proclaimed to every witness.
+     */
+    public function __construct(string $message = 'Internal error', ?\Throwable $previous = null)
     {
-        return $this->promote($this->wrappedParser->parseFile($file));
-    }
+        $message = trim($message);
+        if ($message === '') {
+            $message = 'Internal error';
+        }
 
-    /** @return array<Node\Stmt> */
-    public function parseString(string $sourceCode): array
-    {
-        return $this->promote($this->wrappedParser->parseString($sourceCode));
+        $separator = preg_match('/[.!?]$/', $message) === 1 ? ' ' : '. ';
+
+        parent::__construct(
+            $message . $separator . 'Please open an issue on GitHub: ' . self::ISSUES_URL,
+            0,
+            $previous,
+        );
     }
 
     /**
-     * @param array<Node\Stmt> $nodes
+     * Rethrow an unexpected extension failure with Yumemi attribution.
      *
-     * @return array<Node\Stmt>
+     * @logion [OSD 84:12] A judgment already sealed by its rightful court passed
+     *     unchanged, while every foreign fracture received the appointed inscription.
+     *
+     * @throws self
+     * @throws \PHPStan\ShouldNotHappenException
      */
-    private function promote(array $nodes): array
+    public static function rethrow(\Throwable $exception): never
     {
-        try {
-            /** @var array<Node\Stmt> */
-            return $this->traverser->traverse($nodes);
-        } catch (\Throwable $exception) {
-            ShouldNotHappenException::rethrow($exception);
+        if ($exception instanceof self || $exception::class === 'PHPStan\\ShouldNotHappenException') {
+            throw $exception;
         }
+
+        throw new self($exception->getMessage(), $exception);
     }
 }

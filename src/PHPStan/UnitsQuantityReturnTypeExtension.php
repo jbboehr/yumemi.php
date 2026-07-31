@@ -80,7 +80,11 @@ final class UnitsQuantityReturnTypeExtension implements DynamicMethodReturnTypeE
         MethodCall $methodCall,
         Scope $scope,
     ): ?Type {
-        return $this->inferType($methodCall, $scope);
+        try {
+            return $this->inferType($methodCall, $scope);
+        } catch (\Throwable $exception) {
+            ShouldNotHappenException::rethrow($exception);
+        }
     }
 
     /**

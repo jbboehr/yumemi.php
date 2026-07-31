@@ -66,7 +66,11 @@ final class UnitFunctionDynamicReturnTypeExtension implements DynamicFunctionRet
         FuncCall $functionCall,
         Scope $scope,
     ): ?Type {
-        return $this->inferType($functionCall, $scope);
+        try {
+            return $this->inferType($functionCall, $scope);
+        } catch (\Throwable $exception) {
+            ShouldNotHappenException::rethrow($exception);
+        }
     }
 
     /**

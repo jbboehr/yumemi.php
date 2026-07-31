@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
+use jbboehr\Yumemi\Exception\UnexpectedValueException;
 use jbboehr\Yumemi\PHPStan\UnitExpressionParser;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
@@ -146,24 +147,42 @@ final class UnitExpressionParserTest extends TestCase
         $this->assertStringStartsWith("Syntax error, unexpected '/'", $result->errorMessage() ?? '');
     }
 
-    public function testUnexpectedFailuresRetainParsingContext(): void
+    #[DataProvider('unexpectedFailureProvider')]
+    public function testUnexpectedFailuresPropagate(\Closure $parse): void
     {
         $units = new Units(new UnitRegistry([], [
             'orphan' => ['type' => 'alias', 'name' => 'orphan'],
         ]));
         $parser = new UnitExpressionParser($units);
 
-        $unit = $parser->parse('orphan');
-        $quantity = $parser->parseQuantityUnit('2 orphan');
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionMessage('Catalog alias is missing target: orphan');
 
-        $this->assertSame(
-            'Failed to parse unit expression: Catalog alias is missing target: orphan',
-            $unit->errorMessage(),
-        );
-        $this->assertSame(
-            'Failed to parse quantity expression: Catalog alias is missing target: orphan',
-            $quantity->errorMessage(),
-        );
+        $parse($parser);
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(UnitExpressionParser): void}>
+     */
+    public static function unexpectedFailureProvider(): iterable
+    {
+        yield 'unit' => [
+            static function (UnitExpressionParser $parser): void {
+                $parser->parse('orphan');
+            },
+        ];
+
+        yield 'quantity' => [
+            static function (UnitExpressionParser $parser): void {
+                $parser->parseQuantityUnit('2 orphan');
+            },
+        ];
+
+        yield 'point' => [
+            static function (UnitExpressionParser $parser): void {
+                $parser->parsePoint('orphan');
+            },
+        ];
     }
 
     public function testRejectsEmptyQuantity(): void

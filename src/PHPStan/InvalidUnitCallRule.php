@@ -77,30 +77,34 @@ final class InvalidUnitCallRule implements Rule
      */
     public function processNode(Node $node, Scope $scope): array
     {
-        if (!$node->name instanceof Name) {
-            return [];
+        try {
+            if (!$node->name instanceof Name) {
+                return [];
+            }
+
+            $type = match ($scope->resolveName($node->name)) {
+                self::UNIT => $this->unitExtension->inferType($node, $scope),
+                self::UNIT_FACTOR => $this->unitFactorExtension->inferType($node, $scope),
+                self::UNIT_TO => $this->unitToExtension->inferType($node, $scope),
+                default => null,
+            };
+
+            if (!$type instanceof ErrorType) {
+                return [];
+            }
+
+            $reason = $type->getReason();
+            if ($reason === null) {
+                return [];
+            }
+
+            return [
+                RuleErrorBuilder::message($reason)
+                    ->identifier('yumemi.invalidUnitCall')
+                    ->build(),
+            ];
+        } catch (\Throwable $exception) {
+            ShouldNotHappenException::rethrow($exception);
         }
-
-        $type = match ($scope->resolveName($node->name)) {
-            self::UNIT => $this->unitExtension->inferType($node, $scope),
-            self::UNIT_FACTOR => $this->unitFactorExtension->inferType($node, $scope),
-            self::UNIT_TO => $this->unitToExtension->inferType($node, $scope),
-            default => null,
-        };
-
-        if (!$type instanceof ErrorType) {
-            return [];
-        }
-
-        $reason = $type->getReason();
-        if ($reason === null) {
-            return [];
-        }
-
-        return [
-            RuleErrorBuilder::message($reason)
-                ->identifier('yumemi.invalidUnitCall')
-                ->build(),
-        ];
     }
 }

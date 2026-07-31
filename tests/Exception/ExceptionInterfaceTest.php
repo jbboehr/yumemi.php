@@ -56,6 +56,7 @@ use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Parser\Parser;
 use jbboehr\Yumemi\PHPStan\ConfiguredUnitRegistryProvider;
+use jbboehr\Yumemi\PHPStan\ShouldNotHappenException;
 use jbboehr\Yumemi\PHPStan\UnitExpressionParseResult;
 use jbboehr\Yumemi\PHPStan\UnitRegistryFactory;
 use jbboehr\Yumemi\Registry\UnitRegistry;
@@ -102,6 +103,7 @@ final class ExceptionInterfaceTest extends TestCase
         yield 'logic exception' => [LogicException::class, \LogicException::class];
         yield 'overflow exception' => [OverflowException::class, \OverflowException::class];
         yield 'runtime exception' => [RuntimeException::class, \RuntimeException::class];
+        yield 'should not happen exception' => [ShouldNotHappenException::class, \RuntimeException::class];
         yield 'underflow exception' => [UnderflowException::class, \UnderflowException::class];
         yield 'unexpected value exception' => [UnexpectedValueException::class, \UnexpectedValueException::class];
 

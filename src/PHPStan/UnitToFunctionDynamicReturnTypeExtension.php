@@ -36,6 +36,10 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
+use jbboehr\Yumemi\Exception\UnitNotFoundException;
+use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
+use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Units;
 use PhpParser\Node\Expr\FuncCall;
 use PHPStan\Analyser\Scope;
@@ -69,7 +73,11 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
         FuncCall $functionCall,
         Scope $scope,
     ): ?Type {
-        return $this->inferType($functionCall, $scope);
+        try {
+            return $this->inferType($functionCall, $scope);
+        } catch (\Throwable $exception) {
+            ShouldNotHappenException::rethrow($exception);
+        }
     }
 
     /**
@@ -98,7 +106,13 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
 
         try {
             $compatible = $this->units->areCompatible($fromString, $toString);
-        } catch (\Throwable $exception) {
+        } catch (
+            UnitNotFoundException
+            | UnsupportedSyntaxException
+            | UnsupportedUnitConversionException
+            | ParseException
+            | \InvalidArgumentException $exception
+        ) {
             return new ErrorType($exception->getMessage());
         }
 

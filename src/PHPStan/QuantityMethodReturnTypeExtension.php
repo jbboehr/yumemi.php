@@ -91,7 +91,11 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
         MethodCall $methodCall,
         Scope $scope,
     ): ?Type {
-        return $this->inferType($methodReflection->getName(), $methodCall, $scope);
+        try {
+            return $this->inferType($methodReflection->getName(), $methodCall, $scope);
+        } catch (\Throwable $exception) {
+            ShouldNotHappenException::rethrow($exception);
+        }
     }
 
     /**

@@ -60,11 +60,15 @@ final class UnitUnaryOperatorTypeSpecifyingExtension implements UnaryOperatorTyp
 
     public function specifyType(string $operatorSigil, Type $operand): Type
     {
-        if (!$operand instanceof UnitIntegerType && !$operand instanceof UnitFloatType) {
-            return new ErrorType('Unary unit operator requires a unit_int or unit_float operand.');
-        }
+        try {
+            if (!$operand instanceof UnitIntegerType && !$operand instanceof UnitFloatType) {
+                return new ErrorType('Unary unit operator requires a unit_int or unit_float operand.');
+            }
 
-        // Unary + / - preserve unit identity and magnitude kind.
-        return $operand;
+            // Unary + / - preserve unit identity and magnitude kind.
+            return $operand;
+        } catch (\Throwable $exception) {
+            ShouldNotHappenException::rethrow($exception);
+        }
     }
 }

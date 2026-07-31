@@ -59,19 +59,23 @@ final class YumemiTagPromotionRule implements Rule
      */
     public function processNode(Node $node, Scope $scope): array
     {
-        if ($node instanceof VirtualNode) {
-            return [];
+        try {
+            if ($node instanceof VirtualNode) {
+                return [];
+            }
+
+            /** @var list<array{message: string, identifier: string, line: int}> $diagnostics */
+            $diagnostics = $node->getAttribute(YumemiDocTagPromoter::DIAGNOSTICS_ATTRIBUTE, []);
+
+            return array_map(
+                static fn (array $diagnostic) => RuleErrorBuilder::message($diagnostic['message'])
+                    ->identifier($diagnostic['identifier'])
+                    ->line($diagnostic['line'])
+                    ->build(),
+                $diagnostics,
+            );
+        } catch (\Throwable $exception) {
+            ShouldNotHappenException::rethrow($exception);
         }
-
-        /** @var list<array{message: string, identifier: string, line: int}> $diagnostics */
-        $diagnostics = $node->getAttribute(YumemiDocTagPromoter::DIAGNOSTICS_ATTRIBUTE, []);
-
-        return array_map(
-            static fn (array $diagnostic) => RuleErrorBuilder::message($diagnostic['message'])
-                ->identifier($diagnostic['identifier'])
-                ->line($diagnostic['line'])
-                ->build(),
-            $diagnostics,
-        );
     }
 }

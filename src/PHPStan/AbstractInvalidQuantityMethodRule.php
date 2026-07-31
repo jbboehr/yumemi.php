@@ -67,25 +67,29 @@ abstract class AbstractInvalidQuantityMethodRule implements Rule
      */
     final public function processNode(Node $node, Scope $scope): array
     {
-        if (!$node->name instanceof Identifier) {
-            return [];
-        }
+        try {
+            if (!$node->name instanceof Identifier) {
+                return [];
+            }
 
-        $methodName = $node->name->toString();
-        if (!in_array($methodName, $this->supportedMethods(), true)) {
-            return [];
-        }
+            $methodName = $node->name->toString();
+            if (!in_array($methodName, $this->supportedMethods(), true)) {
+                return [];
+            }
 
-        $type = $this->extension->inferType($methodName, $node, $scope);
-        if (!$type instanceof ErrorType || $type->getReason() === null) {
-            return [];
-        }
+            $type = $this->extension->inferType($methodName, $node, $scope);
+            if (!$type instanceof ErrorType || $type->getReason() === null) {
+                return [];
+            }
 
-        return [
-            RuleErrorBuilder::message($type->getReason())
-                ->identifier($this->errorIdentifier())
-                ->build(),
-        ];
+            return [
+                RuleErrorBuilder::message($type->getReason())
+                    ->identifier($this->errorIdentifier())
+                    ->build(),
+            ];
+        } catch (\Throwable $exception) {
+            ShouldNotHappenException::rethrow($exception);
+        }
     }
 
     /**

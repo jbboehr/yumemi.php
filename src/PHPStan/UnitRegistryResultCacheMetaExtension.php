@@ -58,30 +58,34 @@ final class UnitRegistryResultCacheMetaExtension implements ResultCacheMetaExten
 
     public function getHash(): string
     {
-        $names = $this->registry->names();
-        sort($names, SORT_STRING);
+        try {
+            $names = $this->registry->names();
+            sort($names, SORT_STRING);
 
-        $entries = [];
+            $entries = [];
 
-        foreach ($names as $name) {
-            $unit = $this->registry->findPrebuiltUnit($name);
+            foreach ($names as $name) {
+                $unit = $this->registry->findPrebuiltUnit($name);
 
-            $entries[$name] = [
-                'record' => $this->normalize($this->registry->findCatalogRecord($name)),
-                'unit' => $unit === null ? null : [
-                    'name' => $unit->name,
-                    'definition' => $unit->definition?->toString(),
-                ],
-            ];
+                $entries[$name] = [
+                    'record' => $this->normalize($this->registry->findCatalogRecord($name)),
+                    'unit' => $unit === null ? null : [
+                        'name' => $unit->name,
+                        'definition' => $unit->definition?->toString(),
+                    ],
+                ];
+            }
+
+            $prefixes = $this->registry->prefixes();
+            ksort($prefixes, SORT_STRING);
+
+            return hash('sha256', serialize([
+                'entries' => $entries,
+                'prefixes' => $prefixes,
+            ]));
+        } catch (\Throwable $exception) {
+            ShouldNotHappenException::rethrow($exception);
         }
-
-        $prefixes = $this->registry->prefixes();
-        ksort($prefixes, SORT_STRING);
-
-        return hash('sha256', serialize([
-            'entries' => $entries,
-            'prefixes' => $prefixes,
-        ]));
     }
 
     /**
