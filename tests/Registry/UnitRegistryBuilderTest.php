@@ -327,6 +327,10 @@ final class UnitRegistryBuilderTest extends TestCase
             $units->conversionFactor('delta_widget_temperature', 'kelvin')->toString(),
         );
         $this->assertSame(
+            '105',
+            $units->point(0, self::shiftedWidgetTemperatureUnit())->valueIn('kelvin')->toString(),
+        );
+        $this->assertSame(
             '1',
             $units->conversionFactor('delta_shifted_widget_temperature', 'kelvin')->toString(),
         );
@@ -569,6 +573,11 @@ final class UnitRegistryBuilderTest extends TestCase
     public function testUnitRegistryBuilderDelegatesToEmpty(): void
     {
         $this->assertSame([], UnitRegistry::builder()->build()->names());
+    }
+
+    private static function shiftedWidgetTemperatureUnit(): string
+    {
+        return 'shifted_widget_temperature';
     }
 
     private function catalogFile(): string

@@ -344,6 +344,17 @@ final class Quantity
         return $this->unit;
     }
 
+    /**
+     * Return the immutable registry context governing this quantity.
+     *
+     * @logion [OSD 83:52] The measure disclosed the court whose seals it bore,
+     *     that no foreign archive might pass beneath a familiar name.
+     */
+    public function units(): Units
+    {
+        return $this->units;
+    }
+
     public function valueToString(): string
     {
         return $this->value->toString();

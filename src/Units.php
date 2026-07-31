@@ -115,6 +115,30 @@ final class Units
         return $this->unitConversionResolver->dimension($expr);
     }
 
+    /**
+     * Resolve the multiplicative unit used for differences on a coordinate scale.
+     *
+     * @logion [OSD 77:21] From the marked origin the keeper lifted the staff of interval,
+     *     unchanged in length though freed from the place that had appointed it.
+     */
+    public function deltaUnit(string $unit): Expr
+    {
+        return $this->parse($this->unitConversionResolver->deltaUnitExpression($unit));
+    }
+
+    /**
+     * Construct an exact multiplicative difference using a coordinate unit's scale.
+     *
+     * @logion [OSD 29:63] The interval entered the ledger under the lesser sign,
+     *     bearing exact proportion without claiming the dignity of a station.
+     */
+    public function deltaQuantity(int|Rational $value, string $unit): Quantity
+    {
+        $deltaUnit = $this->unitConversionResolver->deltaUnitExpression($unit);
+
+        return new Quantity($value, $deltaUnit, $this, $this->parse($deltaUnit));
+    }
+
     public function format(Expr|string $expr, ?FormatOptions $options = null): string
     {
         $symbolicExpr = is_string($expr)
@@ -188,6 +212,17 @@ final class Units
     public function quantity(int|Rational $value, Expr|string $unit): Quantity
     {
         return new Quantity($value, $unit, $this);
+    }
+
+    /**
+     * Construct an exact point on a named coordinate scale.
+     *
+     * @logion [OSD 46:18] Matter was seated upon the appointed scale, and its place
+     *     was distinguished from every distance by which another seat might be reached.
+     */
+    public function point(int|Rational $value, string $unit): PointQuantity
+    {
+        return new PointQuantity($value, $unit, $this);
     }
 
     /**
