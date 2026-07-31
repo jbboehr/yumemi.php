@@ -40,7 +40,7 @@ use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Formatter\ExprRenderer;
 
-final class IncompatibleUnitException extends \RuntimeException
+final class IncompatibleUnitException extends RuntimeException
 {
     public readonly Expr $from;
     public readonly Expr $to;

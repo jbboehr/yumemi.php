@@ -39,7 +39,7 @@ namespace jbboehr\Yumemi\Exception;
 use jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Formatter\ExprRenderer;
 
-final class NonMultiplicativeConversionException extends \RuntimeException
+final class NonMultiplicativeConversionException extends RuntimeException
 {
     public function __construct(
         public readonly Expr $from,

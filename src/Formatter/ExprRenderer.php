@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\Formatter;
 
 use jbboehr\Yumemi\Analyzer\ExprReducer;
+use jbboehr\Yumemi\Exception\LogicException;
 use jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
@@ -165,7 +166,7 @@ final class ExprRenderer
             return;
         }
 
-        throw new \LogicException('Cannot format expression of type ' . $expr::class);
+        throw new LogicException('Cannot format expression of type ' . $expr::class);
     }
 
     /**

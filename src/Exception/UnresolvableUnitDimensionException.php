@@ -36,7 +36,7 @@
 
 namespace jbboehr\Yumemi\Exception;
 
-final class UnresolvableUnitDimensionException extends \RuntimeException
+final class UnresolvableUnitDimensionException extends RuntimeException
 {
     public static function create(string $unitName): self
     {

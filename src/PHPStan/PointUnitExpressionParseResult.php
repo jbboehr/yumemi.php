@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
+use jbboehr\Yumemi\Exception\LogicException;
 use jbboehr\Yumemi\Parser\SourceSpan;
 
 /**
@@ -112,7 +113,7 @@ final class PointUnitExpressionParseResult
     public function expression(): PointUnitExpression
     {
         if ($this->expression === null) {
-            throw new \LogicException('Parse result is an error: ' . ($this->errorMessage ?? ''));
+            throw new LogicException('Parse result is an error: ' . ($this->errorMessage ?? ''));
         }
 
         return $this->expression;

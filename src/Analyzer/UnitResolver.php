@@ -37,7 +37,9 @@
 namespace jbboehr\Yumemi\Analyzer;
 
 use jbboehr\Yumemi\Catalog\UnitSemantics;
+use jbboehr\Yumemi\Exception\LogicException;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
+use jbboehr\Yumemi\Exception\UnexpectedValueException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
 use jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Expr\Product;
@@ -89,7 +91,7 @@ final class UnitResolver
         }
 
         if (isset($this->resolving[$name])) {
-            throw new \UnexpectedValueException('Circular unit alias or definition for: ' . $name);
+            throw new UnexpectedValueException('Circular unit alias or definition for: ' . $name);
         }
 
         $this->resolving[$name] = true;
@@ -165,7 +167,7 @@ final class UnitResolver
         }
 
         return new Product([
-            $this->prefixToExpr($resolvedName->prefixDefinition ?? throw new \LogicException(
+            $this->prefixToExpr($resolvedName->prefixDefinition ?? throw new LogicException(
                 'A prefixed unit name must include its prefix definition.',
             )),
             $unit,
@@ -203,14 +205,14 @@ final class UnitResolver
             throw new UnsupportedUnitAlgebraException(
                 $record['name'],
                 UnitSemantics::from($record['semantics']),
-                $record['def'] ?? throw new \UnexpectedValueException(
+                $record['def'] ?? throw new UnexpectedValueException(
                     'Unsupported catalog unit is missing definition: ' . $record['name'],
                 ),
             );
         }
 
         return match ($record['type']) {
-            'alias' => $this->resolve($record['def'] ?? throw new \UnexpectedValueException(
+            'alias' => $this->resolve($record['def'] ?? throw new UnexpectedValueException(
                 'Catalog alias is missing target: ' . $record['name'],
             )) ?? throw UnitNotFoundException::create($record['def']),
             'base' => new Unit($record['name']),
@@ -218,7 +220,7 @@ final class UnitResolver
             'unit' => new Unit(
                 $record['name'],
                 $this->astConverter->convert(Parser::parseString(
-                    $record['def'] ?? throw new \UnexpectedValueException(
+                    $record['def'] ?? throw new UnexpectedValueException(
                         'Catalog unit is missing definition: ' . $record['name'],
                     ),
                 )),

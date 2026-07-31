@@ -38,7 +38,7 @@ namespace jbboehr\Yumemi\Exception;
 
 use jbboehr\Yumemi\Catalog\UnitSemantics;
 
-final class UnsupportedUnitAlgebraException extends \RuntimeException
+final class UnsupportedUnitAlgebraException extends RuntimeException
 {
     public function __construct(
         public readonly string $unitName,

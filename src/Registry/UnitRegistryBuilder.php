@@ -39,6 +39,7 @@ namespace jbboehr\Yumemi\Registry;
 use jbboehr\Yumemi\Catalog\AffineDeltaUnitSynthesizer;
 use jbboehr\Yumemi\Catalog\UnitDefinitionClassifier;
 use jbboehr\Yumemi\Catalog\UnitSemantics;
+use jbboehr\Yumemi\Exception\InvalidArgumentException;
 use jbboehr\Yumemi\Expr\Unit;
 
 /**
@@ -167,7 +168,7 @@ final class UnitRegistryBuilder
             $this->assertNameAvailable($unit->name);
 
             if (isset($pendingNames[$unit->name])) {
-                throw new \InvalidArgumentException('Duplicate unit name in registry builder: ' . $unit->name);
+                throw new InvalidArgumentException('Duplicate unit name in registry builder: ' . $unit->name);
             }
 
             $pending[] = $unit;
@@ -190,11 +191,11 @@ final class UnitRegistryBuilder
     public function alias(string $name, string $target): self
     {
         if ($name === '') {
-            throw new \InvalidArgumentException('Alias name must not be empty.');
+            throw new InvalidArgumentException('Alias name must not be empty.');
         }
 
         if ($target === '') {
-            throw new \InvalidArgumentException('Alias target must not be empty.');
+            throw new InvalidArgumentException('Alias target must not be empty.');
         }
 
         $this->assertNameAvailable($name);
@@ -299,11 +300,11 @@ final class UnitRegistryBuilder
     private function assertNameAvailable(string $name): void
     {
         if (isset($this->units[$name])) {
-            throw new \InvalidArgumentException('Duplicate unit name in registry builder: ' . $name);
+            throw new InvalidArgumentException('Duplicate unit name in registry builder: ' . $name);
         }
 
         if (isset($this->records[$name])) {
-            throw new \InvalidArgumentException('Duplicate unit or alias name in registry builder: ' . $name);
+            throw new InvalidArgumentException('Duplicate unit or alias name in registry builder: ' . $name);
         }
     }
 
@@ -315,11 +316,11 @@ final class UnitRegistryBuilder
         $definition = trim($definition);
 
         if ($definition === '') {
-            throw new \InvalidArgumentException('Unit definition must not be empty.');
+            throw new InvalidArgumentException('Unit definition must not be empty.');
         }
 
         if (preg_match('/^(\S+)\s*=\s*(.+)$/s', $definition, $matches) !== 1) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Unit definition must look like "name = expression", got: ' . $definition,
             );
         }
@@ -328,7 +329,7 @@ final class UnitRegistryBuilder
         $expression = trim($matches[2]);
 
         if ($expression === '') {
-            throw new \InvalidArgumentException('Unit definition expression must not be empty: ' . $definition);
+            throw new InvalidArgumentException('Unit definition expression must not be empty: ' . $definition);
         }
 
         return [$name, $expression];

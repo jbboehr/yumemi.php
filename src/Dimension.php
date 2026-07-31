@@ -36,6 +36,8 @@
 
 namespace jbboehr\Yumemi;
 
+use jbboehr\Yumemi\Exception\InvalidArgumentException;
+
 final class Dimension
 {
     public const AXIS_LENGTH = 0;
@@ -189,7 +191,7 @@ final class Dimension
     public function power(int $axis): int
     {
         if (!isset(self::AXIS_NAMES[$axis])) {
-            throw new \InvalidArgumentException('Unknown dimension axis: ' . $axis);
+            throw new InvalidArgumentException('Unknown dimension axis: ' . $axis);
         }
 
         return $this->powers[$axis];

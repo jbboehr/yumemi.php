@@ -34,35 +34,14 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\Parser;
-
-use jbboehr\Yumemi\Exception\InvalidArgumentException;
+namespace jbboehr\Yumemi\Exception;
 
 /**
- * A zero-based, half-open byte range within a parsed unit expression.
+ * Marks every throwable explicitly created by Yumemi.
+ *
+ * @logion [OSD 63:52] Beneath every sentence of refusal the same seal was impressed,
+ *     that the injured petitioner might know the court from which it came.
  */
-final class SourceSpan
+interface ExceptionInterface extends \Throwable
 {
-    public function __construct(
-        public readonly int $start,
-        public readonly int $end,
-    ) {
-        if ($start < 0) {
-            throw new InvalidArgumentException('Source span start must not be negative.');
-        }
-
-        if ($end < $start) {
-            throw new InvalidArgumentException('Source span end must not precede its start.');
-        }
-    }
-
-    public function isEmpty(): bool
-    {
-        return $this->start === $this->end;
-    }
-
-    public function length(): int
-    {
-        return $this->end - $this->start;
-    }
 }

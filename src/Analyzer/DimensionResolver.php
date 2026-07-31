@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\Analyzer;
 
 use jbboehr\Yumemi\Dimension;
+use jbboehr\Yumemi\Exception\LogicException;
 use jbboehr\Yumemi\Exception\UnresolvableUnitDimensionException;
 use jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Expr\Product;
@@ -96,7 +97,7 @@ final class DimensionResolver
             return self::unitDimension($expr);
         }
 
-        throw new \LogicException('Cannot resolve dimension for expression of type ' . $expr::class);
+        throw new LogicException('Cannot resolve dimension for expression of type ' . $expr::class);
     }
 
     private static function unitDimension(Unit $unit): Dimension

@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\Analyzer;
 
+use jbboehr\Yumemi\Exception\LogicException;
 use jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Power;
@@ -62,7 +63,7 @@ final class UnitNormalizer
         }
 
         if ($expr instanceof Unit && !$expr->isBase()) {
-            return $this->substitute($expr->definition ?? throw new \LogicException('Derived unit definition missing.'));
+            return $this->substitute($expr->definition ?? throw new LogicException('Derived unit definition missing.'));
         }
 
         return $expr;

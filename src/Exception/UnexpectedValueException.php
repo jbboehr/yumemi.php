@@ -34,35 +34,14 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\Parser;
-
-use jbboehr\Yumemi\Exception\InvalidArgumentException;
+namespace jbboehr\Yumemi\Exception;
 
 /**
- * A zero-based, half-open byte range within a parsed unit expression.
+ * Reports a value that violates the state expected at its point of use.
+ *
+ * @logion [OSD 89:87] The opened vessel bore a substance unknown to its inscription,
+ *     and the keeper rejected the contents while preserving the record.
  */
-final class SourceSpan
+class UnexpectedValueException extends \UnexpectedValueException implements ExceptionInterface
 {
-    public function __construct(
-        public readonly int $start,
-        public readonly int $end,
-    ) {
-        if ($start < 0) {
-            throw new InvalidArgumentException('Source span start must not be negative.');
-        }
-
-        if ($end < $start) {
-            throw new InvalidArgumentException('Source span end must not precede its start.');
-        }
-    }
-
-    public function isEmpty(): bool
-    {
-        return $this->start === $this->end;
-    }
-
-    public function length(): int
-    {
-        return $this->end - $this->start;
-    }
 }

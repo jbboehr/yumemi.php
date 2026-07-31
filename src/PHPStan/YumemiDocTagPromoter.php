@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
+use jbboehr\Yumemi\Exception\LogicException;
 use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use PhpParser\Node\FunctionLike;
@@ -277,7 +278,7 @@ final class YumemiDocTagPromoter extends NodeVisitorAbstract
         }
 
         if (!$value instanceof ParamTagValueNode && !$value instanceof ReturnTagValueNode && !$value instanceof VarTagValueNode) {
-            throw new \LogicException('The promoted Yumemi tag has an unexpected value node.');
+            throw new LogicException('The promoted Yumemi tag has an unexpected value node.');
         }
 
         $type = $value->type;
@@ -447,7 +448,7 @@ final class YumemiDocTagPromoter extends NodeVisitorAbstract
 
         $fallbackType = $this->tagType($fallback);
         if ($fallbackType === null) {
-            throw new \LogicException('The fallback Yumemi tag has an unexpected value node.');
+            throw new LogicException('The fallback Yumemi tag has an unexpected value node.');
         }
         $expected = $this->normalizer->describe($fallbackType, false);
         $erased = $this->normalizer->describe($candidate->type, true);
@@ -520,7 +521,7 @@ final class YumemiDocTagPromoter extends NodeVisitorAbstract
     ): void {
         $value = $tag->value;
         if (!$value instanceof ParamTagValueNode && !$value instanceof ReturnTagValueNode && !$value instanceof VarTagValueNode) {
-            throw new \LogicException('The fallback Yumemi tag has an unexpected value node.');
+            throw new LogicException('The fallback Yumemi tag has an unexpected value node.');
         }
 
         $value->type = $type;

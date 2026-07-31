@@ -39,6 +39,8 @@ namespace jbboehr\Yumemi\Catalog;
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
+use jbboehr\Yumemi\Exception\InvalidArgumentException;
+use jbboehr\Yumemi\Exception\RuntimeException;
 
 /**
  * @phpstan-import-type Udunits2Catalog from \jbboehr\Yumemi\Registry\Udunits2UnitRegistry
@@ -63,7 +65,7 @@ final class Udunits2CatalogImporter
     public function importFiles(array $files): array
     {
         if ($files === []) {
-            throw new \InvalidArgumentException('At least one UDUNITS2 XML file is required.');
+            throw new InvalidArgumentException('At least one UDUNITS2 XML file is required.');
         }
 
         /** @phpstan-var MutableUdunits2Catalog $catalog */
@@ -98,12 +100,12 @@ final class Udunits2CatalogImporter
     {
         $contents = file_get_contents($file);
         if ($contents === false) {
-            throw new \RuntimeException('Could not read UDUNITS2 XML file: ' . $file);
+            throw new RuntimeException('Could not read UDUNITS2 XML file: ' . $file);
         }
 
         $document = new DOMDocument();
         if (!$document->loadXML($contents)) {
-            throw new \RuntimeException('Could not parse UDUNITS2 XML file: ' . $file);
+            throw new RuntimeException('Could not parse UDUNITS2 XML file: ' . $file);
         }
 
         $xpath = new DOMXPath($document);
@@ -159,7 +161,7 @@ final class Udunits2CatalogImporter
                 'dimensionless' => $dimensionless = true,
                 'name' => $name = $this->readName($childNode),
                 'symbol' => $symbols[] = trim($childNode->textContent),
-                default => throw new \RuntimeException('Unhandled UDUNITS2 unit tag: ' . $childNode->tagName),
+                default => throw new RuntimeException('Unhandled UDUNITS2 unit tag: ' . $childNode->tagName),
             };
         }
 
@@ -227,7 +229,7 @@ final class Udunits2CatalogImporter
         }
 
         if (isset($catalog['units'][$unit['name']])) {
-            throw new \RuntimeException('Already registered UDUNITS2 unit name: ' . $unit['name']);
+            throw new RuntimeException('Already registered UDUNITS2 unit name: ' . $unit['name']);
         }
 
         if ($type === 'unit') {
@@ -264,12 +266,12 @@ final class Udunits2CatalogImporter
             } elseif ($childNode->tagName === 'noplural') {
                 $pluralizable = false;
             } else {
-                throw new \RuntimeException('Unhandled UDUNITS2 name tag: ' . $childNode->tagName);
+                throw new RuntimeException('Unhandled UDUNITS2 name tag: ' . $childNode->tagName);
             }
         }
 
         if ($singular === null || $singular === '') {
-            throw new \RuntimeException('UDUNITS2 name must contain a non-empty singular form.');
+            throw new RuntimeException('UDUNITS2 name must contain a non-empty singular form.');
         }
 
         return [
@@ -302,7 +304,7 @@ final class Udunits2CatalogImporter
                 'plural' => $directPlural = trim($childNode->textContent),
                 'singular' => $directSingular = trim($childNode->textContent),
                 'symbol' => $symbols[] = trim($childNode->textContent),
-                default => throw new \RuntimeException('Unhandled UDUNITS2 alias tag: ' . $childNode->tagName),
+                default => throw new RuntimeException('Unhandled UDUNITS2 alias tag: ' . $childNode->tagName),
             };
         }
 

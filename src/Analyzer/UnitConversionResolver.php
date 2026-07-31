@@ -40,8 +40,10 @@ use jbboehr\Yumemi\Catalog\AffineDeltaUnitSynthesizer;
 use jbboehr\Yumemi\Catalog\UnitSemantics;
 use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
+use jbboehr\Yumemi\Exception\LogicException;
 use jbboehr\Yumemi\Exception\NonMultiplicativeConversionException;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
+use jbboehr\Yumemi\Exception\UnexpectedValueException;
 use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
 use jbboehr\Yumemi\Expr;
@@ -207,7 +209,7 @@ final class UnitConversionResolver
             Identifier::class => $this->resolveName($ast->identifier),
             Mul::class => $this->resolveProduct($ast, false),
             Pow::class => $this->resolvePower($ast),
-            default => throw new \LogicException('Unknown parser AST node: ' . $ast::class),
+            default => throw new LogicException('Unknown parser AST node: ' . $ast::class),
         };
     }
 
@@ -284,7 +286,7 @@ final class UnitConversionResolver
         }
 
         if (isset($this->resolving[$name])) {
-            throw new \UnexpectedValueException('Circular unit alias or definition for: ' . $name);
+            throw new UnexpectedValueException('Circular unit alias or definition for: ' . $name);
         }
 
         $resolvedName = $this->unitNameResolver->resolve($name)
@@ -303,7 +305,7 @@ final class UnitConversionResolver
                 }
 
                 $prefix = $this->resolveAst(Parser::parseString(
-                    $resolvedName->prefixDefinition ?? throw new \LogicException(
+                    $resolvedName->prefixDefinition ?? throw new LogicException(
                         'A prefixed unit name must include its prefix definition.',
                     ),
                 ));
@@ -340,14 +342,14 @@ final class UnitConversionResolver
             throw new UnsupportedUnitConversionException(
                 $record['name'],
                 UnitSemantics::Logarithmic,
-                $record['def'] ?? throw new \UnexpectedValueException(
+                $record['def'] ?? throw new UnexpectedValueException(
                     'Non-convertible catalog unit is missing definition: ' . $record['name'],
                 ),
             );
         }
 
         $resolved = match ($record['type']) {
-            'alias' => $this->resolveName($record['def'] ?? throw new \UnexpectedValueException(
+            'alias' => $this->resolveName($record['def'] ?? throw new UnexpectedValueException(
                 'Catalog alias is missing target: ' . $record['name'],
             )),
             'base' => $this->resolveExpr(new Unit($record['name'])),
@@ -357,7 +359,7 @@ final class UnitConversionResolver
                 ExactConversion::identity(),
             ),
             'unit' => $this->resolveAst(Parser::parseString(
-                $record['def'] ?? throw new \UnexpectedValueException(
+                $record['def'] ?? throw new UnexpectedValueException(
                     'Catalog unit is missing definition: ' . $record['name'],
                 ),
             )),
@@ -395,6 +397,6 @@ final class UnitConversionResolver
             return Rational::fromDecimalString($number->value);
         }
 
-        throw new \LogicException('Unknown number AST node: ' . $number::class);
+        throw new LogicException('Unknown number AST node: ' . $number::class);
     }
 }

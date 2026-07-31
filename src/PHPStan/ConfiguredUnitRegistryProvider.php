@@ -36,6 +36,8 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
+use jbboehr\Yumemi\Exception\InvalidArgumentException;
+use jbboehr\Yumemi\Exception\RuntimeException;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 
@@ -62,14 +64,14 @@ final class ConfiguredUnitRegistryProvider
         }
 
         if (!class_exists($this->factoryClass)) {
-            throw new \InvalidArgumentException(sprintf(
+            throw new InvalidArgumentException(sprintf(
                 'parameters.yumemi.registryFactory must name an autoloadable class; %s was not found.',
                 $this->factoryClass,
             ));
         }
 
         if (!is_subclass_of($this->factoryClass, UnitRegistryFactory::class)) {
-            throw new \InvalidArgumentException(sprintf(
+            throw new InvalidArgumentException(sprintf(
                 'parameters.yumemi.registryFactory must name a class implementing %s; %s does not.',
                 UnitRegistryFactory::class,
                 $this->factoryClass,
@@ -79,7 +81,7 @@ final class ConfiguredUnitRegistryProvider
         try {
             return $this->registry = $this->factoryClass::create();
         } catch (\Throwable $exception) {
-            throw new \RuntimeException(sprintf(
+            throw new RuntimeException(sprintf(
                 'Failed to create the Yumemi unit registry with %s: %s',
                 $this->factoryClass,
                 $exception->getMessage(),

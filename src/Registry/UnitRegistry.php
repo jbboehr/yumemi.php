@@ -44,6 +44,8 @@ use jbboehr\Yumemi\Catalog\PrefixDecomposition;
 use jbboehr\Yumemi\Catalog\PrefixDescriptor;
 use jbboehr\Yumemi\Catalog\UnitDescriptor;
 use jbboehr\Yumemi\Catalog\UnitKind;
+use jbboehr\Yumemi\Exception\InvalidArgumentException;
+use jbboehr\Yumemi\Exception\UnexpectedValueException;
 use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Unit;
@@ -95,15 +97,15 @@ class UnitRegistry
             $name = is_string($key) ? $key : $unit->name;
 
             if ($name === '') {
-                throw new \InvalidArgumentException('Unit registry name must not be empty.');
+                throw new InvalidArgumentException('Unit registry name must not be empty.');
             }
 
             if (isset($this->units[$name]) && $this->units[$name] !== $unit) {
-                throw new \InvalidArgumentException('Duplicate unit registry name: ' . $name);
+                throw new InvalidArgumentException('Duplicate unit registry name: ' . $name);
             }
 
             if (isset($records[$name]) && $records[$name]['type'] !== 'alias') {
-                throw new \InvalidArgumentException(
+                throw new InvalidArgumentException(
                     'Unit registry name conflicts with catalog record: ' . $name,
                 );
             }
@@ -113,17 +115,17 @@ class UnitRegistry
 
         foreach ($records as $name => $record) {
             if ($name === '') {
-                throw new \InvalidArgumentException('Catalog record name must be a non-empty string.');
+                throw new InvalidArgumentException('Catalog record name must be a non-empty string.');
             }
 
             if (isset($this->units[$name]) && $record['type'] !== 'alias') {
-                throw new \InvalidArgumentException(
+                throw new InvalidArgumentException(
                     'Catalog record name conflicts with prebuilt unit: ' . $name,
                 );
             }
 
             if (isset($this->records[$name])) {
-                throw new \InvalidArgumentException('Duplicate catalog record name: ' . $name);
+                throw new InvalidArgumentException('Duplicate catalog record name: ' . $name);
             }
 
             $this->records[$name] = $record;
@@ -349,7 +351,7 @@ class UnitRegistry
     private function resolveCanonicalEntry(string $name, array $seen = []): ?array
     {
         if (isset($seen[$name])) {
-            throw new \UnexpectedValueException('Circular catalog alias while describing unit: ' . $name);
+            throw new UnexpectedValueException('Circular catalog alias while describing unit: ' . $name);
         }
 
         $record = $this->findCatalogRecord($name);
@@ -358,12 +360,12 @@ class UnitRegistry
                 return [$record['name'], $record, null];
             }
 
-            $target = $record['def'] ?? throw new \UnexpectedValueException(
+            $target = $record['def'] ?? throw new UnexpectedValueException(
                 'Catalog alias is missing target while describing unit: ' . $name,
             );
             $seen[$name] = true;
 
-            return $this->resolveCanonicalEntry($target, $seen) ?? throw new \UnexpectedValueException(
+            return $this->resolveCanonicalEntry($target, $seen) ?? throw new UnexpectedValueException(
                 'Catalog alias target is unknown while describing unit: ' . $target,
             );
         }

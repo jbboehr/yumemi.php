@@ -38,7 +38,7 @@ namespace jbboehr\Yumemi\Exception;
 
 use jbboehr\Yumemi\Units;
 
-final class IncompatibleQuantityContextException extends \RuntimeException
+final class IncompatibleQuantityContextException extends RuntimeException
 {
     public readonly ?int $leftContextId;
     public readonly ?int $rightContextId;

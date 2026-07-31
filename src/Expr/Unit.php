@@ -39,6 +39,7 @@ namespace jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Analyzer\DimensionResolver;
 use jbboehr\Yumemi\Analyzer\UnitNormalizer;
 use jbboehr\Yumemi\Dimension;
+use jbboehr\Yumemi\Exception\InvalidArgumentException;
 use jbboehr\Yumemi\Exception\UnresolvableUnitDimensionException;
 use jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Units;
@@ -68,7 +69,7 @@ final class Unit implements Expr
         ?\WeakReference $units = null,
     ) {
         if ($this->name === '') {
-            throw new \InvalidArgumentException('Unit name must not be empty.');
+            throw new InvalidArgumentException('Unit name must not be empty.');
         }
 
         $this->units = $units;

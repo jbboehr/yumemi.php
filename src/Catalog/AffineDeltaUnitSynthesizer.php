@@ -36,6 +36,8 @@
 
 namespace jbboehr\Yumemi\Catalog;
 
+use jbboehr\Yumemi\Exception\InvalidArgumentException;
+use jbboehr\Yumemi\Exception\UnexpectedValueException;
 use jbboehr\Yumemi\Parser\Ast;
 use jbboehr\Yumemi\Parser\Ast\Add;
 use jbboehr\Yumemi\Parser\Ast\At;
@@ -86,7 +88,7 @@ final class AffineDeltaUnitSynthesizer
 
             $deltaName = self::deltaName($name, $record);
             if (isset($records[$deltaName])) {
-                throw new \InvalidArgumentException(sprintf(
+                throw new InvalidArgumentException(sprintf(
                     'Affine unit "%s" conflicts with its synthesized difference unit "%s".',
                     $name,
                     $deltaName,
@@ -171,7 +173,7 @@ final class AffineDeltaUnitSynthesizer
      */
     private static function deltaRecord(string $name, array $record, callable $findRecord): array
     {
-        $definition = $record['def'] ?? throw new \UnexpectedValueException(
+        $definition = $record['def'] ?? throw new UnexpectedValueException(
             'Affine catalog unit is missing definition: ' . $record['name'],
         );
         $ast = Parser::parseString($definition);
@@ -248,7 +250,7 @@ final class AffineDeltaUnitSynthesizer
         }
 
         if (self::containsAffine($ast, $findRecord)) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Cannot synthesize a difference unit from a compound affine expression: ' . $ast->toString(),
             );
         }

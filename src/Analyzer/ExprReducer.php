@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\Analyzer;
 
+use jbboehr\Yumemi\Exception\LogicException;
 use jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
@@ -125,6 +126,6 @@ final class ExprReducer
             return;
         }
 
-        throw new \LogicException('Cannot reduce expression of type ' . $expr::class);
+        throw new LogicException('Cannot reduce expression of type ' . $expr::class);
     }
 }

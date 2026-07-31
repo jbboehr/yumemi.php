@@ -38,6 +38,7 @@ namespace jbboehr\Yumemi\Command;
 
 use jbboehr\Yumemi\Catalog\PhpCatalogExporter;
 use jbboehr\Yumemi\Catalog\Udunits2CatalogImporter;
+use jbboehr\Yumemi\Exception\RuntimeException;
 
 final class GenerateUdunits2CatalogCommand
 {
@@ -84,7 +85,7 @@ HEADER;
         $bytes = file_put_contents($outputFile, $this->exporter->export($catalog, self::HEADER));
 
         if ($bytes === false) {
-            throw new \RuntimeException('Could not write generated catalog: ' . $outputFile);
+            throw new RuntimeException('Could not write generated catalog: ' . $outputFile);
         }
 
         return 0;

@@ -34,35 +34,14 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\Parser;
-
-use jbboehr\Yumemi\Exception\InvalidArgumentException;
+namespace jbboehr\Yumemi\Exception;
 
 /**
- * A zero-based, half-open byte range within a parsed unit expression.
+ * Reports an explicitly rejected division by zero.
+ *
+ * @logion [OSD 35:26] Where the lower measure vanished, the ratio broke its covenant
+ *     and no lawful proportion could cross the empty place.
  */
-final class SourceSpan
+class DivisionByZeroError extends \DivisionByZeroError implements ExceptionInterface
 {
-    public function __construct(
-        public readonly int $start,
-        public readonly int $end,
-    ) {
-        if ($start < 0) {
-            throw new InvalidArgumentException('Source span start must not be negative.');
-        }
-
-        if ($end < $start) {
-            throw new InvalidArgumentException('Source span end must not precede its start.');
-        }
-    }
-
-    public function isEmpty(): bool
-    {
-        return $this->start === $this->end;
-    }
-
-    public function length(): int
-    {
-        return $this->end - $this->start;
-    }
 }

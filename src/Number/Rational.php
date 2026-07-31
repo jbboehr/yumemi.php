@@ -37,6 +37,11 @@
 namespace jbboehr\Yumemi\Number;
 
 use GMP;
+use jbboehr\Yumemi\Exception\DivisionByZeroError;
+use jbboehr\Yumemi\Exception\InvalidArgumentException;
+use jbboehr\Yumemi\Exception\OverflowException;
+use jbboehr\Yumemi\Exception\UnderflowException;
+use jbboehr\Yumemi\Exception\UnexpectedValueException;
 
 final class Rational
 {
@@ -49,7 +54,7 @@ final class Rational
         $denominator = is_int($denominator) ? gmp_init($denominator) : $denominator;
 
         if (gmp_cmp($denominator, 0) === 0) {
-            throw new \DivisionByZeroError('Rational denominator must not be zero.');
+            throw new DivisionByZeroError('Rational denominator must not be zero.');
         }
 
         if (gmp_sign($denominator) < 0) {
@@ -80,7 +85,7 @@ final class Rational
         $matches = null;
 
         if (preg_match('/^([+-]?\d+)(?:\.(\d+))?(?:e([+-]?\d+))?$/i', $value, $matches) !== 1) {
-            throw new \InvalidArgumentException('Invalid decimal rational string: ' . $value);
+            throw new InvalidArgumentException('Invalid decimal rational string: ' . $value);
         }
 
         $whole = $matches[1];
@@ -193,7 +198,7 @@ final class Rational
     public function toDecimal(int $scale, \RoundingMode $mode): string
     {
         if ($scale < 0) {
-            throw new \InvalidArgumentException('Decimal scale must not be negative.');
+            throw new InvalidArgumentException('Decimal scale must not be negative.');
         }
 
         $negative = gmp_sign($this->numerator) < 0;
@@ -224,7 +229,7 @@ final class Rational
         }
 
         if (gmp_cmp($denominator, 1) !== 0) {
-            throw new \UnexpectedValueException(
+            throw new UnexpectedValueException(
                 'Rational value does not have a terminating decimal representation: ' . $this->toString(),
             );
         }
@@ -256,11 +261,11 @@ final class Rational
         $exponent = self::binaryExponent($numerator, $denominator);
 
         if ($exponent > 1023) {
-            throw new \OverflowException('Rational value does not fit in a finite float: ' . $this->toString());
+            throw new OverflowException('Rational value does not fit in a finite float: ' . $this->toString());
         }
 
         if ($exponent < -1075) {
-            throw new \UnderflowException('Non-zero rational value rounds to zero as a float: ' . $this->toString());
+            throw new UnderflowException('Non-zero rational value rounds to zero as a float: ' . $this->toString());
         }
 
         if ($exponent < -1022) {
@@ -272,7 +277,7 @@ final class Rational
             );
 
             if (gmp_cmp($significand, 0) === 0) {
-                throw new \UnderflowException(
+                throw new UnderflowException(
                     'Non-zero rational value rounds to zero as a float: ' . $this->toString(),
                 );
             }
@@ -297,7 +302,7 @@ final class Rational
             ++$exponent;
 
             if ($exponent > 1023) {
-                throw new \OverflowException('Rational value does not fit in a finite float: ' . $this->toString());
+                throw new OverflowException('Rational value does not fit in a finite float: ' . $this->toString());
             }
         }
 
@@ -314,7 +319,7 @@ final class Rational
     public function toIntExact(): int
     {
         if (gmp_cmp($this->denominator, 1) !== 0) {
-            throw new \UnexpectedValueException('Rational value is not an exact integer: ' . $this->toString());
+            throw new UnexpectedValueException('Rational value is not an exact integer: ' . $this->toString());
         }
 
         return self::nativeInt($this->numerator);
@@ -323,7 +328,7 @@ final class Rational
     private static function nativeInt(GMP $value): int
     {
         if (gmp_cmp($value, PHP_INT_MAX) > 0 || gmp_cmp($value, PHP_INT_MIN) < 0) {
-            throw new \OverflowException('Rational value does not fit in a native integer: ' . gmp_strval($value));
+            throw new OverflowException('Rational value does not fit in a native integer: ' . gmp_strval($value));
         }
 
         return gmp_intval($value);

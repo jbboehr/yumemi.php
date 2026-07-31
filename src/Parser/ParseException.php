@@ -36,7 +36,9 @@
 
 namespace jbboehr\Yumemi\Parser;
 
-final class ParseException extends \Exception
+use jbboehr\Yumemi\Exception\ExceptionInterface;
+
+final class ParseException extends \Exception implements ExceptionInterface
 {
     public function __construct(
         string $message = "",

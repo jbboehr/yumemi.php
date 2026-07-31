@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi;
 
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
+use jbboehr\Yumemi\Exception\InvalidArgumentException;
 use jbboehr\Yumemi\Exception\NonMultiplicativeConversionException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
@@ -56,7 +57,7 @@ function unit(int|float $value, string $unit): int|float
     try {
         Units::default()->parse($unit);
     } catch (\Throwable $exception) {
-        throw new \InvalidArgumentException(
+        throw new InvalidArgumentException(
             'Invalid unit expression for unit(): ' . $exception->getMessage(),
             0,
             $exception,
@@ -83,13 +84,13 @@ function unit_factor(string $from, string $to): float
 
         $factor = $units->conversionFactor($fromUnit, $toUnit);
     } catch (IncompatibleUnitException|NonMultiplicativeConversionException|UnsupportedUnitAlgebraException $exception) {
-        throw new \InvalidArgumentException(
+        throw new InvalidArgumentException(
             'Cannot calculate unit_factor(): ' . $exception->getMessage(),
             0,
             $exception,
         );
     } catch (\Throwable $exception) {
-        throw new \InvalidArgumentException(
+        throw new InvalidArgumentException(
             'Invalid unit expression for unit_factor(): ' . $exception->getMessage(),
             0,
             $exception,
@@ -120,13 +121,13 @@ function unit_to(int|float $value, string $from, string $to): float
             ? $units->convert($value, $from, $to)->toFloat()
             : $units->convertFloat($value, $from, $to);
     } catch (IncompatibleUnitException|UnsupportedUnitConversionException $exception) {
-        throw new \InvalidArgumentException(
+        throw new InvalidArgumentException(
             'Cannot convert with unit_to(): ' . $exception->getMessage(),
             0,
             $exception,
         );
     } catch (\Throwable $exception) {
-        throw new \InvalidArgumentException(
+        throw new InvalidArgumentException(
             'Invalid unit expression for unit_to(): ' . $exception->getMessage(),
             0,
             $exception,

@@ -36,7 +36,7 @@
 
 namespace jbboehr\Yumemi\Exception;
 
-final class UnitNotFoundException extends \RuntimeException
+final class UnitNotFoundException extends RuntimeException
 {
     public readonly string $unitName;
 

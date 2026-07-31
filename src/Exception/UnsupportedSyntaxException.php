@@ -38,7 +38,7 @@ namespace jbboehr\Yumemi\Exception;
 
 use jbboehr\Yumemi\Parser\Ast;
 
-final class UnsupportedSyntaxException extends \RuntimeException
+final class UnsupportedSyntaxException extends RuntimeException
 {
     public readonly string $expression;
 

@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\Analyzer;
 
+use jbboehr\Yumemi\Exception\LogicException;
 use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
 use jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Expr\Product;
@@ -93,7 +94,7 @@ final class AstConverter
             Add::class,
             At::class,
             Sub::class => throw UnsupportedSyntaxException::create($ast),
-            default => throw new \LogicException('Unknown parser AST node: ' . $ast::class),
+            default => throw new LogicException('Unknown parser AST node: ' . $ast::class),
         };
     }
 

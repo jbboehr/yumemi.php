@@ -32,6 +32,11 @@ needs arise.
 `exactDecimalValueIn()` throws when the exact rational result has a non-terminating decimal expansion. Use
 `decimalValueIn()` with an explicit scale and rounding mode in that case.
 
+Every throwable explicitly created by Yumemi implements `jbboehr\Yumemi\Exception\ExceptionInterface`. Yumemi's wrappers
+also extend their corresponding native PHP classes, so callers may catch the common interface, a specific Yumemi
+exception, or a native parent such as `InvalidArgumentException`. Errors raised directly by PHP or a dependency are not
+covered by this marker.
+
 ## Contexts And Construction
 
 `Units::default()` returns one shared context backed by the generated UDUNITS2 catalog. Repeated calls return the same

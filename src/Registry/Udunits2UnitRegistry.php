@@ -38,6 +38,7 @@ namespace jbboehr\Yumemi\Registry;
 
 use jbboehr\Yumemi\Catalog\CatalogNameKind;
 use jbboehr\Yumemi\Catalog\PrefixDescriptor;
+use jbboehr\Yumemi\Exception\UnexpectedValueException;
 use jbboehr\Yumemi\Expr\Unit;
 
 /**
@@ -160,7 +161,7 @@ final class Udunits2UnitRegistry extends UnitRegistry
         $catalog = require $dataFile;
 
         if (!is_array($catalog)) {
-            throw new \UnexpectedValueException('UDUNITS2 catalog file must return an array.');
+            throw new UnexpectedValueException('UDUNITS2 catalog file must return an array.');
         }
 
         /** @phpstan-var Udunits2Catalog $catalog */

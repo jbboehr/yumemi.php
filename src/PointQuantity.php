@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi;
 
 use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
+use jbboehr\Yumemi\Exception\InvalidArgumentException;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Formatter\FormatOptions;
@@ -83,7 +84,7 @@ final class PointQuantity
     {
         $ast = Parser::parseString($unit);
         if (!$ast instanceof Identifier) {
-            throw new \InvalidArgumentException(
+            throw new InvalidArgumentException(
                 'Point quantities require a single named coordinate unit.',
             );
         }
