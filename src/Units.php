@@ -49,6 +49,7 @@ use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Formatter\ExprFormatter;
 use jbboehr\Yumemi\Formatter\FormatOptions;
+use jbboehr\Yumemi\Internal\DeserializationContext;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Parser\Parser;
 use jbboehr\Yumemi\Registry\UnitRegistry;
@@ -84,6 +85,22 @@ final class Units
     public static function default(): self
     {
         return self::$default ??= new self(new Udunits2UnitRegistry());
+    }
+
+    /**
+     * Deserialize a PHP value while supplying this registry to custom-context quantities.
+     *
+     * @logion [OSD 15:24] The keeper opened the foreign testimony beneath his own
+     *     seal, and every enclosed measure was judged by that appointed archive.
+     *
+     * @param array{allowed_classes?: bool|list<class-string>} $options
+     */
+    public function deserialize(string $serialized, array $options = []): mixed
+    {
+        return DeserializationContext::run(
+            $this,
+            static fn (): mixed => unserialize($serialized, $options),
+        );
     }
 
     public function areCompatible(Expr|string $left, Expr|string $right): bool

@@ -43,12 +43,14 @@ use jbboehr\Yumemi\Analyzer\NormalizedExpr;
 use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
+use jbboehr\Yumemi\Exception\UnexpectedValueException;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Formatter\FormatOptions;
+use jbboehr\Yumemi\Internal\DeserializationContext;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Parser\Parser;
 
-final class Quantity
+final class Quantity implements \JsonSerializable
 {
     public readonly Rational $value;
     public readonly Expr $unit;
@@ -68,6 +70,85 @@ final class Quantity
         $this->value = self::rational($value);
         $this->unit = ExprReducer::reduce(self::symbolicExprFrom($unit));
         $this->resolvedUnit = ExprReducer::reduce($resolvedUnit ?? $this->resolvedExprFrom($unit));
+    }
+
+    /**
+     * @logion [OSD 22:23] The magnitude and its visible sign stood alone before
+     *     the witness, while the immense archive remained behind the veil.
+     *
+     * @return array{value: Rational, unit: string, context: string}
+     */
+    public function __debugInfo(): array
+    {
+        return [
+            'value' => $this->value,
+            'unit' => $this->unitToString(),
+            'context' => Units::class . '#' . spl_object_id($this->units),
+        ];
+    }
+
+    /**
+     * @logion [OSD 25:88] The sealed measure returned beneath its rightful court,
+     *     and the restored canon was compared with the ancient testimony.
+     *
+     * @param array<array-key, mixed> $data
+     */
+    public function __unserialize(array $data): void
+    {
+        if (
+            array_keys($data) !== ['version', 'context', 'value', 'unit', 'normalizedUnit']
+            || $data['version'] !== 1
+            || !is_string($data['context'])
+            || !$data['value'] instanceof Rational
+            || !is_string($data['unit'])
+            || !is_string($data['normalizedUnit'])
+        ) {
+            throw new UnexpectedValueException('Invalid serialized Quantity payload.');
+        }
+
+        if ($data['context'] === 'default') {
+            $units = Units::default();
+        } elseif ($data['context'] === 'custom') {
+            $units = DeserializationContext::current();
+
+            if ($units === null) {
+                throw new UnexpectedValueException(
+                    'A custom-context Quantity must be restored with Units::deserialize().',
+                );
+            }
+        } else {
+            throw new UnexpectedValueException('Invalid serialized Quantity context marker.');
+        }
+
+        $quantity = new self($data['value'], $data['unit'], $units);
+
+        if ($quantity->normalizedUnit()->toString() !== $data['normalizedUnit']) {
+            throw new UnexpectedValueException(
+                'Serialized Quantity unit semantics do not match the selected Units context.',
+            );
+        }
+
+        $this->value = $quantity->value;
+        $this->unit = $quantity->unit;
+        $this->units = $quantity->units;
+        $this->resolvedUnit = $quantity->resolvedUnit;
+    }
+
+    /**
+     * @logion [OSD 26:52] The measure entered the vessel with its chosen sign and
+     *     a hidden canonical witness against every future corruption.
+     *
+     * @return array{version: 1, context: 'default'|'custom', value: Rational, unit: string, normalizedUnit: string}
+     */
+    public function __serialize(): array
+    {
+        return [
+            'version' => 1,
+            'context' => $this->units === Units::default() ? 'default' : 'custom',
+            'value' => $this->value,
+            'unit' => $this->unit->toString(),
+            'normalizedUnit' => $this->normalizedUnit()->toString(),
+        ];
     }
 
     /**
@@ -368,6 +449,20 @@ final class Quantity
     public function valueIn(Expr|string $unit): Rational
     {
         return $this->units->convert($this->value, $this->resolvedUnit, $this->resolvedExprFrom($unit));
+    }
+
+    /**
+     * @logion [OSD 29:25] Exact matter and appointed sign were written together
+     *     for distant courts, without exposing the archive that governed them.
+     *
+     * @return array{value: Rational, unit: string}
+     */
+    public function jsonSerialize(): array
+    {
+        return [
+            'value' => $this->value,
+            'unit' => $this->unitToString(),
+        ];
     }
 
     public function __toString(): string

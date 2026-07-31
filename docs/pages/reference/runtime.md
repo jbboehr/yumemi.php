@@ -85,6 +85,68 @@ account for the centi prefix. A constant-only expression is dimensionless.
 The public `value()` and `unit()` accessors return the exact `Rational` magnitude and symbolic `Expr`. The corresponding
 public readonly properties remain available.
 
+## Debugging, JSON, And Serialization
+
+`Rational`, `Quantity`, `PointQuantity`, `Dimension`, and the catalog descriptor value objects implement
+`JsonSerializable`. Exact rational components are decimal strings, so JSON encoding never loses precision:
+
+```php
+<?php
+
+use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\Units;
+
+$quantity = Units::default()->quantity(new Rational(1, 3), 'meter / second');
+$json = json_encode($quantity, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+
+assert($json === '{"value":{"numerator":"1","denominator":"3"},"unit":"meter / second"}');
+
+$restored = unserialize(serialize($quantity));
+
+assert($restored->units() === Units::default());
+assert($restored->valueToString() === '1/3');
+assert($restored->unitToString() === 'meter / second');
+```
+
+`Rational` JSON contains `numerator` and `denominator` strings. Quantity JSON contains that exact `value` and a
+formatted `unit` string. Dimension JSON names all seven axes. Descriptor JSON follows its public constructor state,
+renders backed enums as strings, and nests dynamic prefix decomposition.
+
+Compact `__debugInfo()` output follows the same representation. Quantities add only a short context identity; dumping a
+quantity does not recursively print its `Units` registry and catalog.
+
+Native serialization is versioned and verifies unit semantics when restoring a quantity. Values created through
+`Units::default()` may use PHP's ordinary `serialize()` and `unserialize()` and always return to the shared default
+context. A quantity from a custom registry must be restored through that context:
+
+```php
+<?php
+
+use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
+use jbboehr\Yumemi\Units;
+
+$units = new Units(
+    UnitRegistryBuilder::default()
+        ->define('smoot = 1.7018 * meter')
+        ->build(),
+);
+$serialized = serialize($units->quantity(2, 'smoot'));
+$restored = $units->deserialize($serialized);
+
+assert($restored->units() === $units);
+assert($restored->valueIn('meter')->toString() === '8509/2500');
+```
+
+Raw `unserialize()` rejects a custom-context quantity with an exception directing the caller to `Units::deserialize()`.
+The scoped method restores its previous context in `finally`, including across nested calls, and forwards PHP's native
+`unserialize()` options. Serialized unit semantics are checked against the selected registry, so a changed or incorrect
+registry is rejected rather than silently reinterpreting the value.
+
+One serialized graph may contain default values and values from one custom context. Graphs containing values from
+several distinct custom contexts require a future registry-identifier resolver. PHP serialization of untrusted data
+remains unsafe; use `allowed_classes` as appropriate. Serialize value objects directly: casting one to an array bypasses
+its controlled serialization representation.
+
 ## Expression Operations
 
 The `Units` facade exposes expression-level operations:

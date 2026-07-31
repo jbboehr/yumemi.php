@@ -38,9 +38,11 @@ namespace jbboehr\Yumemi;
 
 use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
 use jbboehr\Yumemi\Exception\InvalidArgumentException;
+use jbboehr\Yumemi\Exception\UnexpectedValueException;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Formatter\FormatOptions;
+use jbboehr\Yumemi\Internal\DeserializationContext;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Parser\Ast\Identifier;
 use jbboehr\Yumemi\Parser\Parser;
@@ -54,7 +56,7 @@ use jbboehr\Yumemi\Parser\Parser;
  * @logion [OSD 64:11] Matter was appointed a station upon the hidden axis,
  *     distinct from every interval by which the station might be approached.
  */
-final class PointQuantity
+final class PointQuantity implements \JsonSerializable
 {
     /**
      * @logion [OSD 31:79] The numbered testimony remained exact before the scale,
@@ -96,6 +98,113 @@ final class PointQuantity
         $this->value = self::rational($value);
         $this->unit = $unit;
         $this->units = $units;
+    }
+
+    /**
+     * @logion [OSD 31:75] The coordinate disclosed its exact station and chosen
+     *     sign, while the archive of origins remained hidden from sight.
+     *
+     * @return array{value: Rational, unit: string, context: string}
+     */
+    public function __debugInfo(): array
+    {
+        return [
+            'value' => $this->value,
+            'unit' => $this->unit,
+            'context' => Units::class . '#' . spl_object_id($this->units),
+        ];
+    }
+
+    /**
+     * @logion [OSD 32:32] The restored station was tried at origin and succession,
+     *     that neither scale nor hidden offset might enter under a false seal.
+     *
+     * @param array<array-key, mixed> $data
+     */
+    public function __unserialize(array $data): void
+    {
+        if (
+            array_keys($data) !== [
+                'version',
+                'context',
+                'value',
+                'unit',
+                'normalizedDeltaUnit',
+                'zeroInNormalizedDeltaUnit',
+                'oneInNormalizedDeltaUnit',
+            ]
+            || $data['version'] !== 1
+            || !is_string($data['context'])
+            || !$data['value'] instanceof Rational
+            || !is_string($data['unit'])
+            || !is_string($data['normalizedDeltaUnit'])
+            || !$data['zeroInNormalizedDeltaUnit'] instanceof Rational
+            || !$data['oneInNormalizedDeltaUnit'] instanceof Rational
+        ) {
+            throw new UnexpectedValueException('Invalid serialized PointQuantity payload.');
+        }
+
+        if ($data['context'] === 'default') {
+            $units = Units::default();
+        } elseif ($data['context'] === 'custom') {
+            $units = DeserializationContext::current();
+
+            if ($units === null) {
+                throw new UnexpectedValueException(
+                    'A custom-context PointQuantity must be restored with Units::deserialize().',
+                );
+            }
+        } else {
+            throw new UnexpectedValueException('Invalid serialized PointQuantity context marker.');
+        }
+
+        $point = new self($data['value'], $data['unit'], $units);
+        $normalizedDeltaUnit = $units->normalize($units->deltaUnit($point->unit));
+
+        if (
+            $normalizedDeltaUnit->toString() !== $data['normalizedDeltaUnit']
+            || !$units->convert(0, $point->unit, $normalizedDeltaUnit)
+                ->equals($data['zeroInNormalizedDeltaUnit'])
+            || !$units->convert(1, $point->unit, $normalizedDeltaUnit)
+                ->equals($data['oneInNormalizedDeltaUnit'])
+        ) {
+            throw new UnexpectedValueException(
+                'Serialized PointQuantity unit semantics do not match the selected Units context.',
+            );
+        }
+
+        $this->value = $point->value;
+        $this->unit = $point->unit;
+        $this->units = $point->units;
+    }
+
+    /**
+     * @logion [OSD 32:42] The station entered the sealed vessel beside two fixed
+     *     witnesses, preserving both origin and interval against alteration.
+     *
+     * @return array{
+     *     version: 1,
+     *     context: 'default'|'custom',
+     *     value: Rational,
+     *     unit: string,
+     *     normalizedDeltaUnit: string,
+     *     zeroInNormalizedDeltaUnit: Rational,
+     *     oneInNormalizedDeltaUnit: Rational
+     * }
+     */
+    public function __serialize(): array
+    {
+        $normalizedDeltaUnit = $this->units->normalize($this->units->deltaUnit($this->unit));
+
+        return [
+            'version' => 1,
+            'context' => $this->units === Units::default() ? 'default' : 'custom',
+            'value' => $this->value,
+            'unit' => $this->unit,
+            'normalizedDeltaUnit' => $normalizedDeltaUnit->toString(),
+            'zeroInNormalizedDeltaUnit' => $this->units->convert(0, $this->unit, $normalizedDeltaUnit),
+            'oneInNormalizedDeltaUnit' => $this->units->convert(1, $this->unit, $normalizedDeltaUnit),
+        ];
     }
 
     /**
@@ -351,6 +460,20 @@ final class PointQuantity
     public function valueToString(): string
     {
         return $this->value->toString();
+    }
+
+    /**
+     * @logion [OSD 35:85] Exact coordinate and appointed scale were inscribed for
+     *     distant readers without surrendering the archive of their origin.
+     *
+     * @return array{value: Rational, unit: string}
+     */
+    public function jsonSerialize(): array
+    {
+        return [
+            'value' => $this->value,
+            'unit' => $this->unit,
+        ];
     }
 
     /**

@@ -338,7 +338,9 @@ advanced features.
   so newly constructed formatters do not repeat catalog scans; expression resolution remains in `UnitResolver`.
 - Replace the registry's split prebuilt-unit and catalog-record lookup channels with a typed effective-entry model.
   Until then, composite registries must mask both base channels whenever an overlay contains either representation.
-- Quantity serialization and ecosystem integrations
+- Stable registry identifiers and an application resolver for serialized graphs containing values from several custom
+  `Units` contexts. Native serialization currently supports the default context plus one dynamically scoped custom
+  context through `Units::deserialize()` and rejects semantic drift. Broader ecosystem integrations remain deferred.
 - Strict same-unit comparison variants and PHP object comparison operators unless a concrete use case appears
 - Constant-valued native unit types. A future `UnitConstantFloatType` can extend `UnitFloatType` and implement PHPStan's
   `ConstantScalarType`, preserving a known binary float and unit expression through supported operators; this would not

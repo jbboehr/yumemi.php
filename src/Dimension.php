@@ -37,8 +37,9 @@
 namespace jbboehr\Yumemi;
 
 use jbboehr\Yumemi\Exception\InvalidArgumentException;
+use jbboehr\Yumemi\Exception\UnexpectedValueException;
 
-final class Dimension
+final class Dimension implements \JsonSerializable
 {
     public const AXIS_LENGTH = 0;
     public const AXIS_MASS = 1;
@@ -84,6 +85,68 @@ final class Dimension
             $temperature,
             $amountOfSubstance,
             $luminousIntensity,
+        ];
+    }
+
+    /**
+     * @logion [OSD 36:95] The seven hidden axes were named before the witness,
+     *     each bearing the exponent appointed to its place in creation.
+     *
+     * @return array{
+     *     length: int,
+     *     mass: int,
+     *     time: int,
+     *     electricCurrent: int,
+     *     temperature: int,
+     *     amountOfSubstance: int,
+     *     luminousIntensity: int
+     * }
+     */
+    public function __debugInfo(): array
+    {
+        return $this->jsonSerialize();
+    }
+
+    /**
+     * @logion [OSD 38:70] The restored order was admitted only when all seven
+     *     stations returned as whole exponents in their appointed sequence.
+     *
+     * @param array<array-key, mixed> $data
+     */
+    public function __unserialize(array $data): void
+    {
+        if (
+            array_keys($data) !== ['version', 'powers']
+            || $data['version'] !== 1
+            || !is_array($data['powers'])
+            || !array_is_list($data['powers'])
+            || count($data['powers']) !== 7
+        ) {
+            throw new UnexpectedValueException('Invalid serialized Dimension payload.');
+        }
+
+        foreach ($data['powers'] as $power) {
+            if (!is_int($power)) {
+                throw new UnexpectedValueException('Invalid serialized Dimension payload.');
+            }
+        }
+
+        /** @var array{int, int, int, int, int, int, int} $powers */
+        $powers = $data['powers'];
+        $this->powers = $powers;
+    }
+
+    /**
+     * @logion [OSD 45:1] The ordered exponents entered the vessel as seven seals,
+     *     neither exchanging rank nor concealing an absent axis.
+     *
+     * @return array{version: 1, powers: array{int, int, int, int, int, int, int}}
+     */
+    public function __serialize(): array
+    {
+        return [
+            'version' => 1,
+            'powers' => $this->powers,
         ];
     }
 
@@ -137,6 +200,33 @@ final class Dimension
         }
 
         return true;
+    }
+
+    /**
+     * @logion [OSD 45:49] Every celestial axis declared its exponent by name,
+     *     making the invisible order legible without changing its rank.
+     *
+     * @return array{
+     *     length: int,
+     *     mass: int,
+     *     time: int,
+     *     electricCurrent: int,
+     *     temperature: int,
+     *     amountOfSubstance: int,
+     *     luminousIntensity: int
+     * }
+     */
+    public function jsonSerialize(): array
+    {
+        return [
+            'length' => $this->length(),
+            'mass' => $this->mass(),
+            'time' => $this->time(),
+            'electricCurrent' => $this->electricCurrent(),
+            'temperature' => $this->temperature(),
+            'amountOfSubstance' => $this->amountOfSubstance(),
+            'luminousIntensity' => $this->luminousIntensity(),
+        ];
     }
 
     public function length(): int

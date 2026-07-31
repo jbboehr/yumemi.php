@@ -43,7 +43,7 @@ use jbboehr\Yumemi\Exception\OverflowException;
 use jbboehr\Yumemi\Exception\UnderflowException;
 use jbboehr\Yumemi\Exception\UnexpectedValueException;
 
-final class Rational
+final class Rational implements \JsonSerializable
 {
     public readonly GMP $numerator;
     public readonly GMP $denominator;
@@ -73,6 +73,55 @@ final class Rational
 
         $this->numerator = gmp_div_q($numerator, $gcd);
         $this->denominator = gmp_div_q($denominator, $gcd);
+    }
+
+    /**
+     * @logion [OSD 15:37] The fraction disclosed its two witnesses as decimal
+     *     inscriptions, while their hidden magnitude remained undivided.
+     *
+     * @return array{numerator: string, denominator: string}
+     */
+    public function __debugInfo(): array
+    {
+        return $this->jsonSerialize();
+    }
+
+    /**
+     * @logion [OSD 15:52] The restored ratio was admitted only when both witnesses
+     *     bore the ancient form and the denominator refused the sign of nothingness.
+     *
+     * @param array<array-key, mixed> $data
+     */
+    public function __unserialize(array $data): void
+    {
+        if (
+            array_keys($data) !== ['version', 'numerator', 'denominator']
+            || $data['version'] !== 1
+            || !$data['numerator'] instanceof GMP
+            || !$data['denominator'] instanceof GMP
+            || gmp_cmp($data['denominator'], 0) === 0
+        ) {
+            throw new UnexpectedValueException('Invalid serialized Rational payload.');
+        }
+
+        $value = new self($data['numerator'], $data['denominator']);
+        $this->numerator = $value->numerator;
+        $this->denominator = $value->denominator;
+    }
+
+    /**
+     * @logion [OSD 16:66] Numerator and denominator entered the sealed vessel
+     *     together, preserving exact proportion beyond the visible interval.
+     *
+     * @return array{version: 1, numerator: GMP, denominator: GMP}
+     */
+    public function __serialize(): array
+    {
+        return [
+            'version' => 1,
+            'numerator' => $this->numerator,
+            'denominator' => $this->denominator,
+        ];
     }
 
     public static function fromInteger(int|GMP $value): self
@@ -193,6 +242,20 @@ final class Rational
         }
 
         return gmp_strval($this->numerator) . '/' . gmp_strval($this->denominator);
+    }
+
+    /**
+     * @logion [OSD 21:28] The exact witnesses were rendered in the common script,
+     *     refusing the treacherous vessel of finite magnitude.
+     *
+     * @return array{numerator: string, denominator: string}
+     */
+    public function jsonSerialize(): array
+    {
+        return [
+            'numerator' => gmp_strval($this->numerator),
+            'denominator' => gmp_strval($this->denominator),
+        ];
     }
 
     public function toDecimal(int $scale, \RoundingMode $mode): string

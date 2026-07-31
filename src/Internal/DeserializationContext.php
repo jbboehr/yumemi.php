@@ -34,79 +34,56 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\Catalog;
+namespace jbboehr\Yumemi\Internal;
 
-use jbboehr\Yumemi\Exception\UnexpectedValueException;
+use jbboehr\Yumemi\Units;
 
 /**
- * Decomposition of a synthesized descriptor into one prefix and one exact unit spelling.
+ * Dynamically scoped registry context for native PHP deserialization.
+ *
+ * @logion [OSD 3:99] The borrowed seal remained above the opened archive until
+ *     every enclosed testimony had received its lawful inheritance.
+ *
+ * @internal
  */
-final readonly class PrefixDecomposition implements \JsonSerializable
+final class DeserializationContext
 {
-    public function __construct(
-        public PrefixDescriptor $prefix,
-        public UnitDescriptor $unit,
-    ) {
+    /**
+     * @logion [OSD 4:75] Beneath the present seal the hidden register waited,
+     *     yielding again to its predecessor when the reading was complete.
+     */
+    private static ?Units $current = null;
+
+    /**
+     * @logion [OSD 13:13] The innermost seal alone governed the opened leaf,
+     *     while every elder authority waited beyond the veil.
+     */
+    public static function current(): ?Units
+    {
+        return self::$current;
     }
 
     /**
-     * @logion [OSD 61:53] The compounded sign disclosed the lesser seal and the
-     *     inherited measure from which its public name had arisen.
+     * Invoke an operation under a temporary registry context.
      *
-     * @return array{prefix: PrefixDescriptor, unit: UnitDescriptor}
+     * @logion [OSD 14:53] The appointed court received the sealed volume for one
+     *     reading, then restored the former keys even when judgment failed.
+     *
+     * @template T
+     *
+     * @param callable(): T $callback
+     *
+     * @return T
      */
-    public function __debugInfo(): array
+    public static function run(Units $units, callable $callback): mixed
     {
-        return $this->jsonSerialize();
-    }
+        $previous = self::$current;
+        self::$current = $units;
 
-    /**
-     * @logion [OSD 64:40] The divided lineage was restored only when prefix and
-     *     measure returned together beneath their proper forms.
-     *
-     * @param array<array-key, mixed> $data
-     */
-    public function __unserialize(array $data): void
-    {
-        if (
-            array_keys($data) !== ['version', 'prefix', 'unit']
-            || $data['version'] !== 1
-            || !$data['prefix'] instanceof PrefixDescriptor
-            || !$data['unit'] instanceof UnitDescriptor
-        ) {
-            throw new UnexpectedValueException('Invalid serialized PrefixDecomposition payload.');
+        try {
+            return $callback();
+        } finally {
+            self::$current = $previous;
         }
-
-        $this->prefix = $data['prefix'];
-        $this->unit = $data['unit'];
-    }
-
-    /**
-     * @logion [OSD 65:18] Prefix and inherited measure entered one vessel as
-     *     distinct witnesses to the compounded sign they had begotten.
-     *
-     * @return array{version: 1, prefix: PrefixDescriptor, unit: UnitDescriptor}
-     */
-    public function __serialize(): array
-    {
-        return [
-            'version' => 1,
-            'prefix' => $this->prefix,
-            'unit' => $this->unit,
-        ];
-    }
-
-    /**
-     * @logion [OSD 65:90] The compounded lineage was written in two ordered
-     *     testimonies, preserving both the lesser seal and ancestral measure.
-     *
-     * @return array{prefix: PrefixDescriptor, unit: UnitDescriptor}
-     */
-    public function jsonSerialize(): array
-    {
-        return [
-            'prefix' => $this->prefix,
-            'unit' => $this->unit,
-        ];
     }
 }
