@@ -99,6 +99,36 @@ final class UnitResolverTest extends TestCase
         $this->assertNotSame($resolved, $resolver->resolve('meter * second ^ -1'));
     }
 
+    public function testConversionResolverCachesDerivedDataByExpressionIdentity(): void
+    {
+        $resolver = new UnitConversionResolver(new Udunits2UnitRegistry());
+        $unit = new Unit('meter');
+        $first = $resolver->resolve($unit);
+        $second = $resolver->resolve($unit);
+        $equivalent = $resolver->resolve(new Unit('meter'));
+
+        $this->assertNotSame($first, $second);
+        $this->assertSame($unit, $first->source);
+        $this->assertSame($unit, $second->source);
+        $this->assertSame($first->dimension, $second->dimension);
+        $this->assertSame($first->conversion, $second->conversion);
+        $this->assertNotSame($first->dimension, $equivalent->dimension);
+        $this->assertNotSame($first->conversion, $equivalent->conversion);
+    }
+
+    public function testConversionResolverDoesNotRetainExpressionKeys(): void
+    {
+        $resolver = new UnitConversionResolver(new Udunits2UnitRegistry());
+        $unit = new Unit('meter');
+        $reference = \WeakReference::create($unit);
+        $resolved = $resolver->resolve($unit);
+
+        unset($unit, $resolved);
+        gc_collect_cycles();
+
+        $this->assertNull($reference->get());
+    }
+
     public function testResolvesCatalogBackedPlurals(): void
     {
         $resolver = new UnitResolver(new Udunits2UnitRegistry());

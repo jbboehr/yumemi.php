@@ -77,6 +77,14 @@ final class UnitConversionResolver
     private array $cache = [];
 
     /**
+     * @logion [OSD 57:34] The tribunal remembered the weight and lawful passage
+     *     of each living sign, yet released its image when no witness remained.
+     *
+     * @var \WeakMap<Expr, array{Dimension, ExactConversion}>|null
+     */
+    private ?\WeakMap $exprCache = null;
+
+    /**
      * @logion [OSD 62:90] Each completed judgment was entered beneath its exact
      *     inscription, that its return might require no second hearing.
      *
@@ -188,13 +196,18 @@ final class UnitConversionResolver
 
     private function resolveExpr(Expr $expr): ResolvedConversionUnit
     {
-        $normalized = $this->unitNormalizer->normalize($expr);
+        $cache = $this->exprCache ??= new \WeakMap();
+        $cached = $cache[$expr] ?? null;
+        if ($cached !== null) {
+            return new ResolvedConversionUnit($expr, $cached[0], $cached[1]);
+        }
 
-        return new ResolvedConversionUnit(
-            $expr,
-            DimensionResolver::resolveNormalized($normalized),
-            new ExactConversion(NormalizedExpr::constant($normalized), new Rational(0)),
-        );
+        $normalized = $this->unitNormalizer->normalize($expr);
+        $dimension = DimensionResolver::resolveNormalized($normalized);
+        $conversion = new ExactConversion(NormalizedExpr::constant($normalized), new Rational(0));
+        $cache[$expr] = [$dimension, $conversion];
+
+        return new ResolvedConversionUnit($expr, $dimension, $conversion);
     }
 
     private function resolveAst(Ast $ast): ResolvedConversionUnit
