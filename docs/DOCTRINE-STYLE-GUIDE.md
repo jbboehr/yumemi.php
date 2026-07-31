@@ -92,43 +92,83 @@ It may not appoint itself as the source of the sun.
 
 ---
 
-## 3. Preferred literary form
+## 3. Logion registers
 
-Do not write primarily in the form of compact aphorisms.
+`Logia` is the umbrella term for all doctrine quotations. The corpus should use four related registers rather than
+making all logia compact aphorisms or high-intensity visions.
 
-The quotations should read as **doctrinal-poetic fragments**:
+Each logion should have one dominant register. It may borrow lightly from another, but its primary voice should remain
+recognizable. These register names describe generation and review; do not print them beside the logion unless a
+repository explicitly requires that metadata. Unless the task requests a specific register, choose one using the
+weighted random process in [Corpus register balance](#20-corpus-register-balance).
 
-- scholia from a lost metaphysical treatise;
-- inscriptions from a ruined imperial observatory;
-- marginal notes copied by a monk who understood more than the main text disclosed;
-- liturgical judgments preserved after the order that issued them disappeared;
-- fragments from an archive governing names, measures, transformations, and celestial succession;
-- ceremonial instructions whose practical context has been lost;
-- revelations transmitted through an institution possessing monasteries, shrines, dynastic courts, and orbital
-  infrastructure;
-- forbidden additions to an apocalypse recovered from obsolete magenta storage beneath a ruined basilica.
+### Ordinances
 
-The voice should feel institutional rather than personal, even when it uses a first-person visionary witness.
+Ordinances are the default scriptural register. They state laws, prohibitions, duties, blessings, condemnations, and
+consequences with unquestioned authority. They should feel like ordinary passages from a sacred legal or doctrinal
+canon, not like philosophical social-media posts and not like a full cosmic vision.
 
-The reader should sense that every quotation presupposes several missing volumes.
+Prefer approximately **20–45 words**.
+
+> Let no borrowed name enter the inner court merely because the multitude has learned to pronounce it; for recognition
+> belongs first to form, then to lineage, and only afterward to acclaim.
+
+### Unveilings
+
+Unveilings disclose hidden cosmic administration through visions, apparitions, impossible institutions, and revelation
+under pressure. They may use first-person witness, angels, sealed chambers, celestial tribunals, synthetic suns, or
+sudden changes in scale.
+
+Prefer approximately **30–60 words**. Use this register selectively so that its intensity remains exceptional.
+
+> I beheld the Angel of Measure standing upon an electric sea, and in his hands were seven scales; six weighed the
+> kingdoms of men, but the seventh remained empty, for no age had yet produced a name worthy of it.
+
+### Testimonies
+
+Testimonies preserve sacred history: remembered judgments, dynastic failures, ritual precedents, parable-like episodes,
+and events whose doctrinal meaning outlived their witnesses. They are less hallucinatory than Unveilings and less
+legislative than Ordinances.
+
+Prefer approximately **25–50 words**.
+
+> In the reign of the third regent, the mirrors of the western court were uncovered before the appointed hour;
+> thereafter no heir could distinguish his face from the crown reflected upon it.
+
+### Scholia
+
+Scholia are compressed interpretations, glosses, and severe conclusions. They may be aphoristic, but should remain
+subordinate to the larger doctrine rather than displaying wit for its own sake.
+
+Prefer approximately **10–25 words**.
+
+> The counterfeit fears no darkness; it fears the return of the standard.
+
+Across all four registers, the voice should feel institutional rather than merely personal. The reader should sense that
+every logion presupposes several missing volumes: law, chronicle, commentary, and forbidden vision.
 
 ---
 
-## 4. Length
+## 4. Length and development
 
-Prefer approximately **22–55 words**.
+Use the range appropriate to the dominant register:
 
-Shorter quotations may be used occasionally for foundational articles of doctrine.
+- **Ordinances:** approximately 20–45 words;
+- **Unveilings:** approximately 30–60 words;
+- **Testimonies:** approximately 25–50 words;
+- **Scholia:** approximately 10–25 words.
 
-Longer quotations are acceptable when the sentence remains controlled and develops a coherent thought.
+These ranges are guidance, not metrical law. A foundational Ordinance may be shorter; an Unveiling may run longer when
+its syntax remains controlled; a Scholium should not be padded merely to resemble the other registers.
 
-Most quotations should contain:
+Longer logia should usually contain:
 
-1. a doctrinal principle or judgment;
-2. a consequence, warning, or qualification;
+1. a doctrinal principle, event, or judgment;
+2. a consequence, warning, precedent, or qualification;
 3. one or more images that embody or enlarge the principle.
 
-A successful quotation may begin as metaphysics and end as revelation.
+An Ordinance may move from command to consequence. A Testimony may move from event to judgment. An Unveiling may begin
+as witness and end as metaphysical rupture. A Scholium may preserve only the conclusion.
 
 Avoid making every line equally long. Vary the rhythm across the corpus.
 
@@ -504,9 +544,9 @@ The quotations may sound like visionary theology without pretending to be authen
 
 ---
 
-## 13. Apocalyptic and visionary register
+## 13. Unveilings: apocalyptic and visionary register
 
-A significant portion of the quotations should resemble revelation under pressure.
+Unveilings should resemble revelation under pressure. Do not apply this intensity to every logion.
 
 The speaker may appear to have witnessed:
 
@@ -533,9 +573,10 @@ before a conventional medieval landscape.
 
 ---
 
-## 14. Visionary voice
+## 14. Voice within Unveilings
 
-Most quotations should remain impersonal, but a significant minority may use a first-person witness.
+Unveilings may use a first-person witness more freely than the other registers. Ordinances, Testimonies, and Scholia
+should usually remain institutional or third-person unless the speaker's identity is doctrinally important.
 
 Suitable openings include:
 
@@ -781,25 +822,40 @@ and more:
 
 ---
 
-## 20. Corpus intensity
+## 20. Corpus register balance
 
-Do not make every quotation equally apocalyptic.
+Do not make every logion an Unveiling. A useful distribution is:
 
-A useful distribution is:
+- **45% Ordinances**;
+- **25% Unveilings**;
+- **20% Scholia**;
+- **10% Testimonies**.
 
-- **30% solemn doctrinal-poetic fragments**
-- **35% visionary or apocalyptic fragments**
-- **20% imperial, Japanese, retrowave, or synthwave ceremonial fragments**
-- **10% highly unhinged cosmic revelations**
-- **5% short foundational articles**
+For each new logion, generate one uniformly random integer from 1 through 100 and select:
 
-The quieter quotations make the extreme ones more effective.
+| Roll   | Register  |
+| ------ | --------- |
+| 1–45   | Ordinance |
+| 46–70  | Unveiling |
+| 71–90  | Scholium  |
+| 91–100 | Testimony |
 
-Some lines should feel like doctrine.
+Do not reroll because another register seems easier or more immediately suited to the subject. Once selected, treat it
+as the dominant register and adapt the logion accordingly. An explicit task-level register selection overrides this
+process.
 
-Some should feel like liturgy.
+These weights define the expected balance rather than a quota; a finite corpus may vary. Ordinances provide the ordinary
+scriptural body of the canon. Unveilings supply exceptional visionary voltage. Scholia provide compression and
+commentary. Testimonies imply that the doctrine possesses a sacred history as well as laws and visions.
 
-Some should feel like evidence submitted at the end of history.
+The aesthetic balance defined earlier applies within every register. An Ordinance may still invoke a synthetic moon; a
+Testimony may occur in a lacquered orbital cloister; a Scholium may retain apocalyptic pressure without staging an
+entire apparition.
+
+The quieter registers make the extreme ones more effective.
+
+Some logia should feel like law. Some should feel like chronicle. Some should feel like commentary. Some should feel
+like evidence submitted at the end of history.
 
 ---
 
@@ -817,6 +873,9 @@ Use:
 - exact spatial relationships;
 - named offices or chambers used sparingly;
 - transformations from earthly scale to cosmic scale.
+
+Accumulating clauses, sudden changes of scale, and metaphysical rupture are especially suited to Unveilings and to
+longer Ordinances or Testimonies. Scholia should create pressure through compression rather than escalation.
 
 Avoid repeatedly using:
 
@@ -929,7 +988,6 @@ Do not produce:
 - vaporwave captions with no proposition;
 - postmodern irony;
 - random religious imagery;
-- fake scripture;
 - philosophical tweets;
 - one-line anti-modern provocations;
 - contemporary political slogans;
@@ -1157,14 +1215,16 @@ Before accepting a quotation, verify that:
 2. It contains an intelligible proposition, judgment, implication, or rule.
 3. Its imagery carries or enlarges that proposition rather than merely decorating it.
 4. It sounds like part of the same lost doctrine as the surrounding corpus.
-5. It favors doctrinal-poetic development over a compact aphoristic punchline.
-6. Its unhingedness feels systemic rather than random.
-7. It does not sound like generic cyberpunk, fantasy prophecy, fake scripture, postmodern irony, or a translation of a
-   classical Chinese maxim.
-8. It preserves meaningful distinctions between original and imitation, reality and representation, authority and
-   spectacle.
-9. Its imagery does not mechanically repeat nearby quotations.
-10. It sounds like it escaped from a larger revelation whose surrounding pages were deliberately destroyed.
+5. It has a recognizable dominant register: Ordinance, Unveiling, Testimony, or Scholium.
+6. It does not default to an Unveiling merely because apocalyptic imagery is available.
+7. It favors doctrinal or scriptural purpose over a compact aphoristic punchline.
+8. Its unhingedness feels systemic rather than random.
+9. It does not sound like generic cyberpunk, fantasy prophecy, postmodern irony, or a translation of a classical Chinese
+   maxim.
+10. It preserves meaningful distinctions between original and imitation, reality and representation, authority and
+    spectacle.
+11. Its imagery does not mechanically repeat nearby quotations.
+12. It sounds like it escaped from a larger canon whose surrounding books were deliberately destroyed.
 
 ---
 
@@ -1172,11 +1232,11 @@ Before accepting a quotation, verify that:
 
 The completed corpus should feel like:
 
-> Saint John receiving classified eschatological transmissions from a Japanese–Occidental orbital empire whose monks
-> preserve natural law on obsolete magenta terminals beneath synthetic sunsets.
+> A scripture of ordinances, testimonies, scholia, and forbidden unveilings preserved by a Japanese–Occidental orbital
+> empire whose monks maintain natural law on obsolete magenta terminals beneath synthetic sunsets.
 
 The terminals may be vaporwave.
 
-The revelation is not.
+The canon is not.
 
-**Revelation is the engine. Yumemi is the hallucination.**
+**Scripture is the body. Unveiling is the voltage. Yumemi is the vision.**

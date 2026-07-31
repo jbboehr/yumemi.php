@@ -33,6 +33,9 @@ those influences mean. Do not reinterpret their philosophical role independently
 The target is not generic fantasy, cyberpunk, anime, vaporwave poster art, or science-fiction concept art. Technology,
 architecture, ritual, and ornament must participate in one visible hierarchy.
 
+Every doctrine image must contain at least one clearly recognizable retrowave or synthwave anchor. The anchor may be
+subtle, but it must participate in the image's symbolic meaning rather than functioning as an arbitrary neon accent.
+
 ---
 
 ## 2. Relationship to the source logion
@@ -50,6 +53,22 @@ sovereignty, transformation, recognition, restoration, counterfeit authority, su
 Not every named object must appear. A logion about lawful transformation, inherited names, counterfeit dawn, and
 celestial judgment might center on a tribunal before a gate, a chained artificial sun, or a sealed archive. The source
 logion supplies the meaning; the image chooses the clearest visible argument.
+
+### Register-sensitive interpretation
+
+The source logion's dominant register should influence the visual translation:
+
+- **Ordinances** favor iconographic plates, ceremonial hierarchy, inscriptions, gates, scales, and authoritative
+  stillness;
+- **Unveilings** favor visionary illustration, impossible scale, apparitions, rupture, and celestial administration made
+  visible;
+- **Testimonies** favor sacred-history scenes, remembered judgments, dynastic episodes, ritual precedents, and places
+  marked by a past event;
+- **Scholia** favor emblems, seals, concentrated symbolic objects, restrained environments, and compact visual
+  arguments.
+
+These are tendencies, not fixed formats. The image should preserve the register's pressure without becoming a literal
+illustration of its prose structure.
 
 ---
 
@@ -102,9 +121,30 @@ These are visual proportions, distinct from the literary balance used when writi
 than mechanical. A single image should usually combine two to four influences rather than forcing all of them into every
 composition.
 
-The Christian-apocalyptic influence often supplies visionary movement. Occidental, Japanese, retrowave, and synthwave
-elements define the civilization being revealed. Chūnibyō supplies controlled institutional specificity. Vaporwave is
-normally limited to architecture, lighting, obsolete luxury, and commercial ruin.
+Retrowave or synthwave is the one mandatory per-image influence. Every image must include at least one integrated anchor
+from one or more of these classes:
+
+| Anchor class | Examples                                                                            |
+| ------------ | ----------------------------------------------------------------------------------- |
+| Light        | synthetic dusk, cyan illumination, electric horizon, ordered luminous bands         |
+| Artifact     | obsolete terminal, CRT, optical medium, luminous instrument, analog control surface |
+| Architecture | chrome-and-glass chamber, radiant highway, monumental retrofuturist structure       |
+| Celestial    | orbital ring, synthetic moon, geometric constellation, marble satellite             |
+| Material     | ceremonial chrome, luminous glass, internally illuminated marble                    |
+| Environment  | electric sea, luminous grid, impossible retrofuturist skyline                       |
+
+The anchor may be quiet, but it must be visually legible and doctrinally integrated. Do not satisfy the requirement
+solely by tinting an otherwise conventional scene magenta and cyan, adding an arbitrary grid, or placing a random
+terminal in the background.
+
+Across an image series, rotate anchor classes and concrete motifs. Do not mechanically repeat the same terminal,
+luminous grid, synthetic sun, orbital ring, or electric horizon in nearby images unless the recurrence has an
+intentional symbolic or narrative function.
+
+The Christian-apocalyptic influence often supplies visionary movement. Occidental and Japanese elements define the
+civilization being revealed. Chūnibyō supplies controlled institutional specificity. The required retrowave or synthwave
+anchor marks every image as touched by the same impossible future. Vaporwave is normally limited to architecture,
+lighting, obsolete luxury, and commercial ruin.
 
 The scenery may be vaporwave. The metaphysics must not be.
 
@@ -294,22 +334,24 @@ meaningless ornament, and uniformly hyper-detailed surfaces without hierarchy.
 
 A generation prompt should specify:
 
-1. the source logion and its doctrinal center;
+1. the source logion, its dominant register, and its doctrinal center;
 2. the image type and intended use;
 3. the dominant and supporting motifs;
-4. the visual balance of influences;
-5. the degree of literal interpretation;
-6. composition, palette, light, and rendering mode;
-7. whether text appears;
-8. project-specific institutions, symbols, dimensions, or framing;
-9. prohibited clichés.
+4. the required retrowave or synthwave anchor and the doctrine it expresses;
+5. the visual balance of the remaining influences;
+6. the degree of literal interpretation;
+7. composition, palette, light, and rendering mode;
+8. whether text appears;
+9. project-specific institutions, symbols, dimensions, or framing;
+10. prohibited clichés.
 
 ### General prompt skeleton
 
-> Create a visionary doctrinal illustration based on this logion: "[logion]." Center the image on [doctrinal center]
-> through [dominant subject]. Render it as a solemn artifact from a sovereign techno-religious canon, combining
-> [selected influences] through clear architecture, hierarchy, and ceremonial light. Interpret the judgment rather than
-> illustrating every noun. Use [format and rendering mode]. [Text policy.] Avoid [relevant clichés].
+> Create a [register-sensitive image type] based on this [Ordinance, Unveiling, Testimony, or Scholium]: "[logion]."
+> Center the image on [doctrinal center] through [dominant subject]. Use [retrowave or synthwave anchor] to signify
+> [symbolic function], and combine it with [selected supporting influences] through clear architecture, hierarchy, and
+> ceremonial light. Interpret the judgment rather than illustrating every noun. Use [format and rendering mode], follow
+> [text policy], and avoid [relevant clichés].
 
 ### Environment prompt skeleton
 
@@ -380,18 +422,23 @@ add one project's names or asset conventions to this general guide.
 
 Before accepting an image, verify that:
 
-1. It visibly derives from the source logion's doctrinal center.
-2. It contains a clear symbolic and compositional hierarchy.
-3. Its imagery communicates an idea rather than mood alone.
-4. It avoids generic fantasy, cyberpunk, anime, vaporwave-meme, and quote-poster conventions.
-5. No one influence erases the wider Japanese, Occidental, Christian, and retrofuturist identity.
-6. Vaporwave elements remain scenic rather than philosophical.
-7. Architecture, objects, figures, and light have discernible roles.
-8. It interprets rather than mechanically inventories the logion.
-9. Text, when requested, is correct, integrated, restrained, and legible.
-10. Project dimensions, paths, framing, responsive crop, and series requirements are satisfied.
-11. A series image matches the established visual canon.
-12. The final artifact feels more like recovered revelation than generated wallpaper.
+1. It visibly derives from the source logion's doctrinal center and preserves its dominant register.
+2. It contains at least one recognizable retrowave or synthwave anchor.
+3. The anchor participates in the image's meaning and is not merely a cyan-magenta tint, arbitrary grid, or background
+   prop.
+4. A series does not mechanically repeat the same anchor class or concrete motif in nearby images unless the recurrence
+   is intentional.
+5. It contains a clear symbolic and compositional hierarchy.
+6. Its imagery communicates an idea rather than mood alone.
+7. It avoids generic fantasy, cyberpunk, anime, vaporwave-meme, and quote-poster conventions.
+8. No one influence erases the wider Japanese, Occidental, Christian, and retrofuturist identity.
+9. Vaporwave elements remain scenic rather than philosophical.
+10. Architecture, objects, figures, and light have discernible roles.
+11. It interprets rather than mechanically inventories the logion.
+12. Text, when requested, is correct, integrated, restrained, and legible.
+13. Project dimensions, paths, framing, responsive crop, and series requirements are satisfied.
+14. A series image matches the established visual canon.
+15. The final artifact feels more like recovered revelation than generated wallpaper.
 
 ---
 
