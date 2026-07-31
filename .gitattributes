@@ -10,13 +10,14 @@ composer-project.nix linguist-generated
 .gitignore export-ignore
 .php-cs-fixer.dist.php export-ignore
 AGENTS.md export-ignore
-assets/logia export-ignore
 benchmarks export-ignore
 composer.lock export-ignore
 docs/DOCTRINE-CODING-GUIDE.md export-ignore
 docs/DOCTRINE-IMAGE-GUIDE.md export-ignore
 docs/DOCTRINE-STYLE-GUIDE.md export-ignore
 docs/development export-ignore
+docs/pages/images/logia export-ignore
+docs/pages/images/logia/** export-ignore
 infection.json5.dist export-ignore
 phpbench-perfidious.json export-ignore
 phpbench.json export-ignore

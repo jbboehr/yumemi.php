@@ -118,7 +118,7 @@ Logion references follow these rules:
 - Check the repository for a collision before assigning a reference.
 
 The bracketed form is source syntax; the logical reference is `OSD C:V`. A future image for `OSD 7:12` may be stored at
-a portable path such as `assets/logia/OSD/7/12.webp`.
+a portable path such as `docs/pages/images/logia/OSD-7_12.webp`.
 
 Place `@logion` after descriptive prose and before conventional metadata tags such as `@param`, `@return`, `@throws`,
 and `@template`.
@@ -176,5 +176,5 @@ Unless explicitly requested otherwise:
 - do not embed the citation or logion in the image;
 - compose for a side-by-side documentation layout with the quotation on the left and the image on the right;
 - keep the principal subject within a center-safe region for responsive cropping;
-- derive prospective asset paths from the reference using `assets/logia/OSD-<chapter>_<verse>.webp`, such as
-  `assets/logia/OSD-54_64.webp`.
+- derive prospective asset paths from the reference using `docs/pages/images/logia/OSD-<chapter>_<verse>.webp`, such as
+  `docs/pages/images/logia/OSD-54_64.webp`.
