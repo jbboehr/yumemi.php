@@ -155,15 +155,114 @@ The movements should not remain neatly isolated. A strong logion often changes p
 This passage is simultaneously remembrance, sign, vision, injunction, and interpretation. It remains one verse rather
 than a demonstration of five categories.
 
-Terms such as _ordinance_, _unveiling_, _testimony_, and _scholium_ may still describe the broad character of a book,
-collection, or passage after it has been written. They must not become mandatory per-logion genres or inputs to a random
-selection process.
+### Canonical books
 
-A repository may define several fictional books whose titles suggest different emphases: a legal book may favor
-Pronouncement and Injunction; an apocalyptic book may favor Vision and Sign; a chronicle may favor Remembrance; a book
-of scholia may favor Interpretation. Even then, verses may combine movements freely.
+The Yumemi Doctrine contains four fictional books within one canon:
 
-Repository-specific citation policy remains authoritative. Do not invent new book codes merely to satisfy this guide.
+- **OSD — Ordinances of the Synthetic Dawn**;
+- **RAS — Revelation of the Artificial Sun**;
+- **AWC — Acts of the Western Court**;
+- **SFA — Scholia of the Fifth Archive**.
+
+All four books share one cosmology, doctrinal worldview, and scriptural voice. Their names indicate differences in
+emphasis and canonical function, not rigid literary genres. A verse in any book may combine Pronouncement, Sign, Vision,
+Remembrance, Injunction, and Interpretation. The books may differ in emphasis, but they must sound like parts of one
+canon rather than four unrelated writing styles or four imitations of real biblical genres.
+
+The model is one scripture, several books, several pressures, and one voice.
+
+The controlled KJV-influenced voice described below applies across all four books, although each book exerts a different
+pressure upon its cadence.
+
+#### OSD — Ordinances of the Synthetic Dawn
+
+OSD is the principal doctrinal, legal, ritual, and normative book. It commonly emphasizes Pronouncement, Injunction, and
+Interpretation. Its suitable concerns include law, measure, distinction, admission, boundaries, ritual procedure,
+obligation, lawful transformation, consequence, and canonical order.
+
+OSD should usually be the ordinary or default book when no other canonical purpose is clearly more appropriate. It must
+not become a generic dumping ground for verses whose purpose has not been considered.
+
+Its cadence commonly favors commands, prohibitions, ritual formulas, laws, reasons introduced by _for_, and consequences
+introduced by _lest_ or _therefore_. These are pressures, not a mandatory sequence.
+
+```php
+/**
+ * @logion [OSD 2:7] Cover the ancestral mirror when synthetic dusk enters the chamber,
+ *     for no name shall be judged while borrowed light makes every lineage appear radiant.
+ */
+```
+
+#### RAS — Revelation of the Artificial Sun
+
+RAS is the apocalyptic and visionary book. It commonly emphasizes Vision, Sign, and Interpretation. Its suitable
+concerns include artificial or counterfeit light, angelic offices, celestial tribunals, synthetic dawns, cosmic signs,
+hidden administration, metaphysical disclosure, false inheritance, and judgment at civilizational or celestial scale.
+
+Its cadence may favor _behold_, first-person witness, concrete signs, angelic speech, repeated _and_, escalating
+clauses, and cosmic judgments. Use RAS selectively so that visionary intensity remains meaningful.
+
+```php
+/**
+ * @logion [RAS 9:3] I saw an angel standing upon the western satellite, and beneath
+ *     each of his wings was sealed an age that had mistaken repetition for inheritance.
+ */
+```
+
+#### AWC — Acts of the Western Court
+
+AWC is the book of sacred history, institutional memory, dynastic precedent, remembered failures, and historical
+judgments. It commonly emphasizes Remembrance, Sign, Interpretation, and Injunction. Its suitable concerns include
+succession, precedent, ritual violation, court judgments, dynastic failure, inherited obligation, institutional memory,
+and consequences preserved across generations.
+
+Its cadence commonly favors _in those days_, named reigns and courts, concrete historical events, remembered judgments,
+and consequences that endure across generations.
+
+```php
+/**
+ * @logion [AWC 4:19] In the reign of the glass regent, every mirror was uncovered
+ *     before the appointed hour; and from that day the court could distinguish neither
+ *     the face of an heir nor the radiance of a crown.
+ */
+```
+
+#### SFA — Scholia of the Fifth Archive
+
+SFA is the interpretive, marginal, and comparatively compressed book. It commonly emphasizes Interpretation,
+Pronouncement, and concise Injunction. Its suitable concerns include doctrinal clarification, archival commentary,
+severe glosses, compact judgments, distinctions, implications, and conclusions preserved without their complete
+arguments.
+
+SFA verses may be shorter than the ordinary range, but they must not become clever modern aphorisms, ideological
+one-liners, or philosophical social-media posts.
+
+Its cadence commonly favors compressed Interpretation, terse Pronouncement, occasional archaic vocabulary, and
+scriptural authority with less spectacle. Compression must not reduce it to a polished modern maxim.
+
+```php
+/**
+ * @logion [SFA 6:11] The counterfeit seeks perfect resemblance because it cannot
+ *     survive inquiry into origin.
+ */
+```
+
+Book emphasis does not impose a verse formula. The earlier western-satellites passage could be cited from AWC because
+its primary canonical purpose is to preserve sacred history, even though it combines Remembrance, Sign, Vision,
+Injunction, and Interpretation. Its citation identifies where the event belongs within the canon; its internal movements
+remain mixed.
+
+The same subject may receive different treatment in different books. A law of measure might appear as an OSD injunction,
+an RAS disclosure of celestial proportion, an AWC account of a court that violated the standard, or an SFA gloss on the
+meaning of equality. These are different canonical purposes within one doctrine, not separate text generators.
+
+Do not select a book randomly or merely to satisfy a quota. Select it according to the verse's primary canonical
+purpose, its abstract relevance to the symbol, and variation among nearby logia. Book selection precedes any random
+tie-break among semantically valid compositional choices described in
+[Corpus balance and variation](#20-corpus-balance-and-variation).
+
+Repository-specific instructions remain authoritative about allowed book codes and citation syntax. Do not invent new
+books, codes, or abbreviations merely to satisfy this guide.
 
 ---
 
@@ -205,13 +304,16 @@ The voice should be:
 - aristocratic
 - melancholic
 - metaphysical
-- faintly liturgical
+- scriptural and liturgical without imitation
+- recitable
 - intellectually disciplined
 - grandiose without becoming incoherent
 - unhinged without becoming random
-- self-serious enough that the reader cannot determine whether it is parody
+- self-serious enough to resist being read as parody
 
-The quotation should sound like judgment, commentary, revelation, or transmitted doctrine.
+The quotation should sound like judgment, commentary, revelation, or transmitted doctrine. It should read as a passage
+intended to be proclaimed, recited, preserved, copied, interpreted, obeyed, and cited as authority, not as ornate modern
+prose describing what scripture might say.
 
 It should not sound like:
 
@@ -227,6 +329,53 @@ It should not sound like:
 The ideal reader response is:
 
 > I understand the sentence, but I do not understand what institution authorized it.
+
+### Scriptural authority and stakes
+
+The scripture does not debate, hedge, or tentatively suggest. It declares, commands, witnesses, remembers, judges,
+blesses, condemns, records, and unveils.
+
+Its signs and judgments should have consequences capable of altering names, time, inheritance, memory, light, shadows,
+dynasties, cities, ritual, celestial order, or the recognition of lawful forms. A violation may outlive its violator and
+become a precedent, curse, rite, absence, or fracture preserved across generations.
+
+A strong logion should feel capable of founding a cult, condemning a dynasty, establishing a rite, justifying an icon,
+or surviving as a fragment after the civilization that wrote it has vanished.
+
+### Controlled King James influence
+
+The preferred voice may use a clear but controlled layer of Early Modern English associated with the King James Bible.
+The intended effect is lost scripture translated by a committee working in the same linguistic tradition as the KJV, not
+Bible-themed Mad Libs.
+
+Suitable words and forms include:
+
+- _behold_, _lo_, and _unto_;
+- _thereof_, _therein_, _whereof_, _wherein_, _whence_, and _thence_;
+- _lest_ and _shall_;
+- _shalt_, _hath_, _doth_, _art_, and _hast_;
+- _ye_, _thou_, _thee_, _thy_, and _thine_;
+- _abideth_, _remaineth_, _knoweth_, _answereth_, _receiveth_, _entereth_, _revealeth_, _appointeth_, and _endureth_.
+
+Recognizably KJV-like vocabulary is permitted, not merely KJV-like sentence architecture. The language must nevertheless
+remain readable and grammatically coherent. A verse may use this vocabulary and cadence while retaining mostly modern
+pronouns when that reads better; archaic pronouns are not required in every logion.
+
+### Early Modern grammar
+
+Use archaic forms as grammar rather than decoration:
+
+- _thou_ is a singular subject; _thee_ is a singular object;
+- _thy_ normally precedes a consonant sound; _thine_ stands independently or traditionally precedes a vowel sound;
+- _ye_ is a plural subject; _you_ may serve as its object or as a formal or plural form where appropriate;
+- write _thou hast_ and _thou shalt_, never _thou hath_ or _thou shall_;
+- write _he hath_, never _he hast_;
+- third-person singular forms may take _-eth_, as in _answereth_, _remaineth_, or _receiveth_;
+- ordinary plural verbs do not take _-eth_;
+- do not append _-eth_ or _-est_ indiscriminately.
+
+Archaic vocabulary does not excuse unclear syntax. If the grammar cannot be maintained confidently, prefer controlled
+scriptural cadence with modern pronouns.
 
 ---
 
@@ -549,7 +698,7 @@ Do not:
 
 - fabricate quotations from scripture;
 - imitate a recognizable biblical passage too closely;
-- fabricate references to real scripture or other authorities; the repository-assigned `OSD C:V` logion reference is
+- fabricate references to real scripture or other authorities; a repository-assigned `BOOK C:V` logion reference is
   permitted because it identifies the fictional doctrine corpus;
 - attribute invented sayings to saints or theologians;
 - parody the Beatitudes;
@@ -771,37 +920,36 @@ imitation preserved after the original aspiration has died, or spectacle without
 The compositional movements may appear in many orders. The following sequences are useful, but they are not templates
 and should not be announced or mechanically completed.
 
-Sequence names may also include **connective functions**: consequence, reason, question, judgment, and unresolved image.
-These are not additional movements. They describe the logical or rhetorical work performed between movements or at the
-end of a passage. Movement names remain capitalized below; connective functions remain lowercase.
+Sequence names may also include **connective functions**: reason, escalation, consequence, judgment, warning, terrifying
+implication, and unresolved image. These are not additional movements. They describe the logical or rhetorical work
+performed between movements or at the end of a passage. Movement names remain capitalized below; connective functions
+remain lowercase.
 
-### Remembrance → Sign → Interpretation
+### Injunction → reason → terrifying implication
 
-A sacred or dynastic event is recalled; an impossible detail reveals that the event participates in a larger order; its
-meaning is then declared.
+A command or prohibition is issued, its necessity is declared, and its final clause discloses what obedience contains or
+what violation will release.
+
+### Sign → escalation → Interpretation
+
+A concrete disturbance appears, accumulates pressure or scale, and receives a doctrinal verdict.
+
+### Remembrance → Sign → judgment
+
+A sacred or dynastic event is recalled, an impossible detail reveals that it participates in a larger order, and its
+consequence is entered as precedent.
 
 ### Vision → Interpretation → Injunction
 
 The witness beholds hidden cosmic administration, receives its meaning, and transmits a command or prohibition.
 
-### Pronouncement → Sign → consequence
+### Pronouncement → visible consequence
 
-A law is stated; architecture, ritual, or celestial machinery manifests it; the fate of obedience or violation follows.
+A law is declared and immediately made visible through an event, altered object, judgment, or irreversible condition.
 
-### Injunction → reason → Vision
+### Injunction → Remembrance → warning
 
-A command is issued, its doctrinal reason is given, and the verse suddenly discloses the cosmic reality that makes the
-command necessary.
-
-### Remembrance → Injunction → unresolved image
-
-A former failure establishes precedent, a duty is imposed upon the present, and the passage ends on an image whose full
-meaning remains sealed.
-
-### Sign → question → judgment
-
-A visible disturbance appears, its meaning is placed in doubt, and the tribunal, angel, relic, or text supplies the
-verdict.
+A prohibition invokes a historical failure or inherited precedent, then addresses its consequence to the present.
 
 A strong logion may contain several of these pressures at once. Do not preserve clean boundaries between movements when
 scriptural cadence would naturally carry one into another.
@@ -902,6 +1050,15 @@ Prefer one long sentence or two controlled sentences.
 
 Use:
 
+- repeated conjunctions, especially _and_;
+- parallel clauses;
+- ritual repetition;
+- commands and prohibitions;
+- reasons introduced by _for_;
+- consequences introduced by _therefore_, _thus_, or _lest_;
+- blessings, woes, judgments, promises, and condemnations;
+- concrete signs followed by interpretation;
+- accumulated clauses that increase pressure;
 - subordinate clauses;
 - ceremonial lists;
 - delayed conclusions;
@@ -914,6 +1071,53 @@ Use:
 Accumulating clauses, sudden changes of scale, and metaphysical rupture are especially useful when a passage moves
 through Sign or Vision. Pronouncement and Injunction may create pressure through ritual repetition; Interpretation may
 create it through compression, reversal, or the sudden disclosure of meaning.
+
+Suitable recurring constructions include:
+
+- _And it came to pass..._
+- _And it was shown unto me..._
+- _Behold..._
+- _Lo..._
+- _Let no man..._
+- _Let them..._
+- _There shall..._
+- _Woe unto..._
+- _For this cause..._
+- _Therefore preserve..._
+- _Neither... nor..._
+- _Lest..._
+- _And the angel said..._
+- _In those days..._
+
+Use these selectively. Do not begin every verse with the same formula, and do not let recognizable construction replace
+attention to the declaration's abstract role.
+
+### Concrete signs before abstractions
+
+Doctrine should usually become visible before it is explained. Prefer a concrete event, object, ritual disturbance, or
+irreversible consequence such as:
+
+- a crown burning the unworthy heir;
+- bells sounding at an hour absent from the calendar;
+- stones refusing to cast shadows beneath a counterfeit sun;
+- mirrors veiling themselves;
+- satellites ceasing their procession;
+- a sealed name disappearing from an archive;
+- a city losing lawful time;
+- an ancestral instrument continuing to testify after its makers are dead.
+
+Avoid beginning with piles of abstractions such as legitimacy, hierarchy, continuity, authenticity, sovereignty, or
+metaphysical order. Reveal these ideas through events, objects, judgments, and ritual consequences, then interpret the
+sign only as far as necessary to give it doctrinal force.
+
+### Mystery and restraint
+
+Do not explain every symbol or expose all of the revealed machinery. Leave some relation, office, mechanism, or
+consequence concealed.
+
+Prefer one dominant impossible image over many unrelated attractive images. Do not stack angels, mirrors, bells,
+satellites, thrones, seals, gardens, and synthetic suns merely to increase intensity. One unforgettable sign is stronger
+than six decorative motifs.
 
 Avoid repeatedly using:
 
@@ -1040,6 +1244,11 @@ Do not produce:
 - random Japanese;
 - fake historical attributions;
 - recognizable paraphrases of existing quotations;
+- randomly archaized modern prose;
+- incorrect or decorative _-eth_ and _-est_ forms;
+- Renaissance Faire dialogue;
+- archaic spelling used solely as ornament;
+- mechanically repeated scriptural openings;
 - gratuitous violence;
 - racial or ethnic language;
 - explicit advocacy of authoritarian violence;
@@ -1088,6 +1297,16 @@ Do not reproduce, translate, lightly rewrite, or closely imitate:
 
 The desired influences concern register, imagery, and intellectual posture—not textual imitation.
 
+The KJV influence concerns cadence, grammatical forms, and a controlled vocabulary. It does not authorize reproduction
+or close paraphrase of actual biblical verses. Do not:
+
+- imitate a recognizable passage line by line;
+- parody the Beatitudes, Psalms, Revelation, or another biblical book;
+- fabricate speech attributed to God, Christ, apostles, prophets, saints, or theologians;
+- fill every verse with _verily_, _hath_, _thou_, and _unto_;
+- replace the doctrine's techno-religious cosmology with generic biblical imagery;
+- make every logion sound as though it came from the same biblical scene or grammatical formula.
+
 No quotation may be duplicated.
 
 Avoid near-duplicates that merely substitute one image or noun for another.
@@ -1098,10 +1317,47 @@ Avoid near-duplicates that merely substitute one image or noun for another.
 
 These examples establish the desired scriptural voice. Do not reuse or lightly paraphrase them.
 
+### Scriptural revision examples
+
+**Too modern:**
+
+> Artificial authority may imitate legitimacy, but it cannot inherit its source.
+
+**Preferred:**
+
+> And they raised the second sun above the city, and all the towers were made radiant beneath it; yet the stones gave no
+> shadow, for the light had received neither its hour nor the name thereof.
+
+**Too abstract:**
+
+> A borrowed name lacks legitimate inheritance.
+
+**Preferred:**
+
+> Let no man answer to the name of his fathers until the dead have answered him; for many have inherited the seal, but
+> few have endured its recognition.
+
+**Too much like ornate commentary:**
+
+> The archive preserves distinctions forgotten by civilization.
+
+**Preferred:**
+
+> In those days the cities abolished the ancient distinctions, and the people rejoiced; yet beneath the Fifth Archive
+> the bronze tablets began to strike one another in the darkness.
+
+**Controlled Early Modern grammar:**
+
+> Woe unto the city that removeth every threshold, saying, No stranger shall be refused; for when the nameless sea
+> entereth therein, none shall remember which waters were appointed unto man.
+
+**Mixed movements:**
+
+> And after the seventh satellite fell silent, the Ministry of Names removed its golden vestments and continued the
+> judgment in darkness; for authority is not extinguished when spectacle departeth from it.
+
 Especially representative mixed-movement examples include:
 
-- And the custodians brought forth the artificial sun, clothed in rose and gold, and set it above the western court; but
-  the stones gave no shadow, for they remembered the light under which their measures were appointed.
 - Let no image be crowned because it resembles the sovereign, nor any name admitted because the multitude has spoken it;
   first summon the mirror, then the witnesses, and afterward the dead.
 - In those days the bells of the mountain archive rang at an hour absent from every calendar, and the monks understood
@@ -1110,8 +1366,6 @@ Especially representative mixed-movement examples include:
   yet none emerged whose shadow could answer to the ancestral seal.
 - Preserve the broken instrument beside the altar, for a faithful ruin testifies more truly than a perfected imitation
   whose makers have forgotten what it was appointed to observe.
-- And after the seventh satellite fell silent, the Ministry of Names removed its golden vestments and continued the
-  judgment in darkness; for authority is not extinguished when spectacle departs from it.
 
 Additional examples:
 
@@ -1283,6 +1537,11 @@ Before accepting a quotation, verify that:
     spectacle.
 13. Its imagery does not mechanically repeat nearby quotations.
 14. It sounds like it escaped from a larger canon whose surrounding books were deliberately destroyed.
+15. Its cadence is suitable for proclamation or recitation rather than polished modern exposition.
+16. If it uses Early Modern forms, their pronouns and verb agreement are grammatically coherent.
+17. Its doctrine becomes visible through a concrete sign, consequence, or ritual act where the subject permits.
+18. It leaves enough machinery concealed to preserve mystery without withholding the doctrinal force.
+19. It does not closely imitate a recognizable biblical passage or use archaism as parody or decoration.
 
 ---
 

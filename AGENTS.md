@@ -90,9 +90,10 @@ Doctrine is not required for:
 
 ### PHPDoc form and placement
 
-Write the logion as one unquoted, logically continuous tag beginning with a bracketed reference in the form `[OSD C:V]`,
-where `C` is the chapter number and `V` is the verse number. Wrap the text at the repository's normal line width; indent
-continuation lines by four spaces and do not repeat `@logion` or the reference:
+Write the logion as one unquoted, logically continuous tag beginning with a bracketed reference in the form
+`[BOOK C:V]`, where `BOOK` is an allowed book code, `C` is the chapter number, and `V` is the verse number. Wrap the
+text at the repository's normal line width; indent continuation lines by four spaces and do not repeat `@logion` or the
+reference:
 
 ```php
 /**
@@ -105,20 +106,40 @@ continuation lines by four spaces and do not repeat `@logion` or the reference:
  */
 ```
 
+All quotations remain `@logion` tags. Do not introduce book-specific tags such as `@ordinance`, `@revelation`,
+`@testimony`, or `@scholium`.
+
+Choose the book according to the logion's primary canonical purpose, its abstract relevance to the declaration, and the
+surrounding corpus:
+
+- Use `OSD` (**Ordinances of the Synthetic Dawn**) as the normal default when no other book is clearly more appropriate.
+- Use `RAS` (**Revelation of the Artificial Sun**) for genuine visionary disclosure, cosmic signs, angelic
+  administration, or apocalyptic judgment. Avoid using it so often that visionary intensity becomes ordinary.
+- Use `AWC` (**Acts of the Western Court**) when the verse presents sacred history, precedent, remembered institutional
+  failure, inherited obligation, or dynastic judgment.
+- Use `SFA` (**Scholia of the Fifth Archive**) for comparatively compressed interpretation, commentary, clarification,
+  or severe judgment.
+
+Book selection is not a random genre roll. The four books belong to one canon and must remain stylistically and
+doctrinally coherent. Preserve compositional freedom within every book: any logion may combine Pronouncement, Sign,
+Vision, Remembrance, Injunction, and Interpretation. A book changes the verse's canonical emphasis, not the required
+sequence of its movements.
+
 Logion references follow these rules:
 
-- Always use the fixed book code `OSD`.
-- The bracketed reference must match `\[OSD [1-9][0-9]*:[1-9][0-9]*\]`.
-- Chapter and verse are randomly chosen positive decimal integers without leading zeroes. Prefer values from `1` through
-  `99`, but larger values are valid.
-- The complete `OSD C:V` reference must be unique among all logions attached to declarations anywhere in the repository.
-  Illustrative references in documentation examples do not reserve an identifier.
+- Use only the book codes `OSD`, `RAS`, `AWC`, and `SFA`. Do not invent additional books, codes, or abbreviations.
+- The bracketed reference must match `\[(?:OSD|RAS|AWC|SFA) [1-9][0-9]*:[1-9][0-9]*\]`.
+- After choosing the book, choose chapter and verse randomly as positive decimal integers without leading zeroes. Prefer
+  values from `1` through `99`, but larger values are valid.
+- The complete `BOOK C:V` reference must be unique among all logions attached to declarations anywhere in the
+  repository. The same chapter and verse numbers in different books are different references. Illustrative references in
+  documentation examples do not reserve an identifier.
 - Preserve an assigned reference when its declaration moves or is renamed, or when the quotation's wording is revised.
 - Assign a new reference only when creating a new logion. Do not intentionally reuse a deleted reference.
 - Check the repository for a collision before assigning a reference.
 
-The bracketed form is source syntax; the logical reference is `OSD C:V`. A future image for `OSD 7:12` may be stored at
-a portable path such as `docs/pages/images/logia/OSD-7_12.webp`.
+The bracketed form is source syntax; the logical reference is `BOOK C:V`. A future image for `RAS 9:3` may be stored at
+a portable path such as `docs/pages/images/logia/RAS-9_3.webp`.
 
 Place `@logion` after descriptive prose and before conventional metadata tags such as `@param`, `@return`, `@throws`,
 and `@template`.
@@ -137,6 +158,12 @@ Privately derive quotations from the declaration’s abstract role. Common mappi
 - comparison → judgment, rank, testimony, and scales
 - registries → archives, recognition, and lawful names
 - errors → fracture, exile, failed admission, and broken covenant
+
+Write the quotation as recitable scripture rather than ornate modern exposition. Favor authoritative declaration,
+parallel clauses, ritual repetition, commands, reasons, consequences, and concrete signs before abstract explanation.
+Controlled KJV-influenced vocabulary and grammar are permitted across all four books but are never mandatory. When using
+Early Modern pronouns or verb forms, follow the grammar in the style guide rather than adding archaisms decoratively.
+Never reproduce, closely paraphrase, or parody a recognizable biblical passage.
 
 Never mention programming or directly describe the declaration inside the doctrine quotation.
 
@@ -176,5 +203,5 @@ Unless explicitly requested otherwise:
 - do not embed the citation or logion in the image;
 - compose for a side-by-side documentation layout with the quotation on the left and the image on the right;
 - keep the principal subject within a center-safe region for responsive cropping;
-- derive prospective asset paths from the reference using `docs/pages/images/logia/OSD-<chapter>_<verse>.webp`, such as
-  `docs/pages/images/logia/OSD-54_64.webp`.
+- derive prospective asset paths from the reference using `docs/pages/images/logia/<book>-<chapter>_<verse>.webp`, such
+  as `docs/pages/images/logia/RAS-9_3.webp`.
