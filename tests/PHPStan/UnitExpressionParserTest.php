@@ -56,6 +56,58 @@ final class UnitExpressionParserTest extends TestCase
         $this->assertSame('length / time', $expression->dimension->toString());
     }
 
+    public function testParsesAffinePointWithExactOriginAndDeltaScale(): void
+    {
+        $result = (new UnitExpressionParser())->parsePoint(' celsius ');
+
+        $this->assertTrue($result->isOk());
+        $expression = $result->expression();
+        $this->assertSame('celsius', $expression->displayString);
+        $this->assertSame('temperature', $expression->dimension->toString());
+        $this->assertSame('delta_degree_Celsius', $expression->deltaUnit->displayString);
+        $this->assertSame('5463/20', $expression->canonicalOrigin->toString());
+    }
+
+    public function testPointAliasesAreEquivalent(): void
+    {
+        $parser = new UnitExpressionParser();
+        $celsius = $parser->parsePoint('celsius');
+        $degreeCelsius = $parser->parsePoint('degree_Celsius');
+
+        $this->assertTrue($celsius->isOk());
+        $this->assertTrue($degreeCelsius->isOk());
+        $this->assertTrue($celsius->expression()->equivalent($degreeCelsius->expression()));
+    }
+
+    public function testPointCoordinateScalesCanShareADimensionWithoutBeingEquivalent(): void
+    {
+        $parser = new UnitExpressionParser();
+        $celsius = $parser->parsePoint('celsius');
+        $fahrenheit = $parser->parsePoint('fahrenheit');
+        $kelvin = $parser->parsePoint('kelvin');
+
+        $this->assertTrue($celsius->isOk());
+        $this->assertTrue($fahrenheit->isOk());
+        $this->assertTrue($kelvin->isOk());
+        $this->assertTrue($celsius->expression()->sameDimension($fahrenheit->expression()));
+        $this->assertTrue($celsius->expression()->sameDimension($kelvin->expression()));
+        $this->assertFalse($celsius->expression()->equivalent($fahrenheit->expression()));
+        $this->assertFalse($celsius->expression()->equivalent($kelvin->expression()));
+        $this->assertSame('45967/180', $fahrenheit->expression()->canonicalOrigin->toString());
+    }
+
+    public function testRejectsCompoundAndLogarithmicPointUnits(): void
+    {
+        $parser = new UnitExpressionParser();
+        $compound = $parser->parsePoint('celsius / second');
+        $logarithmic = $parser->parsePoint('B');
+
+        $this->assertFalse($compound->isOk());
+        $this->assertStringContainsString('single named coordinate unit', $compound->errorMessage() ?? '');
+        $this->assertFalse($logarithmic->isOk());
+        $this->assertStringContainsString('logarithmic semantics', $logarithmic->errorMessage() ?? '');
+    }
+
     #[DataProvider('parsedQuantityUnitProvider')]
     public function testParsesQuantityUnit(string $input, string $expectedUnit): void
     {

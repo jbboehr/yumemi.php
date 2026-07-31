@@ -47,12 +47,11 @@ use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
 
 /**
- * Infers Quantity<'meter'> from Units::quantity($value, 'meter') and
- * Units::parseQuantity('2 meter') when the relevant string type is finite and constant.
+ * Infers branded Quantity and PointQuantity object types from Units factories.
  *
  * The PHPStan-configured registry is authoritative: every statically known target must parse, while
- * a genuinely dynamic string falls back to the native `Quantity` return. A branded integer input
- * must already be expressed in every possible target unit because this method does not convert it.
+ * a genuinely dynamic string falls back to the declared unbranded object return. A branded integer
+ * input must already be expressed in every possible target unit because this method does not convert it.
  */
 final class UnitsQuantityReturnTypeExtension implements DynamicMethodReturnTypeExtension
 {
@@ -68,7 +67,12 @@ final class UnitsQuantityReturnTypeExtension implements DynamicMethodReturnTypeE
 
     public function isMethodSupported(MethodReflection $methodReflection): bool
     {
-        return in_array($methodReflection->getName(), ['quantity', 'parseQuantity'], true);
+        return in_array($methodReflection->getName(), [
+            'quantity',
+            'parseQuantity',
+            'point',
+            'deltaQuantity',
+        ], true);
     }
 
     public function getTypeFromMethodCall(
@@ -91,8 +95,74 @@ final class UnitsQuantityReturnTypeExtension implements DynamicMethodReturnTypeE
         return match ($methodCall->name->toString()) {
             'quantity' => $this->inferQuantityType($methodCall, $scope),
             'parseQuantity' => $this->inferParsedQuantityType($methodCall, $scope),
+            'point' => $this->inferPointType($methodCall, $scope),
+            'deltaQuantity' => $this->inferDeltaQuantityType($methodCall, $scope),
             default => null,
         };
+    }
+
+    /**
+     * @logion [OSD 65:94] Each finite coordinate name received its static seal,
+     *     preserving origin and scale through every branch of possibility.
+     */
+    private function inferPointType(MethodCall $methodCall, Scope $scope): ?Type
+    {
+        $args = $methodCall->getArgs();
+        if (count($args) < 2) {
+            return null;
+        }
+
+        $constantStrings = $scope->getType($args[1]->value)->getConstantStrings();
+        if ($constantStrings === []) {
+            return null;
+        }
+
+        $pointUnits = [];
+        foreach ($constantStrings as $constantString) {
+            $parsed = $this->parser->parsePoint($constantString->getValue());
+            if (!$parsed->isOk()) {
+                return new ErrorType($parsed->errorMessage() ?? 'Invalid point unit.');
+            }
+
+            $pointUnits[] = $parsed->expression();
+        }
+
+        return TypeCombinator::union(...array_map(
+            static fn (PointUnitExpression $unit): PointQuantityType => new PointQuantityType($unit),
+            $pointUnits,
+        ));
+    }
+
+    /**
+     * @logion [OSD 42:97] From each coordinate seal the static examiner returned
+     *     its unshifted measure, fit for ordinary algebra and exact proportion.
+     */
+    private function inferDeltaQuantityType(MethodCall $methodCall, Scope $scope): ?Type
+    {
+        $args = $methodCall->getArgs();
+        if (count($args) < 2) {
+            return null;
+        }
+
+        $constantStrings = $scope->getType($args[1]->value)->getConstantStrings();
+        if ($constantStrings === []) {
+            return null;
+        }
+
+        $deltaUnits = [];
+        foreach ($constantStrings as $constantString) {
+            $parsed = $this->parser->parsePoint($constantString->getValue());
+            if (!$parsed->isOk()) {
+                return new ErrorType($parsed->errorMessage() ?? 'Invalid point unit.');
+            }
+
+            $deltaUnits[] = $parsed->expression()->deltaUnit;
+        }
+
+        return TypeCombinator::union(...array_map(
+            static fn (UnitExpression $unit): QuantityType => new QuantityType($unit),
+            $deltaUnits,
+        ));
     }
 
     private function inferQuantityType(MethodCall $methodCall, Scope $scope): ?Type

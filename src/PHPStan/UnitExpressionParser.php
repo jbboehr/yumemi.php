@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
+use jbboehr\Yumemi\Analyzer\NormalizedExpr;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
@@ -91,6 +92,61 @@ final class UnitExpressionParser
 
             return $this->parse(ExprRenderer::format($quantity->unit()));
         }, 'Invalid quantity expression syntax.', 'Failed to parse quantity expression: ');
+    }
+
+    /**
+     * Parse a named coordinate unit, preserving its exact origin and difference scale.
+     *
+     * @logion [OSD 54:83] The coordinate name was examined with its origin and rod,
+     *     that static judgment might distinguish a station from an interval.
+     */
+    public function parsePoint(string $unitString): PointUnitExpressionParseResult
+    {
+        if (trim($unitString) === '') {
+            return PointUnitExpressionParseResult::invalid('Point unit must not be empty.');
+        }
+
+        try {
+            $point = $this->units->point(0, $unitString);
+            $deltaQuantity = $this->units->deltaQuantity(1, $unitString);
+            $deltaResult = $this->parse(ExprRenderer::format($deltaQuantity->unit()));
+            if (!$deltaResult->isOk()) {
+                return PointUnitExpressionParseResult::invalid(
+                    $deltaResult->errorMessage() ?? 'Invalid point difference unit.',
+                    $deltaResult->errorSpan(),
+                );
+            }
+
+            $deltaUnit = $deltaResult->expression();
+            $canonicalUnit = NormalizedExpr::withoutConstant($deltaUnit->normalizedExpr);
+
+            return PointUnitExpressionParseResult::ok(new PointUnitExpression(
+                $point->unit(),
+                $point->dimension(),
+                $deltaUnit,
+                $this->units->convert(0, $point->unit(), $canonicalUnit),
+            ));
+        } catch (
+            UnitNotFoundException
+            | UnsupportedSyntaxException
+            | UnsupportedUnitAlgebraException
+            | UnsupportedUnitConversionException
+            | UnresolvableUnitDimensionException
+            | \InvalidArgumentException $exception
+        ) {
+            return PointUnitExpressionParseResult::invalid($exception->getMessage());
+        } catch (ParseException $exception) {
+            $message = $exception->getMessage();
+            if ($message === '') {
+                $message = 'Invalid point unit syntax.';
+            }
+
+            return PointUnitExpressionParseResult::invalid($message, $exception->getSpan());
+        } catch (\Throwable $exception) {
+            return PointUnitExpressionParseResult::invalid(
+                'Failed to parse point unit: ' . $exception->getMessage(),
+            );
+        }
     }
 
     /**

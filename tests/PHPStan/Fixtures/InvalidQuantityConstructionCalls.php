@@ -32,3 +32,6 @@ $units->quantity(1, 'B');
 $units->parseQuantity('2 not_a_real_unit_xyz');
 $units->parseQuantity('meter * / second');
 $units->parseQuantity('2 B');
+
+$units->point(1, 'celsius / second');
+$units->deltaQuantity(1, 'B');

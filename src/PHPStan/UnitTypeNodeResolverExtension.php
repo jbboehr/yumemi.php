@@ -51,6 +51,7 @@ use PHPStan\Type\Type;
  * - unit_int<'meter / second'>
  * - unit_float<'kilogram'>
  * - Quantity<'meter / second'>
+ * - PointQuantity<'celsius'>
  *
  * Unit strings are validated through {@see UnitExpressionParser}.
  */
@@ -60,6 +61,7 @@ final class UnitTypeNodeResolverExtension implements TypeNodeResolverExtension
         'unit_int' => 'int',
         'unit_float' => 'float',
         'quantity' => 'quantity',
+        'pointquantity' => 'point',
     ];
 
     public function __construct(
@@ -104,6 +106,15 @@ final class UnitTypeNodeResolverExtension implements TypeNodeResolverExtension
                 $name,
                 $name,
             ));
+        }
+
+        if (self::NAMES[$name] === 'point') {
+            $parsed = $this->parser->parsePoint($unitString);
+            if (!$parsed->isOk()) {
+                return new ErrorType($parsed->errorMessage() ?? 'Invalid point unit.');
+            }
+
+            return new PointQuantityType($parsed->expression());
         }
 
         $parsed = $this->parser->parse($unitString);

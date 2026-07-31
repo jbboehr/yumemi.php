@@ -36,58 +36,73 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
-use jbboehr\Yumemi\Units;
-use PhpParser\Node;
-use PhpParser\Node\Expr\MethodCall;
-use PhpParser\Node\Identifier;
-use PHPStan\Analyser\Scope;
-use PHPStan\Rules\Rule;
-use PHPStan\Rules\RuleErrorBuilder;
-use PHPStan\Type\ErrorType;
-use PHPStan\Type\ObjectType;
+use jbboehr\Yumemi\Dimension;
+use jbboehr\Yumemi\Number\Rational;
 
 /**
- * Emits standalone diagnostics for invalid Quantity construction and parsing.
+ * Static identity of a named coordinate scale.
  *
- * @implements Rule<MethodCall>
+ * @logion [OSD 62:43] The court recorded the visible tongue, the hidden origin,
+ *     and the unshifted rod together, lest equal dimensions conceal unequal stations.
  */
-final class InvalidQuantityConstructionRule implements Rule
+final class PointUnitExpression
 {
-    public function __construct(
-        private readonly UnitsQuantityReturnTypeExtension $extension,
-    ) {
-    }
+    /**
+     * @logion [OSD 24:89] The chosen coordinate name remained upon the outer seal,
+     *     preserving the speech by which the station had first been declared.
+     */
+    public readonly string $displayString;
 
-    public function getNodeType(): string
-    {
-        return MethodCall::class;
+    /**
+     * @logion [OSD 81:16] Beneath the coordinate lay the celestial axis common
+     *     to every origin by which the same kind of station might be named.
+     */
+    public readonly Dimension $dimension;
+
+    /**
+     * @logion [OSD 43:75] The lesser measure accompanied its coordinate scale,
+     *     retaining proportion after every origin had been removed.
+     */
+    public readonly UnitExpression $deltaUnit;
+
+    /**
+     * @logion [OSD 97:28] The first station was entered in the canonical register
+     *     as an exact ratio beyond all local titles.
+     */
+    public readonly Rational $canonicalOrigin;
+
+    /**
+     * @logion [OSD 32:54] Name, axis, interval, and origin were bound into one
+     *     testimony before the judge of coordinate scales.
+     */
+    public function __construct(
+        string $displayString,
+        Dimension $dimension,
+        UnitExpression $deltaUnit,
+        Rational $canonicalOrigin,
+    ) {
+        $this->displayString = $displayString;
+        $this->dimension = $dimension;
+        $this->deltaUnit = $deltaUnit;
+        $this->canonicalOrigin = $canonicalOrigin;
     }
 
     /**
-     * @return list<\PHPStan\Rules\IdentifierRuleError>
+     * @logion [OSD 14:67] Two coordinate seals were judged identical only when
+     *     both their rods and their first stations gave the same testimony.
      */
-    public function processNode(Node $node, Scope $scope): array
+    public function equivalent(self $other): bool
     {
-        if (
-            !$node->name instanceof Identifier
-            || !in_array($node->name->toString(), ['quantity', 'parseQuantity', 'point', 'deltaQuantity'], true)
-        ) {
-            return [];
-        }
+        return $this->deltaUnit->equivalent($other->deltaUnit)
+            && $this->canonicalOrigin->compareTo($other->canonicalOrigin) === 0;
+    }
 
-        if (!(new ObjectType(Units::class))->isSuperTypeOf($scope->getType($node->var))->yes()) {
-            return [];
-        }
-
-        $type = $this->extension->inferType($node, $scope);
-        if (!$type instanceof ErrorType || $type->getReason() === null) {
-            return [];
-        }
-
-        return [
-            RuleErrorBuilder::message($type->getReason())
-                ->identifier('yumemi.invalidQuantityConstruction')
-                ->build(),
-        ];
+    /**
+     * @logion [OSD 76:33] The origins were set aside while the hidden axes were
+     *     compared, revealing whether lawful translation could join the scales.
+     */
+    public function sameDimension(self $other): bool
+    {
+        return $this->dimension->equals($other->dimension);
     }
 }

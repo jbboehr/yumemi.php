@@ -36,19 +36,11 @@
 
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
-use jbboehr\Yumemi\PHPStan\InvalidQuantityConstructionRule;
-use PHPStan\Rules\Rule;
-use PHPStan\Testing\RuleTestCase;
+use PHPStan\Testing\TypeInferenceTestCase;
 
-/**
- * @extends RuleTestCase<InvalidQuantityConstructionRule>
- */
-final class InvalidQuantityConstructionRuleTest extends RuleTestCase
+final class PointQuantityReturnTypeExtensionTest extends TypeInferenceTestCase
 {
-    protected function getRule(): Rule
-    {
-        return self::getContainer()->getByType(InvalidQuantityConstructionRule::class);
-    }
+    use AssertsFixtureUnderCoverage;
 
     public static function getAdditionalConfigFiles(): array
     {
@@ -57,57 +49,8 @@ final class InvalidQuantityConstructionRuleTest extends RuleTestCase
         ];
     }
 
-    public function testInvalidBrandedConstructionIsReported(): void
+    public function testFileAsserts(): void
     {
-        $this->analyse([__DIR__ . '/Fixtures/InvalidQuantityConstructionCalls.php'], [
-            [
-                'Units::quantity() value unit international_foot does not match target unit meter (normalized forms differ).',
-                14,
-            ],
-            [
-                'Units::quantity() value unit second does not match target unit meter (normalized forms differ).',
-                15,
-            ],
-            [
-                'Unit not found: not_a_real_unit_xyz.',
-                16,
-            ],
-            [
-                'Units::quantity() value unit meter does not match target unit international_foot (normalized forms differ).',
-                21,
-            ],
-            [
-                "Syntax error, unexpected '/' at line 1, column 9 (byte offset 8).\n"
-                    . "| meter * / second\n"
-                    . '|         ^',
-                29,
-            ],
-            [
-                'Unit "B" uses logarithmic semantics, which are not supported by multiplicative unit algebra (definition: lg(re 1)).',
-                30,
-            ],
-            [
-                'Unit not found: not_a_real_unit_xyz.',
-                32,
-            ],
-            [
-                "Syntax error, unexpected '/' at line 1, column 9 (byte offset 8).\n"
-                    . "| meter * / second\n"
-                    . '|         ^',
-                33,
-            ],
-            [
-                'Unit "B" uses logarithmic semantics, which are not supported by multiplicative unit algebra (definition: lg(re 1)).',
-                34,
-            ],
-            [
-                'Point quantities require a single named coordinate unit.',
-                36,
-            ],
-            [
-                'Conversion of unit "B" with logarithmic semantics is not supported (definition: lg(re 1)).',
-                37,
-            ],
-        ]);
+        $this->assertFixtureUnderCoverage(__DIR__ . '/data/point-quantity-assert.php');
     }
 }
