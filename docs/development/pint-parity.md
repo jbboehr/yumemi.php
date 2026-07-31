@@ -29,10 +29,10 @@ Difficulty estimates the remaining work: **S**, **M**, **L**, or **XL**.
 
 ## Executive Summary
 
-Yumemi now has a reliable scalar multiplicative runtime, exact explicit affine conversion, a configurable formatter,
-custom registries, and a substantial PHPStan extension for both branded native values and `Quantity<'...'>`. The core
-architecture remains sound: one parser, registry, expression model, and conversion engine serve both runtime and static
-analysis.
+Yumemi now has a reliable scalar multiplicative runtime, exact affine points and differences, a configurable formatter,
+custom registries, and a substantial PHPStan extension for branded native values, `Quantity<'...'>`, and
+`PointQuantity<'...'>`. The core architecture remains sound: one parser, registry, expression model, and conversion
+engine serve both runtime and static analysis.
 
 Pint remains much broader in runtime convenience, unit systems, contexts, localization, nonlinear units, measurements,
 NumPy integration, and serialization patterns. Much of that breadth is Python-specific or secondary to Yumemi's static
@@ -106,7 +106,8 @@ Yumemi supports exact compatible-unit addition and subtraction, strict same-unit
 integer powers, negation, comparisons, symbolic cancellation, and context checks. Addition and subtraction convert the
 right operand into the left unit; multiplication and division preserve caller-selected symbolic units.
 
-Absolute value, convenience predicates, and affine absolute-versus-delta arithmetic remain optional additions.
+Absolute value and convenience predicates remain optional additions. Affine point-versus-difference arithmetic uses the
+separate `PointQuantity` model described below.
 
 ### 7. Explicit Conversion And Compatibility
 
@@ -116,7 +117,7 @@ The runtime provides exact factors, exact value conversion, float conversion, di
 conversion, and native helpers. Explicit conversion supports exact affine scale-and-offset transforms; factor APIs
 reject offset-dependent conversions.
 
-Further work belongs to affine quantity semantics rather than the conversion boundary itself.
+Affine point and difference semantics now build on the same conversion boundary.
 
 ### 8. Normalization, Simplification, Base Units, And Root Units
 
@@ -173,14 +174,15 @@ The main remaining work is performance-oriented indexing, not unresolved lookup 
 
 ### 13. Offset And Affine Units
 
-Status: **Partial: explicit conversion only** | Importance: **P1** | Remaining difficulty: **L/XL**
+Status: **Done for exact points and differences** | Importance: **P1** | Remaining difficulty: **M**
 
-Yumemi exactly converts UDUNITS2 and custom affine definitions at explicit conversion boundaries. Compatibility and
-dimensions understand their reference axes, while expression algebra, quantities, prefixes, powers, and ordinary brands
-reject affine units.
+Yumemi exactly converts UDUNITS2 and custom affine definitions. `PointQuantity` represents coordinate points; point
+subtraction returns an ordinary multiplicative `Quantity`, and compatible quantities translate points. Catalog
+generation and custom registry construction synthesize explicit `delta_*` names and `Δ°C` / `Δ°F` symbols.
 
-The next phase requires explicit absolute-temperature and delta-temperature types. Allowing offset units directly into
-the multiplicative model would make addition and compound algebra ambiguous.
+Affine names themselves remain outside expression algebra, prefixes, powers, ordinary `Quantity`, and native brands.
+This is intentional: accepting them directly would make point-versus-difference meaning ambiguous. Possible future work
+is limited to demonstrated conveniences or static integrations, not a second affine arithmetic model.
 
 ### 14. Logarithmic Units
 
@@ -401,7 +403,7 @@ strongest choices remain string unit expressions, generated catalog data, exact 
 contexts, and native PHPStan brands alongside exact quantity objects.
 
 The highest-value Pint gaps are those that improve ordinary PHP workflows: selected serialization, better formatting,
-delta-temperature semantics, and integrations proven by actual applications. Contexts, nonlinear units, uncertainty, and
-scientific-array features should remain independent decisions rather than a presumed route to parity.
+and integrations proven by actual applications. Contexts, nonlinear units, uncertainty, and scientific-array features
+should remain independent decisions rather than a presumed route to parity.
 
 See [planning.md](planning.md) for the current ordering of work.

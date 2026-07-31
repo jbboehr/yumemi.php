@@ -6,9 +6,10 @@ operations. The runtime values remain native numbers; the additional unit identi
 The extension uses the same parser, catalog, reduction, normalization, and conversion semantics as the
 [runtime API](runtime.md). See the [unit syntax reference](unit-syntax.md) for accepted expressions and name resolution.
 
-Most applications primarily need branded native types, operator inference, and boundary helpers. Quantity type inference
-becomes relevant when exact runtime objects cross analyzed code; registry configuration and optional annotation
-integration are advanced topics for projects extending the catalog or integrating third-party libraries.
+Most applications primarily need branded native types, operator inference, and boundary helpers. `Quantity` and
+`PointQuantity` type inference becomes relevant when exact runtime objects cross analyzed code; registry configuration
+and optional annotation integration are advanced topics for projects extending the catalog or integrating third-party
+libraries.
 
 | I need to...                            | Start with                                          |
 | --------------------------------------- | --------------------------------------------------- |
@@ -16,6 +17,7 @@ integration are advanced topics for projects extending the catalog or integratin
 | Infer units through PHP operators       | [Native Operators](#native-operators)               |
 | Convert a native magnitude              | [Boundary Helpers](#boundary-helpers)               |
 | Track an exact runtime quantity         | [Quantity Types](#quantity-types)                   |
+| Track an exact coordinate point         | [Quantity Types](#quantity-types)                   |
 | Add project-specific units              | [Registry Configuration](#registry-configuration)   |
 | Suppress or baseline an error           | [Diagnostics](#diagnostics)                         |
 
@@ -150,9 +152,10 @@ the `Quantity` boundaries described below likewise preserve finite unions.
 
 ## Quantity Types
 
-Runtime quantities have a generic PHPStan form, `Quantity<'unit'>`. `Units::quantity()` and `parseQuantity()` infer that
-unit when their relevant string is constant or a finite literal-string union. Fluent methods preserve or transform the
-generic brand while performing the real exact operation at runtime.
+Runtime quantities have the generic PHPStan forms `Quantity<'unit'>` and `PointQuantity<'coordinate'>`.
+`Units::quantity()`, `parseQuantity()`, `deltaQuantity()`, and `point()` infer the corresponding type when their
+relevant string is constant or a finite literal-string union. Fluent methods preserve or transform the generic brand
+while performing the real exact operation at runtime.
 
 ```php
 <?php
@@ -193,6 +196,18 @@ branded native value. Decimal extraction returns a string while retaining static
 An explicit target can also brand conversion and extraction results from an unbranded `Quantity`. PHPStan cannot prove
 the unknown source dimension in that case, but it can represent the requested result. A genuinely dynamic target falls
 back to an unbranded return type.
+
+`PointQuantity<'celsius'>` carries both the coordinate origin and its difference scale. Coordinate aliases are
+definitionally equivalent, but different scales such as Celsius, Fahrenheit, and Kelvin remain distinct generic types
+even though their points can be converted and compared. PHPStan models the affine operation rules:
+
+- `PointQuantity::add()` and `sub()` accept a dimensionally compatible `Quantity` and preserve the point type;
+- `difference()` accepts a compatible point and returns `Quantity<'delta-unit'>` in the receiver's scale;
+- `to()` returns a point branded with the target coordinate scale;
+- point comparisons and numeric extraction validate constant targets and preserve their native return types.
+
+Direct PHPDoc may use forms such as `PointQuantity<'celsius'>`. Dynamic coordinate strings fall back to unbranded
+`PointQuantity`, following the same policy as ordinary quantities.
 
 ## Registry Configuration
 
@@ -288,22 +303,23 @@ containing direct Yumemi types.
 Yumemi emits stable rule identifiers so errors can be suppressed or included in a PHPStan baseline at the appropriate
 scope:
 
-| Identifier                           | Reported condition                                                                                   |
-| ------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| `yumemi.invalidUnitCall`             | An invalid constant `unit()`, `unit_factor()`, or `unit_to()` call                                   |
-| `yumemi.invalidQuantityConstruction` | Invalid `Units::quantity()` or `parseQuantity()` input, including a branded-magnitude mismatch       |
-| `yumemi.invalidQuantityArithmetic`   | Invalid `add()`, `sub()`, `addWithSameUnit()`, or `subWithSameUnit()` operands                       |
-| `yumemi.invalidQuantityConversion`   | An invalid or incompatible `Quantity` conversion or native-extraction target                         |
-| `yumemi.invalidQuantityComparison`   | A `Quantity` comparison whose statically known units are incompatible                                |
-| `yumemi.docTagSyntax`                | Invalid `@yumemi-param`, `@yumemi-return`, or `@yumemi-var` syntax                                   |
-| `yumemi.docTagDuplicate`             | More than one Yumemi tag targets the same fallback position                                          |
-| `yumemi.docTagUnsupported`           | A Yumemi tag appears on a declaration that does not support that tag kind                            |
-| `yumemi.docTagParameter`             | A parameter name is unknown or an unnamed `@yumemi-var` fallback is ambiguous                        |
-| `yumemi.docTagType`                  | A Yumemi tag contains an invalid unit-bearing type                                                   |
-| `yumemi.docTagTransform`             | Erasing the units does not reproduce the fallback PHPDoc structure                                   |
-| `binaryOp.invalid`                   | Invalid native unit arithmetic; this is PHPStan's standard binary-operation identifier, not Yumemi's |
+| Identifier                             | Reported condition                                                                                   |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `yumemi.invalidUnitCall`               | An invalid constant `unit()`, `unit_factor()`, or `unit_to()` call                                   |
+| `yumemi.invalidQuantityConstruction`   | Invalid `Units::quantity()`, `parseQuantity()`, `deltaQuantity()`, or `point()` construction         |
+| `yumemi.invalidQuantityArithmetic`     | Invalid `add()`, `sub()`, `addWithSameUnit()`, or `subWithSameUnit()` operands                       |
+| `yumemi.invalidQuantityConversion`     | An invalid or incompatible `Quantity` conversion or native-extraction target                         |
+| `yumemi.invalidQuantityComparison`     | A `Quantity` comparison whose statically known units are incompatible                                |
+| `yumemi.invalidPointQuantityOperation` | An invalid point translation, difference, conversion, extraction, or comparison                      |
+| `yumemi.docTagSyntax`                  | Invalid `@yumemi-param`, `@yumemi-return`, or `@yumemi-var` syntax                                   |
+| `yumemi.docTagDuplicate`               | More than one Yumemi tag targets the same fallback position                                          |
+| `yumemi.docTagUnsupported`             | A Yumemi tag appears on a declaration that does not support that tag kind                            |
+| `yumemi.docTagParameter`               | A parameter name is unknown or an unnamed `@yumemi-var` fallback is ambiguous                        |
+| `yumemi.docTagType`                    | A Yumemi tag contains an invalid unit-bearing type                                                   |
+| `yumemi.docTagTransform`               | Erasing the units does not reproduce the fallback PHPDoc structure                                   |
+| `binaryOp.invalid`                     | Invalid native unit arithmetic; this is PHPStan's standard binary-operation identifier, not Yumemi's |
 
-The first five identifiers apply even when an invalid call's result is unused. Syntax diagnostics preserve the runtime
+The first six identifiers apply even when an invalid call's result is unused. Syntax diagnostics preserve the runtime
 parser's bounded caret excerpt while PHPStan anchors the error to the containing PHP or PHPDoc line.
 
 ## Limitations
@@ -314,7 +330,8 @@ Important limits of the current static model are:
 - PHPStan supports one configured registry and does not track runtime registry identity per value.
 - Casts and unsupported PHP built-ins can erase native unit brands.
 - Native `+` and `-` cannot convert dimensionally compatible magnitudes; use an explicit conversion or `Quantity`.
-- Native affine targets remain unbranded because absolute-versus-delta semantics are not represented.
+- Native affine targets remain unbranded because native scalars do not retain point-versus-difference identity. Use
+  `PointQuantity<'...'>` when that identity must remain statically visible.
 - `unit_to()` requires one known source and target to infer a brand; it does not preserve correlation across independent
   source and target unions.
 - Unit exponentiation supports constant integers only.

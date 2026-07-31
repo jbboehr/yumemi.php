@@ -50,7 +50,8 @@ See [Conversion and Comparison](reference/runtime.md#conversion-and-comparison) 
 
 ## Convert Temperatures
 
-Temperature scales with different zero points require a full value conversion. A multiplicative factor is not enough:
+Temperature scales with different zero points require a full value conversion. Use `PointQuantity` when the coordinate
+must remain attached to the value, and use a generated delta unit for temperature differences:
 
 ```php
 <?php
@@ -59,12 +60,18 @@ use jbboehr\Yumemi\Units;
 
 use function jbboehr\Yumemi\unit_to;
 
+$units = Units::default();
+$freezing = $units->point(0, 'celsius');
+$rise = $units->deltaQuantity(18, 'fahrenheit');
+
 assert(abs(unit_to(98.6, 'fahrenheit', 'celsius') - 37.0) < 1e-12);
-assert(Units::default()->convert(0, 'celsius', 'kelvin')->toString() === '5463/20');
+assert($freezing->valueIn('kelvin')->toString() === '5463/20');
+assert($freezing->add($rise)->valueToString() === '10');
+assert($units->point(100, 'celsius')->difference($freezing)->toString() === '100 * delta_celsius');
 ```
 
-Affine units are supported only at explicit conversion boundaries. See
-[Affine Conversion](reference/runtime.md#affine-conversion).
+Do not use `celsius` itself in products or quotients. `delta_celsius` is multiplicative, and symbol formatting renders
+it as `Δ°C`. See [Affine Conversion](reference/runtime.md#affine-conversion).
 
 ## Define Application Units
 

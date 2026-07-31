@@ -33,12 +33,13 @@ The Make target supplies these files in the order declared by the upstream `udun
 4. `udunits2-accepted.xml`
 5. `udunits2-common.xml`
 
-The generator imports the XML, materializes aliases and plural metadata, and exports deterministic PHP through
-`brick/varexporter`. A successful rebuild should leave no diff unless an input listed above has changed.
+The generator imports the XML, materializes aliases, plurals, semantic metadata, and affine-difference units such as
+`delta_celsius` and `Δ°C`, then exports deterministic PHP through `brick/varexporter`. A successful rebuild should leave
+no diff unless an input listed above or the importer has changed.
 
 ## Verify
 
-Run the full test suite after regeneration. The catalog smoke tests resolve every supported definition and pin the known
-unsupported affine and logarithmic sets, making source-data drift explicit.
+Run the full test suite after regeneration. The catalog smoke tests resolve every supported definition, verify generated
+affine-difference entries, and pin the known unsupported affine and logarithmic sets, making source-data drift explicit.
 
 Return to [Built-in and Custom Units](../reference/catalog.md) for the user-facing catalog behavior.

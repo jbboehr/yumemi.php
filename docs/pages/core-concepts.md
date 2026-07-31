@@ -1,8 +1,9 @@
 # Core Concepts
 
-Yumemi exposes two representations over the same unit engine. Use native values when existing PHP numbers primarily need
-PHPStan protection. Use `Quantity` when the program must retain a unit, perform conversions, or preserve exact
-fractions.
+Yumemi exposes native values and exact runtime objects over the same unit engine. Use native values when existing PHP
+numbers primarily need PHPStan protection. Use `Quantity` when the program must retain a multiplicative unit, perform
+conversions, or preserve exact fractions. Use `PointQuantity` for a position on a coordinate scale, such as a
+temperature in Celsius.
 
 The examples below assume the Composer autoloader has already been loaded as shown in
 [Getting Started](getting-started.md).
@@ -13,6 +14,7 @@ The examples below assume the Composer autoloader has already been loaded as sho
 | ------------------------------------------------------------- | --------------------------------------- |
 | Add unit checking to existing PHP numbers and operators       | `unit_int<'...'>` / `unit_float<'...'>` |
 | Perform exact conversion or unit-aware runtime arithmetic     | `Quantity<'...'>`                       |
+| Represent an exact point on an affine coordinate scale        | `PointQuantity<'...'>`                  |
 | Convert at an application boundary and return a native number | `unit_to()`                             |
 
 A branded native value is an ordinary PHP `int` or `float`; the unit exists only in PHPStan. Branded values therefore
@@ -22,9 +24,15 @@ precision. Conversion is explicit through `unit_to()`.
 `Quantity` is the ergonomic precision path. Use it when results such as `1/3` must remain exact, rounding must be
 deferred, or compatible-unit operations should be expressed through one runtime object.
 
-Both paths use the same parser, catalog, dimensions, and conversion semantics, but they are not equivalent interfaces.
-PHP cannot make native `1 meter + 1 foot` produce a correct number without converting one operand. Yumemi therefore
-rejects that branded-native addition. `Quantity::add()` performs the conversion at runtime and accepts the same pair.
+`PointQuantity` separates coordinate points from multiplicative differences. For example, `celsius` identifies an
+absolute temperature while `delta_celsius` identifies a temperature interval. Points can be converted and compared;
+subtracting two points returns a `Quantity`, and adding or subtracting a compatible `Quantity` translates a point.
+Points themselves do not support multiplication, division, powers, or point-plus-point arithmetic.
+
+All three surfaces use the same parser, catalog, dimensions, and conversion semantics, but they are not equivalent
+interfaces. PHP cannot make native `1 meter + 1 foot` produce a correct number without converting one operand. Yumemi
+therefore rejects that branded-native addition. `Quantity::add()` performs the conversion at runtime and accepts the
+same pair.
 
 ```php
 <?php
@@ -65,6 +73,8 @@ See the [PHPStan reference](reference/phpstan.md) for branded-native behavior an
 | Brand an existing native magnitude                       | `unit()` or a `unit_int` / `unit_float` PHPDoc type  |
 | Label an exact magnitude without converting it           | `Units::quantity()`                                  |
 | Parse one string containing a magnitude and unit         | `Units::parseQuantity()`                             |
+| Construct an exact coordinate point                      | `Units::point()`                                     |
+| Construct a multiplicative coordinate difference         | `Units::deltaQuantity()`                             |
 | Check whether two units share a dimension                | `Units::areCompatible()`                             |
 | Convert an exact magnitude                               | `Units::convert()` or `Quantity::to()` / `valueIn()` |
 | Convert a native scalar                                  | `unit_to()` or `Units::convertFloat()`               |
@@ -81,6 +91,8 @@ The important semantic boundaries are documented once in the references:
   why native addition cannot convert its operands.
 - [Quantity arithmetic](reference/runtime.md#quantity-arithmetic) defines symbolic reduction and compatible-unit
   addition.
+- [Affine conversion](reference/runtime.md#affine-conversion) distinguishes coordinate points from multiplicative
+  differences.
 - [Normalization and simplification](reference/runtime.md#normalization-and-simplification) distinguishes definition
   substitution from magnitude changes.
 - [Native numeric output](reference/runtime.md#native-numeric-output) defines exact and approximate extraction.

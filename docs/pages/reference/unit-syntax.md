@@ -50,7 +50,11 @@ assert($units->dimension('(meter / second)^2')->toString() === 'length ^ 2 / tim
 At explicit conversion boundaries, `identifier @ number` defines an affine coordinate origin. For example,
 `kelvin @ 273.15` maps zero in the new coordinate system to exactly `273.15 kelvin`. This form is accepted by
 `convert()`, `convertFloat()`, `areCompatible()`, `dimension()`, `conversionFactor()`, `unit_to()`, and custom registry
-definitions. It is not part of ordinary multiplicative expression or quantity algebra.
+definitions. `Units::point()` uses a named affine definition as a coordinate scale.
+
+Affine units are not part of ordinary multiplicative expression or quantity algebra. Their generated difference units
+are: use `delta_celsius`, `delta_fahrenheit`, `Δ°C`, or `Δ°F` when a temperature interval participates in products,
+quotients, or powers. Yumemi never rewrites `celsius / second` implicitly; write `delta_celsius / second` explicitly.
 
 ## Unit Names
 
@@ -117,6 +121,8 @@ Unsupported syntax written through an expression API throws `UnsupportedSyntaxEx
 [runtime reference](runtime.md#affine-conversion) defines where standalone affine units can execute, and
 [Catalog Semantic Support](catalog.md#catalog-semantic-support) defines the introspection model for affine, logarithmic,
 and unsupported expressions.
+
+Synthesized `delta_*` and `Δ` names are ordinary multiplicative catalog entries, not special parser syntax.
 
 `Quantity::pow()` and PHPStan's unit exponent inference likewise accept only integer powers. Exact rational roots and
 explicit approximate powers are deferred features; a `float` exponent will not be silently accepted.

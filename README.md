@@ -6,8 +6,8 @@
 for exact rational conversion and quantity arithmetic.
 
 The PHPStan extension catches incompatible units without requiring runtime wrapper objects. When an application needs
-real conversion, the runtime library supplies `Units`, `Quantity`, and exact `Rational` values. Both layers share one
-parser, unit catalog, normalization engine, and meaning for expressions such as `meter / second`.
+real conversion, the runtime library supplies `Units`, exact `Quantity` values, and affine `PointQuantity` coordinates.
+Both layers share one parser, unit catalog, normalization engine, and meaning for expressions such as `meter / second`.
 
 **Status:** the PHPStan extension and runtime library are usable, but Yumemi does not yet have a tagged stable release.
 
@@ -70,11 +70,13 @@ A `//!` comment records part of the PHPStan diagnostic expected on the following
 It is documentation-test notation, not Yumemi syntax.
 
 `unit_int<'...'>` and `unit_float<'...'>` work in ordinary PHPDoc positions. Yumemi also models runtime objects as
-`Quantity<'unit'>`, preserving their units through arithmetic, conversion, and native extraction.
+`Quantity<'unit'>` and coordinate points as `PointQuantity<'unit'>`, preserving their units through supported
+arithmetic, conversion, and native extraction.
 
 ## Runtime Conversion
 
-Use `Units` and `Quantity` when the program must perform a conversion or retain an exact rational magnitude:
+Use `Units` and `Quantity` when the program must perform a conversion or retain an exact rational magnitude.
+`PointQuantity` separately represents exact coordinates on affine scales such as Celsius:
 
 ```php
 <?php
@@ -91,19 +93,20 @@ assert($length->unitToString() === 'meter');
 
 Quantity arithmetic distinguishes symbolic reduction from catalog conversion. Addition, subtraction, and comparisons
 convert compatible operands exactly; multiplication and division reduce the caller's chosen units. Explicit
-`normalize()` and `simplify()` operations control definition substitution.
+`normalize()` and `simplify()` operations control definition substitution. `PointQuantity` conversion and comparison
+apply affine offsets, point subtraction returns a multiplicative difference, and compatible quantities translate points.
 
 ## Documentation
 
 - [Getting Started](docs/pages/getting-started.md) covers installation and the shortest complete examples.
-- [Core Concepts](docs/pages/core-concepts.md) helps choose between branded native values and exact quantities, then
-  points each operation to its authoritative reference.
+- [Core Concepts](docs/pages/core-concepts.md) helps choose among branded native values, exact quantities, and
+  coordinate points, then directs each operation to its authoritative reference.
 - [Recipes](docs/pages/recipes.md) provides task-oriented examples for common integration and conversion workflows.
 - [PHPStan Reference](docs/pages/reference/phpstan.md) defines branded types, operators, conversion helpers, generic
   quantities, configuration, optional annotations, diagnostics, and limitations.
 - [Unit Syntax](docs/pages/reference/unit-syntax.md) defines expressions, name resolution, Unicode forms, and errors.
-- [Runtime Reference](docs/pages/reference/runtime.md) documents exact conversion, quantity arithmetic, native output,
-  dimensions, formatting, and string forms.
+- [Runtime Reference](docs/pages/reference/runtime.md) documents exact conversion, quantity and point arithmetic, native
+  output, dimensions, formatting, and string forms.
 - [Built-in and Custom Units](docs/pages/reference/catalog.md) documents UDUNITS2 data, introspection, custom
   registries, and semantic capabilities.
 

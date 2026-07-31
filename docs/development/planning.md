@@ -64,11 +64,13 @@ The implemented foundation now includes:
 - a reduced symbolic expression model, Bison parser, seven-axis `Dimension`, and derived-unit normalization;
 - a generated UDUNITS2 catalog with exact aliases, plurals, prefixes, introspection, and deterministic regeneration;
 - mutable custom-registry construction producing immutable snapshots;
-- exact multiplicative and affine scale-and-offset conversion at explicit boundaries;
+- exact multiplicative and affine scale-and-offset conversion, synthesized affine-difference units, and point
+  coordinates;
 - exact `Quantity` construction, parsing, arithmetic, comparison, conversion, normalization, simplification, and output;
+- exact `PointQuantity` conversion, translation, difference, comparison, and output;
 - configurable ASCII and Unicode formatting with catalog-aware names and fraction or negative-power division;
-- native `unit_int` / `unit_float` and object `Quantity<'...'>` PHPStan types with arithmetic inference, diagnostics,
-  custom registries, finite literal-string unions, and optional `@yumemi-*` promotion;
+- native `unit_int` / `unit_float` and object `Quantity<'...'>` / `PointQuantity<'...'>` PHPStan types with arithmetic
+  inference, diagnostics, custom registries, finite literal-string unions, and optional `@yumemi-*` promotion;
 - focused public documentation whose executable PHP and PHPStan examples are verified in process.
 
 The public behavior is documented in [Core Concepts](../pages/core-concepts.md) and the
@@ -92,16 +94,17 @@ Current verification:
 
 ## PHPStan Model And Status
 
-Yumemi intentionally has two presentation layers over the same unit engine:
+Yumemi intentionally has native and exact-object presentation layers over the same unit engine:
 
-| Layer                  | Magnitude model                           | Primary audience                            |
-| ---------------------- | ----------------------------------------- | ------------------------------------------- |
-| Runtime `Quantity`     | Exact `Rational`                          | Code opting into value objects              |
-| PHPStan branded values | Native PHP `int` / `float` plus an `Expr` | Existing application code using native data |
+| Layer                   | Magnitude model                           | Primary audience                               |
+| ----------------------- | ----------------------------------------- | ---------------------------------------------- |
+| Runtime `Quantity`      | Exact `Rational` interval or magnitude    | Exact multiplicative conversion and arithmetic |
+| Runtime `PointQuantity` | Exact `Rational` coordinate               | Affine points, translation, and differences    |
+| PHPStan branded values  | Native PHP `int` / `float` plus an `Expr` | Existing application code using native data    |
 
-The native path introduces no runtime wrapper; the object path retains exact `Rational` state. Both reuse the runtime
-parser, resolver, registry, reducer, dimensions, formatter, and conversion engine. Unit identity remains a reduced
-Yumemi `Expr`, not a class-per-unit hierarchy or a second PHPStan-only expression model.
+The native path introduces no runtime wrapper; the object paths retain exact `Rational` state. All reuse the runtime
+parser, resolver, registry, reducer, dimensions, formatter, and conversion engine. Multiplicative unit identity remains
+a reduced Yumemi `Expr`; point identity additionally retains a named coordinate origin and difference scale.
 
 The current type behavior, helper inference, diagnostic identifiers, and limitations are maintained in the
 [PHPStan reference](../pages/reference/phpstan.md).
@@ -144,6 +147,12 @@ comparison variants remain deferred. Multiplication and division reduce chosen s
 substituting catalog definitions. `normalize()`, `simplify()`, and explicit target conversion remain distinct
 operations.
 
+Affine coordinates use a separate `PointQuantity` model. Point subtraction returns a multiplicative `Quantity` in the
+left point's generated delta unit; adding or subtracting a compatible `Quantity` translates a point. Point-plus-point,
+point multiplication, division, powers, negation, normalization, and simplification are intentionally absent. Generated
+`delta_*` and `Δ` catalog entries are ordinary multiplicative units. The runtime never rewrites an affine name inside
+algebra: callers must write `delta_celsius / second`, not `celsius / second`.
+
 ## Parser And Syntax Direction
 
 The parser is intentionally broader than the semantic runtime layer. This is acceptable because the long-term goal is
@@ -156,8 +165,9 @@ UDUNITS2: adjacency, `*`, `.`, `·`, and `/` associate left at one tier, while p
 
 The accepted public grammar and semantic boundaries are maintained in the
 [Unit Syntax reference](../pages/reference/unit-syntax.md). The exact conversion resolver separately interprets
-standalone affine definitions at explicit conversion boundaries; logarithmic definitions remain introspectable but
-unevaluable.
+standalone affine definitions at explicit conversion and point-coordinate boundaries. Catalog generation and custom
+registry construction synthesize explicit multiplicative difference units from those definitions. Logarithmic
+definitions remain introspectable but unevaluable.
 
 ## Rational Powers And Exact Roots
 
@@ -265,8 +275,9 @@ semantics are stable enough that formula strings can share the same runtime/stat
 
 ## Remaining Issues And Deferred Work
 
-The multiplicative runtime and the PHPStan native/Quantity paths are usable. Remaining work is mostly documentation
-expansion and polish, API polish, catalog semantics beyond multiplication, and explicitly deferred advanced features.
+The multiplicative and affine-point runtimes and the PHPStan native/object paths are usable. Remaining work is mostly
+documentation expansion and polish, API polish, catalog semantics beyond affine conversion, and explicitly deferred
+advanced features.
 
 ### Pre-Release Checklist
 
@@ -283,8 +294,9 @@ expansion and polish, API polish, catalog semantics beyond multiplication, and e
 - Dynamic unit strings cannot be validated statically and intentionally fall back to native PHPStan return types.
 - Direct `Units::conversionFactor()` calls retain their declared `Rational` type. Use `unit_factor()` when native
   target/source branding is needed for PHPStan arithmetic.
-- Affine units are currently absolute coordinate systems only. Delta-temperature units, affine `Quantity` construction
-  and arithmetic, direct affine PHPDoc brands, and prefixed affine units remain unsupported.
+- Affine points and multiplicative differences are supported through `PointQuantity` and synthesized delta units. Direct
+  affine `Quantity` construction, native affine PHPDoc brands, implicit affine-to-delta rewriting, and prefixed affine
+  units remain unsupported.
 - `unit_to()` returns plain `float` for affine targets because native affine brands cannot yet express absolute-versus-
   delta semantics. Affine sources converted to multiplicative targets retain the target brand.
 - PHPStan assumes one authoritative registry. Flow-sensitive tracking of several runtime registry identities is not
@@ -313,7 +325,6 @@ expansion and polish, API polish, catalog semantics beyond multiplication, and e
 
 ### Deferred Features
 
-- Delta-temperature units and affine quantity/arithmetic semantics; exact affine conversion boundaries are implemented
 - Logarithmic units
 - Exact rational powers and roots; approximate results require explicit precision and rounding
 - Significant-digit and scientific-notation numeric formatting

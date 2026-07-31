@@ -14,6 +14,8 @@ includes:
 
 - base, dimensionless, and derived units;
 - canonical names, aliases, symbols, explicit plurals, and unambiguous generated plurals;
+- multiplicative difference units synthesized from affine definitions, including `delta_celsius`, `delta_fahrenheit`,
+  `Δ°C`, and `Δ°F`;
 - decimal and scientific prefix definitions;
 - source definitions, comments, and documentation when present upstream.
 
@@ -27,10 +29,11 @@ entry exists, it applies the same one-prefix-plus-exact-unit decomposition used 
 `Units::describePrefix()` describes one exact prefix name or symbol. Descriptors preserve whether the matched spelling
 was canonical, an alias, a symbol, an explicit plural, a generated plural, or dynamically prefixed.
 
-`describe()` does not accept compound expressions as lookup names, normalize definitions, or add synthesized spellings
-to `names()`. To report truthful capabilities, it does lazily resolve the complete canonical or dynamically prefixed
-spelling against the effective registry. A dynamically prefixed descriptor exposes its prefix and exact residual unit
-through `prefixDecomposition`:
+`describe()` does not accept compound expressions as lookup names, normalize definitions, or add dynamically prefixed
+spellings to `names()`. Generated affine-difference units are exact catalog entries and do appear in `names()`. To
+report truthful capabilities, introspection lazily resolves the complete canonical or dynamically prefixed spelling
+against the effective registry. A dynamically prefixed descriptor exposes its prefix and exact residual unit through
+`prefixDecomposition`:
 
 ```php
 <?php
@@ -75,10 +78,11 @@ Use `UnitRegistryBuilder::default()` to layer custom definitions and aliases ove
 `UnitRegistryBuilder::empty()` for an isolated catalog.
 
 Definitions use the normal unit language and are parsed against the completed registry on first use. Multiplicative
-definitions work throughout the runtime. An affine definition such as `degree_widget = kelvin @ 100` works at explicit
-conversion boundaries but remains unavailable to expression and quantity algebra. The builder is mutable: each fluent
-method updates and returns the same builder. Every `build()` call creates an immutable registry snapshot that is
-unaffected by later builder changes.
+definitions work throughout the runtime. An affine definition such as `degree_widget = kelvin @ 100` works as a
+coordinate scale and receives a generated multiplicative `delta_degree_widget` definition. The affine name remains
+unavailable to expression and `Quantity` algebra; use `PointQuantity` for coordinates and the generated delta name for
+differences. The builder is mutable: each fluent method updates and returns the same builder. Every `build()` call
+creates an immutable registry snapshot that is unaffected by later builder changes.
 
 ```php
 <?php
@@ -97,10 +101,14 @@ $units = new Units($registry);
 assert($units->quantity(2, 'widgets')->valueIn('meter')->toString() === '24');
 assert($units->describe('widgets')?->canonicalName === 'widget');
 assert($units->convert(0, 'degree_widget', 'kelvin')->toString() === '100');
+assert($units->point(0, 'degree_widget')->valueIn('kelvin')->toString() === '100');
+assert($units->deltaQuantity(2, 'degree_widget')->valueIn('kelvin')->toString() === '2');
 ```
 
 An overlay definition wins over a base UDUNITS2 record with the same name. Aliases resolve through the composed
-registry, so an overlay alias may target either another custom definition or a base catalog unit.
+registry, so an overlay alias may target either another custom definition or a base catalog unit. Affine delta synthesis
+runs when `build()` creates the immutable snapshot, after all overlay definitions and aliases are known. An explicit
+overlay name that conflicts with one of its generated `delta_*` or `Δ` names is rejected rather than silently replaced.
 
 For PHPStan, configure one `UnitRegistryFactory` that returns the complete registry. Runtime code should construct its
 `Units` context from the same registry. PHPStan assumes one authoritative registry for an analysis run and does not
@@ -123,8 +131,9 @@ resolve and cache capabilities against the effective registry, so transitive def
 capability methods out of sync with runtime behavior.
 
 Raw rows returned by `findCatalogRecord()` remain declaration metadata: they store direct or exact-name-inherited affine
-and logarithmic markers, but do not eagerly materialize `UnsupportedExpression` or transitive composite results. This
-keeps catalog generation deterministic and avoids resolving the full catalog merely for introspection.
+and logarithmic markers, but do not eagerly materialize `UnsupportedExpression` or transitive composite results.
+Generated delta rows are ordinary multiplicative declarations materialized during catalog import or immutable-registry
+build. This keeps catalog generation deterministic and avoids resolving the full catalog merely for introspection.
 
 Affine classification means "unsupported by multiplicative `Expr` algebra," not "unsupported everywhere." See
 [Affine Conversion](runtime.md#affine-conversion) for executable boundaries and [Limitations](phpstan.md#limitations)

@@ -15,8 +15,11 @@ needs arise.
 | I need to...                                        | Use                                    |
 | --------------------------------------------------- | -------------------------------------- |
 | Construct an exact quantity                         | `Units::quantity()`                    |
+| Construct an exact coordinate point                 | `Units::point()`                       |
+| Construct a difference for a coordinate scale       | `Units::deltaQuantity()`               |
 | Parse a value and unit together                     | `Units::parseQuantity()`               |
 | Convert a quantity                                  | `Quantity::to()`                       |
+| Convert a coordinate point                          | `PointQuantity::to()`                  |
 | Preserve the exact rational result after conversion | `Quantity::valueIn()`                  |
 | Obtain a minimal exact terminating decimal          | `Quantity::exactDecimalValueIn()`      |
 | Obtain a rounded decimal with a requested scale     | `Quantity::decimalValueIn()`           |
@@ -91,6 +94,9 @@ The `Units` facade exposes expression-level operations:
   the conversion includes an offset.
 - `convert()` applies an exact scale-and-offset conversion to an `int` or `Rational`.
 - `convertFloat()` applies the same conversion to a native `float`.
+- `deltaUnit()` returns the multiplicative unit used for differences on a named coordinate scale.
+- `deltaQuantity()` constructs an exact difference using a coordinate scale's multiplicative unit.
+- `point()` constructs an exact `PointQuantity` on a named coordinate scale.
 - `normalize()` substitutes derived definitions and retains their scale in the expression.
 
 Incompatible conversions throw `IncompatibleUnitException`; unknown names throw `UnitNotFoundException`.
@@ -139,10 +145,38 @@ assert(unit_to(32, 'fahrenheit', 'celsius') === 0.0);
 an identity or another offset-free conversion, such as `celsius` to an equivalent alias, but it cannot represent
 `celsius` to `kelvin` because that result depends on the input value.
 
-Affine support is deliberately confined to explicit conversion boundaries. `parse()`, `parseUnit()`, `unit()`,
-`parseQuantity()`, `quantity()`, normalization, and quantity arithmetic still reject affine units. Multiplication,
-division, powers, and prefixes of affine units are also rejected until absolute and delta-temperature semantics exist.
-Logarithmic definitions remain recognized but unevaluable.
+Use `PointQuantity` when a program must retain an exact coordinate point and perform affine arithmetic:
+
+```php
+<?php
+
+use jbboehr\Yumemi\Units;
+
+$units = Units::default();
+$freezing = $units->point(0, 'celsius');
+$rise = $units->deltaQuantity(18, 'fahrenheit');
+$warmer = $freezing->add($rise);
+$interval = $units->point(100, 'celsius')->difference($freezing);
+
+assert($freezing->valueIn('kelvin')->toString() === '5463/20');
+assert($warmer->toString() === '10 * celsius');
+assert($interval->toString() === '100 * delta_celsius');
+assert($interval->valueIn('delta_fahrenheit')->toString() === '180');
+```
+
+A `PointQuantity` retains an exact `Rational` coordinate and a named scale. `to()`, `valueIn()`, comparisons, and native
+numeric output apply full scale-and-offset conversion. `difference()` subtracts another compatible point and returns a
+`Quantity` in the receiver's delta unit. `add()` and `sub()` translate the point by a compatible `Quantity` while
+preserving the point's coordinate unit. All operands must belong to the same `Units` context.
+
+The catalog provides explicit multiplicative difference units such as `delta_celsius`, `delta_fahrenheit`, `Δ°C`, and
+`Δ°F`. They participate in ordinary quantity and expression algebra, so `delta_celsius / second` is valid. Formatter
+symbol mode renders the named aliases as `Δ°C` and `Δ°F` with Unicode typography.
+
+No affine unit is silently rewritten inside algebra. `celsius / second` and `Units::quantity(1, 'celsius')` remain
+invalid; use `delta_celsius / second` for a rate or `Units::point(1, 'celsius')` for a coordinate. `parse()`,
+`parseUnit()`, `unit()`, `parseQuantity()`, `quantity()`, normalization, multiplication, division, powers, and prefixes
+continue to reject the affine unit itself. Logarithmic definitions remain recognized but unevaluable.
 
 ## Quantity Arithmetic
 
