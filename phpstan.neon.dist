@@ -15,6 +15,7 @@ parameters:
     excludePaths:
         - src/Parser/Parser.php
         # Intentionally invalid / analysed only via PHPUnit fixtures.
+        - tests/Consumer
         - tests/PHPStan/data
         - tests/PHPStan/Fixtures
     ignoreErrors:

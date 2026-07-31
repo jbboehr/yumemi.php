@@ -1,0 +1,16 @@
+{
+    "name": "jbboehr/yumemi-consumer-manual",
+    "description": "Isolated manual-registration consumer fixture for Yumemi.",
+    "type": "project",
+    "license": "AGPL-3.0-only WITH romic-exception",
+    "require": {
+        "jbboehr/yumemi": "dev-consumer"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^2.1"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "prefer-stable": true
+}

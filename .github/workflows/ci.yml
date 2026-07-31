@@ -94,6 +94,10 @@ jobs:
               if: matrix.php-version == '8.2'
               run: composer benchmark:smoke
 
+            - name: Smoke-test packaged consumer
+              if: matrix.php-version == '8.2'
+              run: composer test:consumer:archive
+
     mutation:
         name: Mutation testing
         runs-on: ubuntu-latest

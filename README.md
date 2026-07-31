@@ -1,4 +1,4 @@
-![Iudex Mensurarum Mysticarum『夢見』〜ＹＵＭＥＭＩ〜 — dimensional analysis for PHP](.github/assets/yumemi-banner.png)
+![Iudex Mensurarum Mysticarum『夢見』〜ＹＵＭＥＭＩ〜 — dimensional analysis for PHP](docs/pages/images/yumemi-banner.png)
 
 # Yumemi
 

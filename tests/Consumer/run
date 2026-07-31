@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+FIXTURES_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+readonly FIXTURES_DIR
+PROJECT_ROOT=$(cd -- "$FIXTURES_DIR/../.." && pwd)
+readonly PROJECT_ROOT
+readonly PACKAGE_MODE=${1:-source}
+readonly EXPECTED_DIAGNOSTIC="expects unit_float<'meter'>, unit_float<'second'> given"
+
+WORK_DIR=$(mktemp -d "${TMPDIR:-/tmp}/yumemi-consumer.XXXXXXXX")
+readonly WORK_DIR
+trap 'rm -rf -- "$WORK_DIR"' EXIT
+
+package_dir=$PROJECT_ROOT
+
+if [[ $PACKAGE_MODE == archive ]]; then
+    archive_dir=$WORK_DIR/archive
+    package_dir=$WORK_DIR/package
+    mkdir -p -- "$archive_dir" "$package_dir"
+
+    composer --working-dir="$PROJECT_ROOT" archive --format=tar --dir="$archive_dir" --no-interaction
+
+    archives=("$archive_dir"/*.tar)
+    if [[ ${#archives[@]} -ne 1 || ! -f ${archives[0]} ]]; then
+        printf 'Expected exactly one Composer archive in %s.\n' "$archive_dir" >&2
+        exit 1
+    fi
+
+    tar -xf "${archives[0]}" -C "$package_dir"
+
+    required_paths=(
+        composer.json
+        data/udunits2.php
+        docs/LICENSE_EXCEPTION.md
+        docs/UDUNITS-COPYRIGHT
+        docs/pages/images/yumemi-banner.png
+        extension.neon
+        src/Parser/Parser.php
+        yumemi-tags.neon
+    )
+    for path in "${required_paths[@]}"; do
+        if [[ ! -e $package_dir/$path ]]; then
+            printf 'Composer archive is missing required path %s.\n' "$path" >&2
+            exit 1
+        fi
+    done
+
+    excluded_paths=(.direnv .github .idea .phpbench .phpunit.cache tests vendor)
+    for path in "${excluded_paths[@]}"; do
+        if [[ -e $package_dir/$path ]]; then
+            printf 'Composer archive contains excluded path %s.\n' "$path" >&2
+            exit 1
+        fi
+    done
+elif [[ $PACKAGE_MODE != source ]]; then
+    printf 'Usage: %s [source|archive]\n' "$0" >&2
+    exit 2
+fi
+
+# PHP expands $argv; the shell must preserve it literally.
+# shellcheck disable=SC2016
+repository_json=$(php -r '
+echo json_encode([
+    "type" => "path",
+    "url" => $argv[1],
+    "options" => [
+        "symlink" => false,
+        "versions" => ["jbboehr/yumemi" => "dev-consumer"],
+    ],
+], JSON_THROW_ON_ERROR);
+' "$package_dir")
+readonly repository_json
+
+run_fixture() {
+    local fixture=$1
+    local project_dir=$WORK_DIR/$fixture
+    local output
+    local phpstan=(vendor/bin/phpstan analyse --no-progress --error-format=raw --level=max)
+
+    mkdir -p -- "$project_dir"
+    cp -R -- "$FIXTURES_DIR/$fixture/." "$project_dir/"
+    cp -R -- "$FIXTURES_DIR/cases" "$project_dir/cases"
+
+    composer --working-dir="$project_dir" repo add yumemi "$repository_json" --no-interaction
+    composer --working-dir="$project_dir" update --prefer-dist --no-interaction --no-progress
+
+    if [[ -f $project_dir/phpstan.neon ]]; then
+        phpstan+=(--configuration=phpstan.neon)
+    fi
+
+    (
+        cd -- "$project_dir"
+        "${phpstan[@]}" cases/valid.php
+    )
+
+    if output=$(
+        cd -- "$project_dir"
+        "${phpstan[@]}" cases/invalid.php 2>&1
+    ); then
+        printf '%s consumer PHPStan fixture unexpectedly accepted invalid units.\n' "$fixture" >&2
+        exit 1
+    fi
+
+    if [[ $output != *"$EXPECTED_DIAGNOSTIC"* ]]; then
+        printf '%s consumer PHPStan fixture reported an unexpected diagnostic:\n%s\n' "$fixture" "$output" >&2
+        exit 1
+    fi
+}
+
+run_fixture automatic
+php "$WORK_DIR/automatic/runtime.php"
+run_fixture manual
+
+printf 'Consumer package smoke tests passed using the %s package.\n' "$PACKAGE_MODE"

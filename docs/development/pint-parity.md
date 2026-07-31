@@ -350,7 +350,9 @@ comparison are now present.
 Status: **Done for development; release automation absent** | Importance: **P0/P1** | Remaining difficulty: **M**
 
 Composer, Nix, treefmt, pre-commit hooks, PHP-CS-Fixer, PHPStan, PHPUnit, generated artifacts, GitHub Actions, and
-Infection with enforced mutation-score floors are configured. Catalog and parser regeneration are documented.
+Infection with enforced mutation-score floors are configured. Catalog and parser regeneration are documented. An
+isolated consumer smoke test verifies runtime use plus automatic and manual PHPStan registration from a release-style
+Composer archive.
 
 The project still lacks a tagged release and release workflow. Lowest- and highest-dependency jobs may be useful after
 the first release establishes a compatibility promise.

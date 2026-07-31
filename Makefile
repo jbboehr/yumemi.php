@@ -1,5 +1,5 @@
 .DEFAULT: all
-.PHONY: all clean docs docs-serve generate-catalog
+.PHONY: all clean docs docs-serve generate-catalog test-consumer test-consumer-archive
 
 UDUNITS_XML_FILES := \
 	$(UDUNITS_XML_DIR)/udunits2-prefixes.xml \
@@ -18,6 +18,12 @@ docs:
 
 docs-serve:
 	mdbook serve docs --hostname 127.0.0.1
+
+test-consumer:
+	tests/Consumer/run source
+
+test-consumer-archive:
+	tests/Consumer/run archive
 
 ifneq ($(strip $(UDUNITS_XML_DIR)),)
 generate-catalog: $(UDUNITS_XML_FILES)

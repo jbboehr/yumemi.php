@@ -1,0 +1,20 @@
+{
+    "name": "jbboehr/yumemi-consumer-automatic",
+    "description": "Isolated automatic-registration consumer fixture for Yumemi.",
+    "type": "project",
+    "license": "AGPL-3.0-only WITH romic-exception",
+    "require": {
+        "jbboehr/yumemi": "dev-consumer"
+    },
+    "require-dev": {
+        "phpstan/extension-installer": "^1.4",
+        "phpstan/phpstan": "^2.1"
+    },
+    "config": {
+        "allow-plugins": {
+            "phpstan/extension-installer": true
+        },
+        "sort-packages": true
+    },
+    "prefer-stable": true
+}
