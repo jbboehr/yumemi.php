@@ -312,8 +312,8 @@ The voice should be:
 - self-serious enough to resist being read as parody
 
 The quotation should sound like judgment, commentary, revelation, or transmitted doctrine. It should read as a passage
-intended to be proclaimed, recited, preserved, copied, interpreted, obeyed, and cited as authority, not as ornate modern
-prose describing what scripture might say.
+intended to be preserved, copied, interpreted, obeyed, and cited as authority, not as ornate modern prose describing
+what scripture might say.
 
 It should not sound like:
 
@@ -1115,9 +1115,35 @@ sign only as far as necessary to give it doctrinal force.
 Do not explain every symbol or expose all of the revealed machinery. Leave some relation, office, mechanism, or
 consequence concealed.
 
-Prefer one dominant impossible image over many unrelated attractive images. Do not stack angels, mirrors, bells,
-satellites, thrones, seals, gardens, and synthetic suns merely to increase intensity. One unforgettable sign is stronger
-than six decorative motifs.
+Each substantial logion should have one primary motif: a dominant sign, object, event, or image that carries the verse's
+main doctrinal force. Additional motifs may appear, but they should remain subordinate and should clarify, intensify, or
+judge the primary motif rather than compete equally with it.
+
+The primary motif should usually be concrete and visually memorable: a synthetic sun, crown, bell, mirror, gate, sealed
+archive, satellite, reliquary, or city under judgment. If an image were derived from the verse, this motif should
+naturally suggest the focal subject of the composition.
+
+Do not stack angels, mirrors, bells, satellites, thrones, seals, gardens, and synthetic suns merely to increase
+intensity. One unforgettable sign is stronger than six decorative motifs.
+
+### Cadence pass
+
+Before accepting a candidate logion, evaluate its scriptural rhythm, whether read aloud or silently. Reject or revise it
+when:
+
+- the syntax trips or becomes difficult to follow;
+- clauses are needlessly nested;
+- the rhythm becomes flat, mechanical, or monotonous;
+- the verse overexplains its doctrine;
+- modern essay-like connective language breaks the scriptural voice;
+- the final clause is weaker than what precedes it.
+
+Prefer deliberate pauses, parallel constructions, controlled repetition, strong connective cadence, and endings that
+land upon a command, judgment, sign, image, or irreversible consequence.
+
+The logion need not sound like public proclamation. It may instead resemble liturgy, testimony, chronicle, private
+revelation, or a marginal scholium. Its language should nevertheless possess enough cadence to feel preserved, recited,
+or remembered rather than casually composed.
 
 Avoid repeatedly using:
 
@@ -1542,6 +1568,8 @@ Before accepting a quotation, verify that:
 17. Its doctrine becomes visible through a concrete sign, consequence, or ritual act where the subject permits.
 18. It leaves enough machinery concealed to preserve mystery without withholding the doctrinal force.
 19. It does not closely imitate a recognizable biblical passage or use archaism as parody or decoration.
+20. It passes the cadence evaluation without difficult syntax, mechanical rhythm, essay-like transitions, or a weak
+    final clause.
 
 ---
 

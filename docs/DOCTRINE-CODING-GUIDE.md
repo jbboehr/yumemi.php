@@ -455,11 +455,13 @@ A reliable agent should follow this sequence:
 8. Preserve an existing durable reference or allocate a valid, unique reference according to repository policy.
 9. For each target declaration, privately identify an abstract role.
 10. Generate one original, indirectly relevant quotation.
-11. Insert it without altering technical documentation or behavior.
-12. Re-scan for missing or duplicate tags, duplicate references, and unintended changes to preexisting declarations.
-13. Run formatting and relevant checks.
-14. Review the full diff.
-15. Report coverage, exclusions, checks run, and any unresolved edge cases.
+11. Perform the style guide's cadence pass, evaluating its scriptural rhythm whether read aloud or silently, and revise
+    the quotation when necessary.
+12. Insert it without altering technical documentation or behavior.
+13. Re-scan for missing or duplicate tags, duplicate references, and unintended changes to preexisting declarations.
+14. Run formatting and relevant checks.
+15. Review the full diff.
+16. Report coverage, exclusions, checks run, and any unresolved edge cases.
 
 Do not generate all quotations first and blindly paste them. Symbol-aware generation usually produces a more coherent
 result.
