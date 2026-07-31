@@ -17,7 +17,7 @@ The quotations are fragments of a coherent but unexplained doctrine: an impossib
 - classical Japanese ritual
 - medieval Christian apocalypse
 - chūnibyō revelation
-- neoreactionary concerns with order, hierarchy, legitimacy, inheritance, sovereignty, decadence, and restoration
+- [restorationist metaphysics](#16-restorationist-metaphysics)
 
 Vaporwave may inform occasional visual imagery—especially abandoned commercial architecture, obsolete luxury, artificial
 sunsets, marble statuary, repetition, and magenta illumination—but it must not determine the doctrine’s philosophical
@@ -422,7 +422,8 @@ Across a large corpus, aim approximately for:
 - **25% retrowave and synthwave futurism**
 - **15% classical Japanese imagery**
 - **10% chūnibyō cosmic bureaucracy**
-- **5% additional neoreactionary doctrinal emphasis beyond the worldview already present throughout**
+- **5% additional [restorationist emphasis](#16-restorationist-metaphysics) beyond the worldview already present
+  throughout**
 
 These proportions are directional rather than mechanical.
 
@@ -820,9 +821,13 @@ One unexplained institution is often more effective than five.
 
 ---
 
-## 16. Neoreactionary influence
+## 16. Restorationist metaphysics
 
-The neoreactionary influence should remain philosophical and aesthetic rather than contemporary or partisan.
+In this guide, **restorationist metaphysics** is repository-specific shorthand for concerns with inherited order,
+legitimate authority, hierarchy, succession, civilizational decline, counterfeit authority, and the restoration of
+lawful forms. It does not name or endorse a contemporary political movement.
+
+These concerns should remain philosophical and aesthetic rather than contemporary or partisan.
 
 Suitable themes include:
 

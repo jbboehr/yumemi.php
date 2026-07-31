@@ -153,7 +153,8 @@ The scenery may be vaporwave. The metaphysics must not be.
 ## 5. Translating the logion's motifs
 
 The style guide is authoritative for the meanings and permitted uses of imperial, retrowave, vaporwave, Japanese,
-Christian, apocalyptic, chūnibyō, and neoreactionary motifs. Apply those meanings visually through concrete choices:
+Christian, apocalyptic, chūnibyō, and [restorationist](DOCTRINE-STYLE-GUIDE.md#16-restorationist-metaphysics) motifs.
+Apply those meanings visually through concrete choices:
 
 | Literary motif            | Visual translation                                                       |
 | ------------------------- | ------------------------------------------------------------------------ |
