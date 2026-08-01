@@ -163,6 +163,28 @@ final class InvalidUnitCallRuleTest extends RuleTestCase
                 'Conversion of unit "B" with logarithmic semantics is not supported (definition: lg(re 1)).',
                 70,
             ],
+            [
+                'Cannot calculate unit_factor(): Incompatible unit expressions: second and meter. '
+                    . 'Dimensions: time vs length.',
+                75,
+            ],
+            [
+                'Cannot calculate unit_factor(): Incompatible unit expressions: meter and second. '
+                    . 'Dimensions: length vs time.',
+                81,
+            ],
+            [
+                'Cannot convert with unit_to(): units second and meter are not dimensionally compatible.',
+                87,
+            ],
+            [
+                'Cannot convert with unit_to(): units meter and second are not dimensionally compatible.',
+                93,
+            ],
+            [
+                'unit_to() value unit international_foot does not match from unit meter (normalized forms differ).',
+                99,
+            ],
         ]);
     }
 }

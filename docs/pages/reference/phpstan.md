@@ -151,8 +151,9 @@ If a branded value is passed to `unit_to()`, its brand must match the declared s
 arguments are also validated against the configured catalog. Unknown constant strings fail analysis; genuinely dynamic
 strings cannot be proven and fall back to the functions' native return types.
 
-Finite literal-string unions passed to `unit()` preserve the corresponding union of unit brands. Conversion targets on
-the `Quantity` boundaries described below likewise preserve finite unions.
+Finite literal-string unions passed to `unit()`, `unit_factor()`, and `unit_to()` preserve the corresponding union of
+unit brands. The conversion helpers validate every source/target combination and reject the call if any pairing is
+invalid. Conversion targets on the `Quantity` boundaries described below likewise preserve finite unions.
 
 ## Quantity Types
 
@@ -394,8 +395,8 @@ Important limits of the current static model are:
 - Native `+` and `-` cannot convert dimensionally compatible magnitudes; use an explicit conversion or `Quantity`.
 - Native affine targets remain unbranded because native scalars do not retain point-versus-difference identity. Use
   `PointQuantity<'...'>` when that identity must remain statically visible.
-- `unit_to()` requires one known source and target to infer a brand; it does not preserve correlation across independent
-  source and target unions.
+- `unit_to()` and `unit_factor()` do not preserve correlation across independent source and target unions. They validate
+  the Cartesian product and therefore reject a correlated union call if any cross-pairing would be invalid.
 - Unit exponentiation supports constant integers only.
 - Dimensional analysis cannot distinguish different physical meanings with the same dimension, such as gray and sievert.
 

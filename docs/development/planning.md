@@ -384,8 +384,8 @@ deferred advanced features.
   signature drift before Yumemi's compatibility range is updated.
 - Casts and unsupported PHP built-ins can erase native unit brands. Add targeted extensions only for demonstrated
   workflows rather than trying to model every built-in preemptively.
-- Finite target unions are supported by `unit()` and on Quantity boundaries. `unit_to()` has independent source and
-  target unions whose Cartesian product loses value correlation.
+- Finite source and target unions are supported by native helpers and Quantity boundaries. Independent source and target
+  unions lose value correlation, so helper calls validate the Cartesian product and fail closed if any pair is invalid.
 - Lookup is case-sensitive. Short but valid prefix/symbol compositions such as `pa` (pico-are) and `PA` (peta-ampere)
   remain accepted while `Pa` is pascal; Yumemi does not special-case these catalog-valid ambiguities.
 - Syntax errors carry decoded-expression byte spans. Unknown-unit and unsupported-semantic errors occur after parsing

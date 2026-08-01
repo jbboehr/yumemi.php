@@ -77,13 +77,25 @@ assertType("unit_float<'1/100 * meter'>", unit(1, 'meter') * unit_factor('meter'
 /** @param 'meter'|'foot' $from */
 function finiteFactorSource(string $from): void
 {
-    assertType('float', unit_factor($from, 'meter'));
+    assertType("unit_float<'1'>|unit_float<'meter / international_foot'>", unit_factor($from, 'meter'));
 }
 
 /** @param 'meter'|'foot' $to */
 function finiteFactorTarget(string $to): void
 {
-    assertType('float', unit_factor('meter', $to));
+    assertType("unit_float<'1'>|unit_float<'international_foot / meter'>", unit_factor('meter', $to));
+}
+
+/** @param 'meter'|'second' $from */
+function incompatibleFiniteFactorSource(string $from): void
+{
+    assertType('*ERROR*', unit_factor($from, 'meter'));
+}
+
+/** @param 'meter'|'second' $to */
+function incompatibleFiniteFactorTarget(string $to): void
+{
+    assertType('*ERROR*', unit_factor('meter', $to));
 }
 
 function dynamicFactor(string $from, string $to): void
@@ -134,6 +146,45 @@ assertType("unit_float<'meter / second'>", unit_to(unit(60.0, 'mile / hour'), 'm
 
 // int magnitude still yields unit_float after conversion
 assertType("unit_float<'meter'>", unit_to(12, 'inch', 'meter'));
+
+/** @param 'foot'|'meter' $from */
+function finiteUnitToSource(string $from): void
+{
+    assertType("unit_float<'international_inch'>", unit_to(1.0, $from, 'inch'));
+}
+
+/** @param 'foot'|'meter' $to */
+function finiteUnitToTarget(string $to): void
+{
+    assertType("unit_float<'international_foot'>|unit_float<'meter'>", unit_to(1.0, 'inch', $to));
+}
+
+/** @param 'meter'|'second' $from */
+function incompatibleFiniteUnitToSource(string $from): void
+{
+    assertType('*ERROR*', unit_to(1.0, $from, 'meter'));
+}
+
+/** @param 'meter'|'second' $to */
+function incompatibleFiniteUnitToTarget(string $to): void
+{
+    assertType('*ERROR*', unit_to(1.0, 'meter', $to));
+}
+
+/**
+ * @param unit_float<'100 * centimeter'>|unit_float<'meter'> $value
+ * @param '100 * centimeter'|'meter'                         $from
+ */
+function equivalentBrandedValueAndSourceUnions(float $value, string $from): void
+{
+    assertType("unit_float<'international_foot'>", unit_to($value, $from, 'foot'));
+}
+
+/** @param unit_float<'foot'>|unit_float<'meter'> $value */
+function incompatibleBrandedValueUnion(float $value): void
+{
+    assertType('*ERROR*', unit_to($value, 'meter', 'foot'));
+}
 
 // --- unit_to() errors ---
 

@@ -68,3 +68,33 @@ function partlyInvalidFiniteUnit(string $u): void
 
 // Logarithmic conversion is a distinct unsupported operation.
 unit_to(1.0, 'B', '1');
+
+/** @param 'meter'|'second' $from */
+function invalidFiniteFactorSource(string $from): void
+{
+    unit_factor($from, 'meter');
+}
+
+/** @param 'meter'|'second' $to */
+function invalidFiniteFactorTarget(string $to): void
+{
+    unit_factor('meter', $to);
+}
+
+/** @param 'meter'|'second' $from */
+function invalidFiniteConversionSource(string $from): void
+{
+    unit_to(1.0, $from, 'meter');
+}
+
+/** @param 'meter'|'second' $to */
+function invalidFiniteConversionTarget(string $to): void
+{
+    unit_to(1.0, 'meter', $to);
+}
+
+/** @param unit_float<'foot'>|unit_float<'meter'> $value */
+function invalidBrandedConversionUnion(float $value): void
+{
+    unit_to($value, 'meter', 'foot');
+}

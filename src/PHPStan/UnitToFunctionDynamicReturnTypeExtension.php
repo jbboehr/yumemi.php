@@ -48,6 +48,8 @@ use PHPStan\Type\DynamicFunctionReturnTypeExtension;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\FloatType;
 use PHPStan\Type\Type;
+use PHPStan\Type\TypeCombinator;
+use PHPStan\Type\UnionType;
 
 /**
  * Validates constant unit_to() calls and infers unit_float<'to'> for multiplicative targets.
@@ -94,75 +96,119 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
             return null;
         }
 
-        $fromString = $this->constantString($scope->getType($args[1]->value));
-        if ($fromString === null) {
+        $fromStrings = $this->constantStrings($scope->getType($args[1]->value));
+        if ($fromStrings === null) {
             return null;
         }
 
-        $toString = $this->constantString($scope->getType($args[2]->value));
-        if ($toString === null) {
+        $toStrings = $this->constantStrings($scope->getType($args[2]->value));
+        if ($toStrings === null) {
             return null;
         }
 
-        try {
-            $compatible = $this->units->areCompatible($fromString, $toString);
-        } catch (
-            UnitNotFoundException
-            | UnsupportedSyntaxException
-            | UnsupportedUnitConversionException
-            | ParseException
-            | \InvalidArgumentException $exception
-        ) {
-            return new ErrorType($exception->getMessage());
+        $fromUnits = [];
+        foreach ($fromStrings as $fromString) {
+            $fromResult = $this->parser->parse($fromString);
+            $fromUnits[$fromString] = $fromResult->isOk() ? $fromResult->expression() : null;
         }
 
-        $fromResult = $this->parser->parse($fromString);
-        $toResult = $this->parser->parse($toString);
-        $fromUnit = $fromResult->isOk() ? $fromResult->expression() : null;
-        $toUnit = $toResult->isOk() ? $toResult->expression() : null;
-
-        if (!$compatible) {
-            return new ErrorType(sprintf(
-                'Cannot convert with unit_to(): units %s and %s are not dimensionally compatible.',
-                $fromResult->isOk() ? $fromResult->expression()->displayString : $fromString,
-                $toResult->isOk() ? $toResult->expression()->displayString : $toString,
-            ));
+        $toUnits = [];
+        foreach ($toStrings as $toString) {
+            $toResult = $this->parser->parse($toString);
+            $toUnits[$toString] = $toResult->isOk() ? $toResult->expression() : null;
         }
 
-        $valueType = $scope->getType($args[0]->value);
-        if ($valueType instanceof UnitIntegerType || $valueType instanceof UnitFloatType) {
-            if ($fromUnit === null) {
-                return new ErrorType(sprintf(
-                    'unit_to() cannot use a unit-branded value with affine from unit %s.',
-                    $fromString,
-                ));
+        foreach ($fromStrings as $fromString) {
+            foreach ($toStrings as $toString) {
+                try {
+                    $compatible = $this->units->areCompatible($fromString, $toString);
+                } catch (
+                    UnitNotFoundException
+                    | UnsupportedSyntaxException
+                    | UnsupportedUnitConversionException
+                    | ParseException
+                    | \InvalidArgumentException $exception
+                ) {
+                    return new ErrorType($exception->getMessage());
+                }
+
+                if (!$compatible) {
+                    return new ErrorType(sprintf(
+                        'Cannot convert with unit_to(): units %s and %s are not dimensionally compatible.',
+                        isset($fromUnits[$fromString]) ? $fromUnits[$fromString]->displayString : $fromString,
+                        isset($toUnits[$toString]) ? $toUnits[$toString]->displayString : $toString,
+                    ));
+                }
             }
+        }
 
+        foreach ($this->unitTypes($scope->getType($args[0]->value)) as $valueType) {
             $valueUnit = $valueType->getUnitExpression();
-            if (!$valueUnit->equivalent($fromUnit)) {
-                return new ErrorType(sprintf(
-                    "unit_to() value unit %s does not match from unit %s (normalized forms differ).",
-                    $valueUnit->displayString,
-                    $fromUnit->displayString,
-                ));
+            foreach ($fromStrings as $fromString) {
+                $fromUnit = $fromUnits[$fromString];
+                if ($fromUnit === null) {
+                    return new ErrorType(sprintf(
+                        'unit_to() cannot use a unit-branded value with affine from unit %s.',
+                        $fromString,
+                    ));
+                }
+
+                if (!$valueUnit->equivalent($fromUnit)) {
+                    return new ErrorType(sprintf(
+                        "unit_to() value unit %s does not match from unit %s (normalized forms differ).",
+                        $valueUnit->displayString,
+                        $fromUnit->displayString,
+                    ));
+                }
             }
         }
 
-        if ($toUnit === null) {
-            return new FloatType();
+        $resultTypes = [];
+        foreach ($toStrings as $toString) {
+            $toUnit = $toUnits[$toString];
+            $resultTypes[] = $toUnit === null ? new FloatType() : new UnitFloatType($toUnit);
         }
 
-        // Conversion factors are generally non-integral → always unit_float.
-        return new UnitFloatType($toUnit);
+        return TypeCombinator::union(...$resultTypes);
     }
 
-    private function constantString(Type $type): ?string
+    /** @return list<string>|null */
+    private function constantStrings(Type $type): ?array
     {
         $constantStrings = $type->getConstantStrings();
-        if (count($constantStrings) !== 1) {
+        if ($constantStrings === []) {
             return null;
         }
 
-        return $constantStrings[0]->getValue();
+        $values = array_map(static fn ($constantString): string => $constantString->getValue(), $constantStrings);
+        sort($values, SORT_STRING);
+
+        return $values;
+    }
+
+    /**
+     * @return list<UnitIntegerType|UnitFloatType>
+     *
+     * @logion [OSD 97:77] Every native seal within the divided magnitude was
+     *     opened before its declared source, and no branded witness escaped comparison.
+     */
+    private function unitTypes(Type $type): array
+    {
+        $types = $type instanceof UnionType ? $type->getTypes() : [$type];
+        $units = array_values(array_filter(
+            $types,
+            static fn (Type $innerType): bool => $innerType instanceof UnitIntegerType
+                || $innerType instanceof UnitFloatType,
+        ));
+
+        usort(
+            $units,
+            static fn (
+                UnitIntegerType|UnitFloatType $left,
+                UnitIntegerType|UnitFloatType $right,
+            ): int => $left->getUnitExpression()->displayString <=> $right->getUnitExpression()->displayString,
+        );
+
+        return $units;
     }
 }

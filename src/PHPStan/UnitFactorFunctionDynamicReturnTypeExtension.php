@@ -45,6 +45,7 @@ use PHPStan\Reflection\FunctionReflection;
 use PHPStan\Type\DynamicFunctionReturnTypeExtension;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\Type;
+use PHPStan\Type\TypeCombinator;
 
 /**
  * Validates constant unit_factor() calls and infers unit_float<'to / from'>.
@@ -89,45 +90,63 @@ final class UnitFactorFunctionDynamicReturnTypeExtension implements DynamicFunct
             return null;
         }
 
-        $fromString = $this->constantString($scope->getType($args[0]->value));
-        if ($fromString === null) {
+        $fromStrings = $this->constantStrings($scope->getType($args[0]->value));
+        if ($fromStrings === null) {
             return null;
         }
 
-        $toString = $this->constantString($scope->getType($args[1]->value));
-        if ($toString === null) {
+        $toStrings = $this->constantStrings($scope->getType($args[1]->value));
+        if ($toStrings === null) {
             return null;
         }
 
-        $fromResult = $this->parser->parse($fromString);
-        if (!$fromResult->isOk()) {
-            return new ErrorType($fromResult->errorMessage() ?? 'Invalid source unit expression.');
+        $fromUnits = [];
+        foreach ($fromStrings as $fromString) {
+            $fromResult = $this->parser->parse($fromString);
+            if (!$fromResult->isOk()) {
+                return new ErrorType($fromResult->errorMessage() ?? 'Invalid source unit expression.');
+            }
+
+            $fromUnits[] = $fromResult->expression();
         }
 
-        $toResult = $this->parser->parse($toString);
-        if (!$toResult->isOk()) {
-            return new ErrorType($toResult->errorMessage() ?? 'Invalid target unit expression.');
+        $toUnits = [];
+        foreach ($toStrings as $toString) {
+            $toResult = $this->parser->parse($toString);
+            if (!$toResult->isOk()) {
+                return new ErrorType($toResult->errorMessage() ?? 'Invalid target unit expression.');
+            }
+
+            $toUnits[] = $toResult->expression();
         }
 
-        $fromUnit = $fromResult->expression();
-        $toUnit = $toResult->expression();
+        $resultTypes = [];
+        foreach ($fromUnits as $fromUnit) {
+            foreach ($toUnits as $toUnit) {
+                try {
+                    $this->units->conversionFactor($fromUnit->expr, $toUnit->expr);
+                } catch (IncompatibleUnitException|NonMultiplicativeConversionException $exception) {
+                    return new ErrorType('Cannot calculate unit_factor(): ' . $exception->getMessage());
+                }
 
-        try {
-            $this->units->conversionFactor($fromUnit->expr, $toUnit->expr);
-        } catch (IncompatibleUnitException|NonMultiplicativeConversionException $exception) {
-            return new ErrorType('Cannot calculate unit_factor(): ' . $exception->getMessage());
+                $resultTypes[] = new UnitFloatType(UnitExpressionAlgebra::divide($toUnit, $fromUnit));
+            }
         }
 
-        return new UnitFloatType(UnitExpressionAlgebra::divide($toUnit, $fromUnit));
+        return TypeCombinator::union(...$resultTypes);
     }
 
-    private function constantString(Type $type): ?string
+    /** @return list<string>|null */
+    private function constantStrings(Type $type): ?array
     {
         $constantStrings = $type->getConstantStrings();
-        if (count($constantStrings) !== 1) {
+        if ($constantStrings === []) {
             return null;
         }
 
-        return $constantStrings[0]->getValue();
+        $values = array_map(static fn ($constantString): string => $constantString->getValue(), $constantStrings);
+        sort($values, SORT_STRING);
+
+        return $values;
     }
 }
