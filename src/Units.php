@@ -44,6 +44,9 @@ use jbboehr\Yumemi\Analyzer\UnitNormalizer;
 use jbboehr\Yumemi\Analyzer\UnitResolver;
 use jbboehr\Yumemi\Catalog\PrefixDescriptor;
 use jbboehr\Yumemi\Catalog\UnitDescriptor;
+use jbboehr\Yumemi\Exception\InvalidArgumentException;
+use jbboehr\Yumemi\Exception\OverflowException;
+use jbboehr\Yumemi\Exception\UnderflowException;
 use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
@@ -51,6 +54,7 @@ use jbboehr\Yumemi\Formatter\ExprFormatter;
 use jbboehr\Yumemi\Formatter\FormatOptions;
 use jbboehr\Yumemi\Internal\DeserializationContext;
 use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\Number\BinaryFloat;
 use jbboehr\Yumemi\Parser\Parser;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
@@ -122,9 +126,22 @@ final class Units
 
     public function convertFloat(float $value, Expr|string $from, Expr|string $to): float
     {
-        $conversion = $this->unitConversionResolver->conversion($from, $to);
+        if (!is_finite($value)) {
+            throw new InvalidArgumentException('convertFloat() requires a finite input value.');
+        }
 
-        return $value * $conversion->scale->toFloat() + $conversion->offset->toFloat();
+        $conversion = $this->unitConversionResolver->conversion($from, $to);
+        $result = $value * $conversion->scale->toFloat() + $conversion->offset->toFloat();
+
+        if (!is_finite($result)) {
+            throw new OverflowException('Converted value does not fit in a finite float.');
+        }
+
+        if ($result === 0.0 && !$conversion->apply(BinaryFloat::toRational($value))->equals(new Rational(0))) {
+            throw new UnderflowException('Non-zero converted value rounds to zero as a float.');
+        }
+
+        return $result;
     }
 
     public function dimension(Expr|string $expr): Dimension

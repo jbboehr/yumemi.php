@@ -39,6 +39,8 @@ namespace jbboehr\Yumemi;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\Exception\InvalidArgumentException;
 use jbboehr\Yumemi\Exception\NonMultiplicativeConversionException;
+use jbboehr\Yumemi\Exception\OverflowException;
+use jbboehr\Yumemi\Exception\UnderflowException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
 
@@ -116,10 +118,16 @@ function unit_to(int|float $value, string $from, string $to): float
 {
     $units = Units::default();
 
+    if (is_float($value) && !is_finite($value)) {
+        throw new InvalidArgumentException('unit_to() requires a finite input value.');
+    }
+
     try {
         return is_int($value)
             ? $units->convert($value, $from, $to)->toFloat()
             : $units->convertFloat($value, $from, $to);
+    } catch (OverflowException|UnderflowException $exception) {
+        throw $exception;
     } catch (IncompatibleUnitException|UnsupportedUnitConversionException $exception) {
         throw new InvalidArgumentException(
             'Cannot convert with unit_to(): ' . $exception->getMessage(),

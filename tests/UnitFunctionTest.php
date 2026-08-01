@@ -192,6 +192,37 @@ final class UnitFunctionTest extends TestCase
         unit_factor('meter', $powerOfTen . ' * meter');
     }
 
+    public function testUnitToPreservesFloatRangeExceptions(): void
+    {
+        try {
+            unit_to(1, 'meter', '1e-400 * meter');
+            self::fail('Expected an overflowing conversion to be rejected.');
+        } catch (\OverflowException $exception) {
+            $this->assertStringContainsString('does not fit in a finite float', $exception->getMessage());
+            $this->assertStringNotContainsString('Invalid unit expression', $exception->getMessage());
+        }
+
+        $this->expectException(\UnderflowException::class);
+        unit_to(PHP_FLOAT_MIN, 'meter', '1e308 * meter');
+    }
+
+    #[DataProvider('nonFiniteUnitToProvider')]
+    public function testUnitToRejectsNonFiniteInput(float $value): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('unit_to() requires a finite input value');
+
+        unit_to($value, 'meter', 'meter');
+    }
+
+    /** @return iterable<string, array{float}> */
+    public static function nonFiniteUnitToProvider(): iterable
+    {
+        yield 'positive infinity' => [INF];
+        yield 'negative infinity' => [-INF];
+        yield 'not a number' => [NAN];
+    }
+
     /**
      * @return iterable<string, array{0: int|float, 1: string, 2: string}>
      */

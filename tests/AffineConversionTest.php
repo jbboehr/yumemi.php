@@ -159,6 +159,39 @@ final class AffineConversionTest extends TestCase
         $this->assertEqualsWithDelta(0.0, $units->convertFloat(32.0, 'fahrenheit', 'celsius'), 1e-12);
     }
 
+    #[DataProvider('nonFiniteFloatProvider')]
+    public function testConvertFloatRejectsNonFiniteInput(float $value): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('requires a finite input value');
+
+        Units::default()->convertFloat($value, 'meter', 'meter');
+    }
+
+    /** @return iterable<string, array{float}> */
+    public static function nonFiniteFloatProvider(): iterable
+    {
+        yield 'positive infinity' => [INF];
+        yield 'negative infinity' => [-INF];
+        yield 'not a number' => [NAN];
+    }
+
+    public function testConvertFloatRejectsResultOverflow(): void
+    {
+        $this->expectException(\OverflowException::class);
+        $this->expectExceptionMessage('does not fit in a finite float');
+
+        Units::default()->convertFloat(2.0, 'meter', '1e-308 * meter');
+    }
+
+    public function testConvertFloatRejectsNonzeroResultUnderflow(): void
+    {
+        $this->expectException(\UnderflowException::class);
+        $this->expectExceptionMessage('rounds to zero as a float');
+
+        Units::default()->convertFloat(PHP_FLOAT_MIN, 'meter', '1e308 * meter');
+    }
+
     public function testIncompatibleAffineConversionStillFailsByDimension(): void
     {
         $this->expectException(IncompatibleUnitException::class);

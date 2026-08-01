@@ -190,13 +190,15 @@ The `Units` facade exposes expression-level operations:
 - `conversionFactor()` returns an exact value-independent factor and throws `NonMultiplicativeConversionException` when
   the conversion includes an offset.
 - `convert()` applies an exact scale-and-offset conversion to an `int` or `Rational`.
-- `convertFloat()` applies the same conversion to a native `float`.
+- `convertFloat()` applies the equivalent affine map in binary floating point.
 - `deltaUnit()` returns the multiplicative unit used for differences on a named coordinate scale.
 - `deltaQuantity()` constructs an exact difference using a coordinate scale's multiplicative unit.
 - `point()` constructs an exact `PointQuantity` on a named coordinate scale.
 - `normalize()` substitutes derived definitions and retains their scale in the expression.
 
-Incompatible conversions throw `IncompatibleUnitException`; unknown names throw `UnitNotFoundException`.
+Incompatible conversions throw `IncompatibleUnitException`; unknown names throw `UnitNotFoundException`. Native float
+conversion rejects non-finite inputs, results that overflow to infinity, and nonzero exact results that underflow to
+zero. Exact results should use `convert()` instead.
 
 For native arithmetic, `unit_factor()` returns the conversion factor as a `float`. PHPStan brands that value as the
 target unit divided by the source unit, so ordinary multiplication cancels the source brand:

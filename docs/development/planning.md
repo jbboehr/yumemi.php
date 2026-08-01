@@ -408,7 +408,8 @@ deferred advanced features.
 - Logarithmic units
 - Exact rational powers and roots; approximate results require explicit precision and rounding
 - Significant-digit and scientific-notation numeric formatting
-- Configurable float overflow and underflow policies; current exact-to-float conversion is deliberately strict
+- Configurable alternatives to the current strict float policy, which rejects non-finite input, overflow to infinity,
+  and nonzero exact results that underflow to zero
 - GNU Units import
 - Formula interpolation
 - Preferred/compact unit selection and broader formatting presets
