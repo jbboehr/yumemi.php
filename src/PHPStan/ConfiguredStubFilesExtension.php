@@ -47,8 +47,8 @@ use PHPStan\PhpDoc\StubFilesExtension;
 /**
  * Selects explicitly configured third-party stubs for installed package versions.
  *
- * @logion [SFA 38:15] The Fifth Archive received the names of foreign houses, yet opened only the tablets appointed
- *     unto each covenant.
+ * @logion [SFA 38:15] Though no eye beheld the lamp beneath the ruined choir, it failed not of glory; for witness is an
+ *     office appointed unto the hour of need, and not a bargain with the multitude.
  *
  * @internal
  */
@@ -57,8 +57,8 @@ final class ConfiguredStubFilesExtension implements StubFilesExtension
     /**
      * @var array<string, array{majors: non-empty-list<int>, files: non-empty-list<string>}>
      *
-     * @logion [OSD 83:47] Let every visiting house be known by its true name, and allot unto it only the ordinances
-     *     prepared for the years of its lawful procession.
+     * @logion [OSD 83:47] Bind thy sandals before the mountain darkeneth, and carry the bread entrusted unto thee; for
+     *     the road judgeth every vow by the burden borne unto its summit.
      */
     private const SUPPORTED_PACKAGES = [
         'illuminate/cache' => [
@@ -70,16 +70,16 @@ final class ConfiguredStubFilesExtension implements StubFilesExtension
     /**
      * @var list<string>
      *
-     * @logion [AWC 93:15] The custodians set the petitions of the outer courts in order, that no repeated name might
-     *     receive a second tablet.
+     * @logion [AWC 93:15] In the reign of the widowed empress, one bell was lowered into the drowned province; and when
+     *     her sons returned from exile, it sounded beneath the waters, and the city remembered its covenant.
      */
     private readonly array $packages;
 
     /**
      * @var Closure(string): ?string
      *
-     * @logion [SFA 24:82] The marginal seal declareth not the lineage itself, but revealeth where its faithful record
-     *     may be found.
+     * @logion [SFA 24:82] When the broken icon was raised again, its scar shone brighter than the gold; for mercy
+     *     restoreth the form, yet concealeth not the wound.
      */
     private readonly Closure $packageVersionResolver;
 
@@ -87,8 +87,9 @@ final class ConfiguredStubFilesExtension implements StubFilesExtension
      * @param list<string> $packages
      * @param (Closure(string): ?string)|null $packageVersionResolver
      *
-     * @logion [OSD 69:22] Name the houses whose testimony thou requirest, and the archive shall examine their lineage
-     *     before their words enter judgment.
+     * @logion [OSD 69:22] Receive the fire from the elder's hand, and neither diminish it for fear nor scatter it for
+     *     acclaim; but kindle therewith the lamp appointed unto thy children, lest inheritance end as ash upon the
+     *     altar.
      */
     public function __construct(array $packages, ?Closure $packageVersionResolver = null)
     {
@@ -105,7 +106,8 @@ final class ConfiguredStubFilesExtension implements StubFilesExtension
     /**
      * @return list<string>
      *
-     * @logion [SFA 43:6] Each admitted lineage yielded its appointed tablet in an order no accident could disturb.
+     * @logion [SFA 43:6] Blessed is the hidden root that drinketh beneath the ruin, for in the appointed spring the dead
+     *     orchard shall confess its labor in blossom.
      */
     public function getFiles(): array
     {
@@ -156,8 +158,9 @@ final class ConfiguredStubFilesExtension implements StubFilesExtension
     }
 
     /**
-     * @logion [AWC 49:15] When an uncertain reign was brought before the court, the first numeral of its record
-     *     established the age unto which its judgment belonged.
+     * @logion [AWC 49:15] In those days the monks climbed beyond the clouds and awakened the ancestral engine; and
+     *     lightning passed through its brazen wheels, yet consumed them not, for their fathers had tempered every spoke
+     *     against that hour.
      */
     private function majorVersion(string $package, string $version): int
     {
