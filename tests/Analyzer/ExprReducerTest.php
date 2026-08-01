@@ -40,6 +40,7 @@ use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
+use jbboehr\Yumemi\Exception\OverflowException;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\TestCase;
@@ -159,5 +160,19 @@ final class ExprReducerTest extends TestCase
         $expr = (new Constant(new Rational(2, 3)))->pow(-2);
 
         $this->assertSame('9/4', $expr->toString());
+    }
+
+    public function testRejectsNestedPowersWhoseCombinedExponentExceedsTheLimit(): void
+    {
+        $this->expectException(OverflowException::class);
+
+        (new Power(new Power(new Unit('meter'), 101), 100))->reduce();
+    }
+
+    public function testRejectsPowerWhoseExponentExceedsTheLimit(): void
+    {
+        $this->expectException(OverflowException::class);
+
+        new Power(new Unit('meter'), 10_001);
     }
 }

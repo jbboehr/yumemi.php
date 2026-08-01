@@ -47,6 +47,7 @@ use PHPStan\Type\ErrorType;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
+use jbboehr\Yumemi\Util\Exponent;
 
 /**
  * Propagates the unit through the fluent {@see Quantity} method chain.
@@ -264,6 +265,14 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
         $argType = $scope->getType($args[0]->value);
         if (!$argType instanceof ConstantIntegerType) {
             return null;
+        }
+
+        if (abs($argType->getValue()) > Exponent::MAX_ABSOLUTE) {
+            return new ErrorType(sprintf(
+                'Quantity::pow() supports exponents from -%d through %d.',
+                Exponent::MAX_ABSOLUTE,
+                Exponent::MAX_ABSOLUTE,
+            ));
         }
 
         return new QuantityType(UnitExpressionAlgebra::power($unit, $argType->getValue()));

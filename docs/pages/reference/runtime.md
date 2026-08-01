@@ -112,7 +112,8 @@ assert($length->valueToString() === '5/4');
 `Rational` provides exact `add()`, `sub()`, `mul()`, `div()`, and integer `pow()` operations, together with
 `compareTo()` and `equals()`. `toString()` returns a fraction, `toDecimalExact()` requires a terminating decimal, and
 `toDecimal()` uses an explicit scale and `RoundingMode`. Conversion to native values remains explicit through `toInt()`,
-`toIntExact()`, and `toFloat()`.
+`toIntExact()`, and `toFloat()`. Integer powers and the effective decimal exponent accepted by
+`Rational::fromDecimalString()` are limited to the inclusive range `-10000` through `10000`.
 
 ## Debugging, JSON, And Serialization
 

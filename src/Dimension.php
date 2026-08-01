@@ -38,6 +38,7 @@ namespace jbboehr\Yumemi;
 
 use jbboehr\Yumemi\Exception\InvalidArgumentException;
 use jbboehr\Yumemi\Exception\UnexpectedValueException;
+use jbboehr\Yumemi\Util\Exponent;
 
 final class Dimension implements \JsonSerializable
 {
@@ -78,13 +79,13 @@ final class Dimension implements \JsonSerializable
         int $luminousIntensity = 0,
     ) {
         $this->powers = [
-            $length,
-            $mass,
-            $time,
-            $electricCurrent,
-            $temperature,
-            $amountOfSubstance,
-            $luminousIntensity,
+            Exponent::checked($length),
+            Exponent::checked($mass),
+            Exponent::checked($time),
+            Exponent::checked($electricCurrent),
+            Exponent::checked($temperature),
+            Exponent::checked($amountOfSubstance),
+            Exponent::checked($luminousIntensity),
         ];
     }
 
@@ -126,7 +127,11 @@ final class Dimension implements \JsonSerializable
         }
 
         foreach ($data['powers'] as $power) {
-            if (!is_int($power)) {
+            if (
+                !is_int($power)
+                || $power < -Exponent::MAX_ABSOLUTE
+                || $power > Exponent::MAX_ABSOLUTE
+            ) {
                 throw new UnexpectedValueException('Invalid serialized Dimension payload.');
             }
         }
@@ -171,13 +176,13 @@ final class Dimension implements \JsonSerializable
     public function div(self $other): self
     {
         return new self(
-            $this->length() - $other->length(),
-            $this->mass() - $other->mass(),
-            $this->time() - $other->time(),
-            $this->electricCurrent() - $other->electricCurrent(),
-            $this->temperature() - $other->temperature(),
-            $this->amountOfSubstance() - $other->amountOfSubstance(),
-            $this->luminousIntensity() - $other->luminousIntensity(),
+            Exponent::subtract($this->length(), $other->length()),
+            Exponent::subtract($this->mass(), $other->mass()),
+            Exponent::subtract($this->time(), $other->time()),
+            Exponent::subtract($this->electricCurrent(), $other->electricCurrent()),
+            Exponent::subtract($this->temperature(), $other->temperature()),
+            Exponent::subtract($this->amountOfSubstance(), $other->amountOfSubstance()),
+            Exponent::subtract($this->luminousIntensity(), $other->luminousIntensity()),
         );
     }
 
@@ -247,26 +252,28 @@ final class Dimension implements \JsonSerializable
     public function mul(self $other): self
     {
         return new self(
-            $this->length() + $other->length(),
-            $this->mass() + $other->mass(),
-            $this->time() + $other->time(),
-            $this->electricCurrent() + $other->electricCurrent(),
-            $this->temperature() + $other->temperature(),
-            $this->amountOfSubstance() + $other->amountOfSubstance(),
-            $this->luminousIntensity() + $other->luminousIntensity(),
+            Exponent::add($this->length(), $other->length()),
+            Exponent::add($this->mass(), $other->mass()),
+            Exponent::add($this->time(), $other->time()),
+            Exponent::add($this->electricCurrent(), $other->electricCurrent()),
+            Exponent::add($this->temperature(), $other->temperature()),
+            Exponent::add($this->amountOfSubstance(), $other->amountOfSubstance()),
+            Exponent::add($this->luminousIntensity(), $other->luminousIntensity()),
         );
     }
 
     public function pow(int $power): self
     {
+        $power = Exponent::checked($power);
+
         return new self(
-            $this->length() * $power,
-            $this->mass() * $power,
-            $this->time() * $power,
-            $this->electricCurrent() * $power,
-            $this->temperature() * $power,
-            $this->amountOfSubstance() * $power,
-            $this->luminousIntensity() * $power,
+            Exponent::multiply($this->length(), $power),
+            Exponent::multiply($this->mass(), $power),
+            Exponent::multiply($this->time(), $power),
+            Exponent::multiply($this->electricCurrent(), $power),
+            Exponent::multiply($this->temperature(), $power),
+            Exponent::multiply($this->amountOfSubstance(), $power),
+            Exponent::multiply($this->luminousIntensity(), $power),
         );
     }
 

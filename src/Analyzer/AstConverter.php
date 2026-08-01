@@ -54,6 +54,7 @@ use jbboehr\Yumemi\Parser\Ast\Integer_;
 use jbboehr\Yumemi\Parser\Ast\Mul;
 use jbboehr\Yumemi\Parser\Ast\Pow;
 use jbboehr\Yumemi\Parser\Ast\Sub;
+use jbboehr\Yumemi\Util\Exponent;
 
 /**
  * Converts parser AST nodes into expression trees.
@@ -113,6 +114,6 @@ final class AstConverter
             throw UnsupportedSyntaxException::create($ast);
         }
 
-        return new Power($this->convert($ast->left), (int) $ast->right->value);
+        return new Power($this->convert($ast->left), Exponent::fromString($ast->right->value));
     }
 }

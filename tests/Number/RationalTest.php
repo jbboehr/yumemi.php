@@ -97,6 +97,28 @@ final class RationalTest extends TestCase
         Rational::fromDecimalString($input);
     }
 
+    public function testRejectsScientificExponentBeyondSupportedRange(): void
+    {
+        $this->expectException(\OverflowException::class);
+        $this->expectExceptionMessage('10001');
+
+        Rational::fromDecimalString('1e10001');
+    }
+
+    public function testRejectsCombinedDecimalScaleBeyondSupportedRange(): void
+    {
+        $this->expectException(\OverflowException::class);
+
+        Rational::fromDecimalString('0.' . str_repeat('0', 9_999) . '1e-1');
+    }
+
+    public function testRejectsPowerBeyondSupportedRange(): void
+    {
+        $this->expectException(\OverflowException::class);
+
+        (new Rational(2))->pow(10_001);
+    }
+
     /**
      * @return iterable<string, array{string}>
      */

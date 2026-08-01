@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\Tests;
 
 use jbboehr\Yumemi\Dimension;
+use jbboehr\Yumemi\Exception\OverflowException;
 use PHPUnit\Framework\TestCase;
 
 final class DimensionTest extends TestCase
@@ -103,6 +104,30 @@ final class DimensionTest extends TestCase
 
         $this->assertSame([2, 0, -2, 0, 0, 0, 0], $velocity->pow(2)->powers());
         $this->assertSame('length ^ 2 / time ^ 2', $velocity->pow(2)->toString());
+    }
+
+    public function testRejectsOutOfRangeDimensionConstruction(): void
+    {
+        $this->expectException(OverflowException::class);
+
+        new Dimension(length: 10_001);
+    }
+
+    public function testRejectsDimensionArithmeticBeyondSupportedRange(): void
+    {
+        $dimension = new Dimension(length: 100);
+
+        $this->expectException(OverflowException::class);
+        $dimension->pow(101);
+    }
+
+    public function testRejectsSerializedDimensionBeyondSupportedRange(): void
+    {
+        $payload = 'O:24:"jbboehr\\Yumemi\\Dimension":2:{s:7:"version";i:1;s:6:"powers";a:7:{'
+            . 'i:0;i:10001;i:1;i:0;i:2;i:0;i:3;i:0;i:4;i:0;i:5;i:0;i:6;i:0;}}';
+
+        $this->expectException(\UnexpectedValueException::class);
+        unserialize($payload);
     }
 
     public function testFormatsDenominatorOnlyAndCompoundDenominators(): void

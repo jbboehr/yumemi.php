@@ -42,6 +42,7 @@ use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
+use jbboehr\Yumemi\Util\Exponent;
 
 final class ExprReducer
 {
@@ -96,7 +97,7 @@ final class ExprReducer
         }
 
         if ($expr instanceof Power) {
-            self::collect($expr->base, $power * $expr->exponent, $state);
+            self::collect($expr->base, Exponent::multiply($power, $expr->exponent), $state);
             return;
         }
 
@@ -115,7 +116,7 @@ final class ExprReducer
                 $data['unit'] = $expr;
             }
 
-            $data['power'] += $power;
+            $data['power'] = Exponent::add($data['power'], $power);
 
             if ($data['power'] === 0) {
                 unset($state->units[$expr->name]);

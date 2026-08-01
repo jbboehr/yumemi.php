@@ -40,6 +40,7 @@ use PHPStan\Type\Constant\ConstantIntegerType;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\OperatorTypeSpecifyingExtension;
 use PHPStan\Type\Type;
+use jbboehr\Yumemi\Util\Exponent;
 
 /**
  * Infers types for +, -, *, /, **, % when at least one operand is unit_int or unit_float.
@@ -203,6 +204,14 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
         }
 
         $exponent = $rightSide->getValue();
+        if (abs($exponent) > Exponent::MAX_ABSOLUTE) {
+            return new ErrorType(sprintf(
+                'Unit exponentiation supports exponents from -%d through %d.',
+                Exponent::MAX_ABSOLUTE,
+                Exponent::MAX_ABSOLUTE,
+            ));
+        }
+
         $unit = UnitExpressionAlgebra::power($leftUnit->getUnitExpression(), $exponent);
 
         // PHP: negative exponents yield float; also promote when the base is float-like.

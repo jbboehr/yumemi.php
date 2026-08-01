@@ -42,6 +42,7 @@ use jbboehr\Yumemi\Exception\InvalidArgumentException;
 use jbboehr\Yumemi\Exception\OverflowException;
 use jbboehr\Yumemi\Exception\UnderflowException;
 use jbboehr\Yumemi\Exception\UnexpectedValueException;
+use jbboehr\Yumemi\Util\Exponent;
 
 final class Rational implements \JsonSerializable
 {
@@ -139,18 +140,15 @@ final class Rational implements \JsonSerializable
 
         $whole = $matches[1];
         $fraction = $matches[2] ?? '';
-        $exponent = (int) ($matches[3] ?? 0);
+        $exponent = Exponent::fromString($matches[3] ?? '0');
         $sign = str_starts_with($whole, '-') ? '-' : '';
         $digits = ltrim($whole, '+-') . $fraction;
         $digits = ltrim($digits, '0');
         $numerator = gmp_init($sign . ($digits === '' ? '0' : $digits), 10);
-        $denominator = gmp_pow(10, strlen($fraction));
+        $scale = Exponent::subtract(Exponent::checked(strlen($fraction)), $exponent);
 
-        if ($exponent >= 0) {
-            $numerator = gmp_mul($numerator, gmp_pow(10, $exponent));
-        } else {
-            $denominator = gmp_mul($denominator, gmp_pow(10, -$exponent));
-        }
+        $denominator = $scale >= 0 ? gmp_pow(10, $scale) : gmp_init(1);
+        $numerator = $scale < 0 ? gmp_mul($numerator, gmp_pow(10, -$scale)) : $numerator;
 
         return new self($numerator, $denominator);
     }
@@ -207,6 +205,8 @@ final class Rational implements \JsonSerializable
 
     public function pow(int $power): self
     {
+        $power = Exponent::checked($power);
+
         if ($power === 0) {
             return new self(1);
         }

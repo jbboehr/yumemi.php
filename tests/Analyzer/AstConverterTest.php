@@ -39,6 +39,7 @@ namespace jbboehr\Yumemi\Tests\Analyzer;
 use jbboehr\Yumemi\Analyzer\AstConverter;
 use jbboehr\Yumemi\Analyzer\UnitResolver;
 use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
+use jbboehr\Yumemi\Exception\OverflowException;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Parser\Parser;
 use jbboehr\Yumemi\Registry\UnitRegistry;
@@ -68,6 +69,16 @@ final class AstConverterTest extends TestCase
         $expr = $converter->convert(Parser::parseString('meter^--2'));
 
         $this->assertSame('meter ^ 2', $expr->reduce()->toString());
+    }
+
+    public function testRejectsExponentBeyondSupportedRangeWithoutClamping(): void
+    {
+        $converter = new AstConverter(new UnitResolver(UnitRegistry::defaults()));
+
+        $this->expectException(OverflowException::class);
+        $this->expectExceptionMessage(str_repeat('9', 40));
+
+        $converter->convert(Parser::parseString('meter^' . str_repeat('9', 40)));
     }
 
     public function testSymbolicModeKeepsBareUnitNames(): void

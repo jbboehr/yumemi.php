@@ -38,6 +38,7 @@ namespace jbboehr\Yumemi\Tests;
 
 use jbboehr\Yumemi\Catalog\UnitSemantics;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
+use jbboehr\Yumemi\Exception\OverflowException;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
 use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
@@ -75,6 +76,13 @@ final class UnitsTest extends TestCase
         $this->assertSame('length * mass / time ^ 2', $dimension->toString());
         $this->assertTrue($dimension->equals($units->dimension('kilogram * meter / second^2')));
         $this->assertTrue($units->dimension('percent')->isDimensionless());
+    }
+
+    public function testConversionResolutionRejectsExponentBeyondSupportedRange(): void
+    {
+        $this->expectException(OverflowException::class);
+
+        Units::default()->conversionFactor('meter^10001', 'meter');
     }
 
     public function testUnitExpressionsExposeDimensionDirectly(): void

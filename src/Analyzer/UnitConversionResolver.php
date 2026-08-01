@@ -63,6 +63,7 @@ use jbboehr\Yumemi\Parser\Ast\Pow;
 use jbboehr\Yumemi\Parser\Ast\Sub;
 use jbboehr\Yumemi\Parser\Parser;
 use jbboehr\Yumemi\Registry\UnitRegistry;
+use jbboehr\Yumemi\Util\Exponent;
 
 /**
  * Resolves multiplicative and affine unit strings into exact canonical-coordinate conversions.
@@ -272,7 +273,7 @@ final class UnitConversionResolver
 
         $unit = $this->resolveAst($ast->left);
         $this->assertMultiplicative($ast, $unit);
-        $power = (int) $ast->right->value;
+        $power = Exponent::fromString($ast->right->value);
 
         return new ResolvedConversionUnit(
             $this->symbolicAstConverter->convert($ast),

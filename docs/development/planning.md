@@ -390,7 +390,8 @@ deferred advanced features.
   remain accepted while `Pa` is pascal; Yumemi does not special-case these catalog-valid ambiguities.
 - Syntax errors carry decoded-expression byte spans. Unknown-unit and unsupported-semantic errors occur after parsing
   and remain unspanned because AST nodes do not yet retain source locations.
-- Very large parsed integer exponents may exceed PHP integer range before reaching the expression model.
+- Unit, dimension, and scientific-decimal exponents are bounded to `-10000` through `10000`; checked composition rejects
+  larger effective powers before native integer overflow or unbounded GMP exponentiation.
 - The UDUNITS2 importer still special-cases `cm2` syntax, and generated `prefixRegex` metadata is currently unused by
   resolution.
 - Expression arithmetic reduces eagerly. The benchmark suite measures representative reduction and normalization, but no

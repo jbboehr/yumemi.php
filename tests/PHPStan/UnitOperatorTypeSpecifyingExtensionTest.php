@@ -225,6 +225,14 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
         $this->assertInstanceOf(ErrorType::class, $result);
     }
 
+    public function testPowOutOfRangeConstantExponentIsError(): void
+    {
+        $result = $this->extension->specifyType('**', $this->unitFloat('meter'), new ConstantIntegerType(10_001));
+
+        $this->assertInstanceOf(ErrorType::class, $result);
+        $this->assertStringContainsString('-10000 through 10000', $result->getReason() ?? '');
+    }
+
     public function testModSameUnitKeepsUnit(): void
     {
         $a = $this->unitInt('meter');
