@@ -41,10 +41,12 @@ use jbboehr\Yumemi\Catalog\CatalogNameKind;
 use jbboehr\Yumemi\Catalog\PrefixDecomposition;
 use jbboehr\Yumemi\Catalog\UnitKind;
 use jbboehr\Yumemi\Catalog\UnitSemantics;
+use jbboehr\Yumemi\Exception\UnexpectedValueException;
 use jbboehr\Yumemi\Exception\UnresolvableUnitDimensionException;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
 use jbboehr\Yumemi\Units;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class Udunits2UnitRegistryTest extends TestCase
@@ -331,10 +333,6 @@ final class Udunits2UnitRegistryTest extends TestCase
 
     public function testCatalogLoaderDoesNotSynthesizePluralRecords(): void
     {
-        $file = tempnam(sys_get_temp_dir(), 'yumemi-catalog-');
-        $this->assertNotFalse($file);
-        $this->tempFiles[] = $file;
-
         $catalog = [
             'units' => [
                 'widget' => ['type' => 'dimensionless', 'name' => 'widget'],
@@ -342,13 +340,121 @@ final class Udunits2UnitRegistryTest extends TestCase
             'base' => [],
             'prefixes' => [],
         ];
-        file_put_contents($file, '<?php return ' . var_export($catalog, true) . ';');
 
-        $registry = new Udunits2UnitRegistry($file);
+        $registry = new Udunits2UnitRegistry($this->catalogFile($catalog));
 
         $this->assertNotNull($registry->findCatalogRecord('widget'));
         $this->assertNull($registry->findCatalogRecord('widgets'));
         $this->assertSame(['widget'], $registry->names());
+    }
+
+    public function testCatalogLoaderRejectsNonLocalPaths(): void
+    {
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionMessage('readable local PHP file');
+
+        new Udunits2UnitRegistry('https://example.com/udunits2.php');
+    }
+
+    public function testCatalogLoaderRejectsMissingLocalFile(): void
+    {
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionMessage('readable local PHP file');
+
+        new Udunits2UnitRegistry(sys_get_temp_dir() . '/yumemi-missing-catalog.php');
+    }
+
+    public function testCatalogLoaderRejectsNonArrayReturn(): void
+    {
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionMessage('must return an array');
+
+        new Udunits2UnitRegistry($this->catalogFile(42));
+    }
+
+    /**
+     * @param array<mixed> $catalog
+     */
+    #[DataProvider('invalidCatalogProvider')]
+    public function testCatalogLoaderRejectsInvalidShape(array $catalog, string $message): void
+    {
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionMessage($message);
+
+        new Udunits2UnitRegistry($this->catalogFile($catalog));
+    }
+
+    /**
+     * @return iterable<string, array{array<mixed>, string}>
+     */
+    public static function invalidCatalogProvider(): iterable
+    {
+        yield 'missing top-level key' => [
+            ['units' => [], 'base' => []],
+            'missing required key: prefixes',
+        ];
+        yield 'unexpected top-level key' => [
+            ['units' => [], 'base' => [], 'prefixes' => [], 'other' => []],
+            'contains unexpected key: other',
+        ];
+        yield 'record name differs from lookup key' => [
+            [
+                'units' => ['widget' => ['type' => 'base', 'name' => 'gadget']],
+                'base' => ['widget'],
+                'prefixes' => [],
+            ],
+            'Invalid UDUNITS2 catalog unit identity: widget',
+        ];
+        yield 'derived record lacks definition' => [
+            [
+                'units' => ['widget' => ['type' => 'unit', 'name' => 'widget']],
+                'base' => [],
+                'prefixes' => [],
+            ],
+            'derived units and aliases require a definition: widget',
+        ];
+        yield 'base list differs from records' => [
+            [
+                'units' => ['widget' => ['type' => 'base', 'name' => 'widget']],
+                'base' => [],
+                'prefixes' => [],
+            ],
+            'base list does not match its base unit records',
+        ];
+        yield 'invalid prefix value' => [
+            ['units' => [], 'base' => [], 'prefixes' => ['kilo' => 1000]],
+            'prefixes must map non-empty string names to non-empty string values',
+        ];
+        yield 'metadata without matching prefix' => [
+            [
+                'units' => [],
+                'base' => [],
+                'prefixes' => [],
+                'prefixMetadata' => [
+                    'k' => ['name' => 'kilo', 'kind' => 'symbol', 'value' => '1000'],
+                ],
+            ],
+            'Invalid UDUNITS2 prefix metadata for: k',
+        ];
+        yield 'null optional value' => [
+            ['units' => [], 'base' => [], 'prefixes' => [], 'prefixRegex' => null],
+            'prefixRegex must be a non-empty string',
+        ];
+        yield 'alias with derived-unit metadata' => [
+            [
+                'units' => [
+                    'thing' => [
+                        'type' => 'alias',
+                        'name' => 'thing',
+                        'def' => 'widget',
+                        'definition' => 'not valid on an alias',
+                    ],
+                ],
+                'base' => [],
+                'prefixes' => [],
+            ],
+            'unit record contains an unexpected key: thing',
+        ];
     }
 
     public function testBareUnitDimensionRequiresUnitsContextOrDefinition(): void
@@ -364,5 +470,15 @@ final class Udunits2UnitRegistryTest extends TestCase
         $units = Units::default();
 
         $this->assertSame('length', (new Unit('foot'))->withUnits($units)->dimension()->toString());
+    }
+
+    private function catalogFile(mixed $catalog): string
+    {
+        $file = tempnam(sys_get_temp_dir(), 'yumemi-catalog-');
+        $this->assertNotFalse($file);
+        $this->tempFiles[] = $file;
+        file_put_contents($file, "<?php\n\nreturn " . var_export($catalog, true) . ";\n");
+
+        return $file;
     }
 }

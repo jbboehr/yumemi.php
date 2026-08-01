@@ -158,13 +158,184 @@ final class Udunits2UnitRegistry extends UnitRegistry
      */
     private function loadCatalog(string $dataFile): array
     {
+        if (
+            str_contains($dataFile, '://')
+            || !stream_is_local($dataFile)
+            || !is_file($dataFile)
+            || !is_readable($dataFile)
+        ) {
+            throw new UnexpectedValueException(
+                'UDUNITS2 catalog path must name a readable local PHP file: ' . $dataFile,
+            );
+        }
+
         $catalog = require $dataFile;
 
+        return $this->validateCatalog($catalog);
+    }
+
+    /**
+     * @phpstan-return Udunits2Catalog
+     *
+     * @logion [OSD 96:99] The archive was opened beneath watchful lamps, and
+     *     every table was numbered before its testimony entered the court.
+     */
+    private function validateCatalog(mixed $catalog): array
+    {
         if (!is_array($catalog)) {
             throw new UnexpectedValueException('UDUNITS2 catalog file must return an array.');
         }
 
+        $requiredKeys = ['units', 'base', 'prefixes'];
+        foreach ($requiredKeys as $key) {
+            if (!array_key_exists($key, $catalog)) {
+                throw new UnexpectedValueException('UDUNITS2 catalog is missing required key: ' . $key);
+            }
+        }
+
+        $unexpectedKeys = array_diff(array_keys($catalog), [...$requiredKeys, 'prefixMetadata', 'prefixRegex']);
+        if ($unexpectedKeys !== []) {
+            throw new UnexpectedValueException(
+                'UDUNITS2 catalog contains unexpected key: ' . (string) reset($unexpectedKeys),
+            );
+        }
+
+        if (!is_array($catalog['units'])) {
+            throw new UnexpectedValueException('UDUNITS2 catalog units must be an array.');
+        }
+
+        $baseNames = [];
+        foreach ($catalog['units'] as $name => $record) {
+            if (!is_string($name) || $name === '') {
+                throw new UnexpectedValueException('UDUNITS2 catalog unit keys must be non-empty strings.');
+            }
+
+            $this->validateUnitRecord($name, $record);
+            if (is_array($record) && ($record['type'] ?? null) === 'base') {
+                $baseNames[] = $name;
+            }
+        }
+
+        if (!is_array($catalog['base']) || !array_is_list($catalog['base'])) {
+            throw new UnexpectedValueException('UDUNITS2 catalog base must be a list of unit names.');
+        }
+
+        foreach ($catalog['base'] as $name) {
+            if (!is_string($name) || $name === '') {
+                throw new UnexpectedValueException('UDUNITS2 catalog base names must be non-empty strings.');
+            }
+        }
+
+        if ($catalog['base'] !== $baseNames) {
+            throw new UnexpectedValueException('UDUNITS2 catalog base list does not match its base unit records.');
+        }
+
+        if (!is_array($catalog['prefixes'])) {
+            throw new UnexpectedValueException('UDUNITS2 catalog prefixes must be an array.');
+        }
+
+        foreach ($catalog['prefixes'] as $name => $value) {
+            if (!is_string($name) || $name === '' || !is_string($value) || $value === '') {
+                throw new UnexpectedValueException(
+                    'UDUNITS2 catalog prefixes must map non-empty string names to non-empty string values.',
+                );
+            }
+        }
+
+        if (array_key_exists('prefixMetadata', $catalog)) {
+            if (!is_array($catalog['prefixMetadata'])) {
+                throw new UnexpectedValueException('UDUNITS2 catalog prefixMetadata must be an array.');
+            }
+
+            foreach ($catalog['prefixMetadata'] as $name => $metadata) {
+                if (
+                    !is_string($name)
+                    || $name === ''
+                    || !is_array($metadata)
+                    || count($metadata) !== 3
+                    || !array_key_exists('name', $metadata)
+                    || !array_key_exists('kind', $metadata)
+                    || !array_key_exists('value', $metadata)
+                    || !is_string($metadata['name'])
+                    || $metadata['name'] === ''
+                    || !in_array($metadata['kind'], ['canonical', 'symbol'], true)
+                    || !is_string($metadata['value'])
+                    || !isset($catalog['prefixes'][$name])
+                    || $catalog['prefixes'][$name] !== $metadata['value']
+                ) {
+                    throw new UnexpectedValueException('Invalid UDUNITS2 prefix metadata for: ' . (string) $name);
+                }
+            }
+        }
+
+        if (
+            array_key_exists('prefixRegex', $catalog)
+            && (!is_string($catalog['prefixRegex']) || $catalog['prefixRegex'] === '')
+        ) {
+            throw new UnexpectedValueException('UDUNITS2 catalog prefixRegex must be a non-empty string.');
+        }
+
         /** @phpstan-var Udunits2Catalog $catalog */
         return $catalog;
+    }
+
+    /**
+     * @logion [OSD 96:98] No tablet entered by resemblance alone; its name,
+     *     office, and lawful dependencies were examined beneath the same seal.
+     */
+    private function validateUnitRecord(string $name, mixed $record): void
+    {
+        if (!is_array($record)) {
+            throw new UnexpectedValueException('UDUNITS2 catalog unit record must be an array: ' . $name);
+        }
+
+        if (
+            !isset($record['type'], $record['name'])
+            || !in_array($record['type'], ['base', 'dimensionless', 'unit', 'alias'], true)
+            || !is_string($record['name'])
+            || $record['name'] !== $name
+        ) {
+            throw new UnexpectedValueException('Invalid UDUNITS2 catalog unit identity: ' . $name);
+        }
+
+        $allowedKeys = match ($record['type']) {
+            'alias' => ['type', 'name', 'def', 'aliasKind'],
+            'unit' => ['type', 'name', 'def', 'definition', 'plural', 'comment', 'semantics'],
+            default => ['type', 'name', 'definition', 'plural', 'comment'],
+        };
+        $unexpectedKeys = array_diff(array_keys($record), $allowedKeys);
+        if ($unexpectedKeys !== []) {
+            throw new UnexpectedValueException('UDUNITS2 unit record contains an unexpected key: ' . $name);
+        }
+
+        foreach (['def', 'definition', 'comment', 'plural'] as $key) {
+            if (array_key_exists($key, $record) && !is_string($record[$key])) {
+                throw new UnexpectedValueException('Invalid UDUNITS2 catalog unit field ' . $key . ': ' . $name);
+            }
+        }
+
+        if (
+            in_array($record['type'], ['unit', 'alias'], true)
+            && (!isset($record['def']) || !is_string($record['def']) || $record['def'] === '')
+        ) {
+            throw new UnexpectedValueException('UDUNITS2 derived units and aliases require a definition: ' . $name);
+        }
+
+        if (
+            array_key_exists('aliasKind', $record)
+            && (
+                $record['type'] !== 'alias'
+                || !in_array($record['aliasKind'], ['alias', 'symbol', 'explicit_plural', 'generated_plural'], true)
+            )
+        ) {
+            throw new UnexpectedValueException('Invalid UDUNITS2 catalog alias kind: ' . $name);
+        }
+
+        if (
+            array_key_exists('semantics', $record)
+            && !in_array($record['semantics'], ['affine', 'logarithmic'], true)
+        ) {
+            throw new UnexpectedValueException('Invalid UDUNITS2 catalog unit semantics: ' . $name);
+        }
     }
 }

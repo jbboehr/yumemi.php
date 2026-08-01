@@ -19,6 +19,11 @@ includes:
 - decimal and scientific prefix definitions;
 - source definitions, comments, and documentation when present upstream.
 
+`Udunits2UnitRegistry` and `UnitRegistryBuilder::default($dataFile)` may load another generated catalog from a readable
+local PHP file. That file is executable trusted configuration: PHP evaluates it before Yumemi can validate the returned
+catalog shape. Never use an uploaded file, URL, or other untrusted path as a catalog. Prefer builder definitions and
+aliases when an application needs custom units rather than a replacement generated catalog.
+
 Lookup is case-sensitive. Exact names win before dynamic prefix decomposition, and prefixes apply only when the
 remaining suffix is an exact unit name. See the [unit syntax reference](unit-syntax.md#unit-names) for examples.
 
