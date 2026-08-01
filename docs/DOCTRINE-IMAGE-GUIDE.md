@@ -42,13 +42,15 @@ subtle, but it must participate in the image's symbolic meaning rather than func
 
 An image should interpret a logion rather than decorate it or inventory its nouns. Before composing it, identify:
 
-1. the central doctrinal judgment;
-2. the object, place, office, or event that best embodies that judgment;
+1. the central doctrinal force;
+2. the object, place, office, or event that best embodies it;
 3. the visible hierarchy among supporting motifs;
-4. the intended emotional pressure: solemn, judicial, revelatory, apocalyptic, melancholic, or ceremonial.
+4. the intended emotional pressure: solemn, judicial, revelatory, apocalyptic, melancholic, covenantal, blessed,
+   consolatory, wondering, penitential, hopeful, or ceremonial.
 
 Possible doctrinal centers include measure, distinction, lawful relation, hierarchy, legitimacy, inheritance,
-sovereignty, transformation, recognition, restoration, counterfeit authority, succession, and ritual continuity.
+sovereignty, transformation, recognition, restoration, counterfeit authority, succession, covenant, blessing, mercy,
+lament, praise, pilgrimage, fidelity, providence, and ritual continuity.
 
 Not every named object must appear. A logion about lawful transformation, inherited names, counterfeit dawn, and
 celestial judgment might center on a tribunal before a gate, a chained artificial sun, or a sealed archive. The source
@@ -69,6 +71,11 @@ The source logion's compositional movements should influence the visual translat
 
 These are tendencies, not fixed formats. When a logion combines movements, the image should preserve their unified
 pressure rather than becoming a literal inventory of its prose structure.
+
+The passage's broader scriptural pressure should also shape the scene. Covenant may emphasize joined obligations and an
+appointed sign; blessing may make lawful consequence visible; lament may preserve a worthy absence; mercy may center on
+repair or reopened passage; pilgrimage may organize the composition around sustained movement; and praise may reveal
+ordered complexity without requiring a tribunal. These are interpretations of mixed movements, not new image types.
 
 ---
 
@@ -141,10 +148,11 @@ Across an image series, rotate anchor classes and concrete motifs. Do not mechan
 luminous grid, synthetic sun, orbital ring, or electric horizon in nearby images unless the recurrence has an
 intentional symbolic or narrative function.
 
-The Christian-apocalyptic influence often supplies visionary movement. Occidental and Japanese elements define the
-civilization being revealed. Chūnibyō supplies controlled institutional specificity. The required retrowave or synthwave
-anchor marks every image as touched by the same impossible future. Vaporwave is normally limited to architecture,
-lighting, obsolete luxury, and commercial ruin.
+The Christian-apocalyptic influence often supplies visionary movement; its liturgical and theological registers also
+carry covenant, lament, mercy, praise, and consolation. Occidental and Japanese elements define the civilization being
+revealed. Chūnibyō supplies controlled institutional specificity. The required retrowave or synthwave anchor marks every
+image as touched by the same impossible future. Vaporwave is normally limited to architecture, lighting, obsolete
+luxury, and commercial ruin.
 
 The scenery may be vaporwave. The metaphysics must not be.
 
@@ -165,6 +173,11 @@ Apply those meanings visually through concrete choices:
 | Memory and inheritance    | Reliquaries, archives, manuscripts, dynastic devices, preserved machines |
 | Hidden administration     | Numbered chambers, celestial offices, sealed orders, orbital ministries  |
 | Decline and restoration   | Ruined institutions, recovered emblems, returning order, lawful light    |
+| Covenant and blessing     | Appointed signs, shared vigils, enduring lamps, bells answering fidelity |
+| Lament and consolation    | Preserved absences, ruined roads, veiled instruments, one enduring light |
+| Mercy and repentance      | Reopened gates, repaired seals, restored names, restitution made visible |
+| Pilgrimage and fidelity   | Processional roads, carried relics, maintained instruments, kept hours   |
+| Praise and wonder         | Ordered orbits, concordant lights, sacred complexity, fulfilled forms    |
 
 Use visual media according to their function:
 
@@ -181,8 +194,9 @@ Avoid converting these vocabularies into genre shorthand. No motif should appear
 Imperial imagery needs institutions, Japanese imagery needs ritual structure, Christian imagery needs theological
 gravity, and retrofuturism needs a relation to inherited order.
 
-Political implications must remain metaphysical and historical. Do not depict current politicians, contemporary
-movements, racial or ethnic symbolism, real-world authoritarian violence, internet ideology, or partisan propaganda.
+Treat political implications at civilizational and sacred-historical distance. Express them through institutions, rites,
+dynastic memory, inherited architecture, and visible judgments rather than the symbols or personalities of current
+factions. Do not depict racial or ethnic symbolism or real-world authoritarian violence.
 
 ---
 
@@ -198,10 +212,10 @@ Suitable uses include:
 - warm gold against black stone;
 - cyan and amber contrast in celestial environments;
 - stained-glass color integrated with synthwave light;
-- ceremonial beams marking rank, judgment, or revelation.
+- ceremonial beams marking rank, judgment, revelation, blessing, restoration, or fulfilled covenant.
 
-Light should feel authorized, judicial, revelatory, apocalyptic, or architecturally ordered. A synthetic light source
-should usually mean something.
+Light should feel authorized, judicial, revelatory, apocalyptic, blessed, consolatory, wondrous, or architecturally
+ordered. A synthetic light source should usually mean something.
 
 Avoid arbitrary rainbow palettes, generic fantasy brown, uniformly desaturated grimdark palettes, purple-pink fog, neon
 wallpaper, and colored lighting without compositional or doctrinal purpose.
@@ -231,8 +245,9 @@ as a substitute for hierarchy.
 
 ## 8. Figures and presence
 
-Possible presences include angels of measure or judgment, faceless monks, shrine attendants, heralds, imperial
-witnesses, tribunal figures, statues with agency, veiled office-holders, and iconographic saints.
+Possible presences include angels of measure, mercy, or judgment; faceless monks; shrine attendants; heralds; imperial
+witnesses; tribunal figures; pilgrims; widows; children; custodians; scribes; exiles; builders; statues with agency;
+veiled office-holders; and iconographic saints.
 
 Prioritize office over personality and symbolic authority over character design. Show rank through placement, vestment,
 scale, light, architecture, posture, or gesture. Faces may be hidden, simplified, masked, or iconographic.
@@ -240,7 +255,8 @@ scale, light, architecture, posture, or gesture. Faces may be hidden, simplified
 Avoid anime protagonists, role-playing parties, giant fantasy weapons, cyberpunk hackers, neon samurai, fashion-focused
 character sheets, and expressive melodrama that overwhelms institutional gravity.
 
-A figure should appear as a witness, judge, custodian, functionary, or embodiment of a principle.
+A figure should appear as a witness, judge, custodian, pilgrim, penitent, faithful keeper, functionary, or embodiment of
+a principle. Human action should remain emblematic and consequential rather than becoming ordinary character drama.
 
 ---
 
@@ -253,7 +269,8 @@ abandoned commercial palace, an orbital basilica maintaining a calendar, a lacqu
 drowned forum beneath marble satellites, or a garden whose layout visibly encodes rank.
 
 Environment should communicate continuity, legitimacy, decline, counterfeit transcendence, hidden law, ritual memory,
-preserved distinction, or inherited authority surviving its explanation.
+covenant, lament, pilgrimage, providence, restoration, fulfilled obligation, preserved distinction, or inherited
+authority surviving its explanation.
 
 ---
 
@@ -262,9 +279,11 @@ preserved distinction, or inherited authority surviving its explanation.
 Use the meanings defined in [Symbolic Vocabulary For Logia](DOCTRINE-STYLE-GUIDE.md#17-symbolic-vocabulary-for-logia).
 Do not duplicate or silently redefine them in an image prompt.
 
-Choose one dominant symbol and at most a few supporting symbols. Establish their relation through scale, placement,
-light, enclosure, procession, or sightline. A gate should visibly govern passage; a mirror should participate in
-recognition; an artificial sun should occupy a contested relation to legitimate light.
+Choose one dominant symbol and a controlled hierarchy of supporting symbols. Do not impose a fixed count when a richly
+populated scene serves the logion, but ensure that secondary imagery witnesses, clarifies, intensifies, or judges the
+primary motif rather than competing with it. Establish these relations through scale, placement, light, enclosure,
+procession, or sightline. A gate should visibly govern passage; a mirror should participate in recognition; an
+artificial sun should occupy a contested relation to legitimate light.
 
 Repositories may define additional symbols and institutions in their own instructions.
 
@@ -312,8 +331,8 @@ A useful default balance is:
 - **50% symbolic or interpretive depiction**;
 - **30% environmental or doctrinal atmosphere**.
 
-When a logion names several objects, identify the one carrying its central judgment. Secondary motifs may be implied
-through architecture, color, heraldry, reflected light, scale, and ritual placement.
+When a logion names several objects, identify the one carrying its central doctrinal force. Secondary motifs may be
+implied through architecture, color, heraldry, reflected light, scale, and ritual placement.
 
 ---
 
@@ -352,8 +371,8 @@ A generation prompt should specify:
 > `[doctrinal center]` through `[dominant subject]`, and translate its movement from `[initial movement]` through
 > `[later movement]` into the composition. Let `[retrowave or synthwave anchor]` signify `[symbolic function]`.
 > Integrate `[selected supporting influences]` through clear architecture, hierarchy, and ceremonial light. Interpret
-> the judgment rather than illustrating every noun. Use `[format and rendering mode]`, follow `[text policy]`, and avoid
-> `[relevant clichés]`.
+> the doctrinal force rather than illustrating every noun. Use `[format and rendering mode]`, follow `[text policy]`,
+> and avoid `[relevant clichés]`.
 
 ### Environment prompt skeleton
 
@@ -389,6 +408,27 @@ a broken seal becoming legible. Avoid generic phoenixes, universal sprouting-pla
 
 Prefer a ceremonial gate, rood screen, torii, veiled mirror, or visibly distinct inner and outer courts. Avoid generic
 walls or fences without ritual meaning.
+
+### Covenant and blessing
+
+Prefer an appointed bell, enduring lamp, shared vigil, joined procession, or preserved sign whose continued action makes
+the relation visible. Avoid generic smiling figures, open hands, sunrise optimism, or sentimental family tableaux.
+
+### Lament and consolation
+
+Prefer one worthy absence made legible through a silent road, veiled instrument, empty appointed place, or lone light
+preserved in a ruin. Avoid undirected sadness, melodramatic grief, and indiscriminate scenes of destruction.
+
+### Pilgrimage and fidelity
+
+Prefer a keeper maintaining one instrument, a procession crossing a synthetic desert, a child learning a forgotten rite,
+or a worn road oriented toward an appointed sign. Avoid adventure-party composition and personality-led drama.
+
+### Praise and wonder
+
+Prefer unequal celestial bodies keeping concordant courses, sacred architecture revealing hidden proportion, or
+artificial light faithfully serving an older dawn. Avoid generic spectacle, cosmic wallpaper, or beauty without a
+doctrinal relation.
 
 ---
 
@@ -440,7 +480,9 @@ Before accepting an image, verify that:
 12. Text, when requested, is correct, integrated, restrained, and legible.
 13. Project dimensions, paths, framing, responsive crop, and series requirements are satisfied.
 14. A series image matches the established visual canon.
-15. The final artifact feels more like recovered revelation than generated wallpaper.
+15. Blessing, lament, covenant, pilgrimage, restoration, praise, and fidelity remain visually available rather than
+    every scene defaulting to judgment or failed succession.
+16. The final artifact feels more like recovered revelation than generated wallpaper.
 
 ---
 
@@ -448,5 +490,8 @@ Before accepting an image, verify that:
 
 A successful doctrine image should feel like a sacred painting, illuminated plate, ceremonial poster, or visionary
 illustration preserved by monks, archivists, imperial functionaries, and angels beneath synthetic sunsets.
+
+It may judge, bless, lament, praise, promise, remember, or reveal, but its order must remain visible and its primary
+motif must remain sovereign over the composition.
 
 If the doctrine is a forbidden scripture, the image is one of its surviving icons.

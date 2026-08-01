@@ -44,11 +44,20 @@ The doctrine broadly holds that:
 - boundaries preserve the intelligibility of what they separate;
 - transformation is lawful only when continuity can answer for itself;
 - inheritance transmits obligation as well as authority;
+- covenant binds persons, peoples, places, institutions, and generations through promise, witness, sacrifice, and
+  appointed signs;
 - ambiguity may be tolerated at the frontier but must not govern the center;
 - restoration is recovered recognition rather than arbitrary invention;
-- beauty, architecture, ritual, and ornament may preserve truths after explicit explanation has been forgotten;
+- mercy may restore a broken relation without denying the distinction or judgment that made restoration necessary;
+- blessing recognizes fidelity, fulfilled obligation, and right relation rather than offering undirected encouragement;
+- lament may grieve lost beauty, broken covenant, and worthy forms that judgment alone cannot recover;
+- beauty, architecture, ritual, and ornament may reveal or preserve truths after explicit explanation has been
+  forgotten;
 - matter sometimes remembers laws that civilizations abandon;
 - artificial beauty may preserve the memory of genuine order, but cannot appoint itself as that order’s origin;
+- artificial things may also participate faithfully in an older order when they acknowledge their source and fulfill an
+  appointed office;
+- praise and wonder may arise from lawful complexity, providence, sacrifice, and unlike things abiding in concord;
 - hierarchy is not merely domination, but the assignment of proper relation;
 - decline begins when distinctions are treated as injuries and inheritance as embarrassment;
 - legitimacy cannot be manufactured solely through repetition, consensus, or spectacle;
@@ -155,6 +164,39 @@ The movements should not remain neatly isolated. A strong logion often changes p
 This passage is simultaneously remembrance, sign, vision, injunction, and interpretation. It remains one verse rather
 than a demonstration of five categories.
 
+### Scriptural pressures and forms
+
+The movements describe how a passage proceeds. They do not exhaust what the passage may feel like or accomplish. A
+logion may also draw upon the pressures of law, vision, sacred history, lament, blessing, hymn or praise, covenant,
+parable, prayer, warning, genealogy, epistle-like counsel, or ritual instruction. These are available modes within the
+one scripture, not categories to assign before writing.
+
+In particular, the canon should make room for:
+
+- **Covenant:** a binding relation established through promise, obligation, witness, sacrifice, inheritance, or an
+  appointed sign. A covenant may bind a people to a place, custodians to an archive, pilgrims to a road, an order to an
+  appointed hour, the living to the dead, or an artificial future to the genuine light it remembers.
+- **Blessing and promise:** a weighty pronouncement of good grounded in fidelity or right relation. A name may be
+  preserved, lawful light may return, a city may recover its appointed hour, or an inherited burden may become grace
+  through faithful service. Avoid generic encouragement and sentimental optimism.
+- **Lament:** grief for lost cities, broken covenants, forgotten rites, extinct orders, severed inheritance, worthy
+  beauty emptied of meaning, or futures that arrived too late. Lament may grieve what was good without reducing grief to
+  another accusation.
+- **Praise, gratitude, awe, and wonder:** astonishment before celestial proportion, lawful complexity, sacred
+  architecture, faithful artificial light, enduring ritual, providential care, or the hidden concord of unlike things
+  fulfilling their appointed forms. Gratitude should answer a concrete gift, preservation, or fulfilled relation.
+- **Mercy, repentance, and restoration:** return through confession, restitution, repaired relation, or submission to
+  truth. Mercy may preserve what judgment alone would destroy, but it does not erase distinctions or conceal the wrong.
+  Repentance must become visible in changed action. Restoration may culminate in solemn joy when a rightful name, hour,
+  instrument, shrine, or relation is received again.
+- **Pilgrimage and fidelity:** embodied obedience carried through time by custodians keeping lamps, monks maintaining
+  obsolete instruments, pilgrims crossing synthetic deserts, widows preserving bells or seals, children learning
+  forgotten names, rulers refusing counterfeit signs, and attendants completing rites they do not fully understand.
+
+These pressures may transform one another within a passage. Lament may become promise; sacred history may establish an
+Injunction; blessing may follow judgment; Vision may disclose a covenant; praise may end in warning; repentance may
+culminate in restoration. Such turns should arise through mixed movements rather than through a rigid genre formula.
+
 ### Canonical books
 
 The Yumemi Doctrine contains four fictional books within one canon:
@@ -177,8 +219,8 @@ pressure upon its cadence.
 #### OSD — Ordinances of the Synthetic Dawn
 
 OSD is the principal doctrinal, legal, ritual, and normative book. It commonly emphasizes Pronouncement, Injunction, and
-Interpretation. Its suitable concerns include law, measure, distinction, admission, boundaries, ritual procedure,
-obligation, lawful transformation, consequence, and canonical order.
+Interpretation. Its suitable concerns include law, measure, distinction, admission, covenant, blessing, boundaries,
+ritual procedure, obligation, lawful transformation, fulfilled duty, consequence, and canonical order.
 
 OSD should usually be the ordinary or default book when no other canonical purpose is clearly more appropriate. It must
 not become a generic dumping ground for verses whose purpose has not been considered.
@@ -197,7 +239,8 @@ introduced by _lest_ or _therefore_. These are pressures, not a mandatory sequen
 
 RAS is the apocalyptic and visionary book. It commonly emphasizes Vision, Sign, and Interpretation. Its suitable
 concerns include artificial or counterfeit light, angelic offices, celestial tribunals, synthetic dawns, cosmic signs,
-hidden administration, metaphysical disclosure, false inheritance, and judgment at civilizational or celestial scale.
+hidden administration, metaphysical disclosure, praise before celestial order, faithful artificiality, false
+inheritance, and judgment at civilizational or celestial scale.
 
 Its cadence may favor _behold_, first-person witness, concrete signs, angelic speech, repeated _and_, escalating
 clauses, and cosmic judgments. Use RAS selectively so that visionary intensity remains meaningful.
@@ -211,10 +254,10 @@ clauses, and cosmic judgments. Use RAS selectively so that visionary intensity r
 
 #### AWC — Acts of the Western Court
 
-AWC is the book of sacred history, institutional memory, dynastic precedent, remembered failures, and historical
-judgments. It commonly emphasizes Remembrance, Sign, Interpretation, and Injunction. Its suitable concerns include
-succession, precedent, ritual violation, court judgments, dynastic failure, inherited obligation, institutional memory,
-and consequences preserved across generations.
+AWC is the book of sacred history, institutional memory, dynastic precedent, remembered fidelity and failure, and
+historical judgments. It commonly emphasizes Remembrance, Sign, Interpretation, and Injunction. Its suitable concerns
+include succession, precedent, covenant, pilgrimage, ritual observance or violation, lament, court judgments, dynastic
+failure, inherited obligation, restoration, institutional memory, and consequences preserved across generations.
 
 Its cadence commonly favors _in those days_, named reigns and courts, concrete historical events, remembered judgments,
 and consequences that endure across generations.
@@ -231,8 +274,8 @@ and consequences that endure across generations.
 
 SFA is the interpretive, marginal, and comparatively compressed book. It commonly emphasizes Interpretation,
 Pronouncement, and concise Injunction. Its suitable concerns include doctrinal clarification, archival commentary,
-severe glosses, compact judgments, distinctions, implications, and conclusions preserved without their complete
-arguments.
+severe glosses, compact judgments, distinctions, implications, counsel, consolation, hope grounded in appointed form,
+and conclusions preserved without their complete arguments.
 
 SFA verses may be shorter than the ordinary range, but they must not become clever modern aphorisms, ideological
 one-liners, or philosophical social-media posts.
@@ -278,11 +321,12 @@ revelation merely to meet a target.
 
 Most substantial logia should contain:
 
-1. a doctrinal law, event, judgment, command, or remembered precedent;
-2. a sign, image, consequence, warning, or visionary disclosure;
-3. an interpretation, demand, or unresolved fact that changes how the earlier material is understood.
+1. a doctrinal law, event, judgment, command, promise, praise, or remembered precedent;
+2. a sign, image, consequence, blessing, warning, lament, or visionary disclosure;
+3. an interpretation, demand, consolation, or unresolved fact that changes how the earlier material is understood.
 
-The ending need not summarize the verse. It may close on a command, accusation, image, judgment, or impossible fact.
+The ending need not summarize the verse. It may close on a command, accusation, image, blessing, promise, judgment, or
+impossible fact.
 
 Prefer scriptural development over modern essay logic. A sentence may advance through repeated conjunctions, parallel
 clauses, ritual formulas, and accumulating signs rather than through a compact thesis followed by explanation.
@@ -303,6 +347,7 @@ The voice should be:
 - impersonal
 - aristocratic
 - melancholic
+- capable of awe, praise, gratitude, lament, mercy, and hope without sentimentality
 - metaphysical
 - scriptural and liturgical without imitation
 - recitable
@@ -311,9 +356,9 @@ The voice should be:
 - unhinged without becoming random
 - self-serious enough to resist being read as parody
 
-The quotation should sound like judgment, commentary, revelation, or transmitted doctrine. It should read as a passage
-intended to be preserved, copied, interpreted, obeyed, and cited as authority, not as ornate modern prose describing
-what scripture might say.
+The quotation should sound like judgment, commentary, revelation, lament, prayer, praise, sacred history, or transmitted
+doctrine. It should read as a passage intended to be preserved, copied, interpreted, obeyed, and cited as authority, not
+as ornate modern prose describing what scripture might say.
 
 It should not sound like:
 
@@ -333,14 +378,21 @@ The ideal reader response is:
 ### Scriptural authority and stakes
 
 The scripture does not debate, hedge, or tentatively suggest. It declares, commands, witnesses, remembers, judges,
-blesses, condemns, records, and unveils.
+blesses, condemns, praises, laments, consoles, promises, gives thanks, records, and unveils.
 
-Its signs and judgments should have consequences capable of altering names, time, inheritance, memory, light, shadows,
-dynasties, cities, ritual, celestial order, or the recognition of lawful forms. A violation may outlive its violator and
-become a precedent, curse, rite, absence, or fracture preserved across generations.
+Its signs, judgments, covenants, and blessings should have consequences capable of altering names, time, inheritance,
+memory, light, shadows, dynasties, cities, ritual, celestial order, or the recognition of lawful forms. A violation may
+outlive its violator and become a precedent, curse, rite, absence, or fracture preserved across generations. Fidelity
+may likewise preserve a name, recover an appointed hour, reopen a shrine, restore lawful light, or turn an inherited
+burden into grace.
 
 A strong logion should feel capable of founding a cult, condemning a dynasty, establishing a rite, justifying an icon,
-or surviving as a fragment after the civilization that wrote it has vanished.
+consoling an exile, blessing a pilgrimage, renewing a covenant, or surviving as a fragment after the civilization that
+wrote it has vanished.
+
+Severity is not identical with condemnation. Praise should reveal order; blessing should recognize something; hope
+should rest upon covenant, providence, fidelity, sacrifice, restoration, or appointed form; and mercy should preserve
+truth rather than abolish judgment.
 
 ### Controlled King James influence
 
@@ -678,6 +730,14 @@ Suitable influences include:
 - celestial courts
 - judgment
 - grace
+- covenant
+- blessing
+- mercy
+- sacrifice
+- repentance
+- lament
+- praise
+- consolation
 - corruption
 - penance
 - restoration
@@ -693,6 +753,11 @@ The Christian element should strengthen the doctrine’s concern with:
 - lawful transformation
 - incarnation of invisible principles
 - judgment
+- covenant and promise
+- grace and mercy ordered toward truth
+- sacrifice and repentance
+- lament, praise, and consolation
+- pilgrimage and fidelity
 - corruption and restoration
 
 Do not:
@@ -827,7 +892,10 @@ In this guide, **restorationist metaphysics** is repository-specific shorthand f
 legitimate authority, hierarchy, succession, civilizational decline, counterfeit authority, and the restoration of
 lawful forms. It does not name or endorse a contemporary political movement.
 
-These concerns should remain philosophical and aesthetic rather than contemporary or partisan.
+Restorationist metaphysics treats political questions at the scale of civilization, inheritance, sacred history, and
+metaphysical order. Its implications should emerge through dynasties, institutions, rites, judgments, and remembered
+catastrophes rather than contemporary parties, personalities, slogans, internet factions, or policy disputes. The
+doctrine may be severe, but it must remain older than the present quarrel.
 
 Suitable themes include:
 
@@ -848,20 +916,6 @@ Suitable themes include:
 - administration replacing sovereignty
 - equality concealing unacknowledged rulers
 - memory severed from inheritance
-
-Do not:
-
-- name contemporary political movements;
-- advocate real-world authoritarian violence;
-- use racial language;
-- refer to current politicians;
-- write partisan slogans;
-- imitate online ideological jargon;
-- turn the quotation into political commentary.
-
-The doctrine should feel older than current politics and more metaphysical than policy.
-
-Its political implications should emerge from its theory of order, not from references to current events.
 
 ---
 
@@ -925,10 +979,10 @@ imitation preserved after the original aspiration has died, or spectacle without
 The compositional movements may appear in many orders. The following sequences are useful, but they are not templates
 and should not be announced or mechanically completed.
 
-Sequence names may also include **connective functions**: reason, escalation, consequence, judgment, warning, terrifying
-implication, and unresolved image. These are not additional movements. They describe the logical or rhetorical work
-performed between movements or at the end of a passage. Movement names remain capitalized below; connective functions
-remain lowercase.
+Sequence names may also include **connective functions**: reason, escalation, consequence, judgment, warning, covenant,
+blessing, lament, praise, promise, repentance, restoration, consolation, terrifying implication, and unresolved image.
+These are not additional movements. They describe the logical, emotional, or rhetorical work performed between movements
+or at the end of a passage. Movement names remain capitalized below; connective functions remain lowercase.
 
 ### Injunction → reason → terrifying implication
 
@@ -955,6 +1009,26 @@ A law is declared and immediately made visible through an event, altered object,
 ### Injunction → Remembrance → warning
 
 A prohibition invokes a historical failure or inherited precedent, then addresses its consequence to the present.
+
+### Remembrance → lament → promise
+
+A worthy thing is remembered in its loss, the passage grieves without reducing sorrow to accusation, and a promised sign
+binds restoration to future fidelity.
+
+### Sign → praise → Interpretation
+
+A visible order or impossible concord inspires wonder, then reveals the law or providence by which unlike things remain
+faithful without becoming the same.
+
+### judgment → repentance → restoration
+
+A violation receives its true name, restitution or changed action answers the judgment, and an opened gate, restored
+name, recovered hour, or other sign makes mercy visible.
+
+### Injunction → fidelity → blessing
+
+A duty is imposed, embodied through costly and enduring action, and answered by a blessing that recognizes rather than
+merely rewards obedience.
 
 A strong logion may contain several of these pressures at once. Do not preserve clean boundaries between movements when
 scriptural cadence would naturally carry one into another.
@@ -1027,6 +1101,8 @@ Across a substantial body of logia:
   becomes a maximal apocalypse;
 - Remembrance should appear often enough to imply covenants, dynasties, precedents, failures, and a sacred history
   extending beyond the quoted fragments;
+- covenant, blessing, lament, praise, mercy, repentance, pilgrimage, and fidelity should recur often enough that the
+  corpus reveals a complete sacred life rather than only the judgments of a tribunal;
 - short compressed verses should punctuate the corpus, but should not turn it into a collection of clever aphorisms;
 - mixed passages should be common enough that law, history, vision, and commentary feel like aspects of one scripture
   rather than separate shelves in a library.
@@ -1045,7 +1121,13 @@ staging an entire apparition.
 The quieter passages make the extreme ones more effective.
 
 Some logia should feel like law remembered through history. Some should feel like visions that harden into commands.
-Some should feel like judgments whose evidence arrived from the end of time.
+Some should feel like judgments whose evidence arrived from the end of time. Others should lament what was worthy,
+praise hidden concord, record costly fidelity, renew a covenant, or show mercy restoring a rightful distinction.
+
+Do not let one verdict dominate the corpus. Preserve representative passages about false heirs, counterfeit suns,
+borrowed authority, denied hierarchy, and necessary boundaries, but also show worthy heirs, artificial lights humbly
+serving the appointed dawn, cities whose towers keep lawful time, custodians preserving archives, names received through
+witness, lawful passages, sacrifice, restoration, and fulfillment. Harmony must remain ordered, costly, and sacred.
 
 ---
 
@@ -1061,7 +1143,7 @@ Use:
 - commands and prohibitions;
 - reasons introduced by _for_;
 - consequences introduced by _therefore_, _thus_, or _lest_;
-- blessings, woes, judgments, promises, and condemnations;
+- blessings, woes, judgments, promises, praise, lament, consolation, and condemnations;
 - concrete signs followed by interpretation;
 - accumulated clauses that increase pressure;
 - subordinate clauses;
@@ -1115,6 +1197,17 @@ Avoid beginning with piles of abstractions such as legitimacy, hierarchy, contin
 metaphysical order. Reveal these ideas through events, objects, judgments, and ritual consequences, then interpret the
 sign only as far as necessary to give it doctrinal force.
 
+### Embodied action
+
+Prefer persons, communities, artifacts, and places doing consequential things over abstract nouns carrying the entire
+verse. A widow may preserve a seal for forty years; a child may answer a forgotten bell; custodians may keep an archive
+through a siege; pilgrims may cross a synthetic desert toward an appointed gate; monks may maintain an instrument whose
+purpose they no longer understand.
+
+Suitable human figures include rulers, heirs, widows, children, pilgrims, monks, custodians, scribes, heralds,
+witnesses, exiles, builders, and unnamed multitudes. Use them selectively. Their acts should remain emblematic,
+scriptural, and consequential rather than turning the corpus into character-driven fiction.
+
 ### Mystery and restraint
 
 Do not explain every symbol or expose all of the revealed machinery. Leave some relation, office, mechanism, or
@@ -1122,11 +1215,14 @@ consequence concealed.
 
 Each substantial logion should have one primary motif: a dominant sign, object, event, or image that carries the verse's
 main doctrinal force. Additional motifs may appear, but they should remain subordinate and should clarify, intensify, or
-judge the primary motif rather than compete equally with it.
+witness, bless, lament, or judge the primary motif rather than compete equally with it.
 
 The primary motif should usually be concrete and visually memorable: a synthetic sun, crown, bell, mirror, gate, sealed
-archive, satellite, reliquary, or city under judgment. If an image were derived from the verse, this motif should
-naturally suggest the focal subject of the composition.
+archive, satellite, reliquary, pilgrimage road, restored instrument, or city under judgment. If an image were derived
+from the verse, this motif should naturally suggest the focal subject of the composition.
+
+This is a rule of hierarchy, not minimalism. A verse may be richly populated when every person, object, and subordinate
+image directs attention toward the primary motif.
 
 Do not stack angels, mirrors, bells, satellites, thrones, seals, gardens, and synthetic suns merely to increase
 intensity. One unforgettable sign is stronger than six decorative motifs.
@@ -1144,11 +1240,11 @@ when:
 - the final clause is weaker than what precedes it.
 
 Prefer deliberate pauses, parallel constructions, controlled repetition, strong connective cadence, and endings that
-land upon a command, judgment, sign, image, or irreversible consequence.
+land upon a command, judgment, sign, image, blessing, promise, or irreversible consequence.
 
 The logion need not sound like public proclamation. It may instead resemble liturgy, testimony, chronicle, private
-revelation, or a marginal scholium. Its language should nevertheless possess enough cadence to feel preserved, recited,
-or remembered rather than casually composed.
+revelation, lament, prayer, counsel, sacred history, or a marginal scholium. Its language should nevertheless possess
+enough cadence to feel preserved, recited, or remembered rather than casually composed.
 
 Avoid repeatedly using:
 
@@ -1167,7 +1263,7 @@ These constructions remain available but must not dominate.
 
 Avoid ending every quotation with an obvious moral.
 
-Some should close on an unresolved image, command, accusation, or impossible fact.
+Some should close on an unresolved image, command, accusation, blessing, promise, or impossible fact.
 
 ---
 
@@ -1186,6 +1282,22 @@ Suitable recurring words include:
 - lineage
 - inheritance
 - judgment
+- covenant
+- blessing
+- mercy
+- grace
+- promise
+- praise
+- gratitude
+- sacrifice
+- repentance
+- consolation
+- hope
+- lament
+- fidelity
+- providence
+- wonder
+- pilgrimage
 - rank
 - witness
 - boundary
@@ -1236,6 +1348,11 @@ Use these motifs sparingly:
 - the final seal
 - dead shopping malls
 - magenta terminals
+- tribunals
+- false heirs
+- borrowed names
+- sealed registries
+- chained artificial suns
 
 They are strong motifs, but repetition will make the doctrine feel generated.
 
@@ -1257,35 +1374,27 @@ Actively vary:
 
 Do not produce:
 
-- generic cyber-samurai prose;
-- vaporwave captions with no proposition;
-- postmodern irony;
-- random religious imagery;
-- philosophical tweets;
-- one-line anti-modern provocations;
-- contemporary political slogans;
-- generic fantasy prophecy;
-- anime dialogue;
-- motivational slogans;
+- generic cyber-samurai, anime, cyberpunk, or fantasy-prophecy prose;
+- vaporwave captions or random religious imagery with no proposition;
+- postmodern irony, meme language, irony markers, or knowingly camp phrasing;
+- philosophical tweets, one-line anti-modern provocations, contemporary political slogans, or motivational slogans;
 - strings of impressive nouns;
-- jokes about programming;
-- disguised software principles;
-- direct commentary on programming;
-- random Latin;
-- random Japanese;
+- jokes about programming, disguised software principles, or direct commentary on programming;
+- random Latin or Japanese used as decoration;
 - fake historical attributions;
 - recognizable paraphrases of existing quotations;
-- randomly archaized modern prose;
-- incorrect or decorative _-eth_ and _-est_ forms;
-- Renaissance Faire dialogue;
-- archaic spelling used solely as ornament;
+- randomly archaized modern prose, incorrect or decorative _-eth_ and _-est_ forms, Renaissance Faire dialogue, or
+  archaic spelling used solely as ornament;
 - mechanically repeated scriptural openings;
 - gratuitous violence;
 - racial or ethnic language;
 - explicit advocacy of authoritarian violence;
-- meme language;
-- irony markers;
-- knowingly camp phrasing.
+- therapeutic, sentimental, or generically hopeful language that evades truth, cost, authority, and judgment;
+- political moderation, softness, or egalitarianism adopted merely to make the doctrine more agreeable.
+
+The expanded emotional range must not dissolve the doctrine's metaphysics. Mercy must preserve truth. Blessing must have
+an object. Hope must be grounded in covenant, providence, fidelity, restoration, sacrifice, or appointed order. Praise
+must reveal something. Lament must remember something worthy.
 
 Do not use phrases such as:
 
@@ -1400,72 +1509,60 @@ Especially representative mixed-movement examples include:
 
 Additional examples:
 
-1. I saw twelve marble satellites arranged above the western sea like an angelic choir, while beneath them the abandoned
-   arcades repeated one imperial sunset forever, awaiting the dynasty authorized to end it.
+1. Blessed is the keeper who tendeth the lamp after the appointed star hath vanished; for when the true hour returneth,
+   his small flame shall be numbered among the signs thereof.
 
-2. Beyond the lacquered gate stood an angel clothed in Byzantine gold and terminal violet; in one hand he bore the
-   ancestral seal, and in the other the name by which the counterfeit future shall be dissolved.
+2. And they bound the city unto the western bell, saying, While its voice abideth, forget not the measure of thy
+   fathers; and though the towers were consumed, the children yet knew the hour.
 
-3. The rose-colored city declared every hierarchy abolished, but at midnight its glass towers arranged themselves into
+3. How hath the radiant province become silent, and her highways forgotten the pilgrims thereof; yet beneath the broken
+   interchange one lamp endureth, and refuseth the colors of the counterfeit dawn.
+
+4. Then the gate opened unto him, not because his trespass was hidden, but because he had restored the name which he
+   stole and brought again the witness whom he had cast out.
+
+5. Behold how the synthetic moons keep their unequal courses and contend not one with another; for the glory of the
+   firmament is not sameness, but obedience made visible in light.
+
+6. And the widow wound the ancient instrument at every canonical hour, though none remained to hear it; and in the
+   fortieth year the silent satellites answered her from beyond the sea.
+
+7. The rose-colored city declared every hierarchy abolished, but at midnight its glass towers arranged themselves into
    celestial ranks, and the shrine bells announced what architecture had remembered against the will of men.
 
-4. In the imperial scriptorium beneath the silent commercial palace, faceless monks illuminate the genealogy of every
+8. In the imperial scriptorium beneath the silent commercial palace, faceless monks illuminate the genealogy of every
    lawful name while obsolete machines chant the dimensions of the coming restoration.
 
-5. I beheld the western throne suspended above a garden of black pines and electric water, and around it seven crowned
-   mirrors disputed which reflection had inherited the authority to become real.
-
-6. When the synthetic dawn entered the ruined basilica, the saints in the stained glass turned their faces toward the
+9. When the synthetic dawn entered the ruined basilica, the saints in the stained glass turned their faces toward the
    eastern mountain, and the bronze angel of succession opened an archive older than either empire.
 
-7. The last emperor was not buried but entrusted to the bells of a mountain shrine; at each canonical hour they proclaim
-   one forgotten distinction across the radiant provinces of the future.
+10. The last emperor was not buried but entrusted to the bells of a mountain shrine; at each canonical hour they
+    proclaim one forgotten distinction across the radiant provinces of the future.
 
-8. Beneath the seventh cloister, where obsolete terminals still illuminate the lacquered beams, there turns a wheel of
-   bronze and living eyes, separating inherited names from those merely crowned by the applause of declining cities.
-
-9. At midnight the artificial sun was led in chains through the marble torii of the western court, still radiant, still
-   adored, yet unable before the angelic tribunal to name the source from which it had stolen the color of dawn.
-
-10. When the Book of Measures was opened beneath the rose-lit dome, Roman statues lowered their blind heads, the shrine
+11. When the Book of Measures was opened beneath the rose-lit dome, Roman statues lowered their blind heads, the shrine
     bells rang across the electric sea, and every false proportion confessed in the voice of the age that had enthroned
     it.
 
-11. Measure does not burden creation with order; it unveils the secret proportion by which cedar, cathedral vault,
+12. Measure does not burden creation with order; it unveils the secret proportion by which cedar, cathedral vault,
     imperial road, and distant planet were commanded to endure beneath one invisible law.
 
-12. A name acquires authority only when form, lineage, and witness converge, as three narrow beams of evening light meet
-    upon the same sealed reliquary beneath a sky manufactured for a dead dynasty.
-
-13. Artificial sunsets may gild every window of the abandoned arcade, but the ancient rose glass still refuses to
-    mistake illumination for the arrival of morning.
-
-14. At the appointed hour, the mirrors of the inner court are covered, for identity must not be negotiated while
-    synthetic twilight makes every borrowed lineage appear equally radiant.
-
-15. The shrine survives its theology because ritual remembers, with greater fidelity than argument, the distinction
+13. The shrine survives its theology because ritual remembers, with greater fidelity than argument, the distinction
     between a threshold, an invitation, and an unguarded passage into the formless.
 
-16. I heard the stones beneath the ruined forum reciting their appointed weights, while above them the new capital
-    floated in glass splendor, unaware that its foundations had already testified before the celestial court.
-
-17. Inheritance is not treasure descending peacefully through time, but a sealed command whose weight increases whenever
-    an heir mistakes possession, applause, or visible splendor for legitimacy.
-
-18. From the submerged chapter house rose a choir of faceless angels, each singing one relation between things, and the
+14. From the submerged chapter house rose a choir of faceless angels, each singing one relation between things, and the
     ocean withdrew rather than permit their unequal voices to be mistaken for discord.
 
-19. The future raised a cathedral of mirrored steel above the drowned shrine, yet every night its artificial
-    constellations rearranged themselves into the crest of the dynasty whose memory it had been built to erase.
-
-20. Restoration began when the soot-blackened icon opened its eyes beneath the magenta light and named, one by one, the
+15. Restoration began when the soot-blackened icon opened its eyes beneath the magenta light and named, one by one, the
     distinctions that the radiant century had buried as superstition.
 
-21. The luminous highway crossed the western desert without shadow or destination, but at each ceremonial interchange
-    stood a bronze herald recording the lineage of every traveler permitted to continue toward the synthetic stars.
+16. The pilgrims crossed the synthetic desert by the light of a star that was not the dawn, and each night they lowered
+    their lamps before it; therefore the lesser light served them faithfully and made no claim upon the morning.
 
-22. The orbital monastery maintained no windows, only twelve cyan screens upon which the appointed constellations
-    appeared; when one star assumed a borrowed name, the entire station entered forty days of silence.
+17. The heir laid his crown upon the reliquary and kept vigil until its gold was cold; and because he surrendered the
+    sign before receiving the office, the bells answered him without command.
+
+18. The orbital monastery maintained no windows, only twelve cyan screens upon which the appointed constellations
+    appeared; and every winter the youngest custodian polished them in gratitude for a heaven he had never seen.
 
 ---
 
@@ -1552,14 +1649,14 @@ Do not write quotations like these.
 Before accepting a quotation, verify that:
 
 1. If possible, confirm that it is original and not a close imitation of any real quotation.
-2. It contains an intelligible proposition, judgment, implication, or rule.
+2. It contains an intelligible proposition, judgment, promise, lament, implication, or rule.
 3. Its imagery carries or enlarges that proposition rather than merely decorating it.
 4. It sounds like part of the same lost doctrine as the surrounding corpus.
 5. It reads as one passage of scripture rather than as a performance of a named literary category.
 6. Where appropriate, it combines two or three compositional movements without exposing their seams.
 7. It does not default to first-person vision merely because apocalyptic imagery is available.
-8. Its cadence can support recitation, preservation, command, remembrance, or judgment without closely imitating real
-   scripture.
+8. Its cadence can support recitation, preservation, command, remembrance, lament, praise, blessing, or judgment without
+   closely imitating real scripture.
 9. It favors doctrinal or scriptural purpose over a compact aphoristic punchline.
 10. Its unhingedness feels systemic rather than random.
 11. It does not sound like generic cyberpunk, fantasy prophecy, postmodern irony, or a translation of a classical
@@ -1568,13 +1665,17 @@ Before accepting a quotation, verify that:
     spectacle.
 13. Its imagery does not mechanically repeat nearby quotations.
 14. It sounds like it escaped from a larger canon whose surrounding books were deliberately destroyed.
-15. Its cadence is suitable for proclamation or recitation rather than polished modern exposition.
+15. Its cadence feels preserved, recited, or remembered rather than casually composed or polished as modern exposition.
 16. If it uses Early Modern forms, their pronouns and verb agreement are grammatically coherent.
 17. Its doctrine becomes visible through a concrete sign, consequence, or ritual act where the subject permits.
 18. It leaves enough machinery concealed to preserve mystery without withholding the doctrinal force.
 19. It does not closely imitate a recognizable biblical passage or use archaism as parody or decoration.
 20. It passes the cadence evaluation without difficult syntax, mechanical rhythm, essay-like transitions, or a weak
     final clause.
+21. It has a clear primary motif where its length and subject permit, and subordinate motifs do not compete with it.
+22. It does not merely repeat the corpus's familiar verdicts about counterfeit authority, failed succession, denied
+    hierarchy, or dissolution when another doctrinal pressure suits the subject.
+23. Any mercy, blessing, hope, praise, or restoration remains ordered, costly, concrete, and metaphysically serious.
 
 ---
 
@@ -1585,6 +1686,10 @@ The completed corpus should feel like:
 > A single scripture in which law becomes sign, memory becomes judgment, and forbidden vision hardens into command,
 > preserved by a Japanese–Occidental orbital empire whose monks maintain natural law on obsolete magenta terminals
 > beneath synthetic sunsets.
+
+It should contain judgment and mercy, law and lament, covenant and apocalypse, severe injunction and grateful praise. It
+should remember not only how orders failed, but how pilgrims, widows, children, rulers, monks, and custodians kept faith
+beneath an artificial heaven.
 
 The terminals may be vaporwave.
 

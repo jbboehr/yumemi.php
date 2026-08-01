@@ -112,13 +112,15 @@ All quotations remain `@logion` tags. Do not introduce book-specific tags such a
 Choose the book according to the logion's primary canonical purpose, its abstract relevance to the declaration, and the
 surrounding corpus:
 
-- Use `OSD` (**Ordinances of the Synthetic Dawn**) as the normal default when no other book is clearly more appropriate.
+- Use `OSD` (**Ordinances of the Synthetic Dawn**) as the normal default when no other book is clearly more appropriate,
+  including law, ritual, covenant, blessing, and fulfilled obligation.
 - Use `RAS` (**Revelation of the Artificial Sun**) for genuine visionary disclosure, cosmic signs, angelic
-  administration, or apocalyptic judgment. Avoid using it so often that visionary intensity becomes ordinary.
+  administration, apocalyptic judgment, or awe before revealed order. Avoid using it so often that visionary intensity
+  becomes ordinary.
 - Use `AWC` (**Acts of the Western Court**) when the verse presents sacred history, precedent, remembered institutional
-  failure, inherited obligation, or dynastic judgment.
+  fidelity or failure, inherited obligation, covenant, lament, restoration, or dynastic judgment.
 - Use `SFA` (**Scholia of the Fifth Archive**) for comparatively compressed interpretation, commentary, clarification,
-  or severe judgment.
+  counsel, consolation, hope grounded in appointed form, or severe judgment.
 
 Book selection is not a random genre roll. The four books belong to one canon and must remain stylistically and
 doctrinally coherent. Preserve compositional freedom within every book: any logion may combine Pronouncement, Sign,
@@ -164,6 +166,11 @@ parallel clauses, ritual repetition, commands, reasons, consequences, and concre
 Controlled KJV-influenced vocabulary and grammar are permitted across all four books but are never mandatory. When using
 Early Modern pronouns or verb forms, follow the grammar in the style guide rather than adding archaisms decoratively.
 Never reproduce, closely paraphrase, or parody a recognizable biblical passage.
+
+Do not default every quotation to legitimacy, failed succession, counterfeit authority, or condemnation. When the
+declaration's abstract role permits it, draw from the guide's broader pressures of covenant, blessing, lament, praise,
+mercy, repentance, pilgrimage, fidelity, providence, wonder, and restoration while preserving the doctrine's severity,
+hierarchy, and metaphysical confidence.
 
 Never mention programming or directly describe the declaration inside the doctrine quotation.
 
