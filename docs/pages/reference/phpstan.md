@@ -66,12 +66,13 @@ compatibility for `add()`, `sub()`, and comparisons.
 
 Yumemi infers native unit types for unary `+` and `-` and for these binary operators:
 
-| Operator | Static behavior                                                           |
-| -------- | ------------------------------------------------------------------------- |
-| `+`, `-` | Require two definitionally equivalent unit values and preserve their unit |
-| `*`, `/` | Multiply or divide unit expressions and reduce the result                 |
-| `**`     | Raise the unit to a constant integer power                                |
-| `%`      | Require two `unit_int` values with definitionally equivalent units        |
+| Operator    | Static behavior                                                           |
+| ----------- | ------------------------------------------------------------------------- |
+| `+`, `-`    | Require two definitionally equivalent unit values and preserve their unit |
+| `*`, `/`    | Multiply or divide unit expressions and reduce the result                 |
+| `**`        | Raise the unit to a constant integer power                                |
+| `%`         | Require two `unit_int` values with definitionally equivalent units        |
+| Comparisons | Require definitionally equivalent units and retain PHP's native result    |
 
 Multiplication and division may combine a unit value with a bare numeric scalar. Division always produces a
 `unit_float`; other operations produce a float brand when either magnitude is float-like. Unary signs preserve the
@@ -99,6 +100,9 @@ saveSprintSpeed($distance * $elapsed);
 
 Definitional equivalence understands catalog definitions such as `newton = kilogram * meter / second^2`. It does not
 make compatible scales interchangeable: `meter + foot` remains an error because no runtime conversion occurs.
+
+Equality, identity, ordering, and spaceship comparisons follow the same rule: native PHP compares the stored magnitudes
+without converting either operand, so dimensionally compatible but differently scaled units remain invalid.
 
 Exponentiation requires a statically known integer exponent. Rational roots and approximate real powers are not part of
 the current expression model.
@@ -363,6 +367,7 @@ scope:
 | Identifier                             | Reported condition                                                                                   |
 | -------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | `yumemi.invalidUnitCall`               | An invalid constant `unit()`, `unit_factor()`, or `unit_to()` call                                   |
+| `yumemi.invalidUnitComparison`         | A native equality, identity, ordering, or spaceship comparison with incompatible unit operands       |
 | `yumemi.invalidQuantityConstruction`   | Invalid `Units::quantity()`, `parseQuantity()`, `deltaQuantity()`, or `point()` construction         |
 | `yumemi.invalidQuantityArithmetic`     | Invalid `add()`, `sub()`, `addWithSameUnit()`, or `subWithSameUnit()` operands                       |
 | `yumemi.invalidQuantityConversion`     | An invalid or incompatible `Quantity` conversion or native-extraction target                         |

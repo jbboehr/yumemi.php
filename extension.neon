@@ -85,6 +85,10 @@ services:
         tags:
             - phpstan.rules.rule
     -
+        class: jbboehr\Yumemi\PHPStan\InvalidUnitComparisonRule
+        tags:
+            - phpstan.rules.rule
+    -
         class: jbboehr\Yumemi\PHPStan\UnitsQuantityReturnTypeExtension
         tags:
             - phpstan.broker.dynamicMethodReturnTypeExtension
