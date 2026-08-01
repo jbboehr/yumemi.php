@@ -47,6 +47,7 @@ use PHPStan\Type\ErrorType;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
+use PHPStan\Type\UnionType;
 use jbboehr\Yumemi\Util\Exponent;
 
 /**
@@ -117,22 +118,51 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
             'exactDecimalValueIn',
             'floatValueIn',
         ], true)) {
-            if (!$receiver instanceof QuantityType && !$this->isUnbrandedQuantity($receiver)) {
+            $receivers = $this->quantityTypes($receiver);
+            if ($receivers === null && !$this->isUnbrandedQuantity($receiver)) {
                 return null;
             }
 
             return $this->convert(
-                $receiver instanceof QuantityType ? $receiver : null,
+                $receivers ?? [],
                 $args,
                 $scope,
                 $methodName,
             );
         }
 
-        if (!$receiver instanceof QuantityType) {
+        $receivers = $this->quantityTypes($receiver);
+        if ($receivers === null || $receivers === []) {
             return null;
         }
 
+        $results = [];
+        foreach ($receivers as $receiverType) {
+            $result = $this->inferBrandedType($methodName, $receiverType, $args, $scope);
+            if ($result instanceof ErrorType) {
+                return $result;
+            }
+
+            if ($result !== null) {
+                $results[] = $result;
+            }
+        }
+
+        return $results === [] ? null : TypeCombinator::union(...$results);
+    }
+
+    /**
+     * @param array<\PhpParser\Node\Arg> $args
+     *
+     * @logion [OSD 97:87] Each sealed measure within the divided testimony
+     *     received judgment alone, and their lawful conclusions were gathered.
+     */
+    private function inferBrandedType(
+        string $methodName,
+        QuantityType $receiver,
+        array $args,
+        Scope $scope,
+    ): ?Type {
         $unit = $receiver->getUnitExpression();
 
         return match ($methodName) {
@@ -169,32 +199,37 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
         }
 
         $other = $scope->getType($args[0]->value);
-        if (!$other instanceof QuantityType) {
+        $others = $this->quantityTypes($other);
+        if ($others === null) {
             // The runtime result keeps the receiver's unit when the call succeeds, but an
             // unbranded operand does not carry enough information for a compatibility check.
             return $receiver;
         }
 
         $leftUnit = $receiver->getUnitExpression();
-        $rightUnit = $other->getUnitExpression();
-        $compatible = $requireSameUnit
-            ? $leftUnit->equivalent($rightUnit)
-            : $leftUnit->sameDimension($rightUnit);
+        foreach ($others as $otherType) {
+            $rightUnit = $otherType->getUnitExpression();
+            $compatible = $requireSameUnit
+                ? $leftUnit->equivalent($rightUnit)
+                : $leftUnit->sameDimension($rightUnit);
 
-        if ($compatible) {
-            return $receiver;
+            if ($compatible) {
+                continue;
+            }
+
+            if ($requireSameUnit) {
+                return new ErrorType(sprintf(
+                    'Cannot call Quantity::%s() with units %s and %s; the method requires normalized-equivalent units.',
+                    $methodName,
+                    $leftUnit->displayString,
+                    $rightUnit->displayString,
+                ));
+            }
+
+            return self::incompatibleDimensionError($methodName, $leftUnit, $rightUnit);
         }
 
-        if ($requireSameUnit) {
-            return new ErrorType(sprintf(
-                'Cannot call Quantity::%s() with units %s and %s; the method requires normalized-equivalent units.',
-                $methodName,
-                $leftUnit->displayString,
-                $rightUnit->displayString,
-            ));
-        }
-
-        return self::incompatibleDimensionError($methodName, $leftUnit, $rightUnit);
+        return $receiver;
     }
 
     /**
@@ -208,13 +243,19 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
 
         $argType = $scope->getType($args[0]->value);
 
-        if ($argType instanceof QuantityType) {
-            $other = $argType->getUnitExpression();
-            $result = $multiply
-                ? UnitExpressionAlgebra::multiply($unit, $other)
-                : UnitExpressionAlgebra::divide($unit, $other);
+        $otherTypes = $this->quantityTypes($argType);
+        if ($otherTypes !== null) {
+            return TypeCombinator::union(...array_map(
+                static function (QuantityType $otherType) use ($unit, $multiply): QuantityType {
+                    $other = $otherType->getUnitExpression();
+                    $result = $multiply
+                        ? UnitExpressionAlgebra::multiply($unit, $other)
+                        : UnitExpressionAlgebra::divide($unit, $other);
 
-            return new QuantityType($result);
+                    return new QuantityType($result);
+                },
+                $otherTypes,
+            ));
         }
 
         // An unbranded Quantity operand carries no static unit — cannot compute the result.
@@ -240,17 +281,20 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
         }
 
         $other = $scope->getType($args[0]->value);
-        if (!$other instanceof QuantityType) {
+        $others = $this->quantityTypes($other);
+        if ($others === null) {
             return null;
         }
 
         $leftUnit = $receiver->getUnitExpression();
-        $rightUnit = $other->getUnitExpression();
-        if ($leftUnit->sameDimension($rightUnit)) {
-            return null;
+        foreach ($others as $otherType) {
+            $rightUnit = $otherType->getUnitExpression();
+            if (!$leftUnit->sameDimension($rightUnit)) {
+                return self::incompatibleDimensionError($methodName, $leftUnit, $rightUnit);
+            }
         }
 
-        return self::incompatibleDimensionError($methodName, $leftUnit, $rightUnit);
+        return null;
     }
 
     /**
@@ -279,10 +323,11 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
     }
 
     /**
+     * @param list<QuantityType>           $receivers
      * @param array<\PhpParser\Node\Arg> $args
      */
     private function convert(
-        ?QuantityType $receiver,
+        array $receivers,
         array $args,
         Scope $scope,
         string $methodName,
@@ -306,7 +351,7 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
             $targetUnits[] = $parsed->expression();
         }
 
-        if ($receiver instanceof QuantityType) {
+        foreach ($receivers as $receiver) {
             $sourceUnit = $receiver->getUnitExpression();
             foreach ($targetUnits as $targetUnit) {
                 if ($sourceUnit->sameDimension($targetUnit)) {
@@ -370,7 +415,41 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
 
     private function isUnbrandedQuantity(Type $type): bool
     {
-        return !$type instanceof QuantityType
-            && (new ObjectType(Quantity::class))->isSuperTypeOf($type)->yes();
+        return $type::class === ObjectType::class
+            && $type->getObjectClassNames() === [Quantity::class];
+    }
+
+    /**
+     * @return list<QuantityType>|null
+     *
+     * @logion [OSD 97:86] The examiner opened every branch of the joined seal,
+     *     refusing to call the multitude an unnamed and empty witness.
+     */
+    private function quantityTypes(Type $type): ?array
+    {
+        if ($type instanceof QuantityType) {
+            return [$type];
+        }
+
+        if (!$type instanceof UnionType) {
+            return null;
+        }
+
+        $types = [];
+        foreach ($type->getTypes() as $innerType) {
+            if (!$innerType instanceof QuantityType) {
+                return null;
+            }
+
+            $types[] = $innerType;
+        }
+
+        usort(
+            $types,
+            static fn (QuantityType $left, QuantityType $right): int => $left->getUnitExpression()->displayString
+                <=> $right->getUnitExpression()->displayString,
+        );
+
+        return $types;
     }
 }

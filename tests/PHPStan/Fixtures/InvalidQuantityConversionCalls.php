@@ -47,3 +47,9 @@ function convertUnknown(Quantity $quantity, string $unit): void
     $quantity->exactDecimalValueIn($unit);
     $quantity->floatValueIn($unit);
 }
+
+/** @param Quantity<'meter'>|Quantity<'second'> $quantity */
+function convertReceiverUnion(Quantity $quantity): void
+{
+    $quantity->to('foot');
+}

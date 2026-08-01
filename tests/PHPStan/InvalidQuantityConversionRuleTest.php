@@ -106,6 +106,11 @@ final class InvalidQuantityConversionRuleTest extends RuleTestCase
                 'Unit "degree_Celsius" uses affine semantics, which are not supported by multiplicative unit algebra (definition: K @ 273.15).',
                 37,
             ],
+            [
+                'Cannot call Quantity::to() with dimensionally incompatible units second (time) '
+                    . 'and international_foot (length).',
+                54,
+            ],
         ]);
     }
 }

@@ -6,6 +6,7 @@
  * Slice 1: Units::quantity() construction inference and Quantity<'...'> PHPDoc resolution.
  */
 
+use jbboehr\Yumemi\Quantity;
 use jbboehr\Yumemi\Units;
 use function jbboehr\Yumemi\unit;
 use function PHPStan\Testing\assertType;
@@ -266,4 +267,28 @@ function extractBrandedDynamic(\jbboehr\Yumemi\Units $units, string $unit): void
     assertType('string', $meters->decimalValueIn($unit, 2, \RoundingMode::HalfEven));
     assertType('string', $meters->exactDecimalValueIn($unit));
     assertType('float', $meters->floatValueIn($unit));
+}
+
+/** @param Quantity<'international_foot'>|Quantity<'meter'> $length */
+function compatibleQuantityReceiverUnion(Quantity $length): void
+{
+    assertType("Quantity<'international_inch'>", $length->to('inch'));
+    assertType("Quantity<'international_foot'>|Quantity<'meter'>", $length->neg());
+    assertType(
+        "Quantity<'international_foot * second'>|Quantity<'meter * second'>",
+        $length->mul(Units::default()->quantity(1, 'second')),
+    );
+}
+
+/**
+ * @param Quantity<'meter'>                                $length
+ * @param Quantity<'international_foot'>|Quantity<'meter'> $other
+ */
+function compatibleQuantityOperandUnion(Quantity $length, Quantity $other): void
+{
+    assertType("Quantity<'meter'>", $length->add($other));
+    assertType(
+        "Quantity<'international_foot * meter'>|Quantity<'meter ^ 2'>",
+        $length->mul($other),
+    );
 }

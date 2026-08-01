@@ -74,3 +74,27 @@ function knownPointTargetFromUnbranded(PointQuantity $point): void
 {
     assertType("PointQuantity<'celsius'>", $point->to('celsius'));
 }
+
+/** @param PointQuantity<'celsius'>|PointQuantity<'fahrenheit'> $point */
+function compatiblePointReceiverUnion(PointQuantity $point): void
+{
+    assertType("PointQuantity<'kelvin'>", $point->to('kelvin'));
+    assertType(
+        "PointQuantity<'celsius'>|PointQuantity<'fahrenheit'>",
+        $point->add(Units::default()->quantity(1, 'delta_celsius')),
+    );
+    assertType(
+        "Quantity<'delta_degree_Celsius'>|Quantity<'delta_fahrenheit'>",
+        $point->difference(Units::default()->point(0, 'kelvin')),
+    );
+}
+
+/**
+ * @param PointQuantity<'celsius'>                              $point
+ * @param PointQuantity<'celsius'>|PointQuantity<'fahrenheit'> $other
+ */
+function compatiblePointOperandUnion(PointQuantity $point, PointQuantity $other): void
+{
+    assertType("Quantity<'delta_degree_Celsius'>", $point->difference($other));
+    assertType('bool', $point->equals($other));
+}

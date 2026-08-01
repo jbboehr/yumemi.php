@@ -45,6 +45,7 @@ use PHPStan\Type\ErrorType;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
+use PHPStan\Type\UnionType;
 
 /**
  * Propagates coordinate and delta identities through PointQuantity methods.
@@ -140,43 +141,59 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
             'exactDecimalValueIn',
             'floatValueIn',
         ], true)) {
-            if (!$receiver instanceof PointQuantityType && !$this->isUnbrandedPointQuantity($receiver)) {
+            $receivers = $this->pointQuantityTypes($receiver);
+            if ($receivers === null && !$this->isUnbrandedPointQuantity($receiver)) {
                 return null;
             }
 
             return $this->convert(
-                $receiver instanceof PointQuantityType ? $receiver : null,
+                $receivers ?? [],
                 $args,
                 $scope,
                 $methodName,
             );
         }
 
-        if (!$receiver instanceof PointQuantityType) {
+        $receivers = $this->pointQuantityTypes($receiver);
+        if ($receivers === null || $receivers === []) {
             return null;
         }
 
-        return match ($methodName) {
-            'add', 'sub' => $this->translate($receiver, $args, $scope, $methodName),
-            'difference' => $this->difference($receiver, $args, $scope),
-            'compareTo',
-            'equals',
-            'lessThan',
-            'lessThanOrEqualTo',
-            'greaterThan',
-            'greaterThanOrEqualTo' => $this->compare($receiver, $args, $scope, $methodName),
-            default => null,
-        };
+        $results = [];
+        foreach ($receivers as $receiverType) {
+            $result = match ($methodName) {
+                'add', 'sub' => $this->translate($receiverType, $args, $scope, $methodName),
+                'difference' => $this->difference($receiverType, $args, $scope),
+                'compareTo',
+                'equals',
+                'lessThan',
+                'lessThanOrEqualTo',
+                'greaterThan',
+                'greaterThanOrEqualTo' => $this->compare($receiverType, $args, $scope, $methodName),
+                default => null,
+            };
+
+            if ($result instanceof ErrorType) {
+                return $result;
+            }
+
+            if ($result !== null) {
+                $results[] = $result;
+            }
+        }
+
+        return $results === [] ? null : TypeCombinator::union(...$results);
     }
 
     /**
+     * @param list<PointQuantityType>        $receivers
      * @param array<\PhpParser\Node\Arg> $args
      *
      * @logion [OSD 17:85] The station crossed into each named coordinate tongue,
      *     provided every target shared the same hidden axis.
      */
     private function convert(
-        ?PointQuantityType $receiver,
+        array $receivers,
         array $args,
         Scope $scope,
         string $methodName,
@@ -200,7 +217,7 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
             $targets[] = $parsed->expression();
         }
 
-        if ($receiver !== null) {
+        foreach ($receivers as $receiver) {
             $source = $receiver->getPointUnitExpression();
             foreach ($targets as $target) {
                 if (!$source->sameDimension($target)) {
@@ -236,21 +253,24 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
         }
 
         $other = $scope->getType($args[0]->value);
-        if (!$other instanceof QuantityType) {
+        $others = self::quantityTypes($other);
+        if ($others === null) {
             return $receiver;
         }
 
         $pointUnit = $receiver->getPointUnitExpression();
-        $deltaUnit = $other->getUnitExpression();
-        if (!$pointUnit->dimension->equals($deltaUnit->dimension)) {
-            return new ErrorType(sprintf(
-                'Cannot call PointQuantity::%s() with point unit %s (%s) and delta unit %s (%s).',
-                $methodName,
-                $pointUnit->displayString,
-                $pointUnit->dimension->toString(),
-                $deltaUnit->displayString,
-                $deltaUnit->dimension->toString(),
-            ));
+        foreach ($others as $otherType) {
+            $deltaUnit = $otherType->getUnitExpression();
+            if (!$pointUnit->dimension->equals($deltaUnit->dimension)) {
+                return new ErrorType(sprintf(
+                    'Cannot call PointQuantity::%s() with point unit %s (%s) and delta unit %s (%s).',
+                    $methodName,
+                    $pointUnit->displayString,
+                    $pointUnit->dimension->toString(),
+                    $deltaUnit->displayString,
+                    $deltaUnit->dimension->toString(),
+                ));
+            }
         }
 
         return $receiver;
@@ -269,11 +289,14 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
         }
 
         $other = $scope->getType($args[0]->value);
-        if ($other instanceof PointQuantityType) {
+        $others = $this->pointQuantityTypes($other);
+        if ($others !== null) {
             $left = $receiver->getPointUnitExpression();
-            $right = $other->getPointUnitExpression();
-            if (!$left->sameDimension($right)) {
-                return self::incompatiblePointError('difference', $left, $right);
+            foreach ($others as $otherType) {
+                $right = $otherType->getPointUnitExpression();
+                if (!$left->sameDimension($right)) {
+                    return self::incompatiblePointError('difference', $left, $right);
+                }
             }
         }
 
@@ -297,16 +320,20 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
         }
 
         $other = $scope->getType($args[0]->value);
-        if (!$other instanceof PointQuantityType) {
+        $others = $this->pointQuantityTypes($other);
+        if ($others === null) {
             return null;
         }
 
         $left = $receiver->getPointUnitExpression();
-        $right = $other->getPointUnitExpression();
+        foreach ($others as $otherType) {
+            $right = $otherType->getPointUnitExpression();
+            if (!$left->sameDimension($right)) {
+                return self::incompatiblePointError($methodName, $left, $right);
+            }
+        }
 
-        return $left->sameDimension($right)
-            ? null
-            : self::incompatiblePointError($methodName, $left, $right);
+        return null;
     }
 
     /**
@@ -315,8 +342,76 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
      */
     private function isUnbrandedPointQuantity(Type $type): bool
     {
-        return !$type instanceof PointQuantityType
-            && (new ObjectType(PointQuantity::class))->isSuperTypeOf($type)->yes();
+        return $type::class === ObjectType::class
+            && $type->getObjectClassNames() === [PointQuantity::class];
+    }
+
+    /**
+     * @return list<PointQuantityType>|null
+     *
+     * @logion [OSD 97:85] Every station enclosed within the divided record was
+     *     named before judgment, and none was mistaken for an unmarked place.
+     */
+    private function pointQuantityTypes(Type $type): ?array
+    {
+        if ($type instanceof PointQuantityType) {
+            return [$type];
+        }
+
+        if (!$type instanceof UnionType) {
+            return null;
+        }
+
+        $types = [];
+        foreach ($type->getTypes() as $innerType) {
+            if (!$innerType instanceof PointQuantityType) {
+                return null;
+            }
+
+            $types[] = $innerType;
+        }
+
+        usort(
+            $types,
+            static fn (PointQuantityType $left, PointQuantityType $right): int => $left
+                ->getPointUnitExpression()->displayString <=> $right->getPointUnitExpression()->displayString,
+        );
+
+        return $types;
+    }
+
+    /**
+     * @return list<QuantityType>|null
+     *
+     * @logion [OSD 97:84] The intervals joined beneath one testimony were opened
+     *     in order, that each might answer for the axis appointed unto it.
+     */
+    private static function quantityTypes(Type $type): ?array
+    {
+        if ($type instanceof QuantityType) {
+            return [$type];
+        }
+
+        if (!$type instanceof UnionType) {
+            return null;
+        }
+
+        $types = [];
+        foreach ($type->getTypes() as $innerType) {
+            if (!$innerType instanceof QuantityType) {
+                return null;
+            }
+
+            $types[] = $innerType;
+        }
+
+        usort(
+            $types,
+            static fn (QuantityType $left, QuantityType $right): int => $left->getUnitExpression()->displayString
+                <=> $right->getUnitExpression()->displayString,
+        );
+
+        return $types;
     }
 
     /**

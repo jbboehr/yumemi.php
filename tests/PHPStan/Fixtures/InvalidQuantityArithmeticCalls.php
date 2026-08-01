@@ -34,3 +34,15 @@ function addUnknown(Quantity $unknown): void
     Units::default()->quantity(1, 'meter')->add($unknown);
     Units::default()->quantity(1, 'meter')->addWithSameUnit($unknown);
 }
+
+/** @param Quantity<'meter'>|Quantity<'second'> $quantity */
+function addReceiverUnion(Quantity $quantity): void
+{
+    $quantity->add(Units::default()->quantity(1, 'meter'));
+}
+
+/** @param Quantity<'international_foot'>|Quantity<'second'> $other */
+function addOperandUnion(Quantity $other): void
+{
+    Units::default()->quantity(1, 'meter')->add($other);
+}

@@ -155,7 +155,8 @@ the `Quantity` boundaries described below likewise preserve finite unions.
 Runtime quantities have the generic PHPStan forms `Quantity<'unit'>` and `PointQuantity<'coordinate'>`.
 `Units::quantity()`, `parseQuantity()`, `deltaQuantity()`, and `point()` infer the corresponding type when their
 relevant string is constant or a finite literal-string union. Fluent methods preserve or transform the generic brand
-while performing the real exact operation at runtime.
+while performing the real exact operation at runtime. Finite unions of branded quantity or point receivers and operands
+are evaluated arm by arm; an operation is rejected when any possible pairing is incompatible.
 
 ```php
 <?php

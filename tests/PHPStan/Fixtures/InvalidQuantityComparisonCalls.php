@@ -37,3 +37,9 @@ function compareUnknown(Quantity $unknown): void
     $meters->greaterThan($unknown);
     $meters->greaterThanOrEqualTo($unknown);
 }
+
+/** @param Quantity<'international_foot'>|Quantity<'second'> $other */
+function compareOperandUnion(Quantity $other): void
+{
+    Units::default()->quantity(1, 'meter')->equals($other);
+}

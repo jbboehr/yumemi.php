@@ -76,6 +76,14 @@ final class InvalidQuantityArithmeticRuleTest extends RuleTestCase
                 'Cannot call Quantity::subWithSameUnit() with units meter and international_foot; the method requires normalized-equivalent units.',
                 19,
             ],
+            [
+                'Cannot call Quantity::add() with dimensionally incompatible units second (time) and meter (length).',
+                41,
+            ],
+            [
+                'Cannot call Quantity::add() with dimensionally incompatible units meter (length) and second (time).',
+                47,
+            ],
         ]);
     }
 }

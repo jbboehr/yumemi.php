@@ -30,3 +30,15 @@ function inspectUnknownPoint(PointQuantity $unknown, string $unit): void
     Units::default()->point(0, 'celsius')->difference($unknown);
     $unknown->to($unit);
 }
+
+/** @param PointQuantity<'celsius'>|PointQuantity<'meter'> $point */
+function convertPointReceiverUnion(PointQuantity $point): void
+{
+    $point->to('fahrenheit');
+}
+
+/** @param PointQuantity<'celsius'>|PointQuantity<'meter'> $other */
+function comparePointOperandUnion(PointQuantity $other): void
+{
+    Units::default()->point(0, 'celsius')->difference($other);
+}
