@@ -40,6 +40,9 @@ use PHPStan\Type\Constant\ConstantIntegerType;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\OperatorTypeSpecifyingExtension;
 use PHPStan\Type\Type;
+use PHPStan\Type\TypeCombinator;
+use PHPStan\Type\UnionType;
+use PHPStan\Type\VerbosityLevel;
 use jbboehr\Yumemi\Util\Exponent;
 
 /**
@@ -63,25 +66,46 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
             return false;
         }
 
-        return $this->asUnit($leftSide) !== null || $this->asUnit($rightSide) !== null;
+        return $this->hasUnit($leftSide) || $this->hasUnit($rightSide);
     }
 
     public function specifyType(string $operatorSigil, Type $leftSide, Type $rightSide): Type
     {
         try {
-            $leftUnit = $this->asUnit($leftSide);
-            $rightUnit = $this->asUnit($rightSide);
+            $results = [];
+            foreach ($this->atomicTypes($leftSide) as $leftType) {
+                foreach ($this->atomicTypes($rightSide) as $rightType) {
+                    $result = $this->specifyAtomic($operatorSigil, $leftType, $rightType);
+                    if ($result instanceof ErrorType) {
+                        return $result;
+                    }
 
-            return match ($operatorSigil) {
-                '+', '-' => $this->specifyAddSub($operatorSigil, $leftUnit, $rightUnit, $leftSide, $rightSide),
-                '*', '/' => $this->specifyMulDiv($operatorSigil, $leftUnit, $rightUnit, $leftSide, $rightSide),
-                '**' => $this->specifyPow($leftUnit, $rightUnit, $leftSide, $rightSide),
-                '%' => $this->specifyMod($leftUnit, $rightUnit),
-                default => new ErrorType('Unsupported unit operator: ' . $operatorSigil),
-            };
+                    $results[] = $result;
+                }
+            }
+
+            return TypeCombinator::union(...$results);
         } catch (\Throwable $exception) {
             ShouldNotHappenException::rethrow($exception);
         }
+    }
+
+    /**
+     * @logion [OSD 97:76] Each atomic pair emerged from the divided operands
+     *     and received the same law before their several results were reunited.
+     */
+    private function specifyAtomic(string $operatorSigil, Type $leftSide, Type $rightSide): Type
+    {
+        $leftUnit = $this->asUnit($leftSide);
+        $rightUnit = $this->asUnit($rightSide);
+
+        return match ($operatorSigil) {
+            '+', '-' => $this->specifyAddSub($operatorSigil, $leftUnit, $rightUnit, $leftSide, $rightSide),
+            '*', '/' => $this->specifyMulDiv($operatorSigil, $leftUnit, $rightUnit, $leftSide, $rightSide),
+            '**' => $this->specifyPow($leftUnit, $rightUnit, $leftSide, $rightSide),
+            '%' => $this->specifyMod($leftUnit, $rightUnit),
+            default => new ErrorType('Unsupported unit operator: ' . $operatorSigil),
+        };
     }
 
     private function specifyAddSub(
@@ -257,5 +281,38 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
         }
 
         return null;
+    }
+
+    /**
+     * @return list<Type>
+     *
+     * @logion [OSD 97:75] The joined magnitude was separated into every possible
+     *     witness and ordered by its inscription before arithmetic began.
+     */
+    private function atomicTypes(Type $type): array
+    {
+        $types = $type instanceof UnionType ? $type->getTypes() : [$type];
+        usort(
+            $types,
+            static fn (Type $left, Type $right): int => $left->describe(VerbosityLevel::precise())
+                <=> $right->describe(VerbosityLevel::precise()),
+        );
+
+        return $types;
+    }
+
+    /**
+     * @logion [OSD 97:74] The examiner searched every branch for an appointed
+     *     unit, and the presence of one seal summoned the arithmetic tribunal.
+     */
+    private function hasUnit(Type $type): bool
+    {
+        foreach ($this->atomicTypes($type) as $innerType) {
+            if ($this->asUnit($innerType) !== null) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

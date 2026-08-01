@@ -22,6 +22,13 @@ assertType("unit_int<'kilogram * meter / second'>", unit(1, 'meter / second kilo
 assertType("unit_float<'kilogram * meter / second ^ 2'>", unit(1500.0, 'kilogram') * unit(3.0, 'meter / second^2'));
 assertType('*ERROR*', unit(1.0, 'not_a_real_unit_xyz'));
 
+/** @param unit_int<'meter'>|unit_int<'second'> $value */
+function finiteNativeUnitArithmetic(int $value): void
+{
+    assertType("unit_int<'meter * second'>|unit_int<'second ^ 2'>", $value * unit(1, 'second'));
+    assertType('*ERROR*', $value + unit(1, 'meter'));
+}
+
 /** @param 'meter'|'foot' $unit */
 function finiteUnits(string $unit): void
 {

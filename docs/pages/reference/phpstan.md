@@ -76,7 +76,8 @@ Yumemi infers native unit types for unary `+` and `-` and for these binary opera
 
 Multiplication and division may combine a unit value with a bare numeric scalar. Division always produces a
 `unit_float`; other operations produce a float brand when either magnitude is float-like. Unary signs preserve the
-original magnitude kind and unit.
+original magnitude kind and unit. Finite operand unions are evaluated arm by arm; Yumemi returns the union of valid
+results and rejects the whole operation if any possible pairing is invalid.
 
 For example, distance divided by time is inferred as speed, while distance multiplied by time is rejected at a speed
 boundary:

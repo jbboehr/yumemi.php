@@ -44,6 +44,8 @@ use PHPStan\Type\Constant\ConstantIntegerType;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\FloatType;
 use PHPStan\Type\IntegerType;
+use PHPStan\Type\TypeCombinator;
+use PHPStan\Type\UnionType;
 use PHPStan\Type\VerbosityLevel;
 use PHPUnit\Framework\TestCase;
 
@@ -67,6 +69,13 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
         $this->assertTrue($this->extension->isOperatorSupported('**', $meters, $bare));
         $this->assertFalse($this->extension->isOperatorSupported('+', $bare, $bare));
         $this->assertFalse($this->extension->isOperatorSupported('~', $meters, $meters));
+    }
+
+    public function testSupportsArithmeticWhenAUnionArmHasUnit(): void
+    {
+        $union = TypeCombinator::union($this->unitInt('meter'), new IntegerType());
+
+        $this->assertTrue($this->extension->isOperatorSupported('*', $union, $this->unitInt('second')));
     }
 
     public function testAddSameUnitKeepsUnitAndIntegerKind(): void
@@ -198,6 +207,40 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
         $this->assertSame("unit_float<'meter'>", $result->describe(VerbosityLevel::precise()));
     }
 
+    public function testMulEvaluatesFiniteUnitUnionArmByArm(): void
+    {
+        $left = TypeCombinator::union($this->unitInt('meter'), $this->unitInt('second'));
+
+        $result = $this->extension->specifyType('*', $left, $this->unitInt('meter'));
+
+        $this->assertSame(
+            "unit_int<'meter * second'>|unit_int<'meter ^ 2'>",
+            $result->describe(VerbosityLevel::precise()),
+        );
+    }
+
+    public function testMulEvaluatesMixedUnitAndBareUnionArmByArm(): void
+    {
+        // TypeCombinator normally collapses int|unit_int to int; use the raw form to cover defensive handling.
+        $left = new UnionType([$this->unitInt('meter'), new IntegerType()]);
+
+        $result = $this->extension->specifyType('*', $left, $this->unitInt('second'));
+
+        $this->assertSame(
+            "unit_int<'meter * second'>|unit_int<'second'>",
+            $result->describe(VerbosityLevel::precise()),
+        );
+    }
+
+    public function testInvalidFiniteUnionPairingRejectsWholeOperation(): void
+    {
+        $left = TypeCombinator::union($this->unitInt('meter'), $this->unitInt('second'));
+
+        $result = $this->extension->specifyType('+', $left, $this->unitInt('meter'));
+
+        $this->assertInstanceOf(ErrorType::class, $result);
+    }
+
     public function testSubSameUnitKeepsUnit(): void
     {
         $a = $this->unitFloat('meter');
@@ -216,6 +259,18 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
 
         $this->assertInstanceOf(UnitFloatType::class, $result);
         $this->assertSame("unit_float<'meter ^ 2'>", $result->describe(VerbosityLevel::precise()));
+    }
+
+    public function testPowEvaluatesFiniteExponentUnionArmByArm(): void
+    {
+        $exponents = TypeCombinator::union(new ConstantIntegerType(2), new ConstantIntegerType(3));
+
+        $result = $this->extension->specifyType('**', $this->unitFloat('meter'), $exponents);
+
+        $this->assertSame(
+            "unit_float<'meter ^ 2'>|unit_float<'meter ^ 3'>",
+            $result->describe(VerbosityLevel::precise()),
+        );
     }
 
     public function testPowNonConstantExponentIsError(): void
