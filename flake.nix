@@ -59,7 +59,41 @@
               enabled ++ [ all.pcov ] ++ pkgs.lib.optional pkgs.stdenv.isLinux perfidious;
           };
         php = buildEnv php-unwrapped;
+        php-xdebug = php-unwrapped.buildEnv {
+          extraConfig = ''
+            memory_limit = 2G
+            xdebug.mode = off
+          '';
+          extensions =
+            {
+              enabled,
+              all,
+            }:
+            enabled ++ [ all.xdebug ];
+        };
         src = gitignore.lib.gitignoreSource ./.;
+
+        mkDevShell =
+          php:
+          pkgs.mkShell {
+            buildInputs = with pkgs; [
+              actionlint
+              bison
+              mdbook
+              php
+              php.packages.composer
+              pre-commit
+              treefmt.config.build.wrapper
+              udunits
+              units
+            ];
+            shellHook = ''
+              ${pre-commit-check.shellHook}
+              export PATH="$PWD/vendor/bin:$PATH"
+              export GNU_UNITS_DEFINITIONS=${pkgs.units}/share/units/definitions.units
+              export UDUNITS_XML_DIR=${pkgs.udunits}/share/udunits
+            '';
+          };
 
         treefmt = treefmt-nix.lib.evalModule pkgs {
           projectRootFile = "flake.nix";
@@ -113,24 +147,9 @@
           formatting = treefmt.config.build.check self;
         };
 
-        devShells.default = pkgs.mkShell {
-          buildInputs = with pkgs; [
-            actionlint
-            bison
-            mdbook
-            php
-            php.packages.composer
-            pre-commit
-            treefmt.config.build.wrapper
-            udunits
-            units
-          ];
-          shellHook = ''
-            ${pre-commit-check.shellHook}
-            export PATH="$PWD/vendor/bin:$PATH"
-            export GNU_UNITS_DEFINITIONS=${pkgs.units}/share/units/definitions.units
-            export UDUNITS_XML_DIR=${pkgs.udunits}/share/udunits
-          '';
+        devShells = {
+          default = mkDevShell php;
+          xdebug = mkDevShell php-xdebug;
         };
 
         formatter = treefmt.config.build.wrapper;

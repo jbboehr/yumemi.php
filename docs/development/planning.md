@@ -93,6 +93,8 @@ Current verification:
   floors, while an optional Linux Perfidious profile captures local `perf_events` counters
 - Infection runs against all handwritten runtime source in CI with 86% total and covered MSI floors; the PHPStan adapter
   and generated parser are excluded
+- a separate Xdebug development shell supports [focused, local branch and path coverage audits](branch-coverage.md)
+  without adding their cost to CI or `nix flake check`; branch and path percentages currently have no enforced floor
 - isolated consumer fixtures install a mirrored Composer package, verify automatic and manual PHPStan registration, and
   run against release-style `composer archive` output in CI; a separate matrix verifies the optional Illuminate Cache
   stubs against majors 11 through 13 without adding Laravel to the root development dependencies. The 2026-07-31 local

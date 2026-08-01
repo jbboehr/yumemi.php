@@ -1,7 +1,11 @@
 .DEFAULT: all
-.PHONY: all clean docs docs-check docs-serve generate-catalog test-consumer test-consumer-archive \
+.PHONY: all clean coverage-branch docs docs-check docs-serve generate-catalog test-consumer test-consumer-archive \
 	test-consumer-illuminate-cache test-consumer-illuminate-cache-archive
 
+BRANCH_COVERAGE_OUTPUT ?= coverage/branch
+BRANCH_COVERAGE_SOURCE ?= src/Number
+BRANCH_COVERAGE_TESTS ?=
+BRANCH_COVERAGE_XDEBUG_ERROR := Xdebug is not loaded; enter nix develop .\#xdebug.
 ILLUMINATE_CACHE_MAJOR ?= 12
 
 UDUNITS_XML_FILES := \
@@ -15,6 +19,17 @@ all: src/Parser/Parser.php
 
 clean:
 	rm -f src/Parser/Parser.php
+
+coverage-branch:
+	@php -r 'if (!extension_loaded("xdebug")) { fwrite(STDERR, "$(BRANCH_COVERAGE_XDEBUG_ERROR)\n"); exit(1); }'
+	@mkdir -p "$(BRANCH_COVERAGE_OUTPUT)"
+	php -d xdebug.mode=coverage vendor/bin/phpunit \
+		--configuration phpunit.branch.xml.dist \
+		--path-coverage \
+		--coverage-filter "$(BRANCH_COVERAGE_SOURCE)" \
+		--coverage-html "$(BRANCH_COVERAGE_OUTPUT)/html" \
+		--coverage-text="$(BRANCH_COVERAGE_OUTPUT)/coverage.txt" \
+		$(BRANCH_COVERAGE_TESTS)
 
 docs:
 	mdbook build docs

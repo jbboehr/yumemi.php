@@ -22,5 +22,6 @@ infection.json5.dist export-ignore
 phpbench-perfidious.json export-ignore
 phpbench.json export-ignore
 phpstan.neon.dist export-ignore
+phpunit.branch.xml.dist export-ignore
 phpunit.xml.dist export-ignore
 tests export-ignore
