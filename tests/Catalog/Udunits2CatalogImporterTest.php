@@ -464,6 +464,89 @@ final class Udunits2CatalogImporterTest extends TestCase
         $this->assertSame('widget', $units['gadgets']['def'] ?? null);
     }
 
+    public function testCombinesMultipleAliasBlocks(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <unit-system>
+              <unit>
+                <name><singular>widget</singular></name>
+                <aliases><name><singular>gadget</singular></name><symbol>W</symbol></aliases>
+                <aliases><name><singular>device</singular></name><symbol>Wd</symbol></aliases>
+                <def>1</def>
+              </unit>
+            </unit-system>
+            XML;
+
+        $units = $this->import($xml)['units'];
+
+        $this->assertSame('widget', $units['gadget']['def'] ?? null);
+        $this->assertSame('widget', $units['device']['def'] ?? null);
+        $this->assertSame('widget', $units['W']['def'] ?? null);
+        $this->assertSame('widget', $units['Wd']['def'] ?? null);
+    }
+
+    public function testRepeatedAliasForSameTargetPreservesFirstMetadata(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <unit-system>
+              <unit>
+                <name><singular>widget</singular><plural>widgets</plural></name>
+                <aliases><name><singular>widgets</singular><noplural/></name></aliases>
+                <def>1</def>
+              </unit>
+            </unit-system>
+            XML;
+
+        $units = $this->import($xml)['units'];
+
+        $this->assertSame(
+            ['type' => 'alias', 'name' => 'widgets', 'def' => 'widget', 'aliasKind' => 'alias'],
+            $units['widgets'],
+        );
+    }
+
+    public function testAliasCannotCollideWithCanonicalUnit(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <unit-system>
+              <unit><name><singular>widget</singular></name><def>1</def></unit>
+              <unit><name><singular>gadget</singular></name><symbol>widget</symbol><def>2</def></unit>
+            </unit-system>
+            XML;
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Conflicting UDUNITS2 unit or alias name: widget');
+
+        $this->import($xml);
+    }
+
+    public function testAliasCannotChangeTargets(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <unit-system>
+              <unit>
+                <name><singular>widget</singular></name>
+                <aliases><name><singular>thing</singular></name></aliases>
+                <def>1</def>
+              </unit>
+              <unit>
+                <name><singular>gadget</singular></name>
+                <aliases><name><singular>thing</singular></name></aliases>
+                <def>2</def>
+              </unit>
+            </unit-system>
+            XML;
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Conflicting UDUNITS2 unit or alias name: thing');
+
+        $this->import($xml);
+    }
+
     public function testImportsAcrossMultipleFilesBeforeMaterializingPlurals(): void
     {
         $first = <<<'XML'

@@ -152,8 +152,15 @@ final class Udunits2CatalogImporter
                 continue;
             }
 
+            if ($childNode->tagName === 'aliases') {
+                $additionalAliases = $this->readAliases($childNode);
+                $aliases['names'] = [...$aliases['names'], ...$additionalAliases['names']];
+                $aliases['symbols'] = [...$aliases['symbols'], ...$additionalAliases['symbols']];
+
+                continue;
+            }
+
             match ($childNode->tagName) {
-                'aliases' => $aliases = array_merge($aliases, $this->readAliases($childNode)),
                 'base' => $base = true,
                 'comment' => $comment = trim($childNode->textContent),
                 'def' => $def = trim($childNode->textContent),
@@ -337,9 +344,7 @@ final class Udunits2CatalogImporter
         array &$implicitPluralTargets,
     ): void {
         if ($name['plural'] !== null) {
-            if (!isset($catalog['units'][$name['plural']])) {
-                $this->addAlias($catalog, $name['plural'], $target, 'explicit_plural');
-            }
+            $this->addAlias($catalog, $name['plural'], $target, 'explicit_plural');
 
             return;
         }
@@ -482,6 +487,15 @@ final class Udunits2CatalogImporter
      */
     private function addAlias(array &$catalog, string $alias, string $name, string $kind): void
     {
+        $existing = $catalog['units'][$alias] ?? null;
+        if ($existing !== null) {
+            if ($existing['type'] === 'alias' && ($existing['def'] ?? null) === $name) {
+                return;
+            }
+
+            throw new RuntimeException('Conflicting UDUNITS2 unit or alias name: ' . $alias);
+        }
+
         $catalog['units'][$alias] = [
             'type' => 'alias',
             'name' => $alias,
