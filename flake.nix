@@ -98,9 +98,18 @@
       rec {
         checks = {
           inherit pre-commit-check;
-          documentation = pkgs.runCommand "yumemi-documentation" { nativeBuildInputs = [ pkgs.mdbook ]; } ''
-            mdbook build ${src}/docs --dest-dir "$out"
-          '';
+          documentation =
+            pkgs.runCommand "yumemi-documentation"
+              {
+                nativeBuildInputs = [
+                  pkgs.mdbook
+                  php-unwrapped
+                ];
+              }
+              ''
+                mdbook build ${src}/docs --dest-dir "$out"
+                php ${src}/tests/Documentation/check-generated-links.php "$out"
+              '';
           formatting = treefmt.config.build.check self;
         };
 

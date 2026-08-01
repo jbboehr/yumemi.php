@@ -48,9 +48,11 @@ assert($units->dimension('(meter / second)^2')->toString() === 'length ^ 2 / tim
 ```
 
 At explicit conversion boundaries, `identifier @ number` defines an affine coordinate origin. For example,
-`kelvin @ 273.15` maps zero in the new coordinate system to exactly `273.15 kelvin`. This form is accepted by
-`convert()`, `convertFloat()`, `areCompatible()`, `dimension()`, `conversionFactor()`, `unit_to()`, and custom registry
-definitions. `Units::point()` uses a named affine definition as a coordinate scale.
+`kelvin @ 273.15` maps zero in the new coordinate system to exactly `273.15 kelvin`. `convert()`, `convertFloat()`, and
+`unit_to()` apply value-dependent affine conversions; `areCompatible()` and `dimension()` inspect their dimensions.
+`conversionFactor()` succeeds only when the resulting conversion has no offset and otherwise throws
+`NonMultiplicativeConversionException`. Custom registry definitions may use the affine form, and `Units::point()` uses a
+named affine definition as a coordinate scale.
 
 Affine units are not part of ordinary multiplicative expression or quantity algebra. Their generated difference units
 are: use `delta_celsius`, `delta_fahrenheit`, `Δ°C`, or `Δ°F` when a temperature interval participates in products,

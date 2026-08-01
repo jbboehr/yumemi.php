@@ -34,7 +34,7 @@ jobs:
                   gc-max-store-size-linux: 2G
 
             - name: Build documentation
-              run: nix develop --command composer docs
+              run: nix develop --command composer docs:check
 
             - name: Upload GitHub Pages artifact
               uses: actions/upload-pages-artifact@v4

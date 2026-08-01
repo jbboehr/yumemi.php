@@ -1,5 +1,5 @@
 .DEFAULT: all
-.PHONY: all clean docs docs-serve generate-catalog test-consumer test-consumer-archive \
+.PHONY: all clean docs docs-check docs-serve generate-catalog test-consumer test-consumer-archive \
 	test-consumer-illuminate-cache test-consumer-illuminate-cache-archive
 
 ILLUMINATE_CACHE_MAJOR ?= 12
@@ -18,6 +18,9 @@ clean:
 
 docs:
 	mdbook build docs
+
+docs-check: docs
+	php tests/Documentation/check-generated-links.php build/docs
 
 docs-serve:
 	mdbook serve docs --hostname 127.0.0.1

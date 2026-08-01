@@ -324,6 +324,8 @@ The integration brands integer duration boundaries in the cache contracts and co
 locks, `RateLimiter`, and `RateLimiting\Limit`. Seconds, milliseconds, minutes, hours, and days remain distinct exact
 units. Representative examples include:
 
+<!-- yumemi-example: illuminate-cache-invalid -->
+
 ```php
 <?php
 

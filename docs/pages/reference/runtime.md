@@ -15,6 +15,7 @@ needs arise.
 | I need to...                                        | Use                                    |
 | --------------------------------------------------- | -------------------------------------- |
 | Construct an exact quantity                         | `Units::quantity()`                    |
+| Construct an exact decimal magnitude                | `Rational::fromDecimalString()`        |
 | Construct an exact coordinate point                 | `Units::point()`                       |
 | Construct a difference for a coordinate scale       | `Units::deltaQuantity()`               |
 | Parse a value and unit together                     | `Units::parseQuantity()`               |
@@ -84,6 +85,34 @@ account for the centi prefix. A constant-only expression is dimensionless.
 
 The public `value()` and `unit()` accessors return the exact `Rational` magnitude and symbolic `Expr`. The corresponding
 public readonly properties remain available.
+
+### Exact Rational Values
+
+Quantity and point factories accept `int|Rational`, not `float`. This prevents a binary floating-point approximation
+from entering an exact calculation without an explicit conversion. Construct fractions directly, and construct decimal
+or scientific values from their source strings:
+
+```php
+<?php
+
+use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\Units;
+
+$fraction = new Rational(3, 2);
+$decimal = Rational::fromDecimalString('1.25');
+$scientific = Rational::fromDecimalString('1e-3');
+$length = Units::default()->quantity($decimal, 'meter');
+
+assert($fraction->toString() === '3/2');
+assert($decimal->toString() === '5/4');
+assert($scientific->toString() === '1/1000');
+assert($length->valueToString() === '5/4');
+```
+
+`Rational` provides exact `add()`, `sub()`, `mul()`, `div()`, and integer `pow()` operations, together with
+`compareTo()` and `equals()`. `toString()` returns a fraction, `toDecimalExact()` requires a terminating decimal, and
+`toDecimal()` uses an explicit scale and `RoundingMode`. Conversion to native values remains explicit through `toInt()`,
+`toIntExact()`, and `toFloat()`.
 
 ## Debugging, JSON, And Serialization
 

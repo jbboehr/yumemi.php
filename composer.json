@@ -110,6 +110,7 @@
         "cs": "php-cs-fixer fix --config=.php-cs-fixer.dist.php --dry-run --diff",
         "cs:fix": "php-cs-fixer fix --config=.php-cs-fixer.dist.php",
         "docs": "make docs",
+        "docs:check": "make docs-check",
         "docs:serve": "make docs-serve",
         "generate-catalog": "make generate-catalog",
         "generate-parser": [

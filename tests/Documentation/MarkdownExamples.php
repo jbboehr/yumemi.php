@@ -41,19 +41,6 @@ namespace jbboehr\Yumemi\Tests\Documentation;
  */
 final class MarkdownExamples
 {
-    /** @var list<string> */
-    private const DOCUMENTS = [
-        'README.md',
-        'docs/pages/README.md',
-        'docs/pages/getting-started.md',
-        'docs/pages/core-concepts.md',
-        'docs/pages/recipes.md',
-        'docs/pages/reference/phpstan.md',
-        'docs/pages/reference/unit-syntax.md',
-        'docs/pages/reference/runtime.md',
-        'docs/pages/reference/catalog.md',
-    ];
-
     /**
      * @return list<array{id: string, label: string, code: string}>
      */
@@ -61,7 +48,7 @@ final class MarkdownExamples
     {
         $blocks = [];
 
-        foreach (self::DOCUMENTS as $document) {
+        foreach (self::documents() as $document) {
             $path = self::projectRoot() . '/' . $document;
             $contents = file_get_contents($path);
 
@@ -70,10 +57,6 @@ final class MarkdownExamples
             }
 
             preg_match_all('/```php\s*\R(.*?)\R```/s', $contents, $matches, PREG_SET_ORDER);
-
-            if ($matches === []) {
-                throw new \RuntimeException($document . ' must contain at least one PHP example.');
-            }
 
             foreach ($matches as $index => $match) {
                 $number = $index + 1;
@@ -86,7 +69,52 @@ final class MarkdownExamples
             }
         }
 
+        if ($blocks === []) {
+            throw new \RuntimeException('The public documentation must contain at least one PHP example.');
+        }
+
         return $blocks;
+    }
+
+    /**
+     * Discover the root README and every public mdBook source page in deterministic order.
+     *
+     * @return list<string>
+     */
+    public static function documents(?string $projectRoot = null): array
+    {
+        $projectRoot = rtrim($projectRoot ?? self::projectRoot(), DIRECTORY_SEPARATOR);
+        $pagesRoot = $projectRoot . '/docs/pages';
+
+        if (!is_dir($pagesRoot)) {
+            throw new \RuntimeException('Unable to find public documentation directory ' . $pagesRoot);
+        }
+
+        $pages = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($pagesRoot, \FilesystemIterator::SKIP_DOTS),
+        );
+
+        foreach ($iterator as $file) {
+            if (!$file instanceof \SplFileInfo || !$file->isFile() || $file->getExtension() !== 'md') {
+                continue;
+            }
+
+            $relative = str_replace(
+                DIRECTORY_SEPARATOR,
+                '/',
+                substr($file->getPathname(), strlen($projectRoot) + 1),
+            );
+            if ($relative === 'docs/pages/SUMMARY.md') {
+                continue;
+            }
+
+            $pages[] = $relative;
+        }
+
+        sort($pages, SORT_STRING);
+
+        return ['README.md', ...$pages];
     }
 
     public static function projectRoot(): string
