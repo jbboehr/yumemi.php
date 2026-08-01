@@ -270,7 +270,8 @@ A Yumemi tag may replace a fallback only when erasing its units produces the sam
 `unit_int<'...'>` must erase to `int`, every `unit_float<'...'>` to `float`, and every `Quantity<'...'>` to `Quantity`,
 including within nullable, union, intersection, and generic types. Parameter references and variadic markers must also
 match. Union and intersection order and nullable spelling do not matter. `@phpstan-*` takes priority over the ordinary
-tag. A mismatch leaves the fallback unchanged and reports a diagnostic.
+tag. An already promoted `@phpstan-*` tag with exactly the same unit-bearing structure is accepted idempotently. Any
+other mismatch leaves the fallback unchanged and reports a diagnostic.
 
 ```php
 <?php
@@ -295,8 +296,61 @@ Without tag promotion, both calls are checked against the ordinary `int` fallbac
 
 The integration is opt-in because it replaces internal PHPStan parser services for analyzed source and stubs. It may
 conflict with another extension replacing the same services and remains an upgrade risk. Application code should
-normally use direct Yumemi types; integrations for third-party libraries should normally use ordinary PHPStan stub files
-containing direct Yumemi types.
+normally use direct Yumemi types; integrations for third-party libraries can use ordinary PHPStan stubs or the bundled
+package stubs described below.
+
+### Package Stubs
+
+`yumemi-tags.neon` can conditionally load bundled unit-aware stubs for selected Composer packages. Package selection is
+explicit; Yumemi detects the installed version through Composer and refuses unknown, missing, or unsupported packages
+rather than silently applying a potentially incompatible signature.
+
+```neon
+includes:
+    - vendor/jbboehr/yumemi/extension.neon
+    - vendor/jbboehr/yumemi/yumemi-tags.neon
+
+parameters:
+    yumemi:
+        stubs:
+            - illuminate/cache
+```
+
+The `illuminate/cache` integration supports major versions 11 through 13. As of 2026-07-31, the isolated consumer suite
+has verified the stubs against `v11.51.0`, `v12.64.0`, and `v13.23.0`. CI resolves the latest compatible release of each
+supported major, so these versions are verification snapshots rather than pins.
+
+The integration brands integer duration boundaries in the cache contracts and concrete repository, cache stores and
+locks, `RateLimiter`, and `RateLimiting\Limit`. Seconds, milliseconds, minutes, hours, and days remain distinct exact
+units. Representative examples include:
+
+```php
+<?php
+
+use Illuminate\Cache\Lock;
+use Illuminate\Cache\RateLimiter;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Contracts\Cache\Store;
+
+use function jbboehr\Yumemi\unit;
+
+function configureCacheBoundaries(Store $store, RateLimiter $limiter, Lock $lock): void
+{
+    $store->put('report', 'ready', unit(30, 'second'));
+    $limiter->hit('report', unit(2, 'minute')); // PHPStan rejects this seconds boundary.
+    $lock->betweenBlockedAttemptsSleepFor(unit(250, 'millisecond'));
+    Limit::perHour(100, unit(1, 'hour'));
+}
+```
+
+Plain integers are rejected at annotated duration boundaries, and dimensionally compatible but differently scaled units
+are not converted implicitly. Existing `DateTimeInterface` and `DateInterval` alternatives remain valid, as do calls
+that omit an optional duration and use Laravel's default. Branded return and property types cover
+`Repository::getDefaultCacheTime()`, `RateLimiter::availableIn()`, and `Limit::$decaySeconds`.
+
+The stub is deliberately limited to signatures shared by all supported majors. Version-specific APIs can be added when
+their compatibility policy and test matrix are clear. Laravel itself remains optional and is not a Yumemi development
+dependency; isolated consumer tests install each supported major separately.
 
 ## Diagnostics
 

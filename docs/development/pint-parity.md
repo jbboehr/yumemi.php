@@ -261,15 +261,17 @@ quantity, and point operations; validates construction, conversion, extraction, 
 conversion helpers; preserves finite literal-string unions; configures custom registries; and provides stable
 diagnostics.
 
-Remaining work is integration breadth: selected casts, built-ins, third-party stubs, more precise diagnostics, and
-future advanced unit semantics. Dynamic strings intentionally fall back to unbranded types.
+The first package-aware integration supplies exact duration stubs for `illuminate/cache` 11 through 13. Remaining work
+is integration breadth: selected casts and built-ins, additional evidence-driven third-party stubs, more precise
+diagnostics, and future advanced unit semantics. Dynamic strings intentionally fall back to unbranded types.
 
 ### 22. Function Boundary Checking
 
 Status: **Done statically; runtime decorators absent** | Importance: **P1/P2** | Remaining difficulty: **M**
 
 Ordinary PHPDoc parameters and returns enforce branded native and generic quantity types through PHPStan. Optional
-`@yumemi-*` tags support extension-optional libraries, and standard PHPStan stubs support third-party APIs.
+`@yumemi-*` tags support extension-optional libraries. An explicit package-stub loader applies those semantics to
+selected third-party APIs; its first integration brands cache, lock, and rate-limiter durations in Illuminate Cache.
 
 Pint-style runtime decorators or PHP attributes that convert arguments are absent. They should be introduced only if
 static contracts and explicit runtime conversion prove insufficient.
@@ -373,7 +375,8 @@ Status: **Done for development; release automation absent** | Importance: **P0/P
 Composer, Nix, treefmt, pre-commit hooks, PHP-CS-Fixer, PHPStan, PHPUnit, generated artifacts, GitHub Actions, and
 Infection with enforced mutation-score floors are configured. Catalog and parser regeneration are documented. An
 isolated consumer smoke test verifies runtime use plus automatic and manual PHPStan registration from a release-style
-Composer archive.
+Composer archive. A separate isolated matrix installs Illuminate Cache 11 through 13 and verifies bundled stub shapes,
+accepted calls, and exact-unit diagnostics without adding Laravel to the root dependency graph.
 
 The project still lacks a tagged release and release workflow. Lowest- and highest-dependency jobs may be useful after
 the first release establishes a compatibility promise.

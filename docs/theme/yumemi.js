@@ -40,7 +40,11 @@
             { id: "boundary-helpers", title: "Boundary Helpers" },
             { id: "quantity-types", title: "Quantity Types" },
             { id: "registry-configuration", title: "Registry Configuration" },
-            { id: "extension-optional-annotations", title: "Extension-Optional Annotations" },
+            {
+                id: "extension-optional-annotations",
+                title: "Extension-Optional Annotations",
+                children: [{ id: "package-stubs", title: "Package Stubs" }],
+            },
             { id: "diagnostics", title: "Diagnostics" },
             { id: "limitations", title: "Limitations" },
         ],

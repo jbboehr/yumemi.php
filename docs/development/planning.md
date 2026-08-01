@@ -73,6 +73,8 @@ The implemented foundation now includes:
 - configurable ASCII and Unicode formatting with catalog-aware names and fraction or negative-power division;
 - native `unit_int` / `unit_float` and object `Quantity<'...'>` / `PointQuantity<'...'>` PHPStan types with arithmetic
   inference, diagnostics, custom registries, finite literal-string unions, and optional `@yumemi-*` promotion;
+- an explicit package-stub loader with unit-aware cache, lock, and rate-limiter signatures for `illuminate/cache` 11
+  through 13;
 - focused public documentation whose executable PHP and PHPStan examples are verified in process.
 
 The public behavior is documented in [Core Concepts](../pages/core-concepts.md) and the
@@ -92,7 +94,10 @@ Current verification:
 - Infection runs against all handwritten runtime source in CI with 86% total and covered MSI floors; the PHPStan adapter
   and generated parser are excluded
 - isolated consumer fixtures install a mirrored Composer package, verify automatic and manual PHPStan registration, and
-  run against release-style `composer archive` output in CI
+  run against release-style `composer archive` output in CI; a separate matrix verifies the optional Illuminate Cache
+  stubs against majors 11 through 13 without adding Laravel to the root development dependencies. The 2026-07-31 local
+  verification snapshots are `illuminate/cache` `v11.51.0`, `v12.64.0`, and `v13.23.0`; CI continues to resolve the
+  latest compatible release in each major rather than pinning those patch versions
 
 ## PHPStan Model And Status
 
@@ -117,6 +122,13 @@ Direct unit types are the normal surface. Optional `@yumemi-param`, `@yumemi-ret
 for libraries that require ordinary fallback PHPDoc, but replaces internal PHPStan parser services and remains an
 upgrade and extension-conflict risk. The exact structural rules belong in
 [Extension-Optional Annotations](../pages/reference/phpstan.md#extension-optional-annotations).
+
+The same opt-in configuration exposes `yumemi.stubs`, an explicit list of supported Composer packages. The loader
+detects installed versions through Composer, sorts and deduplicates selections, and rejects unknown, absent, or
+unsupported package majors. The first integration covers duration boundaries shared by `illuminate/cache` 11 through 13.
+Complex union signatures carry an equivalent pre-promoted PHPStan tag alongside `@yumemi-param`: PHPStan can request
+stub reflection recursively while the promoting parser is still initializing, so the direct tag supplies a stable
+bootstrap representation while idempotent promotion verifies that both declarations remain identical.
 
 ### Registry Configuration
 
@@ -365,6 +377,9 @@ deferred advanced features.
   implemented.
 - The opt-in `@yumemi-*` parser integration depends on internal PHPStan parser services and may conflict with another
   parser-replacing extension.
+- Bundled package stubs intentionally reject unsupported installed majors. Their reflected class, method, property, and
+  parameter shapes are checked against real packages in isolated CI jobs, but upstream minor releases can still expose
+  signature drift before Yumemi's compatibility range is updated.
 - Casts and unsupported PHP built-ins can erase native unit brands. Add targeted extensions only for demonstrated
   workflows rather than trying to model every built-in preemptively.
 - Finite target unions are supported by `unit()` and on Quantity boundaries. `unit_to()` has independent source and
@@ -407,7 +422,13 @@ deferred advanced features.
 - Constant-valued native unit types. A future `UnitConstantFloatType` can extend `UnitFloatType` and implement PHPStan's
   `ConstantScalarType`, preserving a known binary float and unit expression through supported operators; this would not
   make an approximate float mathematically exact.
-- Bundled third-party stubs until specific libraries are selected; ordinary PHPStan stubs already work
+- Additional bundled third-party stubs until a specific integration demonstrates enough unit-bearing boundaries to
+  justify its maintenance and compatibility matrix. The Illuminate Cache integration is the initial reference design.
+- A possible `unit_numeric_string<'...'>` PHPStan type for numeric values that cross string-oriented framework
+  boundaries, such as Laravel configuration, environment values, request parameters, headers, and serialized scalar
+  fields. It should remain a subtype of `numeric-string`, carry the same unit expression as native brands, and require
+  explicit construction or parsing. Arithmetic, coercion, casts, and conversion into `unit_int` / `unit_float` need a
+  sound policy before implementation; package stubs should not introduce the type speculatively.
 
 The broader feature comparison and intentionally deferred Pint-style capabilities remain in
 [pint-parity.md](pint-parity.md).
