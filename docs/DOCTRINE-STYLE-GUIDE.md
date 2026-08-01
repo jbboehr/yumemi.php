@@ -320,10 +320,9 @@ The same subject may receive different treatment in different books. A law of me
 an RAS disclosure of celestial proportion, an AWC account of a court that violated the standard, or an SFA gloss on the
 meaning of equality. These are different canonical purposes within one doctrine, not separate text generators.
 
-Do not select a book randomly or merely to satisfy a quota. Select it according to the verse's primary canonical
-purpose, its abstract relevance to the symbol, and variation among nearby logia. Book selection precedes any random
-tie-break among semantically valid compositional choices described in
-[Corpus balance and variation](#20-corpus-balance-and-variation).
+Do not select a book randomly or merely to satisfy a quota. Select it according to the verse's primary canonical purpose
+and variation among nearby logia. Book selection precedes any random tie-break among semantically valid compositional
+choices described in [Corpus balance and variation](#20-corpus-balance-and-variation).
 
 Repository-specific instructions remain authoritative about allowed book codes and citation syntax. Do not invent new
 books, codes, or abbreviations merely to satisfy this guide.
@@ -1110,16 +1109,15 @@ and more:
 
 Do not generate the corpus by randomly assigning literary genres.
 
-Choose movements according to the symbol's abstract role, the surrounding logia, and the needs of the verse. Then vary
-the pressure of the corpus as a whole.
+Choose movements according to the surrounding logia, the needs of the verse, and the pressure of the corpus as a whole.
 
 Before writing a new logion, inspect nearby logia and note their opening movements, narrative perspectives, movement
 sequences, connective functions, sentence shapes, and dominant images. When another semantically valid treatment exists,
 avoid repeating the same combination used by a nearby logion.
 
-Randomness may be used only after semantic filtering. When two or more secondary movements, connective functions,
-openings, or endings fit equally well, choose among them randomly. Do not let a random result override the declaration's
-abstract role, force an incoherent movement, or substitute for reviewing the surrounding corpus.
+Randomness may be used only after canonical filtering. When two or more secondary movements, connective functions,
+openings, or endings fit equally well, choose among them randomly. Do not let a random result force an incoherent
+movement or substitute for reviewing the surrounding corpus.
 
 When command execution is available, make the tie-break with an actual random-number tool rather than an intuitive
 choice described as random. Prefer tooling already provided by the repository or its development environment. For
@@ -1209,7 +1207,17 @@ Suitable recurring constructions include:
 - _In those days..._
 
 Use these selectively. Do not begin every verse with the same formula, and do not let recognizable construction replace
-attention to the declaration's abstract role.
+attention to the passage's canonical purpose.
+
+### Canonical independence
+
+A logion must first function as scripture when detached from the declaration that bears it. The declaration may suggest
+a distant thematic pressure, but that resonance is optional and subordinate to canonical quality, corpus variation,
+concrete imagery, cadence, and consequence.
+
+Do not translate implementation nouns and operations into corresponding archives, tribunals, seals, processions, or
+other doctrinal furniture. The reader should not be able to reconstruct the declaration's behavior by decoding the
+imagery. No obvious relevance is preferable to a passage that merely disguises technical documentation.
 
 ### Concrete signs before abstractions
 
@@ -1738,6 +1746,8 @@ Before accepting a quotation, verify that:
 23. Any mercy, blessing, hope, praise, or restoration remains ordered, costly, concrete, and metaphysically serious.
 24. Any ascent, creation, ordeal, or unprecedented form remains answerable to inheritance, continuity, obedience,
     boundary, sacrifice, and lawful judgment rather than becoming an independent claim to authority.
+25. It remains convincing scripture when detached from the declaration that bears it.
+26. Its imagery does not reveal the declaration's behavior through systematic substitutions.
 
 ---
 

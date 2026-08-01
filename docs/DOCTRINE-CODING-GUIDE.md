@@ -192,33 +192,37 @@ the limitation.
 
 ---
 
-## 8. Indirect relevance
+## 8. Canonical independence and optional resonance
 
-The literary fragment may reflect a declaration’s abstract role, but it must not become disguised technical
-documentation.
+The literary fragment must first succeed as an independent passage of the repository's canon. A declaration may suggest
+a broad thematic pressure, but this is an optional private seed rather than a required correspondence. Canonical
+quality, variation, concrete imagery, cadence, and consequence take priority over relevance.
 
-Privately reduce the symbol to a broad concept:
+Do not translate a declaration's nouns and operations into a parallel set of religious nouns and ritual actions. A
+reader should not be able to reconstruct lookup, validation, sorting, caching, dispatch, serialization, or another
+implementation behavior merely by decoding the fragment's imagery.
 
-- validation → admission, judgment, boundary
-- conversion → passage, continuity, transformation
-- comparison → rank, witness, scales
-- caching → memory, archive, recurrence
-- identity → name, lineage, recognition
-- composition → procession, ordered plurality
-- simplification → removal of disguise, purification
-- failure → fracture, exile, refusal
-- construction → origin, manifestation, appointment
-- lookup → archive, witness, recognition
-- dispatch → delegation, command, procession
-- persistence → memory, seal, inheritance
-- scheduling → appointed hour, celestial calendar
-- authorization → legitimacy, gate, seal
-- synchronization → accord, procession, canonical time
+**Too literal:**
 
-Use the concept only as inspiration.
+> The archive admitted each name and placed its appointed tablet in order.
 
-Do not mention code, implementation, algorithms, or software mechanics in the literary fragment unless the repository’s
-style explicitly permits it.
+This merely renames validation, lookup, and sorting.
+
+**Preferred:**
+
+> At the confession of the exile, the bronze gate opened one span; and there it remained, that mercy might restore
+> passage without abolishing the wall.
+
+The preferred passage may retain a distant pressure of admission or boundary, but it stands independently as scripture
+and does not disclose an implementation.
+
+Perform two checks before accepting a fragment:
+
+- **Detached-canon test:** read the passage without its declaration; it must still sound intentional and complete.
+- **Reverse-engineering test:** ensure its imagery does not reveal the declaration through systematic substitutions.
+
+Do not mention code, implementation, algorithms, or software mechanics in the literary fragment unless the repository's
+style explicitly permits it. No detectable relevance is preferable to disguised technical documentation.
 
 ---
 
@@ -453,17 +457,19 @@ A reliable agent should follow this sequence:
 6. Determine whether the custom tag is accepted by tooling.
 7. Inventory the new declarations, or all applicable declarations for an explicitly requested doctrine pass.
 8. Preserve an existing durable reference or allocate a valid, unique reference according to repository policy.
-9. For each target declaration, privately identify an abstract role.
-10. Generate one original, indirectly relevant quotation.
-11. Perform the style guide's cadence pass, evaluating its scriptural rhythm whether read aloud or silently, and revise
-    the quotation when necessary.
-12. Insert it without altering technical documentation or behavior.
-13. Re-scan for missing or duplicate tags, duplicate references, and unintended changes to preexisting declarations.
-14. Run formatting and relevant checks.
-15. Review the full diff.
-16. Report coverage, exclusions, checks run, and any unresolved edge cases.
+9. Inspect nearby logia and identify repeated motifs, openings, movements, and conclusions to avoid.
+10. Choose the quotation's canonical purpose, movements, primary motif, and doctrinal pressure.
+11. Generate one original quotation that stands independently as scripture.
+12. Consider the declaration's abstract role only as an optional source of distant resonance; discard that resonance if
+    it produces systematic substitutions or weakens the passage.
+13. Perform the detached-canon, reverse-engineering, and cadence tests, and revise the quotation when necessary.
+14. Insert it without altering technical documentation or behavior.
+15. Re-scan for missing or duplicate tags, duplicate references, and unintended changes to preexisting declarations.
+16. Run formatting and relevant checks.
+17. Review the full diff.
+18. Report coverage, exclusions, checks run, and any unresolved edge cases.
 
-Do not generate all quotations first and blindly paste them. Symbol-aware generation usually produces a more coherent
+Do not generate all quotations first and blindly paste them. Corpus-aware generation usually produces a more coherent
 result.
 
 ---
@@ -502,7 +508,8 @@ Before completing any doctrine-related code edit, confirm that:
 8. Excluded or generated files were not modified.
 9. Every new quotation is original if that can reasonably be confirmed, and none intentionally copies or closely
    imitates an existing work.
-10. Quotations are indirectly relevant without becoming disguised code documentation.
+10. Every quotation passes the detached-canon and reverse-engineering tests; optional resonance does not become
+    disguised code documentation.
 11. Comment placement is valid for the language and tooling.
 12. Formatting remains consistent.
 13. Syntax, linting, documentation parsing, and relevant tests were checked where available.

@@ -109,8 +109,7 @@ reference:
 All quotations remain `@logion` tags. Do not introduce book-specific tags such as `@ordinance`, `@revelation`,
 `@testimony`, or `@scholium`.
 
-Choose the book according to the logion's primary canonical purpose, its abstract relevance to the declaration, and the
-surrounding corpus:
+Choose the book according to the logion's primary canonical purpose and the needs of the surrounding corpus:
 
 - Use `OSD` (**Ordinances of the Synthetic Dawn**) as the normal default when no other book is clearly more appropriate,
   including law, ritual, covenant, blessing, and fulfilled obligation.
@@ -148,18 +147,23 @@ and `@template`.
 
 Preserve all existing technical documentation.
 
-### Yumemi-specific relevance
+### Canonical independence and optional resonance
 
-Privately derive quotations from the declaration’s abstract role. Common mappings include:
+Write each quotation first as a passage capable of standing within the canon without its declaration. The declaration's
+abstract role may serve as a private thematic seed, but relevance is optional and must never become a one-to-one
+translation of code into religious nouns and actions. No detectable connection is preferable to disguised technical
+documentation.
 
-- dimensions → hidden order, celestial axes, hierarchy of creation
-- units → appointed measure, inherited standards, visible signs
-- quantities → matter brought before proportion
-- conversion → lawful passage and continuity through transformation
-- normalization → restoration of canonical form
-- comparison → judgment, rank, testimony, and scales
-- registries → archives, recognition, and lawful names
-- errors → fracture, exile, failed admission, and broken covenant
+Apply these priorities in order:
+
+1. convincing scripture within the shared canon;
+2. originality and variation among nearby logia;
+3. concrete signs, controlled cadence, and doctrinal consequence;
+4. optional, indirect resonance with the declaration.
+
+Perform a detached-canon test: the quotation should remain convincing when read without seeing the declaration. Perform
+a reverse-engineering test: a reader should not be able to reconstruct the declaration's behavior by decoding systematic
+substitutions in its imagery.
 
 Write the quotation as recitable scripture rather than ornate modern exposition. Favor authoritative declaration,
 parallel clauses, ritual repetition, commands, reasons, consequences, and concrete signs before abstract explanation.
@@ -167,10 +171,9 @@ Controlled KJV-influenced vocabulary and grammar are permitted across all four b
 Early Modern pronouns or verb forms, follow the grammar in the style guide rather than adding archaisms decoratively.
 Never reproduce, closely paraphrase, or parody a recognizable biblical passage.
 
-Do not default every quotation to legitimacy, failed succession, counterfeit authority, or condemnation. When the
-declaration's abstract role permits it, draw from the guide's broader pressures of covenant, blessing, lament, praise,
-mercy, repentance, pilgrimage, fidelity, providence, wonder, and restoration while preserving the doctrine's severity,
-hierarchy, and metaphysical confidence.
+Do not default every quotation to legitimacy, failed succession, counterfeit authority, or condemnation. Draw from the
+guide's broader pressures of covenant, blessing, lament, praise, mercy, repentance, pilgrimage, fidelity, providence,
+wonder, and restoration while preserving the doctrine's severity, hierarchy, and metaphysical confidence.
 
 Never mention programming or directly describe the declaration inside the doctrine quotation.
 
