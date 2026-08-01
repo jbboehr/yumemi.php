@@ -113,3 +113,12 @@ if (false) {
         public int $length = 1;
     };
 }
+
+/**
+ * @param int $seconds
+ * @phpstan-param unit_int<'second'> $seconds
+ * @yumemi-param unit_int<'second'> $seconds
+ */
+function validAlreadyPromoted(int $seconds): void
+{
+}

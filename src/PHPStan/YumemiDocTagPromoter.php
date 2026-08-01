@@ -451,6 +451,10 @@ final class YumemiDocTagPromoter extends NodeVisitorAbstract
             throw new LogicException('The fallback Yumemi tag has an unexpected value node.');
         }
         $expected = $this->normalizer->describe($fallbackType, false);
+        if ($expected === $this->normalizer->describe($candidate->type, false)) {
+            return true;
+        }
+
         $erased = $this->normalizer->describe($candidate->type, true);
         if ($expected === $erased) {
             return true;
