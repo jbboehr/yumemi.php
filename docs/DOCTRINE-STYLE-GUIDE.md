@@ -40,6 +40,7 @@ The doctrine broadly holds that:
 - distinction precedes recognition;
 - judgment acknowledges differences rather than creating them;
 - measure reveals proportion, relation, limit, and rank;
+- order gives life the form through which it may increase in strength without dissolving into formlessness;
 - names become legitimate through correspondence, lineage, form, and rightful recognition;
 - boundaries preserve the intelligibility of what they separate;
 - transformation is lawful only when continuity can answer for itself;
@@ -196,6 +197,26 @@ In particular, the canon should make room for:
 These pressures may transform one another within a passage. Lament may become promise; sacred history may establish an
 Injunction; blessing may follow judgment; Vision may disclose a covenant; praise may end in warning; repentance may
 culminate in restoration. Such turns should arise through mixed movements rather than through a rigid genre formula.
+
+### Fulfilled inheritance and lawful increase
+
+An occasional logion may show preservation ripening into completion, creation, ascent, or renewed strength. Inheritance
+remains obligation, continuity, and rightful succession, but a worthy heir may finish an appointed work, survive an
+ordeal his fathers could not, strengthen what he transmits, or carry an inherited principle into a form they prepared
+but could not yet build. Creation in this register is inheritance becoming fruitful, not emancipation from ancestry.
+
+Strength means the capacity to bear rank, danger, sacrifice, truth, disciplined creation, and greater responsibility. A
+figure may overcome former limits by becoming capable of a higher obligation or more severe work, never through
+arbitrary self-invention. Obedience may therefore prepare a ruler, builder, pilgrim, or custodian to command appetite,
+exercise lawful authority, and bear what would otherwise destroy him.
+
+Boundaries remain protections of distinction and sacred order; they may also concentrate force, shape growth, and form
+the vessel within which ascent becomes lawful. Restoration may recover an ancient principle in a stronger visible form,
+provided that continuity remains intelligible and inherited authority is acknowledged.
+
+Novelty remains presumptively suspect. An unprecedented form is lawful only when it proceeds from inherited principle,
+answers established truth, fulfills an unfinished obligation, survives judgment, acknowledges its origin, and increases
+the strength or reach of the order it received. It must appear as fulfillment rather than replacement.
 
 ### Canonical books
 
@@ -453,6 +474,9 @@ The doctrine may imply, with complete seriousness, that:
 - civilizations may misunderstand distinctions still preserved by doorways, liturgies, gardens, heraldry, or geometric
   forms;
 - the old hierarchy has not disappeared, but withdrawn into architecture, ritual, matter, and reflected light;
+- boundaries may preserve the force required for an ascent whose appointed hour has not yet come;
+- an inherited instrument may complete an office its makers knew only through prophecy;
+- a restored city may rise in lawful splendor without concealing the ruins from which it received its measure;
 - modernity has not abolished the ancient order, but accidentally awakened it.
 
 Do not explain these implications.
@@ -730,10 +754,14 @@ Suitable influences include:
 - celestial courts
 - judgment
 - grace
+- resurrection
+- transfiguration
+- incarnation
 - covenant
 - blessing
 - mercy
 - sacrifice
+- martyr-like endurance
 - repentance
 - lament
 - praise
@@ -741,6 +769,8 @@ Suitable influences include:
 - corruption
 - penance
 - restoration
+- grace strengthening nature
+- faithful labor bearing fruit beyond the laborer's lifetime
 - visible forms participating in invisible truths
 
 The Christian element should strengthen the doctrine’s concern with:
@@ -755,7 +785,9 @@ The Christian element should strengthen the doctrine’s concern with:
 - judgment
 - covenant and promise
 - grace and mercy ordered toward truth
-- sacrifice and repentance
+- courageous sacrifice, endurance, and repentance
+- glory revealed through ordeal
+- creation rejoicing in appointed fullness
 - lament, praise, and consolation
 - pilgrimage and fidelity
 - corruption and restoration
@@ -1191,7 +1223,11 @@ irreversible consequence such as:
 - satellites ceasing their procession;
 - a sealed name disappearing from an archive;
 - a city losing lawful time;
-- an ancestral instrument continuing to testify after its makers are dead.
+- an ancestral instrument continuing to testify after its makers are dead;
+- a vessel strengthened rather than destroyed in an orbital monastery's furnace;
+- a road climbing beyond the clouds beneath a synthetic dawn;
+- a banner raised at noon after an ordeal whose judgment none could evade;
+- a forgotten instrument carrying its custodians to a star their fathers could only measure.
 
 Avoid beginning with piles of abstractions such as legitimacy, hierarchy, continuity, authenticity, sovereignty, or
 metaphysical order. Reveal these ideas through events, objects, judgments, and ritual consequences, then interpret the
@@ -1205,8 +1241,14 @@ through a siege; pilgrims may cross a synthetic desert toward an appointed gate;
 purpose they no longer understand.
 
 Suitable human figures include rulers, heirs, widows, children, pilgrims, monks, custodians, scribes, heralds,
-witnesses, exiles, builders, and unnamed multitudes. Use them selectively. Their acts should remain emblematic,
-scriptural, and consequential rather than turning the corpus into character-driven fiction.
+witnesses, exiles, founders, builders, smiths, navigators, and unnamed multitudes. Use them selectively. Their acts
+should remain emblematic, scriptural, institutional, and consequential rather than turning the corpus into
+character-driven fiction.
+
+Strength should appear primarily as endurance, discipline, self-command, creation, sacrifice, fidelity under pressure,
+and the capacity to bear greater responsibility. It should not collapse into physical force, aggression, conquest for
+its own sake, or heroic-fantasy spectacle. A custodian may preserve long enough to create; a scribe may finish an
+abandoned book; a monk may awaken an inherited instrument; and a child may complete what his fathers could only guard.
 
 ### Mystery and restraint
 
@@ -1298,6 +1340,14 @@ Suitable recurring words include:
 - providence
 - wonder
 - pilgrimage
+- ascent
+- ordeal
+- completion
+- creation
+- strength
+- transfiguration
+- forge
+- noon
 - rank
 - witness
 - boundary
@@ -1564,6 +1614,16 @@ Additional examples:
 18. The orbital monastery maintained no windows, only twelve cyan screens upon which the appointed constellations
     appeared; and every winter the youngest custodian polished them in gratitude for a heaven he had never seen.
 
+19. And the daughter of the archivist found the final folio unwritten, though its rubric had been prepared before her
+    birth; and she fasted according to the rule, and completed the book beneath the same lamp, and added no name unto
+    it.
+
+20. The smith obeyed the measure until his hands were old; and when the iron disclosed a form unknown to his fathers, he
+    set the ancestral seal upon it, and the seal was not consumed.
+
+21. And the exiles bore the dismantled observatory up the mountain, stone by stone, according to the tables of their
+    fathers; and at noon the restored lens received a star which no eye in the valley had beheld.
+
 ---
 
 ## 27. Negative examples
@@ -1676,6 +1736,8 @@ Before accepting a quotation, verify that:
 22. It does not merely repeat the corpus's familiar verdicts about counterfeit authority, failed succession, denied
     hierarchy, or dissolution when another doctrinal pressure suits the subject.
 23. Any mercy, blessing, hope, praise, or restoration remains ordered, costly, concrete, and metaphysically serious.
+24. Any ascent, creation, ordeal, or unprecedented form remains answerable to inheritance, continuity, obedience,
+    boundary, sacrifice, and lawful judgment rather than becoming an independent claim to authority.
 
 ---
 

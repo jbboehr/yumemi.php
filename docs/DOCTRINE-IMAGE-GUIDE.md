@@ -164,20 +164,21 @@ The style guide is authoritative for the meanings and permitted uses of imperial
 Christian, apocalyptic, chūnibyō, and [restorationist](DOCTRINE-STYLE-GUIDE.md#16-restorationist-metaphysics) motifs.
 Apply those meanings visually through concrete choices:
 
-| Literary motif            | Visual translation                                                       |
-| ------------------------- | ------------------------------------------------------------------------ |
-| Legitimacy and succession | Axes, processions, seals, inherited architecture, visible rank           |
-| Measure and judgment      | Scales, celestial geometry, tribunals, ordered light, proportion         |
-| Ritual continuity         | Gates, paths, bells, attendants, repeated formal gestures                |
-| Counterfeit transcendence | Artificial suns, mirrored cities, obsolete luxury, unauthorized radiance |
-| Memory and inheritance    | Reliquaries, archives, manuscripts, dynastic devices, preserved machines |
-| Hidden administration     | Numbered chambers, celestial offices, sealed orders, orbital ministries  |
-| Decline and restoration   | Ruined institutions, recovered emblems, returning order, lawful light    |
-| Covenant and blessing     | Appointed signs, shared vigils, enduring lamps, bells answering fidelity |
-| Lament and consolation    | Preserved absences, ruined roads, veiled instruments, one enduring light |
-| Mercy and repentance      | Reopened gates, repaired seals, restored names, restitution made visible |
-| Pilgrimage and fidelity   | Processional roads, carried relics, maintained instruments, kept hours   |
-| Praise and wonder         | Ordered orbits, concordant lights, sacred complexity, fulfilled forms    |
+| Literary motif             | Visual translation                                                       |
+| -------------------------- | ------------------------------------------------------------------------ |
+| Legitimacy and succession  | Axes, processions, seals, inherited architecture, visible rank           |
+| Measure and judgment       | Scales, celestial geometry, tribunals, ordered light, proportion         |
+| Ritual continuity          | Gates, paths, bells, attendants, repeated formal gestures                |
+| Counterfeit transcendence  | Artificial suns, mirrored cities, obsolete luxury, unauthorized radiance |
+| Memory and inheritance     | Reliquaries, archives, manuscripts, dynastic devices, preserved machines |
+| Hidden administration      | Numbered chambers, celestial offices, sealed orders, orbital ministries  |
+| Decline and restoration    | Ruined institutions, recovered emblems, returning order, lawful light    |
+| Covenant and blessing      | Appointed signs, shared vigils, enduring lamps, bells answering fidelity |
+| Lament and consolation     | Preserved absences, ruined roads, veiled instruments, one enduring light |
+| Mercy and repentance       | Reopened gates, repaired seals, restored names, restitution made visible |
+| Pilgrimage and fidelity    | Processional roads, carried relics, maintained instruments, kept hours   |
+| Praise and wonder          | Ordered orbits, concordant lights, sacred complexity, fulfilled forms    |
+| Lawful ascent and increase | Mountain roads, disciplined fire, strengthened vessels, completed works  |
 
 Use visual media according to their function:
 
@@ -212,7 +213,8 @@ Suitable uses include:
 - warm gold against black stone;
 - cyan and amber contrast in celestial environments;
 - stained-glass color integrated with synthwave light;
-- ceremonial beams marking rank, judgment, revelation, blessing, restoration, or fulfilled covenant.
+- ceremonial beams marking rank, judgment, revelation, blessing, restoration, or fulfilled covenant;
+- lightning, furnace light, or a severe synthetic noon revealing strength earned through ordeal.
 
 Light should feel authorized, judicial, revelatory, apocalyptic, blessed, consolatory, wondrous, or architecturally
 ordered. A synthetic light source should usually mean something.
@@ -236,7 +238,8 @@ Images should be ceremonial and spatially legible. Prefer:
 
 Useful devices include stairs leading toward judgment, gates framing synthetic light, concentric architecture, mirrored
 courts, satellites above static ritual space, processions crossing large chambers, and an earthly foreground opening
-into cosmic administration.
+into cosmic administration. When the source logion requires it, a mountain road, disciplined forge, banner raised after
+trial, or inherited instrument aimed toward a distant star may express ascent without displacing ceremonial order.
 
 Avoid splash-art clutter, arbitrary action poses, chaotic battles, equal emphasis on every object, and visual noise used
 as a substitute for hierarchy.
@@ -246,8 +249,8 @@ as a substitute for hierarchy.
 ## 8. Figures and presence
 
 Possible presences include angels of measure, mercy, or judgment; faceless monks; shrine attendants; heralds; imperial
-witnesses; tribunal figures; pilgrims; widows; children; custodians; scribes; exiles; builders; statues with agency;
-veiled office-holders; and iconographic saints.
+witnesses; tribunal figures; pilgrims; widows; children; custodians; scribes; exiles; founders; builders; smiths;
+navigators; worthy heirs; statues with agency; veiled office-holders; and iconographic saints.
 
 Prioritize office over personality and symbolic authority over character design. Show rank through placement, vestment,
 scale, light, architecture, posture, or gesture. Faces may be hidden, simplified, masked, or iconographic.
@@ -430,6 +433,13 @@ Prefer unequal celestial bodies keeping concordant courses, sacred architecture 
 artificial light faithfully serving an older dawn. Avoid generic spectacle, cosmic wallpaper, or beauty without a
 doctrinal relation.
 
+### Lawful ascent and fulfilled inheritance
+
+Prefer an inherited instrument reaching a previously inaccessible star, a forge within an orbital monastery, a road
+climbing beyond synthetic clouds, or an unfinished structure completed according to its ancestral measure. Preserve
+visible continuity through seals, foundations, ritual witnesses, or retained fragments. Avoid lone conquering heroes,
+triumphalist spectacle, and destruction presented as creation.
+
 ---
 
 ## 17. Prohibited and discouraged clichés
@@ -482,7 +492,9 @@ Before accepting an image, verify that:
 14. A series image matches the established visual canon.
 15. Blessing, lament, covenant, pilgrimage, restoration, praise, and fidelity remain visually available rather than
     every scene defaulting to judgment or failed succession.
-16. The final artifact feels more like recovered revelation than generated wallpaper.
+16. Any ascent, ordeal, forging, or completed work remains visibly ordered by inheritance, boundary, discipline, and
+    lawful purpose rather than generic heroic triumph.
+17. The final artifact feels more like recovered revelation than generated wallpaper.
 
 ---
 
