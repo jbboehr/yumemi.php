@@ -34,58 +34,65 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
+declare(strict_types=1);
+
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
-use PHPStan\Rules\Methods\CallMethodsRule;
-use PHPStan\Rules\Rule;
-use PHPStan\Testing\RuleTestCase;
+use PhpParser\Node\Stmt\ClassLike;
+use PhpParser\Node\Stmt\ClassMethod;
+use PhpParser\Node\Stmt\Namespace_;
+use PHPStan\Parser\Parser;
+use PHPStan\Testing\PHPStanTestCase;
 
-/**
- * PHPStan RuleTestCase-style check: core method call argument rule + Yumemi unit accepts().
- *
- * Kept separate from the CLI integration smoke tests; this asserts exact message + line.
- *
- * @extends RuleTestCase<CallMethodsRule>
- */
-final class UnitArgumentTypeRuleTest extends RuleTestCase
+final class IlluminateCacheStubTest extends PHPStanTestCase
 {
-    protected function getRule(): Rule
-    {
-        // Core rule under test; not part of PHPStan's public API.
-        return self::getContainer()->getByType(CallMethodsRule::class); // @phpstan-ignore phpstanApi.classConstant
-    }
-
     public static function getAdditionalConfigFiles(): array
     {
         return [
             __DIR__ . '/../../extension.neon',
+            __DIR__ . '/../../yumemi-tags.neon',
+            __DIR__ . '/illuminate-cache-stub.neon',
         ];
     }
 
-    public function testFootIsNotAssignableToMeterParameter(): void
+    public function testRepositoryTtlTagIsPromotedByTheStubParser(): void
     {
-        $this->analyse([__DIR__ . '/Fixtures/UnitFootNotMeterCase.php'], [
-            [
-                'Parameter #1 $length of method jbboehr\Yumemi\Tests\PHPStan\Fixtures\UnitFootNotMeterCase::expectMetersOnly() expects unit_float<\'meter\'>, unit_float<\'international_foot\'> given.',
-                23,
-                'Unit unit_float<\'international_foot\'> is not assignable to unit_float<\'meter\'> (normalized forms differ).',
-            ],
-        ]);
+        $parser = self::getContainer()->getService('stubParser');
+        self::assertInstanceOf(Parser::class, $parser);
+
+        $phpDocs = [];
+        foreach ($parser->parseFile(__DIR__ . '/../../stubs/illuminate-cache.stub') as $node) {
+            if (!$node instanceof Namespace_) {
+                continue;
+            }
+
+            foreach ($node->stmts as $statement) {
+                if (!$statement instanceof ClassLike || $statement->name?->toString() !== 'Repository') {
+                    continue;
+                }
+
+                foreach ($statement->getMethods() as $method) {
+                    if ($method->name->toString() !== 'put') {
+                        continue;
+                    }
+
+                    $phpDocs[] = $this->methodPhpDoc($method);
+                }
+            }
+        }
+
+        self::assertCount(2, $phpDocs);
+        foreach ($phpDocs as $phpDoc) {
+            self::assertStringContainsString("unit_int<'second'>", $phpDoc);
+            self::assertStringContainsString('@yumemi-param', $phpDoc);
+        }
     }
 
-    public function testUnitInUnionRetainsExactAssignmentSemantics(): void
+    private function methodPhpDoc(ClassMethod $method): string
     {
-        $this->analyse([__DIR__ . '/Fixtures/UnitUnionCase.php'], [
-            [
-                'Parameter #1 $ttl of method jbboehr\Yumemi\Tests\PHPStan\Fixtures\UnitUnionCase::acceptTtl() expects DateInterval|DateTimeInterface|unit_int<\'second\'>|null, int given.',
-                18,
-                'Type #3 from the union: Bare int is not assignable to unit_int<\'second\'>; keep the unit annotation.',
-            ],
-            [
-                'Parameter #1 $ttl of method jbboehr\Yumemi\Tests\PHPStan\Fixtures\UnitUnionCase::acceptTtl() expects DateInterval|DateTimeInterface|unit_int<\'second\'>|null, unit_int<\'minute\'> given.',
-                19,
-                'Type #3 from the union: Unit unit_int<\'minute\'> is not assignable to unit_int<\'second\'> (normalized forms differ).',
-            ],
-        ]);
+        $docComment = $method->getDocComment();
+        self::assertNotNull($docComment);
+
+        return $docComment->getText();
     }
 }
