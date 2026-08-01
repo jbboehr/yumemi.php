@@ -1,6 +1,6 @@
 # Operator Overloading Extension Plan
 
-Snapshot date: 2026-07-24
+Snapshot date: 2026-07-31
 
 PHP does not expose operator overloading to userland classes, but internal classes can participate in object operators
 through Zend object handlers. In particular, `zend_object_handlers` has a `do_operation` slot that an extension can
@@ -369,16 +369,16 @@ Operator syntax can hide meaningful errors. Exception messages from delegated me
 
 This is a good experiment, but it should not block the core project.
 
-Recommended order:
+The pure-PHP runtime methods and their PHPStan method-call inference are now stable enough for the empirical spike. The
+remaining sequence is:
 
-1. Finish enough runtime hardening that `Quantity::add/sub/mul/div` are stable.
-2. Build the PHPStan MVP for method calls.
-3. Spike `InternalQuantity` handler inheritance.
-4. If the spike works, add optional operator support.
-5. Extend PHPStan to understand operators.
+1. Spike `InternalQuantity` handler inheritance and userland-subclass property behavior across supported PHP versions.
+2. If the spike works, choose the extension package and repository shape.
+3. Add optional operator support while preserving method delegation as the semantic source of truth.
+4. Extend PHPStan to understand the exact operator surface that the extension implements.
 
-The only reason to pull this earlier is morale or curiosity. It is a reasonable side quest, but the main product value
-is still static dimensional analysis.
+The spike is now unblocked, but it remains a side quest. The main product value is still static dimensional analysis,
+and the extension must not become a dependency of the pure-PHP package.
 
 ## Strategic Conclusion
 

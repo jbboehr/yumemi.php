@@ -61,13 +61,15 @@ registration.
 The implemented foundation now includes:
 
 - exact `Rational` arithmetic with explicit integer, decimal, and binary64 output policies;
-- a reduced symbolic expression model, Bison parser, seven-axis `Dimension`, and derived-unit normalization;
+- a reduced symbolic expression model, Bison parser, seven-axis SI `Dimension`, and derived-unit normalization;
 - a generated UDUNITS2 catalog with exact aliases, plurals, prefixes, introspection, and deterministic regeneration;
 - mutable custom-registry construction producing immutable snapshots;
 - exact multiplicative and affine scale-and-offset conversion, synthesized affine-difference units, and point
   coordinates;
 - exact `Quantity` construction, parsing, arithmetic, comparison, conversion, normalization, simplification, and output;
 - exact `PointQuantity` conversion, translation, difference, comparison, and output;
+- versioned native serialization, exact JSON representations, compact debug output, and scoped custom-registry
+  deserialization for runtime value objects;
 - configurable ASCII and Unicode formatting with catalog-aware names and fraction or negative-power division;
 - native `unit_int` / `unit_float` and object `Quantity<'...'>` / `PointQuantity<'...'>` PHPStan types with arithmetic
   inference, diagnostics, custom registries, finite literal-string unions, and optional `@yumemi-*` promotion;
@@ -273,11 +275,69 @@ nodes:
 This is a convenience API, not the core model. It should wait until quantity arithmetic, formatting, and PHPStan
 semantics are stable enough that formula strings can share the same runtime/static behavior.
 
+## Deterministic Unknown-Unit Suggestions
+
+Unknown-unit diagnostics should eventually suggest close names, but suggestion text must be deterministic for one
+immutable registry snapshot. Candidate enumeration must not inherit catalog insertion order, overlay construction order,
+or locale-sensitive collation.
+
+The ranking should define a total order using stable criteria such as:
+
+1. ASCII case-folded exact match;
+2. edit distance;
+3. absolute length difference;
+4. candidate kind, preferring canonical names before aliases, plurals, and symbols;
+5. raw UTF-8 byte order through locale-independent comparison.
+
+Sort the effective candidate set before scoring, cap the result to a small fixed number, and omit suggestions when no
+candidate passes a documented threshold. Symbol-heavy candidates should normally be considered only for symbol-like
+input. `UnknownUnitException` should retain the ordered suggestions structurally so runtime and PHPStan renderers can
+share the same result and tests can assert exact messages and tie behavior.
+
+A changed registry may legitimately change a suggestion. The required guarantee is that equivalent immutable registry
+snapshots produce the same ordered suggestions regardless of how their entries were constructed.
+
+## Extensible Base Dimensions And Currency
+
+The seven SI dimensions remain the built-in physical axes and should retain their current named accessors and compact
+fixed vector. User-defined primitive dimensions should extend that model rather than replacing it with a string-keyed
+map for every ordinary physical expression.
+
+The preferred representation is a hybrid `Dimension` containing:
+
+- the existing seven-element SI vector;
+- a nullable sparse map of additional named integer powers, canonicalized by raw name.
+
+Dimension equality, multiplication, division, powers, formatting, JSON, debugging, and serialization must include the
+additional map. SI axes should retain their established display order; extension axes should use deterministic bytewise
+ordering. Existing version-1 serialized SI-only dimensions should remain readable if the serialized shape changes.
+
+Custom primitive-unit declarations belong to immutable registry metadata. A future builder API should associate a base
+unit with a named dimension, after which ordinary definitions can derive other units from it. `DimensionResolver` must
+consult the effective registry's primitive-dimension metadata rather than relying solely on its current hard-coded SI
+base-unit table. Registry fingerprints must include those declarations so runtime serialization and PHPStan result-cache
+invalidation detect semantic changes.
+
+Currency is a useful motivating application but should not become an eighth built-in axis, and Yumemi should not ship or
+fetch exchange rates. An application may create one custom `currency` dimension, choose one primitive currency for an
+immutable registry snapshot, and define other currencies through exact declared rates. The application remains
+responsible for the rates' source, effective time, bid/ask policy, fees, and monetary rounding. Such a snapshot supports
+dimensional checking and exact conversion; it is not a complete accounting or money model.
+
+[GNU Units](https://www.gnu.org/software/units/manual/units.html#Currency-Exchange-Rates) demonstrates the snapshot
+pattern by selecting one primitive currency and generating the remaining definitions from periodically updated rates.
+Yumemi may support the same dimensional structure through custom registries without adopting GNU Units' updater or
+treating mutable rates as catalog constants.
+
+This preserves the current arithmetic policy: compatible currencies may be converted explicitly or through exact
+`Quantity` operations, while branded native addition still cannot combine different currency units without an explicit
+conversion. Cross-registry operations continue to reject values from different rate snapshots.
+
 ## Remaining Issues And Deferred Work
 
 The multiplicative and affine-point runtimes and the PHPStan native/object paths are usable. Remaining work is mostly
-documentation expansion and polish, API polish, catalog semantics beyond affine conversion, and explicitly deferred
-advanced features.
+developer-experience improvement, selected API and formatting polish, extensible registry semantics, and explicitly
+deferred advanced features.
 
 ### Pre-Release Checklist
 
@@ -286,8 +346,10 @@ advanced features.
 
 ### Near-Term Work
 
+- Add deterministic unknown-unit suggestions under the ranking and stability contract above.
+- Extend `Dimension` and registry metadata with user-defined primitive dimensions while preserving the seven-axis SI
+  fast path; use currency as a custom-registry acceptance case without bundling exchange-rate data.
 - Split broad PHPStan diagnostic identifiers only where users need more precise suppression.
-- Decide whether user-defined base dimensions justify replacing or extending the fixed seven-axis `Dimension` vector.
 
 ### Known Limitations And Risks
 

@@ -1,6 +1,6 @@
 # Pint Feature Comparison
 
-Snapshot date: 2026-07-29
+Snapshot date: 2026-07-31
 
 This document compares Yumemi with Python's Pint library to identify useful capabilities and deliberate differences. It
 is a feature comparison, not the project roadmap. Current priorities, architectural risks, and deferred work belong in
@@ -35,8 +35,8 @@ custom registries, and a substantial PHPStan extension for branded native values
 engine serve both runtime and static analysis.
 
 Pint remains much broader in runtime convenience, unit systems, contexts, localization, nonlinear units, measurements,
-NumPy integration, and serialization patterns. Much of that breadth is Python-specific or secondary to Yumemi's static
-analysis goal.
+NumPy integration, and ecosystem persistence patterns. Much of that breadth is Python-specific or secondary to Yumemi's
+static analysis goal.
 
 The useful comparison is therefore not a single parity percentage. Yumemi has strong coverage of its chosen exact scalar
 and PHPStan scope, partial coverage of general-purpose formatting and advanced unit semantics, and intentionally little
@@ -50,7 +50,7 @@ Status: **Done** | Importance: **P0** | Remaining difficulty: **S**
 
 Yumemi represents constants, units, products, and integer powers explicitly. Reduction flattens products, combines
 constants and powers, cancels inverse units, and orders factors deterministically. Structural equality and the public
-seven-axis `Dimension` model no longer depend on formatted-string comparisons.
+seven-axis SI `Dimension` model no longer depend on formatted-string comparisons.
 
 The remaining concern is performance under repeated analysis, not missing algebra for the supported multiplicative
 model. Rational powers are a separate advanced feature.
@@ -85,8 +85,10 @@ Status: **Partial** | Importance: **P1** | Remaining difficulty: **M/L**
 registry. Each build creates an immutable snapshot, overlays correctly mask base records, and PHPStan can consume the
 same registry through a configured factory.
 
-Definition files and user-defined base dimensions outside the fixed seven SI axes are absent. Those features should be
-added only when an application requires them; programmatic custom units already cover ordinary project-specific scales.
+Definition files and user-defined base dimensions outside the fixed seven SI axes are absent. The planned dimension
+model retains the fixed SI vector and adds canonical sparse powers for registry-defined primitive dimensions. Currency
+is a useful acceptance case, but exchange-rate acquisition and money policy remain outside core. Programmatic custom
+units already cover ordinary project-specific scales derived from the SI axes.
 
 ### 5. Quantity Creation
 
@@ -137,8 +139,9 @@ Status: **Done for SI dimensions** | Importance: **P0** | Remaining difficulty: 
 `Dimension` exposes the seven SI axes, integer powers, arithmetic, equality, accessors, and deterministic strings.
 `Units`, `Quantity`, and resolved expressions expose dimensions publicly.
 
-The fixed vector cannot represent user-defined base dimensions and deliberately cannot distinguish semantic meanings
-that share physical axes, such as gray and sievert.
+The fixed vector cannot yet represent user-defined base dimensions and deliberately cannot distinguish semantic meanings
+that share physical axes, such as gray and sievert. Planned extensions preserve the seven built-in axes and add a
+deterministically ordered sparse map for custom primitive dimensions declared by a registry.
 
 ### 10. Numeric Types And Output Policy
 
@@ -231,10 +234,10 @@ decimal approximation of pi from mathematical pi.
 
 ### 19. Comparisons, Equality, And Predicates
 
-Status: **Done for quantity ordering** | Importance: **P1** | Remaining difficulty: **S/M**
+Status: **Done for quantity and point ordering** | Importance: **P1** | Remaining difficulty: **S/M**
 
-`Quantity` provides exact compatible-unit equality, three-way comparison, and all ordered predicates. Incompatible
-dimensions and registry contexts fail explicitly, and PHPStan diagnoses known invalid comparisons.
+`Quantity` and `PointQuantity` provide exact compatible-unit equality, three-way comparison, and all ordered predicates.
+Incompatible dimensions and registry contexts fail explicitly, and PHPStan diagnoses known invalid comparisons.
 
 Convenience predicates such as `isZero()` or `isCompatibleWith()` may be useful. Strict same-unit comparison variants
 remain low value because comparisons do not produce a unit-bearing result.
@@ -253,9 +256,10 @@ Approximate functions need a separate precision and rounding contract.
 
 Status: **Done for the current core** | Importance: **P0** | Remaining difficulty: **M/L**
 
-Yumemi resolves `unit_int<'...'>`, `unit_float<'...'>`, and `Quantity<'...'>`; infers native and object arithmetic;
-validates construction, conversion, extraction, and comparisons; supports native conversion helpers; preserves finite
-literal-string unions; configures custom registries; and provides stable diagnostics.
+Yumemi resolves `unit_int<'...'>`, `unit_float<'...'>`, `Quantity<'...'>`, and `PointQuantity<'...'>`; infers native,
+quantity, and point operations; validates construction, conversion, extraction, and comparisons; supports native
+conversion helpers; preserves finite literal-string unions; configures custom registries; and provides stable
+diagnostics.
 
 Remaining work is integration breadth: selected casts, built-ins, third-party stubs, more precise diagnostics, and
 future advanced unit semantics. Dynamic strings intentionally fall back to unbranded types.
@@ -272,10 +276,16 @@ static contracts and explicit runtime conversion prove insufficient.
 
 ### 23. Serialization
 
-Status: **Absent** | Importance: **P2** | Remaining difficulty: **M**
+Status: **Done for current value objects** | Importance: **P2** | Remaining difficulty: **S/M**
 
-There is no canonical JSON or persistence representation for `Quantity`. A design must choose whether to preserve
-symbolic display syntax, how to represent exact rationals, and how stored values identify custom registry versions.
+`Rational`, `Dimension`, `Quantity`, `PointQuantity`, and catalog descriptor value objects expose exact JSON and compact
+debug representations. Versioned native serialization preserves exact rational state and symbolic unit syntax. Default
+quantities restore through the shared default `Units`; custom-context values restore through `Units::deserialize()`,
+which validates unit semantics against the selected immutable registry.
+
+One serialized graph may contain default values and values from one custom context. Graphs containing several custom
+contexts still need stable registry identifiers and an application resolver. JSON intentionally represents value state
+rather than embedding or reconstructing a registry.
 
 ### 24. Arrays, Collections, And Scientific Ecosystems
 
@@ -302,10 +312,13 @@ develops a scientific-computing audience.
 
 ### 27. Currency
 
-Status: **Deliberately absent** | Importance: **P3** | Remaining difficulty: **L**
+Status: **Bundled data deliberately absent** | Importance: **P3** | Remaining difficulty: **L**
 
-Exchange rates are time-varying, jurisdictional, and application-specific. Currency should remain outside core. A custom
-registry can represent fixed contractual relationships where appropriate.
+Bundled rates remain inappropriate because exchange rates are time-varying and application-specific. Once registries can
+declare custom primitive dimensions, an application may model a `currency` dimension by choosing one primitive currency
+and defining the others through exact rates in an immutable registry snapshot. Rate sources, effective times, bid/ask
+spreads, fees, and monetary rounding remain outside Yumemi; this facility would provide dimensional checking and exact
+declared conversion, not a complete money model.
 
 ### 28. Localization
 
@@ -318,7 +331,7 @@ localization layer later without making locale part of expression identity.
 
 Status: **Partial** | Importance: **P1** | Remaining difficulty: **M**
 
-Resolvers and formatters cache several name, definition, conversion, and semantic lookups, and registries are immutable
+Resolvers and formatters cache name, definition, derived conversion, and semantic lookups, and registries are immutable
 after construction. PHPBench now covers representative cold and warm runtime workflows. Bulk catalog introspection still
 performs repeated grouping and sorting, and expression operations still reduce eagerly.
 
@@ -333,8 +346,14 @@ Syntax errors include bounded caret excerpts and source spans. Runtime exception
 incompatibility, unsupported syntax, affine factor misuse, logarithmic evaluation, context mismatch, and native range
 loss. PHPStan supplies stable identifiers and operation-specific diagnostics.
 
+All authored Yumemi exceptions implement one marker interface, including wrappers around the corresponding built-in PHP
+exception families. Unexpected failures crossing PHPStan extension entry points are attributed to Yumemi and include an
+actionable issue link without rewriting expected PHPStan internal failures.
+
 Unknown-unit suggestions and source spans for post-parse semantic errors remain absent. Diagnostic identifiers may be
-split further only where users need more precise suppression.
+split further only where users need more precise suppression. Suggestions should use a fully deterministic candidate
+order and tie-break policy, remain bounded, and be stored structurally so equivalent immutable registries produce exact
+stable messages regardless of construction order or locale.
 
 ### 31. Documentation And Examples
 
@@ -371,25 +390,25 @@ the first release establishes a compatibility promise.
 | Quantity arithmetic              | Done for multiplicative quantities | P0         | M                    |
 | Explicit conversion              | Done                               | P0         | S/M                  |
 | Normalization and simplification | Done                               | P1         | M                    |
-| Dimensionality API               | Done for SI dimensions             | P0         | M/L                  |
+| Dimensionality API               | Done for SI; extensions planned    | P0         | M/L                  |
 | Numeric output                   | Done for exact core                | P1         | M                    |
 | Formatting                       | Partial                            | P1         | M/L                  |
 | Names, prefixes, and plurals     | Done                               | P1         | S/M                  |
-| Affine units                     | Conversion only                    | P1         | L/XL                 |
+| Affine units                     | Done for exact points/differences  | P1         | M                    |
 | Logarithmic units                | Recognized, not evaluable          | P3         | XL                   |
 | Pint contexts                    | Absent                             | P2         | XL                   |
 | Unit systems                     | Absent                             | P2         | L                    |
 | Preferred and compact units      | Absent                             | P2         | M/L                  |
 | Constants                        | Partial                            | P2         | M                    |
-| Comparisons                      | Done for quantities                | P1         | S/M                  |
+| Comparisons                      | Done for quantities and points     | P1         | S/M                  |
 | Math functions                   | Integer powers only                | P2         | L                    |
 | PHPStan                          | Done for current core              | P0         | M/L                  |
 | Function boundaries              | Static contracts only              | P1/P2      | M                    |
-| Serialization                    | Absent                             | P2         | M                    |
+| Serialization                    | Done for current value objects     | P2         | S/M                  |
 | Collections and ecosystems       | Native-brand interoperability only | P3         | L/XL                 |
 | Measurements and uncertainty     | Absent                             | P3         | M/L                  |
 | Buckingham Pi theorem            | Absent                             | P3         | M/L                  |
-| Currency                         | Deliberately absent                | P3         | L                    |
+| Currency                         | Bundled data deliberately absent   | P3         | L                    |
 | Localization                     | Absent                             | P3         | M/L                  |
 | Performance and caching          | Partial                            | P1         | M                    |
 | Errors and developer UX          | Partial but strong                 | P1         | M                    |
@@ -402,8 +421,9 @@ Yumemi should continue to optimize for shared runtime and static semantics rathe
 strongest choices remain string unit expressions, generated catalog data, exact rational conversion, explicit registry
 contexts, and native PHPStan brands alongside exact quantity objects.
 
-The highest-value Pint gaps are those that improve ordinary PHP workflows: selected serialization, better formatting,
-and integrations proven by actual applications. Contexts, nonlinear units, uncertainty, and scientific-array features
-should remain independent decisions rather than a presumed route to parity.
+The highest-value Pint gaps are those that improve ordinary PHP workflows: deterministic unit suggestions, extensible
+primitive dimensions, better formatting, broader registry resolution for serialized graphs, and integrations proven by
+actual applications. Contexts, nonlinear units, uncertainty, and scientific-array features should remain independent
+decisions rather than a presumed route to parity.
 
 See [planning.md](planning.md) for the current ordering of work.
