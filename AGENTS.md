@@ -2,16 +2,177 @@
 
 Guidance for automated agents (and humans) working in this repository.
 
-## Public documentation
+## Documentation standards
 
-Public mdBook sources live under `docs/pages/`, with chapter order defined by `docs/pages/SUMMARY.md`.
+Documentation is part of the public API. Treat inaccurate, untested, stale, or poorly organized documentation as a
+defect. Write for a PHP developer who understands Composer and basic PHPStan usage but does not yet understand Yumemi's
+terminology or architecture.
+
+When writing documentation, optimize for the reader's next decision, not for mirroring the source-tree or type-system
+architecture.
+
+Public mdBook sources live under `docs/pages/`, with chapter order defined by `docs/pages/SUMMARY.md`. Build the book
+with `composer docs` and preview it with `composer docs:serve`.
 
 The persistent sidebar outline in `docs/theme/yumemi.js` mirrors the `h2` and `h3` headings in each public page. When
 adding, removing, renaming, or reparenting those headings, update `headingsByChapter` in the same change. Keep cohesive
 reference material on its existing page; do not split short sections into separate chapters solely to produce sidebar
 nesting.
 
-Build the book with `composer docs` and preview it with `composer docs:serve`.
+### Start with the user's goal
+
+Introduce practical behavior before formal terminology. Prefer this progression where the page's purpose permits it:
+
+1. Show the problem Yumemi solves.
+2. Show a small working example.
+3. Show the diagnostic or result.
+4. Explain the rule behind it.
+5. Introduce the formal name for that rule.
+6. Link to exhaustive reference material.
+
+For example, demonstrate why native `meter + foot` is rejected before introducing “definitional equivalence” and
+“dimensional compatibility.” Do not require readers to understand the implementation architecture before they can
+install or use the library.
+
+### Explain the runtime boundary
+
+Keep the distinction between native and runtime-object models explicit:
+
+- Branded native values remain ordinary PHP `int` or `float` values at runtime. Their unit exists only during static
+  analysis.
+- `Quantity` retains an exact rational magnitude and unit at runtime for conversion and unit-aware arithmetic.
+- `PointQuantity` retains an exact coordinate and named affine scale at runtime; it is the specialized coordinate model,
+  not a third native-brand mechanism.
+
+Do not describe branded values as wrappers, objects, runtime types, or values that carry their unit at runtime. When
+documenting an API such as `unit_to($value, 'foot', 'meter')`, explain where relevant that the source unit is explicit
+because runtime PHP cannot recover a PHPStan brand from an ordinary scalar.
+
+### README scope
+
+The root `README.md` is a concise project landing page, not the complete manual. It should normally contain the banner
+and title, a short description and status statement, basic installation, one compact static-analysis example, one
+compact runtime example, documentation links, and a concise license summary.
+
+Move advanced semantics, complete API behavior, configuration, custom registries, formatting policies, optional
+annotations, catalog details, and limitations into the documentation source. Do not substantially expand the README
+without a strong reason.
+
+### Organization and terminology
+
+Organize documentation by user task before implementation subsystem. Preserve the current progression from Introduction
+and Getting Started through guides and recipes, reference material, and contributor documentation. Avoid categories
+containing only one page unless the category creates a useful audience boundary or has a clear reason to grow.
+
+Use task-oriented titles where possible, such as “Choose an API,” “Convert request data,” “Define custom units,” or
+“Extract a decimal value.” Use implementation-oriented titles for genuine reference material.
+
+Long reference pages are acceptable when they have a short orientation paragraph, a task table near the beginning, clear
+headings, links to relevant guides, and an honest limitations section. Do not fragment cohesive material into tiny pages
+solely to reduce page length.
+
+Use established terminology consistently:
+
+- branded native value
+- PHPStan extension
+- runtime unit engine
+- definitionally equivalent
+- dimensionally compatible
+- exact rational value
+- normalize
+- simplify
+- affine conversion
+
+Define unfamiliar terms at first use. Prefer plain language before formal language. For example:
+
+> A branded native value is still an ordinary PHP float. PHPStan tracks the unit during analysis, but runtime PHP does
+> not receive that unit.
+
+After this explanation, “branded value” may be used as shorthand. Do not invent synonyms for established concepts unless
+the distinction is intentional and documented.
+
+### Examples
+
+Examples must be small, realistic, technically correct, focused on one behavior, consistent with the current public API,
+and executable or statically verifiable where the repository supports it.
+
+Prefer natural application-oriented names such as `saveDistance()`, `calculateSpeed()`, or `shipPackage()` over names
+that read like test fixtures. Declarations in extracted examples must nevertheless remain distinct across the tested
+documentation corpus because PHPStan verification loads relevant blocks into one process.
+
+Do not repeat `require 'vendor/autoload.php';` on every page. State the convention once and include it only in
+standalone examples where it helps. When an example contains `//!`, explain that it marks an expected PHPStan diagnostic
+used by documentation testing and is not Yumemi syntax.
+
+Never include an expected output, diagnostic, inferred type, or conversion result without verifying it against the
+implementation.
+
+### Semantic accuracy
+
+Be exact when describing numeric output:
+
+- `valueIn()` preserves the exact rational result after conversion.
+- `exactDecimalValueIn()` returns a minimal exact terminating decimal and throws for a non-terminating expansion.
+- `decimalValueIn()` returns rounded decimal output with an explicit scale and rounding mode.
+- `floatValueIn()` returns a native binary floating-point result.
+
+Do not imply that every rational number has a finite decimal representation. Do not use “exact,” “lossless,” “safe,” or
+similar words unless the documented behavior provides that guarantee.
+
+Do not imply that dimensional compatibility permits native arithmetic or assignment when Yumemi requires definitional
+equivalence. Explain the reason concretely: PHP cannot add native meters to native feet without converting one operand,
+so Yumemi rejects that operation when no runtime conversion occurs; `Quantity::add()` can perform the conversion and may
+therefore accept compatible units.
+
+Document important limitations prominently enough that users can form accurate expectations instead of burying them only
+at the bottom of a long page.
+
+When documenting unit syntax, show common examples before the full grammar, make precedence visible, and distinguish
+accepted syntax from aliases and display formatting. The shared precedence of adjacency, multiplication, and division
+must remain a visible warning with explicit grouping examples. Do not assume Unicode renders identically in every
+environment.
+
+### Links, preservation, and tests
+
+Use relative links for repository documentation. After moving or renaming content, update inbound links, the mdBook
+summary, README links, sidebar heading metadata, and references to removed headings. Check anchors and generated browser
+titles. Do not edit generated HTML directly; edit the Markdown, mdBook configuration, templates, or theme source.
+
+When shortening or reorganizing documentation, move useful material rather than silently deleting it. Before removing a
+section, preserve any behavioral guarantee, limitation, edge case, compatibility or configuration requirement, precision
+policy, or tested example in the appropriate guide or reference page.
+
+Before editing examples or moving documentation, inspect the relevant machinery under `tests/Documentation/`. Preserve
+fenced-PHP execution, PHPStan analysis, `//!` expectations, and the explicit Markdown manifest. Search for CI jobs or
+scripts tied to affected filenames. Do not claim examples are tested unless the applicable checks include them, and do
+not weaken verification merely to make a refactor pass.
+
+### Required workflow
+
+For nontrivial documentation work:
+
+1. Inspect the affected sources, navigation, example tests, and build configuration.
+2. Identify the intended user and task for each affected page.
+3. Make the smallest coherent change that solves the usability problem.
+4. Build the documentation and run the documentation example tests.
+5. Check affected links, anchors, generated titles, navigation, and sidebar headings.
+6. Run normal formatting and repository checks where applicable.
+7. Report exactly which commands ran, which succeeded, and which were skipped or unavailable.
+
+For onboarding or information-architecture changes, also verify that a new user can identify Yumemi's purpose, install
+it, observe a deliberate unit error, choose between branded native values and runtime quantities, and find advanced
+material without first learning the implementation architecture.
+
+### Editing boundaries and style
+
+Documentation tasks are not permission to redesign the library, rename public concepts, change examples to a different
+API, or simplify semantics. If documentation exposes an apparent API problem, report it separately rather than silently
+changing behavior.
+
+Match the existing voice: technically precise, confident, restrained, concrete, and slightly distinctive without
+becoming theatrical. Avoid marketing filler, repeated introductions, unexplained jargon, unnecessary warnings, fake
+quotations, excessive callouts, duplicated explanations, and implementation details that do not help users make a
+decision. Prefer one clear example and one precise explanation over several paragraphs of abstract prose.
 
 ## Changelog
 
