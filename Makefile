@@ -1,5 +1,8 @@
 .DEFAULT: all
-.PHONY: all clean docs docs-serve generate-catalog test-consumer test-consumer-archive
+.PHONY: all clean docs docs-serve generate-catalog test-consumer test-consumer-archive \
+	test-consumer-illuminate-cache test-consumer-illuminate-cache-archive
+
+ILLUMINATE_CACHE_MAJOR ?= 12
 
 UDUNITS_XML_FILES := \
 	$(UDUNITS_XML_DIR)/udunits2-prefixes.xml \
@@ -24,6 +27,12 @@ test-consumer:
 
 test-consumer-archive:
 	tests/Consumer/run archive
+
+test-consumer-illuminate-cache:
+	tests/Consumer/run source illuminate-cache $(ILLUMINATE_CACHE_MAJOR)
+
+test-consumer-illuminate-cache-archive:
+	tests/Consumer/run archive illuminate-cache $(ILLUMINATE_CACHE_MAJOR)
 
 ifneq ($(strip $(UDUNITS_XML_DIR)),)
 generate-catalog: $(UDUNITS_XML_FILES)

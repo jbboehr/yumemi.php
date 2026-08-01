@@ -70,6 +70,7 @@
         "symfony/polyfill-php84": "^1.34"
     },
     "suggest": {
+        "illuminate/cache": "Enables optional unit-aware cache, lock, and rate-limiter stubs through yumemi-tags.neon (Laravel 11-13).",
         "phpstan/phpstan": "Enables the bundled Yumemi unit types extension (extension.neon; develop against PHPStan 2.x)."
     },
     "autoload": {
@@ -119,7 +120,9 @@
         "infection:ci": "infection --no-progress --min-msi=86 --min-covered-msi=86",
         "infection:core": "infection --no-progress --filter=src/Number/Rational.php,src/Dimension.php,src/Analyzer",
         "test:consumer": "make test-consumer",
-        "test:consumer:archive": "make test-consumer-archive"
+        "test:consumer:archive": "make test-consumer-archive",
+        "test:consumer:illuminate-cache": "make test-consumer-illuminate-cache",
+        "test:consumer:illuminate-cache:archive": "make test-consumer-illuminate-cache-archive"
     },
     "config": {
         "allow-plugins": {

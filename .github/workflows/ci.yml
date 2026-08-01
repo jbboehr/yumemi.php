@@ -128,3 +128,48 @@ jobs:
                       infection.log
                       infection-summary.log
                   if-no-files-found: warn
+
+    illuminate-cache:
+        name: Illuminate Cache ${{ matrix.illuminate-version }} / PHP ${{ matrix.php-version }}
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - illuminate-version: "11"
+                      package-mode: source
+                      php-version: "8.2"
+                    - illuminate-version: "12"
+                      package-mode: archive
+                      php-version: "8.2"
+                    - illuminate-version: "13"
+                      package-mode: source
+                      php-version: "8.3"
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Install PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  coverage: none
+                  extensions: gmp
+                  php-version: ${{ matrix.php-version }}
+                  tools: composer:v2
+
+            - name: Get Composer cache directory
+              id: composer-cache
+              run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+            - name: Cache Composer packages
+              uses: actions/cache@v4
+              with:
+                  path: ${{ steps.composer-cache.outputs.dir }}
+                  key: ${{ runner.os }}-php-${{ matrix.php-version }}-illuminate-cache-${{ matrix.illuminate-version }}
+                  restore-keys: |
+                      ${{ runner.os }}-php-${{ matrix.php-version }}-illuminate-cache-
+                      ${{ runner.os }}-php-${{ matrix.php-version }}-composer-
+                      ${{ runner.os }}-php-composer-
+
+            - name: Test package stubs
+              run: tests/Consumer/run ${{ matrix.package-mode }} illuminate-cache ${{ matrix.illuminate-version }}

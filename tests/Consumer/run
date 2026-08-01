@@ -7,7 +7,8 @@ readonly FIXTURES_DIR
 PROJECT_ROOT=$(cd -- "$FIXTURES_DIR/../.." && pwd)
 readonly PROJECT_ROOT
 readonly PACKAGE_MODE=${1:-source}
-readonly EXPECTED_DIAGNOSTIC="expects unit_float<'meter'>, unit_float<'second'> given"
+readonly FIXTURE_SUITE=${2:-core}
+readonly FRAMEWORK_MAJOR=${3:-}
 
 WORK_DIR=$(mktemp -d "${TMPDIR:-/tmp}/yumemi-consumer.XXXXXXXX")
 readonly WORK_DIR
@@ -38,6 +39,7 @@ if [[ $PACKAGE_MODE == archive ]]; then
         docs/pages/images/yumemi-banner.png
         extension.neon
         src/Parser/Parser.php
+        stubs/illuminate-cache.stub
         yumemi-tags.neon
     )
     for path in "${required_paths[@]}"; do
@@ -55,7 +57,7 @@ if [[ $PACKAGE_MODE == archive ]]; then
         fi
     done
 elif [[ $PACKAGE_MODE != source ]]; then
-    printf 'Usage: %s [source|archive]\n' "$0" >&2
+    printf 'Usage: %s [source|archive] [core|illuminate-cache] [framework-major]\n' "$0" >&2
     exit 2
 fi
 
@@ -73,7 +75,7 @@ echo json_encode([
 ' "$package_dir")
 readonly repository_json
 
-run_fixture() {
+run_core_fixture() {
     local fixture=$1
     local project_dir=$WORK_DIR/$fixture
     local output
@@ -103,14 +105,82 @@ run_fixture() {
         exit 1
     fi
 
-    if [[ $output != *"$EXPECTED_DIAGNOSTIC"* ]]; then
+    if [[ $output != *"expects unit_float<'meter'>, unit_float<'second'> given"* ]]; then
         printf '%s consumer PHPStan fixture reported an unexpected diagnostic:\n%s\n' "$fixture" "$output" >&2
         exit 1
     fi
 }
 
-run_fixture automatic
-php "$WORK_DIR/automatic/runtime.php"
-run_fixture manual
+run_core() {
+    run_core_fixture automatic
+    php "$WORK_DIR/automatic/runtime.php"
+    run_core_fixture manual
+}
 
-printf 'Consumer package smoke tests passed using the %s package.\n' "$PACKAGE_MODE"
+run_illuminate_cache() {
+    local project_dir=$WORK_DIR/illuminate-cache
+    local output
+    local expected_diagnostics=(
+        "expects unit_int<'second'>, int given"
+        "expects unit_int<'second'>, unit_int<'meter'> given"
+        "Illuminate\\Contracts\\Cache\\Repository::put() expects DateInterval|DateTimeInterface|unit_int<'second'>|null, int given"
+        "Illuminate\\Contracts\\Cache\\Repository::put() expects DateInterval|DateTimeInterface|unit_int<'second'>|null, unit_int<'minute'> given"
+        "Illuminate\\Cache\\Repository::put() expects DateInterval|DateTimeInterface|unit_int<'second'>|null, int given"
+        "Illuminate\\Cache\\Repository::put() expects DateInterval|DateTimeInterface|unit_int<'second'>|null, unit_int<'minute'> given"
+        "Repository::setDefaultCacheTime() expects unit_int<'second'>|null, int given"
+        "RateLimiter::hit() expects DateInterval|DateTimeInterface|unit_int<'second'>, int given"
+        "RateLimiter::hit() expects DateInterval|DateTimeInterface|unit_int<'second'>, unit_int<'minute'> given"
+        "expects unit_int<'1/1000 * second'>, unit_int<'second'> given"
+        "expects unit_int<'minute'>, unit_int<'second'> given"
+    )
+    local phpstan=(vendor/bin/phpstan analyse --no-progress --error-format=raw --configuration=phpstan.neon)
+
+    if [[ ! $FRAMEWORK_MAJOR =~ ^(11|12|13)$ ]]; then
+        printf 'Illuminate Cache consumer tests require framework major 11, 12, or 13.\n' >&2
+        exit 2
+    fi
+
+    mkdir -p -- "$project_dir"
+    cp -R -- "$FIXTURES_DIR/illuminate-cache/." "$project_dir/"
+
+    composer --working-dir="$project_dir" repo add yumemi "$repository_json" --no-interaction
+    composer --working-dir="$project_dir" require --dev "illuminate/cache:^$FRAMEWORK_MAJOR.0" --no-update --no-interaction
+    composer --working-dir="$project_dir" update --prefer-dist --no-interaction --no-progress
+
+    php "$project_dir/verify.php"
+
+    (
+        cd -- "$project_dir"
+        "${phpstan[@]}" cases/valid.php
+    )
+
+    if output=$(
+        cd -- "$project_dir"
+        "${phpstan[@]}" cases/invalid.php 2>&1
+    ); then
+        printf 'Illuminate Cache consumer PHPStan fixture unexpectedly accepted invalid units.\n' >&2
+        exit 1
+    fi
+
+    for diagnostic in "${expected_diagnostics[@]}"; do
+        if [[ $output != *"$diagnostic"* ]]; then
+            printf 'Illuminate Cache consumer PHPStan fixture missed diagnostic %s:\n%s\n' "$diagnostic" "$output" >&2
+            exit 1
+        fi
+    done
+}
+
+case $FIXTURE_SUITE in
+    core)
+        run_core
+        ;;
+    illuminate-cache)
+        run_illuminate_cache
+        ;;
+    *)
+        printf 'Usage: %s [source|archive] [core|illuminate-cache] [framework-major]\n' "$0" >&2
+        exit 2
+        ;;
+esac
+
+printf '%s consumer package smoke tests passed using the %s package.\n' "$FIXTURE_SUITE" "$PACKAGE_MODE"
