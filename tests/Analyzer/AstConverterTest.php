@@ -62,6 +62,14 @@ final class AstConverterTest extends TestCase
         $this->assertSame('5/4 * meter', $expr->reduce()->toString());
     }
 
+    public function testConvertsRepeatedlyNegatedExponentWithoutLosingTheUnit(): void
+    {
+        $converter = new AstConverter(new UnitResolver(UnitRegistry::defaults()));
+        $expr = $converter->convert(Parser::parseString('meter^--2'));
+
+        $this->assertSame('meter ^ 2', $expr->reduce()->toString());
+    }
+
     public function testSymbolicModeKeepsBareUnitNames(): void
     {
         $ast = Parser::parseString('foot');

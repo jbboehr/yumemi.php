@@ -125,12 +125,17 @@ trait ParserUtils
     public static function makeNeg(Ast $expr): Ast
     {
         if ($expr instanceof Integer_) {
-            return new Integer_('-' . $expr->value);
+            return new Integer_(self::negateNumber($expr->value));
         } elseif ($expr instanceof Float_) {
-            return new Float_('-' . $expr->value);
+            return new Float_(self::negateNumber($expr->value));
         } else {
-            return self::makeMul(self::makeInteger(-1), $expr);
+            return self::makeMul(self::makeInteger('-1'), $expr);
         }
+    }
+
+    private static function negateNumber(string $value): string
+    {
+        return str_starts_with($value, '-') ? substr($value, 1) : '-' . $value;
     }
 
     public static function makeAt(Ast $left, Ast $right): Ast

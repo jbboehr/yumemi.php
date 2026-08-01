@@ -197,6 +197,20 @@ final class ParserTest extends TestCase
         );
     }
 
+    public function testRepeatedNegationTogglesNumericSign(): void
+    {
+        $this->assertEquals(
+            new Ast\Pow(
+                new Ast\Identifier('meter'),
+                new Ast\Integer_('2'),
+            ),
+            Parser::parseString('meter^--2'),
+        );
+
+        $this->assertEquals(new Ast\Integer_('5'), Parser::parseString('--5'));
+        $this->assertEquals(new Ast\Float_('1.25'), Parser::parseString('--1.25'));
+    }
+
     public function testParenthesizedPower(): void
     {
         $this->assertEquals(
