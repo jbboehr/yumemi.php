@@ -211,6 +211,17 @@ final class ParserTest extends TestCase
         $this->assertEquals(new Ast\Float_('1.25'), Parser::parseString('--1.25'));
     }
 
+    public function testAffineOriginMayBeNegative(): void
+    {
+        $this->assertEquals(
+            new Ast\At(
+                new Ast\Identifier('kelvin'),
+                new Ast\Float_('-273.15'),
+            ),
+            Parser::parseString('kelvin @ -273.15'),
+        );
+    }
+
     public function testParenthesizedPower(): void
     {
         $this->assertEquals(

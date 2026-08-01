@@ -222,7 +222,7 @@ use `convert()`, `convertFloat()`, or `unit_to()` for affine conversion.
 
 Explicit conversion supports UDUNITS2 affine temperature units and custom `@` definitions. The exact conversion core
 maps each coordinate into canonical base units as `scale * value + offset`; decimal catalog constants remain exact
-`Rational` values:
+`Rational` values. A custom `@` origin may be a signed integer or finite decimal literal:
 
 ```php
 <?php

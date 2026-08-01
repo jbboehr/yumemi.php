@@ -89,7 +89,7 @@ final class ParserSyntaxErrorTest extends TestCase
             'meter @ )',
             8,
             9,
-            'Syntax error, got ), but expecting integer or decimal number '
+            'Syntax error, got ), but expecting integer or decimal number or - '
                 . "at line 1, column 9 (byte offset 8).\n"
                 . "| meter @ )\n"
                 . '|         ^',
@@ -98,7 +98,7 @@ final class ParserSyntaxErrorTest extends TestCase
             'meter @ second',
             8,
             14,
-            'Syntax error, got identifier, but expecting integer or decimal number '
+            'Syntax error, got identifier, but expecting integer or decimal number or - '
                 . "at line 1, column 9 (byte offset 8).\n"
                 . "| meter @ second\n"
                 . '|         ^~~~~~',

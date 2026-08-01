@@ -82,7 +82,7 @@ power_exp:
 simple:
         number                                  { $$ = $1; }
     |   identifier                              { $$ = $1; }
-    |   identifier T_AT number                  { $$ = self::makeAt($1, $3); }
+    |   identifier T_AT signed_number           { $$ = self::makeAt($1, $3); }
     |   T_LEFT_PAREN exp T_RIGHT_PAREN          { $$ = $2; }
     |   simple T_SUPERSCRIPT_INTEGER %prec T_POW { $$ = self::makePow($1, self::makeSuperscriptInteger($2)); }
     ;
@@ -90,6 +90,11 @@ simple:
 number:
         T_INTEGER                               { $$ = self::makeInteger($1); }
     |   T_FLOAT                                 { $$ = self::makeFloat($1); }
+    ;
+
+signed_number:
+        number                                  { $$ = $1; }
+    |   T_SUB number                            { $$ = self::makeNeg($2); }
     ;
 
 identifier:

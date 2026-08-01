@@ -100,6 +100,17 @@ final class AffineConversionTest extends TestCase
         $units->parse('kelvin @ 273.15');
     }
 
+    public function testDirectAtExpressionAcceptsNegativeOrigin(): void
+    {
+        $units = Units::default();
+
+        $this->assertSame('-5463/20', $units->convert(0, 'kelvin @ -273.15', 'kelvin')->toString());
+        $this->assertSame(
+            '0',
+            $units->convert(Rational::fromDecimalString('273.15'), 'kelvin @ -273.15', 'kelvin')->toString(),
+        );
+    }
+
     public function testAffineUnitsExposeTheirReferenceDimension(): void
     {
         $units = Units::default();
