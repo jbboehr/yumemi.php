@@ -142,7 +142,8 @@ assert($length->valueToString() === '5/4');
 `compareTo()` and `equals()`. `toString()` returns a fraction, `toDecimalExact()` requires a terminating decimal, and
 `toDecimal()` uses an explicit scale and `RoundingMode`. Conversion to native values remains explicit through `toInt()`,
 `toIntExact()`, and `toFloat()`. Integer powers and the effective decimal exponent accepted by
-`Rational::fromDecimalString()` are limited to the inclusive range `-10000` through `10000`.
+`Rational::fromDecimalString()` are limited to the inclusive range `-10000` through `10000`. Zero powers follow PHP's
+computing convention: every base, including zero, raised to zero returns one.
 
 ## Debugging, JSON, And Serialization
 
@@ -328,7 +329,8 @@ assert($ratio->toString() === '3/2 * meter / foot');
 ```
 
 `mul()` and `div()` also accept an `int` or `Rational` scalar. `neg()` changes only the magnitude. `pow()` raises both
-the magnitude and unit expression to an integer power.
+the magnitude and unit expression to an integer power. `pow(0)` returns dimensionless one, including when the original
+magnitude is zero.
 
 Addition and subtraction require compatible dimensions. The right operand is converted exactly into the left operand's
 unit, and the result preserves the left symbolic unit:

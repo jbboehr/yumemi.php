@@ -261,6 +261,13 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
         $this->assertSame("unit_float<'meter ^ 2'>", $result->describe(VerbosityLevel::precise()));
     }
 
+    public function testPowZeroProducesDimensionlessBrand(): void
+    {
+        $result = $this->extension->specifyType('**', $this->unitFloat('meter'), new ConstantIntegerType(0));
+
+        $this->assertSame("unit_float<'1'>", $result->describe(VerbosityLevel::precise()));
+    }
+
     public function testPowEvaluatesFiniteExponentUnionArmByArm(): void
     {
         $exponents = TypeCombinator::union(new ConstantIntegerType(2), new ConstantIntegerType(3));

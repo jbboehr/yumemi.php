@@ -119,6 +119,13 @@ final class RationalTest extends TestCase
         (new Rational(2))->pow(10_001);
     }
 
+    public function testZeroPowerUsesTheComputingConvention(): void
+    {
+        $this->assertSame('1', (new Rational(2))->pow(0)->toString());
+        $this->assertSame('1', (new Rational(-3, 2))->pow(0)->toString());
+        $this->assertSame('1', (new Rational(0))->pow(0)->toString());
+    }
+
     /**
      * @return iterable<string, array{string}>
      */

@@ -415,6 +415,15 @@ final class QuantityTest extends TestCase
         $this->assertSame('1 / second', $rate->unitToString());
     }
 
+    public function testZeroPowerProducesDimensionlessOneIncludingForZeroMagnitude(): void
+    {
+        $result = Units::default()->quantity(0, 'meter')->pow(0);
+
+        $this->assertSame('1', $result->valueToString());
+        $this->assertSame('1', $result->unitToString());
+        $this->assertTrue($result->dimension()->isDimensionless());
+    }
+
     public function testNegatesQuantityMagnitude(): void
     {
         $units = Units::default();

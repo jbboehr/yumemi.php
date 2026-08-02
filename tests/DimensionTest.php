@@ -106,6 +106,11 @@ final class DimensionTest extends TestCase
         $this->assertSame('length ^ 2 / time ^ 2', $velocity->pow(2)->toString());
     }
 
+    public function testZeroPowerIsDimensionless(): void
+    {
+        $this->assertTrue((new Dimension(length: 1, time: -1))->pow(0)->isDimensionless());
+    }
+
     public function testRejectsOutOfRangeDimensionConstruction(): void
     {
         $this->expectException(OverflowException::class);
