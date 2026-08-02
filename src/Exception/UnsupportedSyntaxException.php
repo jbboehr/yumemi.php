@@ -54,7 +54,8 @@ final class UnsupportedSyntaxException extends RuntimeException
 
         $hint = '';
         if (str_contains($expression, '@')) {
-            $hint = ' Affine / offset units (for example temperature with @) are not supported yet.';
+            $hint = ' Affine / offset syntax is not valid in multiplicative unit algebra. Use Units::convert() for '
+                . 'an explicit affine expression, or define a named affine unit and construct it with Units::point().';
         } elseif (str_contains($expression, '+') || str_contains($expression, '-')) {
             // Avoid treating unary minus in powers as addition syntax; AST toString uses " + " / " - ".
             if (str_contains($expression, ' + ') || str_contains($expression, ' - ')) {

@@ -97,6 +97,9 @@ final class AffineConversionTest extends TestCase
         $this->assertTrue($units->areCompatible('kelvin @ 273.15', 'degree_Celsius'));
 
         $this->expectException(UnsupportedSyntaxException::class);
+        $this->expectExceptionMessage(
+            'Affine / offset syntax is not valid in multiplicative unit algebra. Use Units::convert()',
+        );
         $units->parse('kelvin @ 273.15');
     }
 
