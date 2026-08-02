@@ -139,7 +139,7 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
         // not merely the same dimension (meter + foot stays an error).
         if (!$leftUnit->getUnitExpression()->equivalent($rightUnit->getUnitExpression())) {
             return new ErrorType(sprintf(
-                'Cannot use %s with incompatible units %s and %s.',
+                'Cannot use %s with units %s and %s because they are not definitionally equivalent.',
                 $operatorSigil,
                 $leftUnit->getUnitExpression()->displayString,
                 $rightUnit->getUnitExpression()->displayString,
@@ -165,7 +165,7 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
 
         if (!$leftUnit->getUnitExpression()->equivalent($rightUnit->getUnitExpression())) {
             return new ErrorType(sprintf(
-                'Cannot use %% with incompatible units %s and %s.',
+                'Cannot use %% with units %s and %s because they are not definitionally equivalent.',
                 $leftUnit->getUnitExpression()->displayString,
                 $rightUnit->getUnitExpression()->displayString,
             ));

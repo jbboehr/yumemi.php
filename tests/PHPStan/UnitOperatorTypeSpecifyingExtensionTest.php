@@ -115,7 +115,10 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
         $result = $this->extension->specifyType('+', $this->unitInt('meter'), $this->unitInt('second'));
 
         $this->assertInstanceOf(ErrorType::class, $result);
-        $this->assertStringContainsString('incompatible units', strtolower($result->getReason() ?? ''));
+        $this->assertSame(
+            'Cannot use + with units meter and second because they are not definitionally equivalent.',
+            $result->getReason(),
+        );
     }
 
     public function testAddDefinitionallyEquivalentUnitsSucceeds(): void
@@ -138,6 +141,10 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
         );
 
         $this->assertInstanceOf(ErrorType::class, $result);
+        $this->assertSame(
+            'Cannot use + with units meter and international_foot because they are not definitionally equivalent.',
+            $result->getReason(),
+        );
     }
 
     public function testAddUnitAndBareNumericIsError(): void
@@ -384,6 +391,10 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
         $result = $this->extension->specifyType('%', $this->unitInt('meter'), $this->unitInt('second'));
 
         $this->assertInstanceOf(ErrorType::class, $result);
+        $this->assertSame(
+            'Cannot use % with units meter and second because they are not definitionally equivalent.',
+            $result->getReason(),
+        );
     }
 
     public function testModUnitAndDimensionlessUnitIsError(): void

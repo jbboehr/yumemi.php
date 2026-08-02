@@ -125,7 +125,7 @@ final class InvalidUnitComparisonRule implements Rule
                     }
 
                     return [self::error(sprintf(
-                        'Cannot use %s with incompatible units %s and %s.',
+                        'Cannot use %s with units %s and %s because they are not definitionally equivalent.',
                         $operator,
                         $leftUnit->getUnitExpression()->displayString,
                         $rightUnit->getUnitExpression()->displayString,

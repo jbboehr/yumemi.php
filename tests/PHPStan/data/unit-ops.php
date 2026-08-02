@@ -21,7 +21,7 @@ $speed = $a / $t;
 $scaled = $a * 2;
 $rate = 1 / $t;
 
-// Should error: incompatible units
+// Should error: units are not definitionally equivalent.
 $bad = $a + $t;
 
 // Should error: modulo requires unit_int operands
