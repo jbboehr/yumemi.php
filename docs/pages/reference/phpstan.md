@@ -255,9 +255,11 @@ Use `UnitRegistryBuilder::default()` to extend or override UDUNITS2, or `UnitReg
 catalog. Registry contents contribute to PHPStan's result-cache fingerprint.
 
 The configured registry controls static analysis only. Applications using custom units in both layers should construct
-their runtime `Units` context from the same factory. PHPStan assumes one authoritative registry for an analysis run and
-does not track a separate catalog identity on each value. See [Custom Registries](catalog.md#custom-registries) for the
-runtime builder and overlay semantics.
+their runtime `Units` context from the same factory. Instance APIs use that context directly; applications using
+`unit()`, `unit_factor()`, or `unit_to()` should install it with `Units::setDefault()` and restore the previous context
+in `finally`. PHPStan assumes one authoritative registry for an analysis run and does not track a separate catalog
+identity on each value. See [Contexts And Construction](runtime.md#contexts-and-construction) for runtime installation
+and [Custom Registries](catalog.md#custom-registries) for builder and overlay semantics.
 
 ## Extension-Optional Annotations
 

@@ -376,7 +376,8 @@ deferred advanced features.
 - `unit_to()` returns plain `float` for affine targets because native affine brands cannot yet express absolute-versus-
   delta semantics. Affine sources converted to multiplicative targets retain the target brand.
 - PHPStan assumes one authoritative registry. Flow-sensitive tracking of several runtime registry identities is not
-  implemented.
+  implemented. Native runtime helpers can be aligned with that registry through the process-wide `Units::setDefault()`;
+  instance APIs remain preferable when an application uses several registries concurrently.
 - The opt-in `@yumemi-*` parser integration depends on internal PHPStan parser services and may conflict with another
   parser-replacing extension.
 - Bundled package stubs intentionally reject unsupported installed majors. Their reflected class, method, property, and

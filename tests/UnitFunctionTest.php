@@ -42,6 +42,7 @@ use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Parser\ParseException;
+use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
 use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -56,6 +57,26 @@ final class UnitFunctionTest extends TestCase
     {
         $this->assertSame(1500.0, unit(1500.0, 'kilogram'));
         $this->assertSame(3, unit(3, 'meter'));
+    }
+
+    public function testNativeHelpersUseConfiguredDefaultContext(): void
+    {
+        $units = new Units(
+            UnitRegistryBuilder::default()
+                ->define('widget = 2 * meter')
+                ->build(),
+        );
+        $previous = Units::setDefault($units);
+        $widget = 'widget';
+        $meter = 'meter';
+
+        try {
+            $this->assertSame(3, unit(3, $widget));
+            $this->assertSame(2.0, unit_factor($widget, $meter));
+            $this->assertSame(6.0, unit_to(3, $widget, $meter));
+        } finally {
+            Units::setDefault($previous);
+        }
     }
 
     public function testRejectsUnknownUnit(): void

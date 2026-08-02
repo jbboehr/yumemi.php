@@ -46,6 +46,7 @@ use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Quantity;
+use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
 use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -65,6 +66,43 @@ final class UnitsTest extends TestCase
 
         $this->assertTrue($units->areCompatible('kilometer', 'meter'));
         $this->assertFalse($units->areCompatible('meter', 'second'));
+    }
+
+    public function testDefaultContextCanBeTemporarilyReplacedAndRestored(): void
+    {
+        $original = Units::default();
+        $custom = new Units(
+            UnitRegistryBuilder::default()
+                ->define('widget = 2 * meter')
+                ->build(),
+        );
+
+        $previous = Units::setDefault($custom);
+
+        try {
+            $this->assertSame($original, $previous);
+            $this->assertSame($custom, Units::default());
+            $this->assertSame('2', Units::default()->quantity(1, 'widget')->valueIn('meter')->toString());
+        } finally {
+            $replaced = Units::setDefault($previous);
+        }
+
+        $this->assertSame($custom, $replaced);
+        $this->assertSame($original, Units::default());
+    }
+
+    public function testClearingDefaultLazilyCreatesFreshBuiltinContext(): void
+    {
+        $original = Units::default();
+
+        try {
+            $this->assertSame($original, Units::setDefault(null));
+            $fresh = Units::default();
+            $this->assertNotSame($original, $fresh);
+            $this->assertSame('meter', $fresh->unit('meter')->toString());
+        } finally {
+            Units::setDefault($original);
+        }
     }
 
     public function testDefaultUnitsExposeDimensions(): void

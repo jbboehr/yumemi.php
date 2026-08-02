@@ -47,6 +47,35 @@ Use `new Units($registry)` for an isolated or customized catalog. Quantities can
 same `Units` instance. Combining quantities from different contexts throws `IncompatibleQuantityContextException`, even
 when their unit strings happen to match.
 
+Native helpers such as `unit()`, `unit_factor()`, and `unit_to()` use the process-wide default context. Applications
+that configure the PHPStan extension with custom units can install the matching runtime context temporarily. Save and
+restore the previous context in `finally`, especially in tests and long-running workers:
+
+```php
+<?php
+
+use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
+use jbboehr\Yumemi\Units;
+
+use function jbboehr\Yumemi\unit_to;
+
+$units = new Units(
+    UnitRegistryBuilder::default()
+        ->define('widget = 2 * meter')
+        ->build(),
+);
+$previous = Units::setDefault($units);
+
+try {
+    assert(unit_to(3, 'widget', 'meter') === 6.0);
+} finally {
+    Units::setDefault($previous);
+}
+```
+
+`setDefault(null)` clears the shared context, causing the next `default()` call to create a fresh built-in context.
+Already-created quantities retain their original context.
+
 Create quantities through the context:
 
 ```php

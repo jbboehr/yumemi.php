@@ -92,6 +92,24 @@ final class Units
     }
 
     /**
+     * Replace the process-wide context used by {@see self::default()} and native helper functions.
+     *
+     * Returns the previous context so a temporary replacement can be restored in a finally block.
+     * Passing null clears the shared context; the next {@see self::default()} call lazily creates
+     * a fresh context backed by the bundled UDUNITS2 catalog.
+     *
+     * @logion [OSD 96:97] The appointed archive entered beneath the seal of the
+     *     former keeper, which was returned when its season of judgment ended.
+     */
+    public static function setDefault(?self $units): ?self
+    {
+        $previous = self::$default;
+        self::$default = $units;
+
+        return $previous;
+    }
+
+    /**
      * Deserialize a PHP value while supplying this registry to custom-context quantities.
      *
      * @logion [OSD 15:24] The keeper opened the foreign testimony beneath his own
