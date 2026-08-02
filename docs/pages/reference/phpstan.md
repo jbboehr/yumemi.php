@@ -103,7 +103,9 @@ Definitional equivalence understands catalog definitions such as `newton = kilog
 make compatible scales interchangeable: `meter + foot` remains an error because no runtime conversion occurs.
 
 Equality, identity, ordering, and spaceship comparisons follow the same rule: native PHP compares the stored magnitudes
-without converting either operand, so dimensionally compatible but differently scaled units remain invalid.
+without converting either operand, so dimensionally compatible but differently scaled units remain invalid. Strict
+identity may still test a nullable or other nonnumeric sentinel arm, as in `$duration !== null`; a bare numeric arm
+remains invalid because it can participate in the magnitude comparison.
 
 Exponentiation requires a statically known integer exponent. Rational roots and approximate real powers are not part of
 the current expression model.

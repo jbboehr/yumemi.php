@@ -85,19 +85,37 @@ final class InvalidUnitComparisonRule implements Rule
                 return [];
             }
 
-            [$leftUnits, $leftHasBareArm] = self::unitTypes($scope->getType($node->left));
-            [$rightUnits, $rightHasBareArm] = self::unitTypes($scope->getType($node->right));
+            [$leftUnits, $leftHasBareNumericArm, $leftHasNonUnitArm] = self::unitTypes(
+                $scope->getType($node->left),
+            );
+            [$rightUnits, $rightHasBareNumericArm, $rightHasNonUnitArm] = self::unitTypes(
+                $scope->getType($node->right),
+            );
 
             if ($leftUnits === [] && $rightUnits === []) {
                 return [];
             }
 
             $operator = $node->getOperatorSigil();
-            if ($leftHasBareArm || $rightHasBareArm || $leftUnits === [] || $rightUnits === []) {
+            $isStrictIdentity = $node instanceof Identical || $node instanceof NotIdentical;
+            if (
+                $leftHasBareNumericArm
+                || $rightHasBareNumericArm
+                || (!$isStrictIdentity && (
+                    $leftHasNonUnitArm
+                    || $rightHasNonUnitArm
+                    || $leftUnits === []
+                    || $rightUnits === []
+                ))
+            ) {
                 return [self::error(sprintf(
                     'Cannot use %s between a unit type and a bare value; every possible operand needs a unit.',
                     $operator,
                 ))];
+            }
+
+            if ($leftUnits === [] || $rightUnits === []) {
+                return [];
             }
 
             foreach ($leftUnits as $leftUnit) {
@@ -139,7 +157,7 @@ final class InvalidUnitComparisonRule implements Rule
     }
 
     /**
-     * @return array{list<UnitIntegerType|UnitFloatType>, bool}
+     * @return array{list<UnitIntegerType|UnitFloatType>, bool, bool}
      *
      * @logion [OSD 97:79] The joined operand was opened into its several seals,
      *     and every unmarked branch was remembered beside those bearing measure.
@@ -148,13 +166,17 @@ final class InvalidUnitComparisonRule implements Rule
     {
         $types = $type instanceof UnionType ? $type->getTypes() : [$type];
         $units = [];
-        $hasBareArm = false;
+        $hasBareNumericArm = false;
+        $hasNonUnitArm = false;
 
         foreach ($types as $innerType) {
             if ($innerType instanceof UnitIntegerType || $innerType instanceof UnitFloatType) {
                 $units[] = $innerType;
             } else {
-                $hasBareArm = true;
+                $hasNonUnitArm = true;
+                $hasBareNumericArm = $hasBareNumericArm
+                    || !$innerType->isInteger()->no()
+                    || !$innerType->isFloat()->no();
             }
         }
 
@@ -166,7 +188,7 @@ final class InvalidUnitComparisonRule implements Rule
             ): int => $left->getUnitExpression()->displayString <=> $right->getUnitExpression()->displayString,
         );
 
-        return [$units, $hasBareArm];
+        return [$units, $hasBareNumericArm, $hasNonUnitArm];
     }
 
     /**

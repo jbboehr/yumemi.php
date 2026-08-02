@@ -72,6 +72,8 @@ final class InvalidUnitComparisonRuleTest extends RuleTestCase
             ['Cannot use < between a unit type and a bare value; every possible operand needs a unit.', 22],
             ['Cannot use == with incompatible units second and meter.', 32],
             ['Cannot use == between a unit type and a bare value; every possible operand needs a unit.', 38],
+            ['Cannot use != between a unit type and a bare value; every possible operand needs a unit.', 45],
+            ['Cannot use === between a unit type and a bare value; every possible operand needs a unit.', 48],
         ]);
     }
 }

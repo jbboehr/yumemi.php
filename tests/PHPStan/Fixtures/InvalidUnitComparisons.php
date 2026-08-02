@@ -37,3 +37,12 @@ function compareMixedUnion(int $value): void
 {
     $value == unit(1, 'meter');
 }
+
+/** @param unit_int<'meter'>|null $value */
+function compareNullableUnit(?int $value): void
+{
+    $value !== null;
+    $value != null;
+}
+
+$meters === 1;
