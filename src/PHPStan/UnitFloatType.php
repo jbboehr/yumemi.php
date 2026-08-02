@@ -103,10 +103,14 @@ final class UnitFloatType extends FloatType
 
     public function isSuperTypeOf(Type $type): IsSuperTypeOfResult
     {
-        if ($type instanceof self || $type instanceof UnitIntegerType) {
+        if ($type instanceof self) {
             return $this->unit->equivalent($type->getUnitExpression())
                 ? IsSuperTypeOfResult::createYes()
                 : IsSuperTypeOfResult::createNo();
+        }
+
+        if ($type instanceof UnitIntegerType) {
+            return IsSuperTypeOfResult::createNo();
         }
 
         if ($type->isFloat()->yes() || $type->isInteger()->yes()) {

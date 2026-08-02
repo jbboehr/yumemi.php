@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
+use PHPStan\Type\BenevolentUnionType;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\Type;
 use PHPStan\Type\UnaryOperatorTypeSpecifyingExtension;
@@ -43,11 +44,21 @@ use PHPStan\Type\UnaryOperatorTypeSpecifyingExtension;
 /**
  * Infers types for unary + / - on unit_int and unit_float.
  *
- * Both keep the same unit; unary - only flips the numeric magnitude (statically).
+ * Both keep the same unit; integer negation may overflow to float at runtime.
  */
 final class UnitUnaryOperatorTypeSpecifyingExtension implements UnaryOperatorTypeSpecifyingExtension
 {
     private const SUPPORTED = ['+', '-'];
+
+    /**
+     * @logion [RAS 70:15] And I beheld two shadows issue from the same pilgrim,
+     *     the one bounded by the lamp and the other by the unseen dawn; and
+     *     neither denied the body from which it came.
+     */
+    public function __construct(
+        private readonly bool $integerOverflowToFloat = true,
+    ) {
+    }
 
     public function isOperatorSupported(string $operatorSigil, Type $operand): bool
     {
@@ -65,7 +76,14 @@ final class UnitUnaryOperatorTypeSpecifyingExtension implements UnaryOperatorTyp
                 return new ErrorType('Unary unit operator requires a unit_int or unit_float operand.');
             }
 
-            // Unary + / - preserve unit identity and magnitude kind.
+            if ($operatorSigil === '-' && $operand instanceof UnitIntegerType && $this->integerOverflowToFloat) {
+                return new BenevolentUnionType([
+                    $operand,
+                    new UnitFloatType($operand->getUnitExpression()),
+                ]);
+            }
+
+            // Unary + and float negation preserve unit identity and magnitude kind.
             return $operand;
         } catch (\Throwable $exception) {
             ShouldNotHappenException::rethrow($exception);

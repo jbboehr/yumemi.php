@@ -1,14 +1,5 @@
 <?php
 
-/**
- * TypeInferenceTestCase fixture for unit() / unit_to() return types.
- *
- * Runtime conversion values are covered by UnitFunctionTest data providers.
- * Here we only assert PHPStan brands (and errors).
- *
- * Note: catalog parse may rewrite names (foot → international_foot, kilometer → 1000 * meter).
- */
-
 use function jbboehr\Yumemi\unit;
 use function jbboehr\Yumemi\unit_factor;
 use function jbboehr\Yumemi\unit_to;
@@ -25,7 +16,10 @@ assertType('*ERROR*', unit(1.0, 'not_a_real_unit_xyz'));
 /** @param unit_int<'meter'>|unit_int<'second'> $value */
 function finiteNativeUnitArithmetic(int $value): void
 {
-    assertType("unit_int<'meter * second'>|unit_int<'second ^ 2'>", $value * unit(1, 'second'));
+    assertType(
+        "(unit_float<'meter * second'>|unit_float<'second ^ 2'>|unit_int<'meter * second'>|unit_int<'second ^ 2'>)",
+        $value * unit(1, 'second'),
+    );
     assertType('*ERROR*', $value + unit(1, 'meter'));
 }
 

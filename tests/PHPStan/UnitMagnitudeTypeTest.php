@@ -146,7 +146,11 @@ final class UnitMagnitudeTypeTest extends TestCase
         $intMeters = $this->unitInt('meter');
 
         $this->assertTrue($floatMeters->accepts($intMeters, true)->yes());
-        $this->assertTrue($floatMeters->isSuperTypeOf($intMeters)->yes());
+        $this->assertTrue($floatMeters->isSuperTypeOf($intMeters)->no());
+        $this->assertSame(
+            "unit_float<'meter'>|unit_int<'meter'>",
+            \PHPStan\Type\TypeCombinator::union($floatMeters, $intMeters)->describe(VerbosityLevel::precise()),
+        );
     }
 
     private function unitInt(string $unit): UnitIntegerType

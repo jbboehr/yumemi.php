@@ -75,9 +75,22 @@ Yumemi infers native unit types for unary `+` and `-` and for these binary opera
 | Comparisons | Require definitionally equivalent units and retain PHP's native result    |
 
 Multiplication and division may combine a unit value with a bare numeric scalar. Division always produces a
-`unit_float`; other operations produce a float brand when either magnitude is float-like. Unary signs preserve the
-original magnitude kind and unit. Finite operand unions are evaluated arm by arm; Yumemi returns the union of valid
-results and rejects the whole operation if any possible pairing is invalid.
+`unit_float`; operations involving a float-like magnitude also produce a float brand. PHP can promote overflowing
+integer arithmetic to `float`, so integer `+`, `-`, `*`, unary `-`, and powers above one conservatively produce a
+benevolent union of matching `unit_int` and `unit_float` brands. Modulo, unary `+`, powers zero and one, and
+multiplication by a statically known bare zero or one remain `unit_int`. Finite operand unions are evaluated arm by arm;
+Yumemi returns the union of valid results and rejects the whole operation if any possible pairing is invalid.
+
+Applications that guarantee their branded integer arithmetic cannot overflow can retain PHPStan's ordinary
+integer-preserving approximation:
+
+```neon
+parameters:
+    yumemi:
+        integerOverflowToFloat: false
+```
+
+This setting changes static inference only; it cannot alter PHP's runtime overflow behavior.
 
 For example, distance divided by time is inferred as speed, while distance multiplied by time is rejected at a speed
 boundary:
@@ -404,6 +417,8 @@ Important limits of the current static model are:
 - `unit_to()` and `unit_factor()` do not preserve correlation across independent source and target unions. They validate
   the Cartesian product and therefore reject a correlated union call if any cross-pairing would be invalid.
 - Unit exponentiation supports constant integers only.
+- Branded integer types do not retain PHPStan integer ranges, so overflow-aware inference is conservative unless
+  `integerOverflowToFloat` is disabled.
 - Dimensional analysis cannot distinguish different physical meanings with the same dimension, such as gray and sievert.
 
 Add targeted PHPStan integrations for demonstrated application workflows rather than assuming every cast, built-in, or

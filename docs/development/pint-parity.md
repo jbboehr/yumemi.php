@@ -262,9 +262,12 @@ quantity, and point operations; validates construction, conversion, extraction, 
 conversion helpers; preserves finite literal-string unions; configures custom registries; and provides stable
 diagnostics.
 
-The first package-aware integration supplies exact duration stubs for `illuminate/cache` 11 through 13. Remaining work
-is integration breadth: selected casts and built-ins, additional evidence-driven third-party stubs, more precise
-diagnostics, and future advanced unit semantics. Dynamic strings intentionally fall back to unbranded types.
+The first package-aware integration supplies exact duration stubs for `illuminate/cache` 11 through 13. Overflow-capable
+branded integer arithmetic conservatively preserves `unit_int|unit_float`, with an opt-out for applications that assume
+integer-safe magnitudes. Retaining PHPStan constant and integer-range bounds could narrow those results later, but is
+precision work rather than missing core soundness. Remaining work is integration breadth: selected casts and built-ins,
+additional evidence-driven third-party stubs, more precise diagnostics, and future advanced unit semantics. Dynamic
+strings intentionally fall back to unbranded types.
 
 ### 22. Function Boundary Checking
 

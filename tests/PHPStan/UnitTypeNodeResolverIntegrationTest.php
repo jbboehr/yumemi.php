@@ -116,6 +116,13 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $this->assertStringContainsString('[OK] No errors', $output, $output);
     }
 
+    public function testIntegerOverflowPromotionCanBeDisabledThroughConfiguration(): void
+    {
+        $output = $this->analyse('unit-overflow-config.php', integerOverflowToFloat: false);
+
+        $this->assertStringContainsString('[OK] No errors', $output, $output);
+    }
+
     public function testInvalidConfiguredRegistryFactoryFailsAtStartup(): void
     {
         $output = $this->analyse('unit-phpdoc-valid.php', \stdClass::class);
@@ -141,19 +148,32 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $this->assertStringContainsString('Found 6 errors', $output, $output);
     }
 
-    private function analyse(string $fixture, ?string $registryFactory = null): string
-    {
+    private function analyse(
+        string $fixture,
+        ?string $registryFactory = null,
+        ?bool $integerOverflowToFloat = null,
+    ): string {
         $fixturePath = __DIR__ . '/data/' . $fixture;
         $this->assertFileExists($fixturePath);
 
-        $config = sys_get_temp_dir() . '/yumemi-phpstan-' . md5($fixture) . '.neon';
+        $config = sys_get_temp_dir() . '/yumemi-phpstan-' . md5(
+            $fixture . ($registryFactory ?? '') . var_export($integerOverflowToFloat, true),
+        ) . '.neon';
         $extension = realpath(__DIR__ . '/../../extension.neon');
         $this->assertNotFalse($extension);
 
-        $yumemi = $registryFactory === null ? '' : <<<NEON
-    yumemi:
-        registryFactory: {$registryFactory}
-NEON;
+        $yumemiOptions = [];
+        if ($registryFactory !== null) {
+            $yumemiOptions[] = '        registryFactory: ' . $registryFactory;
+        }
+        if ($integerOverflowToFloat !== null) {
+            $yumemiOptions[] = '        integerOverflowToFloat: '
+                . ($integerOverflowToFloat ? 'true' : 'false');
+        }
+
+        $yumemi = $yumemiOptions === []
+            ? ''
+            : "    yumemi:\n" . implode("\n", $yumemiOptions);
 
         $neon = <<<NEON
 includes:

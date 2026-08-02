@@ -40,6 +40,7 @@ use jbboehr\Yumemi\PHPStan\UnitExpressionParser;
 use jbboehr\Yumemi\PHPStan\UnitFloatType;
 use jbboehr\Yumemi\PHPStan\UnitIntegerType;
 use jbboehr\Yumemi\PHPStan\UnitUnaryOperatorTypeSpecifyingExtension;
+use PHPStan\Type\BenevolentUnionType;
 use PHPStan\Type\IntegerType;
 use PHPStan\Type\VerbosityLevel;
 use PHPUnit\Framework\TestCase;
@@ -63,10 +64,28 @@ final class UnitUnaryOperatorTypeSpecifyingExtensionTest extends TestCase
         $this->assertFalse($this->extension->isOperatorSupported('-', new IntegerType()));
     }
 
-    public function testUnaryMinusPreservesUnitAndKind(): void
+    public function testUnaryMinusAllowsFloatOverflow(): void
     {
         $meters = $this->unitInt('meter');
         $result = $this->extension->specifyType('-', $meters);
+
+        $this->assertInstanceOf(BenevolentUnionType::class, $result);
+        $this->assertSame("(unit_float<'meter'>|unit_int<'meter'>)", $result->describe(VerbosityLevel::precise()));
+    }
+
+    public function testUnaryMinusOverflowPromotionCanBeDisabled(): void
+    {
+        $meters = $this->unitInt('meter');
+        $result = (new UnitUnaryOperatorTypeSpecifyingExtension(false))->specifyType('-', $meters);
+
+        $this->assertInstanceOf(UnitIntegerType::class, $result);
+        $this->assertSame("unit_int<'meter'>", $result->describe(VerbosityLevel::precise()));
+    }
+
+    public function testUnaryPlusPreservesUnitInteger(): void
+    {
+        $meters = $this->unitInt('meter');
+        $result = $this->extension->specifyType('+', $meters);
 
         $this->assertInstanceOf(UnitIntegerType::class, $result);
         $this->assertSame("unit_int<'meter'>", $result->describe(VerbosityLevel::precise()));

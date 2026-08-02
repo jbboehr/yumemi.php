@@ -36,6 +36,8 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
+use jbboehr\Yumemi\Util\Exponent;
+use PHPStan\Type\BenevolentUnionType;
 use PHPStan\Type\Constant\ConstantIntegerType;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\OperatorTypeSpecifyingExtension;
@@ -43,7 +45,6 @@ use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\UnionType;
 use PHPStan\Type\VerbosityLevel;
-use jbboehr\Yumemi\Util\Exponent;
 
 /**
  * Infers types for +, -, *, /, **, % when at least one operand is unit_int or unit_float.
@@ -55,10 +56,21 @@ use jbboehr\Yumemi\Util\Exponent;
  * - %: both sides must be unit_int values with equivalent normalized units
  * - unit op bare numeric: treat bare value as dimensionless (* / only)
  * - int / int → unit_float (PHP division always yields float)
+ * - overflow-capable integer operations optionally preserve unit_int|unit_float
  */
 final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyingExtension
 {
     private const SUPPORTED = ['+', '-', '*', '/', '**', '%'];
+
+    /**
+     * @logion [AWC 74:69] In the winter of the iron procession, the eldest
+     *     standard-bearer chose the narrow road, and the younger kept the broad;
+     *     yet both arrived beneath the same appointed banners.
+     */
+    public function __construct(
+        private readonly bool $integerOverflowToFloat = true,
+    ) {
+    }
 
     public function isOperatorSupported(string $operatorSigil, Type $leftSide, Type $rightSide): bool
     {
@@ -84,7 +96,8 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
                 }
             }
 
-            return TypeCombinator::union(...$results);
+            /** @var non-empty-list<Type> $results */
+            return $this->combineResults($results);
         } catch (\Throwable $exception) {
             ShouldNotHappenException::rethrow($exception);
         }
@@ -136,6 +149,7 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
         return $this->makeMagnitudeType(
             $this->resultIsFloat($operatorSigil, $leftSide, $rightSide),
             $leftUnit->getUnitExpression(),
+            true,
         );
     }
 
@@ -175,6 +189,7 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
             return $this->makeMagnitudeType(
                 $this->resultIsFloat($operatorSigil, $leftSide, $rightSide),
                 $unit,
+                $operatorSigil === '*' && $this->integerMultiplicationMayOverflow($leftSide, $rightSide),
             );
         }
 
@@ -183,6 +198,7 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
             return $this->makeMagnitudeType(
                 $this->resultIsFloat($operatorSigil, $leftSide, $rightSide),
                 $leftUnit->getUnitExpression(),
+                $operatorSigil === '*' && $this->integerMultiplicationMayOverflow($leftSide, $rightSide),
             );
         }
 
@@ -191,6 +207,7 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
                 return $this->makeMagnitudeType(
                     $this->resultIsFloat($operatorSigil, $leftSide, $rightSide),
                     $rightUnit->getUnitExpression(),
+                    $this->integerMultiplicationMayOverflow($leftSide, $rightSide),
                 );
             }
 
@@ -241,12 +258,74 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
         // PHP: negative exponents yield float; also promote when the base is float-like.
         $float = $exponent < 0 || $this->resultIsFloat('**', $leftSide, $rightSide);
 
-        return $this->makeMagnitudeType($float, $unit);
+        return $this->makeMagnitudeType($float, $unit, $exponent > 1);
     }
 
-    private function makeMagnitudeType(bool $float, UnitExpression $unit): UnitIntegerType|UnitFloatType
+    private function makeMagnitudeType(bool $float, UnitExpression $unit, bool $mayOverflow = false): Type
     {
-        return $float ? new UnitFloatType($unit) : new UnitIntegerType($unit);
+        if ($float) {
+            return new UnitFloatType($unit);
+        }
+
+        $integer = new UnitIntegerType($unit);
+        if (!$mayOverflow || !$this->integerOverflowToFloat) {
+            return $integer;
+        }
+
+        return new BenevolentUnionType([$integer, new UnitFloatType($unit)]);
+    }
+
+    /**
+     * @logion [OSD 95:5] The builders laid the first and final stones beneath
+     *     separate blessings; but every stone between them was tried by fire,
+     *     lest hidden weakness ascend with the tower.
+     */
+    private function integerMultiplicationMayOverflow(Type $leftSide, Type $rightSide): bool
+    {
+        foreach ([$leftSide, $rightSide] as $side) {
+            if ($side instanceof ConstantIntegerType && ($side->getValue() === 0 || $side->getValue() === 1)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param non-empty-list<Type> $results
+     *
+     * @logion [SFA 42:20] The chronicler preserved both endings of the ancient
+     *     judgment, for the witnesses agreed upon its law though not upon the
+     *     hour in which the final bell had sounded.
+     */
+    private function combineResults(array $results): Type
+    {
+        $benevolent = false;
+        $types = [];
+
+        foreach ($results as $result) {
+            if ($result instanceof BenevolentUnionType) {
+                $benevolent = true;
+                array_push($types, ...$result->getTypes());
+            } else {
+                $types[] = $result;
+            }
+        }
+
+        if (!$benevolent) {
+            return TypeCombinator::union(...$types);
+        }
+
+        $unique = [];
+        foreach ($types as $type) {
+            $unique[$type->describe(VerbosityLevel::precise())] = $type;
+        }
+        ksort($unique, SORT_STRING);
+        $types = array_values($unique);
+
+        return count($types) === 1
+            ? $types[0]
+            : new BenevolentUnionType($types);
     }
 
     /**

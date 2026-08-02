@@ -40,7 +40,7 @@ assertType("unit_float<'kelvin'>", unit_to(0, 'degree_widget', 'kelvin'));
 assertType('float', unit_to(100, 'kelvin', 'degree_widget'));
 
 $area = $widget * $widgets;
-assertType("unit_int<'widget ^ 2'>", $area);
+assertType("(unit_float<'widget ^ 2'>|unit_int<'widget ^ 2'>)", $area);
 
 $quantity = Units::default()->quantity(1, 'widget');
 assertType("Quantity<'widget'>", $quantity);

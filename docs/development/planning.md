@@ -430,6 +430,11 @@ deferred advanced features.
 - Constant-valued native unit types. A future `UnitConstantFloatType` can extend `UnitFloatType` and implement PHPStan's
   `ConstantScalarType`, preserving a known binary float and unit expression through supported operators; this would not
   make an approximate float mathematically exact.
+- Range-bearing native integer unit types. The default `integerOverflowToFloat` policy conservatively infers a
+  benevolent `unit_int|unit_float` result because `UnitIntegerType` does not retain PHPStan constant or integer-range
+  bounds. A future branded range representation could prove an operation always remains integer, always overflows to
+  float, or needs the union. It must preserve and compose signed bounds correctly through addition, subtraction,
+  multiplication, unary negation of `PHP_INT_MIN`, and positive powers rather than adding isolated operator exceptions.
 - Additional bundled third-party stubs until a specific integration demonstrates enough unit-bearing boundaries to
   justify its maintenance and compatibility matrix. The Illuminate Cache integration is the initial reference design.
 - A possible `unit_numeric_string<'...'>` PHPStan type for numeric values that cross string-oriented framework
