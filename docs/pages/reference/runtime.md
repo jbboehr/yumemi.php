@@ -169,13 +169,16 @@ assert($restored->valueIn('meter')->toString() === '8509/2500');
 
 Raw `unserialize()` rejects a custom-context quantity with an exception directing the caller to `Units::deserialize()`.
 The scoped method restores its previous context in `finally`, including across nested calls, and forwards PHP's native
-`unserialize()` options. Serialized unit semantics are checked against the selected registry, so a changed or incorrect
-registry is rejected rather than silently reinterpreting the value.
+`unserialize()` options. Pass `allowed_classes` to restrict which classes a known graph may instantiate and `max_depth`
+to bound nesting. The allow-list must include every serialized object class in the graph; `allowed_classes: false`
+produces `__PHP_Incomplete_Class` objects and cannot restore a quantity. Yumemi does not choose a default allow-list
+because `deserialize()` may return any caller-defined graph. Serialized unit semantics are checked against the selected
+registry, so a changed or incorrect registry is rejected rather than silently reinterpreting the value.
 
 One serialized graph may contain default values and values from one custom context. Graphs containing values from
-several distinct custom contexts require a future registry-identifier resolver. PHP serialization of untrusted data
-remains unsafe; use `allowed_classes` as appropriate. Serialize value objects directly: casting one to an array bypasses
-its controlled serialization representation.
+several distinct custom contexts require a future registry-identifier resolver. Never pass untrusted data to PHP
+deserialization; `allowed_classes` and `max_depth` reduce exposure but do not make arbitrary payloads safe. Serialize
+value objects directly: casting one to an array bypasses its controlled serialization representation.
 
 ## Expression Operations
 

@@ -222,6 +222,39 @@ final class SerializationTest extends TestCase
         $this->assertInstanceOf(\__PHP_Incomplete_Class::class, $restored);
     }
 
+    public function testDeserializeAcceptsAnExplicitClassAllowList(): void
+    {
+        $quantity = Units::default()->quantity(1, 'meter');
+
+        $restored = Units::default()->deserialize(
+            serialize($quantity),
+            ['allowed_classes' => [Quantity::class, Rational::class, \GMP::class]],
+        );
+
+        $this->assertInstanceOf(Quantity::class, $restored);
+        $this->assertSame('1', $restored->valueToString());
+        $this->assertSame('meter', $restored->unitToString());
+    }
+
+    public function testDeserializeForwardsMaximumDepth(): void
+    {
+        $messages = [];
+        set_error_handler(static function (int $severity, string $message) use (&$messages): bool {
+            $messages[] = $message;
+
+            return true;
+        });
+
+        try {
+            $restored = Units::default()->deserialize(serialize([[['value']]]), ['max_depth' => 1]);
+        } finally {
+            restore_error_handler();
+        }
+
+        $this->assertFalse($restored);
+        $this->assertStringContainsString('Maximum depth of 1 exceeded', implode("\n", $messages));
+    }
+
     public function testTamperedQuantityAndPointSealsAreRejected(): void
     {
         $quantityData = Units::default()->quantity(1, 'meter')->__serialize();

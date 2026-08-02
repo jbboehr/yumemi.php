@@ -97,13 +97,14 @@ final class Units
      * @logion [OSD 15:24] The keeper opened the foreign testimony beneath his own
      *     seal, and every enclosed measure was judged by that appointed archive.
      *
-     * @param array{allowed_classes?: bool|list<class-string>} $options
+     * @param array{allowed_classes?: bool|list<class-string>, max_depth?: int<0, max>} $options
      */
     public function deserialize(string $serialized, array $options = []): mixed
     {
         return DeserializationContext::run(
             $this,
-            static fn (): mixed => unserialize($serialized, $options),
+            // PHPStan's native signature omits max_depth even though PHP has accepted it since 7.4.
+            static fn (): mixed => (new \ReflectionFunction('unserialize'))->invoke($serialized, $options),
         );
     }
 
