@@ -2,8 +2,9 @@
 
 # Yumemi
 
-**Static dimensional analysis for PHPStan** on ordinary `int` and `float` values, backed by a **runtime unit engine**
-for exact rational conversion and quantity arithmetic.
+PHP ordinarily treats meters, feet, and seconds as interchangeable numbers. Yumemi provides **static dimensional
+analysis for PHPStan** on ordinary `int` and `float` values, backed by a **runtime unit engine** for exact rational
+conversion and quantity arithmetic.
 
 The PHPStan extension catches incompatible units without requiring runtime wrapper objects. When an application needs
 real conversion, the runtime library supplies `Units`, exact `Quantity` values, and affine `PointQuantity` coordinates.

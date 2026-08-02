@@ -19,6 +19,11 @@ includes:
 - decimal and scientific prefix definitions;
 - source definitions, comments, and documentation when present upstream.
 
+Common accepted spellings include long names such as `meter`, `foot`, `second`, `kilogram`, and `celsius`; symbols such
+as `m`, `ft`, `s`, `kg`, and `Pa`; and composed expressions such as `kilometer / hour`. These examples are not
+exhaustive. Names and symbols remain case-sensitive, and aliases such as `foot` may resolve to a more specific canonical
+name such as `international_foot`.
+
 `Udunits2UnitRegistry` and `UnitRegistryBuilder::default($dataFile)` may load another generated catalog from a readable
 local PHP file. That file is executable trusted configuration: PHP evaluates it before Yumemi can validate the returned
 catalog shape. Never use an uploaded file, URL, or other untrusted path as a catalog. Prefer builder definitions and

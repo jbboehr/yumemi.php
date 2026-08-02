@@ -5,28 +5,22 @@ rational arithmetic and conversion.
 
 ## Installation
 
-Yumemi and PHPStan have different Composer roles. The examples in this guide call Yumemi at runtime, so install the
-development branch as a normal application dependency until the first tagged release:
+Most applications call Yumemi at runtime and also use its PHPStan extension. Until the first tagged release, install the
+development branch as a normal application dependency:
 
 ```shell
 composer require jbboehr/yumemi:dev-master
 ```
 
-Applications using the PHPStan extension must install PHPStan as a development dependency; Yumemi does not install it
-automatically in consuming projects:
+Yumemi does not install PHPStan automatically in consuming projects. Install PHPStan and the extension installer as
+development dependencies to enable automatic registration:
 
 ```shell
-composer require --dev phpstan/phpstan:^2.1
+composer require --dev phpstan/phpstan:^2.1 phpstan/extension-installer
 ```
 
-For automatic extension registration, also install
-[`phpstan/extension-installer`](https://github.com/phpstan/extension-installer) as a development dependency:
-
-```shell
-composer require --dev phpstan/extension-installer
-```
-
-Without the extension installer, include Yumemi explicitly from `phpstan.neon`:
+Projects that do not use [`phpstan/extension-installer`](https://github.com/phpstan/extension-installer) should install
+PHPStan by itself and include Yumemi explicitly from `phpstan.neon`:
 
 ```neon
 includes:
@@ -36,10 +30,6 @@ includes:
 Keep `jbboehr/yumemi` as a normal dependency whenever application code calls functions such as `unit()` or `unit_to()`,
 or uses runtime classes such as `Units` and `Quantity`. A project using Yumemi only during static analysis, with no
 runtime calls or classes, may install it as a development dependency instead.
-
-Most applications should use Yumemi's PHPDoc types directly. Libraries that cannot require Yumemi from every consumer
-can instead use the deliberately opt-in
-[`@yumemi-*` annotation integration](reference/phpstan.md#extension-optional-annotations).
 
 ## Verify Static Analysis
 
@@ -93,11 +83,20 @@ incorrect call once the extension is working.
 If PHPStan instead reports unknown `unit_int` or `unit_float` PHPDoc types, the extension is not registered. Install
 `phpstan/extension-installer` or add Yumemi's `extension.neon` include explicitly.
 
+If the deliberately incorrect call produces no diagnostic, confirm that the example file is under one of the configured
+`paths`, that the invalid call remains in the file, and that the command is loading the `phpstan.neon` where Yumemi is
+registered.
+
 The runtime values remain ordinary floats. The additional unit information exists only in PHPStan's type system.
+
+Most applications should use Yumemi's PHPDoc types directly. Libraries that cannot require Yumemi from every consumer
+can instead use the deliberately opt-in
+[`@yumemi-*` annotation integration](reference/phpstan.md#extension-optional-annotations).
 
 ## Runtime Conversion
 
-Use `Units` and `Quantity` when the application must perform a conversion or retain exact rational values:
+The runtime unit engine can be used independently of PHPStan brands and extension registration. Use `Units` and
+`Quantity` when the application must perform a conversion or retain exact rational values:
 
 ```php
 <?php
@@ -112,5 +111,7 @@ assert($length->exactDecimalValueIn('kilometer') === '1.609344');
 assert($length->unitToString() === 'kilometer');
 ```
 
-Continue with [Core Concepts](core-concepts.md), then use the [PHPStan](reference/phpstan.md),
-[unit syntax](reference/unit-syntax.md), and [runtime API](reference/runtime.md) references as needed.
+For more runtime-only examples, see [Preserve Exact Conversion](recipes.md#preserve-exact-conversion) and
+[Convert Temperatures](recipes.md#convert-temperatures). Continue with [Core Concepts](core-concepts.md), then use the
+[PHPStan](reference/phpstan.md), [unit syntax](reference/unit-syntax.md), and [runtime API](reference/runtime.md)
+references as needed.

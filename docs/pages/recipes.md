@@ -75,26 +75,63 @@ it as `Δ°C`. See [Affine Conversion](reference/runtime.md#affine-conversion).
 
 ## Define Application Units
 
-Build an immutable registry snapshot containing project-specific definitions and use it to create a runtime context:
+Put project-specific definitions in one factory, then use that factory for both PHPStan and the runtime context. This
+prevents one layer from accepting a unit that the other cannot resolve:
 
 ```php
 <?php
 
+namespace App\Units;
+
+use jbboehr\Yumemi\PHPStan\UnitRegistryFactory;
+use jbboehr\Yumemi\Registry\UnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
 use jbboehr\Yumemi\Units;
 
-$registry = UnitRegistryBuilder::default()
-    ->define('shipping_pallet = 48 * inch')
-    ->alias('shipping_pallets', 'shipping_pallet')
-    ->build();
+use function jbboehr\Yumemi\unit;
+use function jbboehr\Yumemi\unit_to;
 
-$units = new Units($registry);
+final class ApplicationUnitRegistryFactory implements UnitRegistryFactory
+{
+    public static function create(): UnitRegistry
+    {
+        return UnitRegistryBuilder::default()
+            ->define('shipping_pallet = 48 * inch')
+            ->alias('shipping_pallets', 'shipping_pallet')
+            ->build();
+    }
+}
+
+$units = new Units(ApplicationUnitRegistryFactory::create());
 $width = $units->quantity(2, 'shipping_pallets');
 
 assert($width->exactDecimalValueIn('meter') === '2.4384');
+
+$previous = Units::setDefault($units);
+
+try {
+    $nativeWidth = unit(2, 'shipping_pallets');
+
+    assert(abs(unit_to($nativeWidth, 'shipping_pallets', 'meter') - 2.4384) < 1e-12);
+} finally {
+    Units::setDefault($previous);
+}
 ```
 
-See [Custom Registries](reference/catalog.md#custom-registries) for runtime overlays and matching PHPStan configuration.
+Select the same factory for PHPStan:
+
+```neon
+parameters:
+    yumemi:
+        registryFactory: App\Units\ApplicationUnitRegistryFactory
+```
+
+Instance methods use the registry attached to their `Units` context. Native helpers use the process-wide default
+instead; an application may install that context once during bootstrap, while tests and scoped workers should restore
+the previous context in `finally`. See [Registry Configuration](reference/phpstan.md#registry-configuration),
+[Custom Registries](reference/catalog.md#custom-registries), and
+[Contexts And Construction](reference/runtime.md#contexts-and-construction) for the complete lifecycle and overlay
+rules.
 
 ## Format Units For Display
 

@@ -404,6 +404,20 @@ scope:
 The first six identifiers apply even when an invalid call's result is unused. Syntax diagnostics preserve the runtime
 parser's bounded caret excerpt while PHPStan anchors the error to the containing PHP or PHPDoc line.
 
+Use the identifier to choose the first corrective step:
+
+- For `binaryOp.invalid` or `yumemi.invalidUnitComparison`, remember that native PHP does not convert either operand.
+  Convert explicitly with `unit_to()` or `unit_factor()`, or use `Quantity` when the operation should convert compatible
+  units. See [Definitional Equivalence And Compatibility](#definitional-equivalence-and-compatibility).
+- For `yumemi.invalidUnitCall`, `yumemi.invalidQuantityConstruction`, or `yumemi.invalidQuantityConversion`, check the
+  constant unit spelling, the [configured registry](#registry-configuration), dimensional compatibility, and whether an
+  affine coordinate was used where multiplicative algebra requires a `delta_*` unit.
+- For quantity arithmetic, comparison, or point diagnostics, verify the statically known dimensions and distinguish a
+  `PointQuantity` coordinate from a multiplicative difference. Static generic types do not establish runtime context
+  identity; objects combined at runtime must also belong to the same `Units` context.
+- For `yumemi.docTag*`, confirm that [the optional integration](#extension-optional-annotations) is enabled and that
+  erasing every Yumemi unit type exactly reproduces the ordinary fallback PHPDoc structure.
+
 ## Limitations
 
 Important limits of the current static model are:

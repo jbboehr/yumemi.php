@@ -4,7 +4,8 @@
 
 # Yumemi
 
-Yumemi provides static dimensional analysis for PHPStan and exact runtime unit conversion for PHP.
+PHP ordinarily treats meters, feet, and seconds as interchangeable numbers, allowing incorrect arguments and arithmetic
+to pass unnoticed. Yumemi provides static dimensional analysis for PHPStan and exact runtime unit conversion for PHP.
 
 The PHPStan extension tracks units on ordinary `int` and `float` values. It can reject incompatible arguments and
 arithmetic without requiring runtime wrapper objects. The runtime library uses the same parser, unit catalog, and
@@ -26,6 +27,8 @@ setDoorHeight(unit(6.0, 'foot'));
 
 PHPStan reports the unit mismatch while PHP still receives an ordinary `float`. In tested examples, a `//!` comment
 records part of the diagnostic expected on the following line. It is documentation-test notation, not Yumemi syntax.
+`foot` is an alias of the catalog's canonical `international_foot` unit, and diagnostics use the canonical name after
+resolving aliases.
 
 - **I want PHPStan to catch unit mistakes in native numbers.** Start with
   [Static Analysis](getting-started.md#verify-static-analysis).
