@@ -58,46 +58,46 @@ exp:
 
 additive_exp:
         product_exp                             { $$ = $1; }
-    |   additive_exp T_ADD product_exp          { $$ = self::makeAdd($1, $3); }
-    |   additive_exp T_SUB product_exp          { $$ = self::makeSub($1, $3); }
+    |   additive_exp T_ADD product_exp          { $$ = self::makeAdd($1, $3, @$); }
+    |   additive_exp T_SUB product_exp          { $$ = self::makeSub($1, $3, @$); }
     ;
 
 product_exp:
         unary_exp                               { $$ = $1; }
-    |   product_exp power_exp                   { $$ = self::makeMul($1, $2); }
-    |   product_exp T_DOT unary_exp             { $$ = self::makeMul($1, $3); }
-    |   product_exp T_MUL unary_exp             { $$ = self::makeMul($1, $3); }
-    |   product_exp T_DIV unary_exp             { $$ = self::makeDiv($1, $3); }
+    |   product_exp power_exp                   { $$ = self::makeMul($1, $2, @$); }
+    |   product_exp T_DOT unary_exp             { $$ = self::makeMul($1, $3, @$); }
+    |   product_exp T_MUL unary_exp             { $$ = self::makeMul($1, $3, @$); }
+    |   product_exp T_DIV unary_exp             { $$ = self::makeDiv($1, $3, @$); }
     ;
 
 unary_exp:
         power_exp                               { $$ = $1; }
-    |   T_SUB unary_exp                         { $$ = self::makeNeg($2); }
+    |   T_SUB unary_exp                         { $$ = self::makeNeg($2, @$); }
     ;
 
 power_exp:
         simple                                  { $$ = $1; }
-    |   simple T_POW unary_exp                  { $$ = self::makePow($1, $3); }
+    |   simple T_POW unary_exp                  { $$ = self::makePow($1, $3, @$); }
     ;
 
 simple:
         number                                  { $$ = $1; }
     |   identifier                              { $$ = $1; }
-    |   identifier T_AT signed_number           { $$ = self::makeAt($1, $3); }
+    |   identifier T_AT signed_number           { $$ = self::makeAt($1, $3, @$); }
     |   T_LEFT_PAREN exp T_RIGHT_PAREN          { $$ = $2; }
-    |   simple T_SUPERSCRIPT_INTEGER %prec T_POW { $$ = self::makePow($1, self::makeSuperscriptInteger($2)); }
+    |   simple T_SUPERSCRIPT_INTEGER %prec T_POW { $$ = self::makePow($1, self::makeSuperscriptInteger($2, @2), @$); }
     ;
 
 number:
-        T_INTEGER                               { $$ = self::makeInteger($1); }
-    |   T_FLOAT                                 { $$ = self::makeFloat($1); }
+        T_INTEGER                               { $$ = self::makeInteger($1, @1); }
+    |   T_FLOAT                                 { $$ = self::makeFloat($1, @1); }
     ;
 
 signed_number:
         number                                  { $$ = $1; }
-    |   T_SUB number                            { $$ = self::makeNeg($2); }
+    |   T_SUB number                            { $$ = self::makeNeg($2, @$); }
     ;
 
 identifier:
-        T_IDENTIFIER                            { $$ = self::makeIdentifier($1); }
+        T_IDENTIFIER                            { $$ = self::makeIdentifier($1, @1); }
     ;

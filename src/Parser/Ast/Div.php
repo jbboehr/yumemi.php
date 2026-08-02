@@ -37,13 +37,17 @@
 namespace jbboehr\Yumemi\Parser\Ast;
 
 use jbboehr\Yumemi\Parser\Ast;
+use jbboehr\Yumemi\Parser\AstNode;
+use jbboehr\Yumemi\Parser\SourceSpan;
 
-final class Div implements Ast
+final class Div extends AstNode
 {
     public function __construct(
         public readonly Ast $left,
         public readonly Ast $right,
+        ?SourceSpan $span = null,
     ) {
+        parent::__construct($span);
     }
 
     public function toString(): string

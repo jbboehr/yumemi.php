@@ -217,10 +217,15 @@ final class AffineConversionTest extends TestCase
     #[DataProvider('invalidAffineAlgebraProvider')]
     public function testAffineUnitsCannotParticipateInMultiplicativeAlgebra(string $expression): void
     {
-        $this->expectException(UnsupportedSyntaxException::class);
-        $this->expectExceptionMessage('Affine unit');
-
-        Units::default()->convert(1, $expression, 'kelvin');
+        try {
+            Units::default()->convert(1, $expression, 'kelvin');
+            self::fail('Expected affine algebra to be rejected.');
+        } catch (UnsupportedSyntaxException $exception) {
+            $this->assertStringContainsString('Affine unit', $exception->getMessage());
+            $this->assertNotNull($exception->span);
+            $this->assertSame(0, $exception->span->start);
+            $this->assertSame(strlen($expression), $exception->span->end);
+        }
     }
 
     /** @return iterable<string, array{string}> */
@@ -237,10 +242,18 @@ final class AffineConversionTest extends TestCase
     #[DataProvider('additiveSyntaxProvider')]
     public function testAdditiveUnitSyntaxRemainsUnsupportedAtConversionBoundary(string $expression): void
     {
-        $this->expectException(UnsupportedSyntaxException::class);
-        $this->expectExceptionMessage('Addition and subtraction in unit expressions are not supported');
-
-        Units::default()->convert(1, $expression, 'meter');
+        try {
+            Units::default()->convert(1, $expression, 'meter');
+            self::fail('Expected additive unit syntax to be rejected.');
+        } catch (UnsupportedSyntaxException $exception) {
+            $this->assertStringContainsString(
+                'Addition and subtraction in unit expressions are not supported',
+                $exception->getMessage(),
+            );
+            $this->assertNotNull($exception->span);
+            $this->assertSame(0, $exception->span->start);
+            $this->assertSame(strlen($expression), $exception->span->end);
+        }
     }
 
     /** @return iterable<string, array{string}> */

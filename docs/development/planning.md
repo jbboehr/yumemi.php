@@ -185,6 +185,11 @@ standalone affine definitions at explicit conversion and point-coordinate bounda
 registry construction synthesize explicit multiplicative difference units from those definitions. Logarithmic
 definitions remain introspectable but unevaluable.
 
+Parser AST nodes retain zero-based, half-open byte spans. Post-parse unknown-name and unsupported-semantic failures
+preserve those spans through the multiplicative, quantity, conversion, point, and PHPStan parsing paths. Resolution of
+aliases and stored catalog definitions deliberately attributes an inner failure to the outer identifier written by the
+caller.
+
 ## Rational Powers And Exact Roots
 
 `Quantity::pow()` intentionally accepts only an integer today. Widening it to `int|float` would be incorrect: binary
@@ -389,8 +394,6 @@ deferred advanced features.
   unions lose value correlation, so helper calls validate the Cartesian product and fail closed if any pair is invalid.
 - Lookup is case-sensitive. Short but valid prefix/symbol compositions such as `pa` (pico-are) and `PA` (peta-ampere)
   remain accepted while `Pa` is pascal; Yumemi does not special-case these catalog-valid ambiguities.
-- Syntax errors carry decoded-expression byte spans. Unknown-unit and unsupported-semantic errors occur after parsing
-  and remain unspanned because AST nodes do not yet retain source locations.
 - Unit, dimension, and scientific-decimal exponents are bounded to `-10000` through `10000`; checked composition rejects
   larger effective powers before native integer overflow or unbounded GMP exponentiation.
 - The UDUNITS2 importer still special-cases `cm2` syntax, and generated `prefixRegex` metadata is currently unused by

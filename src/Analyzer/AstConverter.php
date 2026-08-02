@@ -45,6 +45,7 @@ use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Parser\Ast;
+use jbboehr\Yumemi\Parser\AstNode;
 use jbboehr\Yumemi\Parser\Ast\Add;
 use jbboehr\Yumemi\Parser\Ast\At;
 use jbboehr\Yumemi\Parser\Ast\Div;
@@ -54,6 +55,7 @@ use jbboehr\Yumemi\Parser\Ast\Integer_;
 use jbboehr\Yumemi\Parser\Ast\Mul;
 use jbboehr\Yumemi\Parser\Ast\Pow;
 use jbboehr\Yumemi\Parser\Ast\Sub;
+use jbboehr\Yumemi\Parser\SourceSpan;
 use jbboehr\Yumemi\Util\Exponent;
 
 /**
@@ -77,43 +79,56 @@ final class AstConverter
         return new self(null);
     }
 
-    public function convert(Ast $ast): Expr
-    {
+    public function convert(
+        Ast $ast,
+        ?SourceSpan $contextSpan = null,
+        bool $includeConstants = true,
+    ): Expr {
+        $span = $contextSpan ?? ($ast instanceof AstNode ? $ast->span : null);
+
         return match ($ast::class) {
             Div::class => new Product([
-                $this->convert($ast->left),
-                new Power($this->convert($ast->right), -1),
+                $this->convert($ast->left, $contextSpan, $includeConstants),
+                new Power($this->convert($ast->right, $contextSpan, $includeConstants), -1),
             ]),
-            Float_::class => new Constant(Rational::fromDecimalString($ast->value)),
-            Identifier::class => $this->convertIdentifier($ast),
-            Integer_::class => new Constant(gmp_init($ast->value)),
+            Float_::class => new Constant(
+                $includeConstants ? Rational::fromDecimalString($ast->value) : new Rational(1),
+            ),
+            Identifier::class => $this->convertIdentifier($ast, $span),
+            Integer_::class => new Constant($includeConstants ? gmp_init($ast->value) : 1),
             Mul::class => new Product([
-                $this->convert($ast->left),
-                $this->convert($ast->right),
+                $this->convert($ast->left, $contextSpan, $includeConstants),
+                $this->convert($ast->right, $contextSpan, $includeConstants),
             ]),
-            Pow::class => $this->convertPower($ast),
+            Pow::class => $this->convertPower($ast, $contextSpan, $includeConstants),
             Add::class,
             At::class,
-            Sub::class => throw UnsupportedSyntaxException::create($ast),
+            Sub::class => throw UnsupportedSyntaxException::create($ast, $span),
             default => throw new LogicException('Unknown parser AST node: ' . $ast::class),
         };
     }
 
-    private function convertIdentifier(Identifier $ast): Expr
+    private function convertIdentifier(Identifier $ast, ?SourceSpan $span): Expr
     {
         if ($this->unitResolver !== null) {
-            return $this->unitResolver->resolveOrFail($ast->identifier);
+            return $this->unitResolver->resolveOrFail($ast->identifier, $span);
         }
 
         return new Unit($ast->identifier);
     }
 
-    private function convertPower(Pow $ast): Expr
+    private function convertPower(Pow $ast, ?SourceSpan $contextSpan, bool $includeConstants): Expr
     {
         if (!$ast->right instanceof Integer_) {
-            throw UnsupportedSyntaxException::create($ast);
+            throw UnsupportedSyntaxException::create(
+                $ast,
+                $contextSpan ?? $ast->span,
+            );
         }
 
-        return new Power($this->convert($ast->left), Exponent::fromString($ast->right->value));
+        return new Power(
+            $this->convert($ast->left, $contextSpan, $includeConstants),
+            Exponent::fromString($ast->right->value),
+        );
     }
 }

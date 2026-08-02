@@ -37,18 +37,19 @@
 namespace jbboehr\Yumemi\Exception;
 
 use jbboehr\Yumemi\Parser\Ast;
+use jbboehr\Yumemi\Parser\SourceSpan;
 
 final class UnsupportedSyntaxException extends RuntimeException
 {
     public readonly string $expression;
 
-    public function __construct(string $message, string $expression)
+    public function __construct(string $message, string $expression, ?SourceSpan $span = null)
     {
-        parent::__construct($message);
+        parent::__construct($message, span: $span);
         $this->expression = $expression;
     }
 
-    public static function create(Ast $ast): self
+    public static function create(Ast $ast, ?SourceSpan $span = null): self
     {
         $expression = $ast->toString();
 
@@ -66,6 +67,7 @@ final class UnsupportedSyntaxException extends RuntimeException
         return new self(
             sprintf('Unsupported unit expression syntax: %s.%s', $expression, $hint),
             $expression,
+            $span,
         );
     }
 }

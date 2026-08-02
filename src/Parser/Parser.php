@@ -588,13 +588,13 @@ class Parser
 
   case 5: /* additive_exp: additive_exp "+" product_exp  */
     /* "src/Parser/grammar.y":61  */
-                                                { $yyval = self::makeAdd($yystack->valueAt(2), $yystack->valueAt(0)); };
+                                                { $yyval = self::makeAdd($yystack->valueAt(2), $yystack->valueAt(0), ($yyloc)); };
   break;
 
 
   case 6: /* additive_exp: additive_exp "-" product_exp  */
     /* "src/Parser/grammar.y":62  */
-                                                { $yyval = self::makeSub($yystack->valueAt(2), $yystack->valueAt(0)); };
+                                                { $yyval = self::makeSub($yystack->valueAt(2), $yystack->valueAt(0), ($yyloc)); };
   break;
 
 
@@ -606,25 +606,25 @@ class Parser
 
   case 8: /* product_exp: product_exp power_exp  */
     /* "src/Parser/grammar.y":67  */
-                                                { $yyval = self::makeMul($yystack->valueAt(1), $yystack->valueAt(0)); };
+                                                { $yyval = self::makeMul($yystack->valueAt(1), $yystack->valueAt(0), ($yyloc)); };
   break;
 
 
   case 9: /* product_exp: product_exp "." unary_exp  */
     /* "src/Parser/grammar.y":68  */
-                                                { $yyval = self::makeMul($yystack->valueAt(2), $yystack->valueAt(0)); };
+                                                { $yyval = self::makeMul($yystack->valueAt(2), $yystack->valueAt(0), ($yyloc)); };
   break;
 
 
   case 10: /* product_exp: product_exp "*" unary_exp  */
     /* "src/Parser/grammar.y":69  */
-                                                { $yyval = self::makeMul($yystack->valueAt(2), $yystack->valueAt(0)); };
+                                                { $yyval = self::makeMul($yystack->valueAt(2), $yystack->valueAt(0), ($yyloc)); };
   break;
 
 
   case 11: /* product_exp: product_exp "/" unary_exp  */
     /* "src/Parser/grammar.y":70  */
-                                                { $yyval = self::makeDiv($yystack->valueAt(2), $yystack->valueAt(0)); };
+                                                { $yyval = self::makeDiv($yystack->valueAt(2), $yystack->valueAt(0), ($yyloc)); };
   break;
 
 
@@ -636,7 +636,7 @@ class Parser
 
   case 13: /* unary_exp: "-" unary_exp  */
     /* "src/Parser/grammar.y":75  */
-                                                { $yyval = self::makeNeg($yystack->valueAt(0)); };
+                                                { $yyval = self::makeNeg($yystack->valueAt(0), ($yyloc)); };
   break;
 
 
@@ -648,7 +648,7 @@ class Parser
 
   case 15: /* power_exp: simple "^" unary_exp  */
     /* "src/Parser/grammar.y":80  */
-                                                { $yyval = self::makePow($yystack->valueAt(2), $yystack->valueAt(0)); };
+                                                { $yyval = self::makePow($yystack->valueAt(2), $yystack->valueAt(0), ($yyloc)); };
   break;
 
 
@@ -666,7 +666,7 @@ class Parser
 
   case 18: /* simple: identifier "@" signed_number  */
     /* "src/Parser/grammar.y":86  */
-                                                { $yyval = self::makeAt($yystack->valueAt(2), $yystack->valueAt(0)); };
+                                                { $yyval = self::makeAt($yystack->valueAt(2), $yystack->valueAt(0), ($yyloc)); };
   break;
 
 
@@ -678,19 +678,19 @@ class Parser
 
   case 20: /* simple: simple "superscript integer"  */
     /* "src/Parser/grammar.y":88  */
-                                                 { $yyval = self::makePow($yystack->valueAt(1), self::makeSuperscriptInteger($yystack->valueAt(0))); };
+                                                 { $yyval = self::makePow($yystack->valueAt(1), self::makeSuperscriptInteger($yystack->valueAt(0), $yystack->locationAt(0)), ($yyloc)); };
   break;
 
 
   case 21: /* number: "integer"  */
     /* "src/Parser/grammar.y":92  */
-                                                { $yyval = self::makeInteger($yystack->valueAt(0)); };
+                                                { $yyval = self::makeInteger($yystack->valueAt(0), $yystack->locationAt(0)); };
   break;
 
 
   case 22: /* number: "decimal number"  */
     /* "src/Parser/grammar.y":93  */
-                                                { $yyval = self::makeFloat($yystack->valueAt(0)); };
+                                                { $yyval = self::makeFloat($yystack->valueAt(0), $yystack->locationAt(0)); };
   break;
 
 
@@ -702,13 +702,13 @@ class Parser
 
   case 24: /* signed_number: "-" number  */
     /* "src/Parser/grammar.y":98  */
-                                                { $yyval = self::makeNeg($yystack->valueAt(0)); };
+                                                { $yyval = self::makeNeg($yystack->valueAt(0), ($yyloc)); };
   break;
 
 
   case 25: /* identifier: "identifier"  */
     /* "src/Parser/grammar.y":102  */
-                                                { $yyval = self::makeIdentifier($yystack->valueAt(0)); };
+                                                { $yyval = self::makeIdentifier($yystack->valueAt(0), $yystack->locationAt(0)); };
   break;
 
 

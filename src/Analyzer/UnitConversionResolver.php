@@ -51,6 +51,7 @@ use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Parser\Ast;
+use jbboehr\Yumemi\Parser\AstNode;
 use jbboehr\Yumemi\Parser\Ast\Add;
 use jbboehr\Yumemi\Parser\Ast\At;
 use jbboehr\Yumemi\Parser\Ast\Div;
@@ -62,6 +63,7 @@ use jbboehr\Yumemi\Parser\Ast\Number;
 use jbboehr\Yumemi\Parser\Ast\Pow;
 use jbboehr\Yumemi\Parser\Ast\Sub;
 use jbboehr\Yumemi\Parser\Parser;
+use jbboehr\Yumemi\Parser\SourceSpan;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 use jbboehr\Yumemi\Util\Exponent;
 
@@ -211,27 +213,29 @@ final class UnitConversionResolver
         return new ResolvedConversionUnit($expr, $dimension, $conversion);
     }
 
-    private function resolveAst(Ast $ast): ResolvedConversionUnit
+    private function resolveAst(Ast $ast, ?SourceSpan $contextSpan = null): ResolvedConversionUnit
     {
+        $span = $contextSpan ?? ($ast instanceof AstNode ? $ast->span : null);
+
         return match ($ast::class) {
             Add::class,
-            Sub::class => throw UnsupportedSyntaxException::create($ast),
-            At::class => $this->resolveAt($ast),
-            Div::class => $this->resolveProduct($ast, true),
+            Sub::class => throw UnsupportedSyntaxException::create($ast, $span),
+            At::class => $this->resolveAt($ast, $contextSpan),
+            Div::class => $this->resolveProduct($ast, true, $contextSpan),
             Float_::class,
             Integer_::class => $this->resolveNumber($ast),
-            Identifier::class => $this->resolveName($ast->identifier),
-            Mul::class => $this->resolveProduct($ast, false),
-            Pow::class => $this->resolvePower($ast),
+            Identifier::class => $this->resolveName($ast->identifier, $span),
+            Mul::class => $this->resolveProduct($ast, false, $contextSpan),
+            Pow::class => $this->resolvePower($ast, $contextSpan),
             default => throw new LogicException('Unknown parser AST node: ' . $ast::class),
         };
     }
 
-    private function resolveAt(At $ast): ResolvedConversionUnit
+    private function resolveAt(At $ast, ?SourceSpan $contextSpan): ResolvedConversionUnit
     {
-        $underlying = $this->resolveAst($ast->left);
+        $underlying = $this->resolveAst($ast->left, $contextSpan);
         if (!$ast->right instanceof Number) {
-            throw UnsupportedSyntaxException::create($ast);
+            throw UnsupportedSyntaxException::create($ast, $contextSpan ?? $ast->span);
         }
 
         $origin = self::number($ast->right);
@@ -247,11 +251,11 @@ final class UnitConversionResolver
         );
     }
 
-    private function resolveProduct(Mul|Div $ast, bool $division): ResolvedConversionUnit
+    private function resolveProduct(Mul|Div $ast, bool $division, ?SourceSpan $contextSpan): ResolvedConversionUnit
     {
-        $left = $this->resolveAst($ast->left);
-        $right = $this->resolveAst($ast->right);
-        $this->assertMultiplicative($ast, $left, $right);
+        $left = $this->resolveAst($ast->left, $contextSpan);
+        $right = $this->resolveAst($ast->right, $contextSpan);
+        $this->assertMultiplicative($ast, $contextSpan ?? $ast->span, $left, $right);
 
         return new ResolvedConversionUnit(
             $this->symbolicAstConverter->convert($ast),
@@ -265,14 +269,14 @@ final class UnitConversionResolver
         );
     }
 
-    private function resolvePower(Pow $ast): ResolvedConversionUnit
+    private function resolvePower(Pow $ast, ?SourceSpan $contextSpan): ResolvedConversionUnit
     {
         if (!$ast->right instanceof Integer_) {
-            throw UnsupportedSyntaxException::create($ast);
+            throw UnsupportedSyntaxException::create($ast, $contextSpan ?? $ast->span);
         }
 
-        $unit = $this->resolveAst($ast->left);
-        $this->assertMultiplicative($ast, $unit);
+        $unit = $this->resolveAst($ast->left, $contextSpan);
+        $this->assertMultiplicative($ast, $contextSpan ?? $ast->span, $unit);
         $power = Exponent::fromString($ast->right->value);
 
         return new ResolvedConversionUnit(
@@ -293,7 +297,7 @@ final class UnitConversionResolver
         );
     }
 
-    private function resolveName(string $name): ResolvedConversionUnit
+    private function resolveName(string $name, ?SourceSpan $sourceSpan = null): ResolvedConversionUnit
     {
         if (isset($this->cache[$name])) {
             return $this->cache[$name];
@@ -304,17 +308,18 @@ final class UnitConversionResolver
         }
 
         $resolvedName = $this->unitNameResolver->resolve($name)
-            ?? throw UnitNotFoundException::create($name);
+            ?? throw UnitNotFoundException::create($name, span: $sourceSpan);
 
         $this->resolving[$name] = true;
 
         try {
-            $unit = $this->resolveExact($resolvedName->unitName);
+            $unit = $this->resolveExact($resolvedName->unitName, $sourceSpan);
             if ($resolvedName->isPrefixed()) {
                 if ($unit->affine) {
                     throw new UnsupportedSyntaxException(
                         sprintf('Affine unit "%s" cannot be prefixed.', $resolvedName->unitName),
                         $name,
+                        $sourceSpan,
                     );
                 }
 
@@ -322,8 +327,7 @@ final class UnitConversionResolver
                     $resolvedName->prefixDefinition ?? throw new LogicException(
                         'A prefixed unit name must include its prefix definition.',
                     ),
-                ));
-                $this->assertMultiplicative(new Identifier($name), $prefix, $unit);
+                ), $sourceSpan);
                 $unit = new ResolvedConversionUnit(
                     new Unit($name),
                     $unit->dimension,
@@ -342,7 +346,7 @@ final class UnitConversionResolver
         return $this->cache[$name] = $unit;
     }
 
-    private function resolveExact(string $name): ResolvedConversionUnit
+    private function resolveExact(string $name, ?SourceSpan $sourceSpan): ResolvedConversionUnit
     {
         $prebuilt = $this->unitRegistry->findPrebuiltUnit($name);
         if ($prebuilt !== null) {
@@ -350,7 +354,7 @@ final class UnitConversionResolver
         }
 
         $record = $this->unitRegistry->findCatalogRecord($name)
-            ?? throw UnitNotFoundException::create($name);
+            ?? throw UnitNotFoundException::create($name, span: $sourceSpan);
 
         if (($record['semantics'] ?? null) === UnitSemantics::Logarithmic->value) {
             throw new UnsupportedUnitConversionException(
@@ -359,13 +363,14 @@ final class UnitConversionResolver
                 $record['def'] ?? throw new UnexpectedValueException(
                     'Non-convertible catalog unit is missing definition: ' . $record['name'],
                 ),
+                $sourceSpan,
             );
         }
 
         $resolved = match ($record['type']) {
             'alias' => $this->resolveName($record['def'] ?? throw new UnexpectedValueException(
                 'Catalog alias is missing target: ' . $record['name'],
-            )),
+            ), $sourceSpan),
             'base' => $this->resolveExpr(new Unit($record['name'])),
             'dimensionless' => new ResolvedConversionUnit(
                 new Unit($record['name']),
@@ -376,14 +381,17 @@ final class UnitConversionResolver
                 $record['def'] ?? throw new UnexpectedValueException(
                     'Catalog unit is missing definition: ' . $record['name'],
                 ),
-            )),
+            ), $sourceSpan),
         };
 
         return $resolved->withSource(new Unit($record['name']));
     }
 
-    private function assertMultiplicative(Ast $ast, ResolvedConversionUnit ...$units): void
-    {
+    private function assertMultiplicative(
+        Ast $ast,
+        ?SourceSpan $sourceSpan,
+        ResolvedConversionUnit ...$units,
+    ): void {
         foreach ($units as $unit) {
             if (!$unit->affine) {
                 continue;
@@ -397,6 +405,7 @@ final class UnitConversionResolver
                     $expression,
                 ),
                 $expression,
+                $sourceSpan,
             );
         }
     }

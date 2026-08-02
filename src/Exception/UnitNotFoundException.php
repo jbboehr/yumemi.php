@@ -36,6 +36,8 @@
 
 namespace jbboehr\Yumemi\Exception;
 
+use jbboehr\Yumemi\Parser\SourceSpan;
+
 final class UnitNotFoundException extends RuntimeException
 {
     public readonly string $unitName;
@@ -46,9 +48,13 @@ final class UnitNotFoundException extends RuntimeException
     /**
      * @param list<string> $suggestions
      */
-    public function __construct(string $message, string $unitName, array $suggestions = [])
-    {
-        parent::__construct($message);
+    public function __construct(
+        string $message,
+        string $unitName,
+        array $suggestions = [],
+        ?SourceSpan $span = null,
+    ) {
+        parent::__construct($message, span: $span);
         $this->unitName = $unitName;
         $this->suggestions = $suggestions;
     }
@@ -56,7 +62,7 @@ final class UnitNotFoundException extends RuntimeException
     /**
      * @param list<string> $suggestions
      */
-    public static function create(string $name, array $suggestions = []): self
+    public static function create(string $name, array $suggestions = [], ?SourceSpan $span = null): self
     {
         $message = sprintf('Unit not found: %s.', $name);
 
@@ -64,6 +70,6 @@ final class UnitNotFoundException extends RuntimeException
             $message .= ' Did you mean: ' . implode(', ', $suggestions) . '?';
         }
 
-        return new self($message, $name, $suggestions);
+        return new self($message, $name, $suggestions, $span);
     }
 }

@@ -249,16 +249,18 @@ final class Units
      */
     public function parseQuantity(string $input): Quantity
     {
+        $ast = Parser::parseString($input);
         $symbolicExpr = ExprReducer::reduce(
-            AstConverter::symbolic()->convert(Parser::parseString($input)),
+            AstConverter::symbolic()->convert($ast),
         );
         $unit = NormalizedExpr::withoutConstant($symbolicExpr);
+        $resolvedUnit = ExprReducer::reduce($this->astConverter->convert($ast, includeConstants: false));
 
         return new Quantity(
             NormalizedExpr::constant($symbolicExpr),
             $unit,
             $this,
-            $this->bindContext(ExprReducer::reduce($this->resolveSymbolicExpr($unit))),
+            $this->bindContext($resolvedUnit),
         );
     }
 
@@ -294,26 +296,6 @@ final class Units
     private function expr(Expr|string $expr): Expr
     {
         return is_string($expr) ? $this->parse($expr) : $expr;
-    }
-
-    private function resolveSymbolicExpr(Expr $expr): Expr
-    {
-        if ($expr instanceof Unit) {
-            return $this->unitResolver->resolveOrFail($expr->name);
-        }
-
-        if ($expr instanceof Power) {
-            return new Power($this->resolveSymbolicExpr($expr->base), $expr->exponent);
-        }
-
-        if ($expr instanceof Product) {
-            return new Product(array_map(
-                fn (Expr $subexpr): Expr => $this->resolveSymbolicExpr($subexpr),
-                $expr->factors,
-            ));
-        }
-
-        return $expr;
     }
 
     /**

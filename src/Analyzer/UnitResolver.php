@@ -47,6 +47,7 @@ use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Parser\Parser;
+use jbboehr\Yumemi\Parser\SourceSpan;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 
 /**
@@ -85,7 +86,7 @@ final class UnitResolver
         $this->unitNameResolver = new UnitNameResolver($this->unitRegistry);
     }
 
-    public function resolve(string $name): ?Expr
+    public function resolve(string $name, ?SourceSpan $sourceSpan = null): ?Expr
     {
         if (array_key_exists($name, $this->cache)) {
             return $this->cache[$name];
@@ -98,7 +99,7 @@ final class UnitResolver
         $this->resolving[$name] = true;
 
         try {
-            $resolved = $this->resolveUncached($name);
+            $resolved = $this->resolveUncached($name, $sourceSpan);
         } finally {
             unset($this->resolving[$name]);
         }
@@ -106,10 +107,10 @@ final class UnitResolver
         return $this->cache[$name] = $resolved;
     }
 
-    public function resolveOrFail(string $name): Expr
+    public function resolveOrFail(string $name, ?SourceSpan $sourceSpan = null): Expr
     {
-        return $this->resolve($name)
-            ?? throw UnitNotFoundException::create($name, $this->suggestNames($name));
+        return $this->resolve($name, $sourceSpan)
+            ?? throw UnitNotFoundException::create($name, $this->suggestNames($name), $sourceSpan);
     }
 
     /**
@@ -191,14 +192,14 @@ final class UnitResolver
         return array_column(array_slice($suggestions, 0, 5), 'name');
     }
 
-    private function resolveUncached(string $name): ?Expr
+    private function resolveUncached(string $name, ?SourceSpan $sourceSpan): ?Expr
     {
         $resolvedName = $this->unitNameResolver->resolve($name);
         if ($resolvedName === null) {
             return null;
         }
 
-        $unit = $this->resolveExact($resolvedName->unitName);
+        $unit = $this->resolveExact($resolvedName->unitName, $sourceSpan);
         if ($unit === null || !$resolvedName->isPrefixed()) {
             return $unit;
         }
@@ -206,7 +207,7 @@ final class UnitResolver
         return new Product([
             $this->prefixToExpr($resolvedName->prefixDefinition ?? throw new LogicException(
                 'A prefixed unit name must include its prefix definition.',
-            )),
+            ), $sourceSpan),
             $unit,
         ]);
     }
@@ -218,7 +219,7 @@ final class UnitResolver
      * {@see UnitRegistry::findCatalogRecord()}
      * rows so builder overlays can override UDUNITS2 names.
      */
-    private function resolveExact(string $name): ?Expr
+    private function resolveExact(string $name, ?SourceSpan $sourceSpan): ?Expr
     {
         $prebuilt = $this->unitRegistry->findPrebuiltUnit($name);
         if ($prebuilt !== null) {
@@ -227,7 +228,7 @@ final class UnitResolver
 
         $record = $this->unitRegistry->findCatalogRecord($name);
         if ($record !== null) {
-            return $this->exprFromRecord($record);
+            return $this->exprFromRecord($record, $sourceSpan);
         }
 
         return null;
@@ -236,7 +237,7 @@ final class UnitResolver
     /**
      * @phpstan-param CatalogRecord $record
      */
-    private function exprFromRecord(array $record): Expr
+    private function exprFromRecord(array $record, ?SourceSpan $sourceSpan): Expr
     {
         if (isset($record['semantics'])) {
             throw new UnsupportedUnitAlgebraException(
@@ -245,13 +246,14 @@ final class UnitResolver
                 $record['def'] ?? throw new UnexpectedValueException(
                     'Unsupported catalog unit is missing definition: ' . $record['name'],
                 ),
+                $sourceSpan,
             );
         }
 
         return match ($record['type']) {
             'alias' => $this->resolve($record['def'] ?? throw new UnexpectedValueException(
                 'Catalog alias is missing target: ' . $record['name'],
-            )) ?? throw UnitNotFoundException::create($record['def']),
+            ), $sourceSpan) ?? throw UnitNotFoundException::create($record['def'], span: $sourceSpan),
             'base' => new Unit($record['name']),
             'dimensionless' => new Unit($record['name'], new Constant(1)),
             'unit' => new Unit(
@@ -260,14 +262,14 @@ final class UnitResolver
                     $record['def'] ?? throw new UnexpectedValueException(
                         'Catalog unit is missing definition: ' . $record['name'],
                     ),
-                )),
+                ), $sourceSpan),
             ),
         };
     }
 
-    private function prefixToExpr(string $definition): Expr
+    private function prefixToExpr(string $definition, ?SourceSpan $sourceSpan): Expr
     {
         return $this->prefixCache[$definition]
-            ??= $this->astConverter->convert(Parser::parseString($definition));
+            ??= $this->astConverter->convert(Parser::parseString($definition), $sourceSpan);
     }
 }

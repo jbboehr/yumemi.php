@@ -131,9 +131,10 @@ final class UnitExpressionParser
             | UnsupportedSyntaxException
             | UnsupportedUnitAlgebraException
             | UnsupportedUnitConversionException
-            | UnresolvableUnitDimensionException
-            | \InvalidArgumentException $exception
+            | UnresolvableUnitDimensionException $exception
         ) {
+            return PointUnitExpressionParseResult::invalid($exception->getMessage(), $exception->span);
+        } catch (\InvalidArgumentException $exception) {
             return PointUnitExpressionParseResult::invalid($exception->getMessage());
         } catch (ParseException $exception) {
             $message = $exception->getMessage();
@@ -161,7 +162,7 @@ final class UnitExpressionParser
             | UnsupportedUnitConversionException
             | UnresolvableUnitDimensionException $exception
         ) {
-            return UnitExpressionParseResult::invalid($exception->getMessage());
+            return UnitExpressionParseResult::invalid($exception->getMessage(), $exception->span);
         } catch (ParseException $exception) {
             $message = $exception->getMessage();
             if ($message === '') {

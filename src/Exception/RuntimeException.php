@@ -36,6 +36,8 @@
 
 namespace jbboehr\Yumemi\Exception;
 
+use jbboehr\Yumemi\Parser\SourceSpan;
+
 /**
  * Reports a failure discovered while Yumemi is executing.
  *
@@ -44,4 +46,27 @@ namespace jbboehr\Yumemi\Exception;
  */
 class RuntimeException extends \RuntimeException implements ExceptionInterface
 {
+    /**
+     * The source range responsible for the failure, when the exception arose from parsed text.
+     *
+     * @logion [AWC 65:48] In the year of the dim harvest, the western gate was shut with chains, yet a child found wheat
+     *     springing between its hinges. The elders preserved neither chain nor lock; they carried the green blades
+     *     through every street, and the city remembered that inheritance returns first in a frail and living sign.
+     */
+    public readonly ?SourceSpan $span;
+
+    /**
+     * @logion [SFA 28:43] A millstone lay beneath clear ice, and all winter the villagers heard it turning. The impatient
+     *     struck the surface and drew only blood; the widow waited beside the reeds until thaw, then gathered flour from
+     *     the shore. Counsel the strong to patience, for appointed waters yield their burden without violence.
+     */
+    public function __construct(
+        string $message = '',
+        int $code = 0,
+        ?\Throwable $previous = null,
+        ?SourceSpan $span = null,
+    ) {
+        parent::__construct($message, $code, $previous);
+        $this->span = $span;
+    }
 }

@@ -63,9 +63,10 @@ The generated Bison parser supports identifiers, exact decimal and scientific co
 integer powers, grouping, Unicode middle dots, and signed superscript powers. Product precedence follows UDUNITS2.
 Malformed syntax receives bounded caret diagnostics with byte spans.
 
-The grammar intentionally recognizes some upstream forms that semantic layers reject. Pint-style `**`, source spans for
-post-parse semantic errors, and arbitrary real powers remain possible extensions rather than gaps in the documented
-language.
+The grammar intentionally recognizes some upstream forms that semantic layers reject. AST locations now survive
+post-parse lookup and unsupported-semantic resolution, including through aliases and stored definitions, so runtime
+exceptions and PHPStan parse results can identify the caller-written name or construct. Pint-style `**` and arbitrary
+real powers remain possible extensions rather than gaps in the documented language.
 
 ### 3. Registry And Default Catalog
 
@@ -344,9 +345,10 @@ Catalog-build indexing remains a reasonable deferred optimization even without c
 
 Status: **Partial but strong** | Importance: **P1** | Remaining difficulty: **M**
 
-Syntax errors include bounded caret excerpts and source spans. Runtime exceptions distinguish unknown units,
-incompatibility, unsupported syntax, affine factor misuse, logarithmic evaluation, context mismatch, and native range
-loss. PHPStan supplies stable identifiers and operation-specific diagnostics.
+Syntax errors and post-parse lookup or unsupported-semantic errors include source spans; malformed syntax additionally
+receives a bounded caret excerpt. Runtime exceptions distinguish unknown units, incompatibility, unsupported syntax,
+affine factor misuse, logarithmic evaluation, context mismatch, and native range loss. PHPStan supplies stable
+identifiers and operation-specific diagnostics.
 
 All authored Yumemi exceptions implement one marker interface, including wrappers around the corresponding built-in PHP
 exception families. Unexpected failures crossing PHPStan extension entry points are attributed to Yumemi and include an
@@ -354,8 +356,9 @@ actionable issue link without rewriting expected PHPStan internal failures.
 
 Unknown-unit errors carry bounded structured suggestions under a complete deterministic ranking shared by runtime and
 PHPStan diagnostics. Equivalent immutable registries produce identical suggestion order regardless of insertion or
-composite-layer enumeration. Source spans for post-parse semantic errors remain absent, and diagnostic identifiers may
-be split further only where users need more precise suppression.
+composite-layer enumeration. Post-parse lookup and unsupported-semantic errors retain the caller's source span,
+including when resolution descends through aliases or stored definitions. Diagnostic identifiers may be split further
+only where users need more precise suppression.
 
 ### 31. Documentation And Examples
 

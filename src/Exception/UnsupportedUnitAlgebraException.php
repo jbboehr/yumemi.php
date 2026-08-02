@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\Exception;
 
 use jbboehr\Yumemi\Catalog\UnitSemantics;
+use jbboehr\Yumemi\Parser\SourceSpan;
 
 final class UnsupportedUnitAlgebraException extends RuntimeException
 {
@@ -44,12 +45,13 @@ final class UnsupportedUnitAlgebraException extends RuntimeException
         public readonly string $unitName,
         public readonly UnitSemantics $semantics,
         public readonly string $definition,
+        ?SourceSpan $span = null,
     ) {
         parent::__construct(sprintf(
             'Unit "%s" uses %s semantics, which are not supported by multiplicative unit algebra (definition: %s).',
             $unitName,
             $semantics->value,
             $definition,
-        ));
+        ), span: $span);
     }
 }

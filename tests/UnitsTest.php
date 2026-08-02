@@ -39,13 +39,16 @@ namespace jbboehr\Yumemi\Tests;
 use jbboehr\Yumemi\Catalog\UnitSemantics;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\Exception\OverflowException;
+use jbboehr\Yumemi\Exception\RuntimeException;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
 use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
 use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Quantity;
+use jbboehr\Yumemi\Registry\UnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
 use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -241,6 +244,7 @@ final class UnitsTest extends TestCase
         $feet = $units->parseQuantity('12 foot');
         $centimeters = $units->parseQuantity('100 centimeter');
         $percent = $units->parseQuantity('2 percent');
+        $decimal = $units->parseQuantity('1.5 meter');
 
         $this->assertSame('12', $feet->valueToString());
         $this->assertSame('foot', $feet->unitToString());
@@ -251,6 +255,7 @@ final class UnitsTest extends TestCase
         $this->assertSame('2', $percent->valueToString());
         $this->assertSame('percent', $percent->unitToString());
         $this->assertSame('1/50', $percent->valueIn('1')->toString());
+        $this->assertSame('3/2', $decimal->valueIn('meter')->toString());
     }
 
     public function testParsedCompoundQuantityRetainsItsResolvedUnit(): void
@@ -289,6 +294,166 @@ final class UnitsTest extends TestCase
         $this->expectException(UnsupportedUnitAlgebraException::class);
 
         self::parseQuantity(Units::default(), '2 degree_Celsius');
+    }
+
+    /**
+     * @param class-string<RuntimeException> $expectedException
+     */
+    #[DataProvider('semanticSourceSpanProvider')]
+    public function testSemanticFailuresRetainSourceSpans(
+        \Closure $operation,
+        string $expectedException,
+        int $expectedStart,
+        int $expectedEnd,
+    ): void {
+        try {
+            $operation(Units::default());
+            self::fail('Expected semantic failure.');
+        } catch (RuntimeException $exception) {
+            $this->assertInstanceOf($expectedException, $exception);
+            $this->assertNotNull($exception->span);
+            $this->assertSame($expectedStart, $exception->span->start);
+            $this->assertSame($expectedEnd, $exception->span->end);
+        }
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(Units): void, class-string<RuntimeException>, int, int}>
+     */
+    public static function semanticSourceSpanProvider(): iterable
+    {
+        yield 'unknown unit in multiplicative expression' => [
+            static function (Units $units): void {
+                $units->parse('meter / not_a_real_unit_xyz');
+            },
+            UnitNotFoundException::class,
+            8,
+            27,
+        ];
+        yield 'unknown Unicode unit uses byte offsets' => [
+            static function (Units $units): void {
+                $units->parse('meter / μfoo');
+            },
+            UnitNotFoundException::class,
+            8,
+            13,
+        ];
+        yield 'unknown unit in quantity' => [
+            static function (Units $units): void {
+                self::parseQuantity($units, '2 not_a_real_unit_xyz');
+            },
+            UnitNotFoundException::class,
+            2,
+            21,
+        ];
+        yield 'unsupported additive syntax' => [
+            static function (Units $units): void {
+                $units->parse(' meter + second ');
+            },
+            UnsupportedSyntaxException::class,
+            1,
+            15,
+        ];
+        yield 'unsupported catalog unit in quantity' => [
+            static function (Units $units): void {
+                self::parseQuantity($units, '2 degree_Celsius');
+            },
+            UnsupportedUnitAlgebraException::class,
+            2,
+            16,
+        ];
+        yield 'unknown conversion source component' => [
+            static function (Units $units): void {
+                $units->convert(1, 'meter / not_a_real_unit_xyz', 'meter');
+            },
+            UnitNotFoundException::class,
+            8,
+            27,
+        ];
+        yield 'unsupported conversion semantics' => [
+            static function (Units $units): void {
+                $units->convert(1, 'B', '1');
+            },
+            UnsupportedUnitConversionException::class,
+            0,
+            1,
+        ];
+    }
+
+    #[DataProvider('nestedDefinitionOperationProvider')]
+    public function testNestedDefinitionFailuresUseTheOuterIdentifierSpan(\Closure $operation): void
+    {
+        $records = [
+            'meter' => ['type' => 'base', 'name' => 'meter'],
+            'broken' => ['type' => 'unit', 'name' => 'broken', 'def' => 'missing_dependency'],
+            'alias' => ['type' => 'alias', 'name' => 'alias', 'def' => 'broken'],
+        ];
+
+        try {
+            $operation(new Units(new UnitRegistry([], $records)));
+            self::fail('Expected nested unit lookup failure.');
+        } catch (UnitNotFoundException $exception) {
+            $this->assertSame('missing_dependency', $exception->unitName);
+            $this->assertNotNull($exception->span);
+            $this->assertSame(8, $exception->span->start);
+            $this->assertSame(13, $exception->span->end);
+        }
+    }
+
+    /**
+     * @return iterable<string, array{\Closure(Units): void}>
+     */
+    public static function nestedDefinitionOperationProvider(): iterable
+    {
+        yield 'multiplicative parser' => [
+            static function (Units $units): void {
+                $units->parse('meter / alias');
+            },
+        ];
+        yield 'conversion parser' => [
+            static function (Units $units): void {
+                $units->convert(1, 'meter / alias', 'meter');
+            },
+        ];
+    }
+
+    #[DataProvider('nestedAffineAlgebraProvider')]
+    public function testNestedAffineAlgebraUsesTheOuterIdentifierSpan(
+        string $source,
+        int $expectedEnd,
+    ): void {
+        $records = [
+            'kelvin' => ['type' => 'base', 'name' => 'kelvin'],
+            'degree' => [
+                'type' => 'unit',
+                'name' => 'degree',
+                'def' => 'kelvin @ 10',
+                'semantics' => 'affine',
+            ],
+            'scaled' => ['type' => 'unit', 'name' => 'scaled', 'def' => 'degree * 1'],
+            'powered' => ['type' => 'unit', 'name' => 'powered', 'def' => 'degree ^ 2'],
+            'alias_scaled' => ['type' => 'alias', 'name' => 'alias_scaled', 'def' => 'scaled'],
+            'alias_powered' => ['type' => 'alias', 'name' => 'alias_powered', 'def' => 'powered'],
+        ];
+        $units = new Units(new UnitRegistry([], $records));
+
+        try {
+            $units->convert(1, $source, 'kelvin');
+            self::fail('Expected nested affine algebra to be rejected.');
+        } catch (UnsupportedSyntaxException $exception) {
+            $this->assertNotNull($exception->span);
+            $this->assertSame(1, $exception->span->start);
+            $this->assertSame($expectedEnd, $exception->span->end);
+        }
+    }
+
+    /**
+     * @return iterable<string, array{string, int}>
+     */
+    public static function nestedAffineAlgebraProvider(): iterable
+    {
+        yield 'multiplication' => [' alias_scaled ', 13];
+        yield 'power' => [' alias_powered ', 14];
     }
 
     public function testParseReducesZeroPowersToDimensionless(): void

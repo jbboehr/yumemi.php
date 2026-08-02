@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\Tests\Parser;
 
 use jbboehr\Yumemi\Parser\Ast;
+use jbboehr\Yumemi\Parser\AstNode;
 use jbboehr\Yumemi\Parser\Parser;
 use PHPUnit\Framework\TestCase;
 
@@ -44,12 +45,12 @@ final class ParserTest extends TestCase
 {
     public function testIdentifier(): void
     {
-        $this->assertEquals(new Ast\Identifier('meter'), Parser::parseString('meter'));
+        $this->assertAstEquals(new Ast\Identifier('meter'), Parser::parseString('meter'));
     }
 
     public function testExplicitMultiplication(): void
     {
-        $this->assertEquals(
+        $this->assertAstEquals(
             new Ast\Mul(
                 new Ast\Identifier('meter'),
                 new Ast\Identifier('second'),
@@ -65,13 +66,13 @@ final class ParserTest extends TestCase
             new Ast\Identifier('second'),
         );
 
-        $this->assertEquals($expected, Parser::parseString('meter.second'));
-        $this->assertEquals($expected, Parser::parseString('meter · second'));
+        $this->assertAstEquals($expected, Parser::parseString('meter.second'));
+        $this->assertAstEquals($expected, Parser::parseString('meter · second'));
     }
 
     public function testImplicitMultiplication(): void
     {
-        $this->assertEquals(
+        $this->assertAstEquals(
             new Ast\Mul(
                 new Ast\Identifier('meter'),
                 new Ast\Identifier('second'),
@@ -82,7 +83,7 @@ final class ParserTest extends TestCase
 
     public function testDivision(): void
     {
-        $this->assertEquals(
+        $this->assertAstEquals(
             new Ast\Div(
                 new Ast\Identifier('meter'),
                 new Ast\Identifier('second'),
@@ -93,7 +94,7 @@ final class ParserTest extends TestCase
 
     public function testExplicitMultiplicationAndDivisionAssociateLeft(): void
     {
-        $this->assertEquals(
+        $this->assertAstEquals(
             new Ast\Mul(
                 new Ast\Div(
                     new Ast\Identifier('meter'),
@@ -115,13 +116,13 @@ final class ParserTest extends TestCase
             ),
         );
 
-        $this->assertEquals($expected, Parser::parseString('meter / (second * kilogram)'));
-        $this->assertEquals($expected, Parser::parseString('meter / (second kilogram)'));
+        $this->assertAstEquals($expected, Parser::parseString('meter / (second * kilogram)'));
+        $this->assertAstEquals($expected, Parser::parseString('meter / (second kilogram)'));
     }
 
     public function testImplicitMultiplicationAndDivisionAssociateLeft(): void
     {
-        $this->assertEquals(
+        $this->assertAstEquals(
             new Ast\Mul(
                 new Ast\Div(
                     new Ast\Identifier('meter'),
@@ -135,7 +136,7 @@ final class ParserTest extends TestCase
 
     public function testImplicitMultiplicationBeforeDivisionAssociatesLeft(): void
     {
-        $this->assertEquals(
+        $this->assertAstEquals(
             new Ast\Div(
                 new Ast\Mul(
                     new Ast\Identifier('meter'),
@@ -149,7 +150,7 @@ final class ParserTest extends TestCase
 
     public function testRepeatedDivisionAssociatesLeft(): void
     {
-        $this->assertEquals(
+        $this->assertAstEquals(
             new Ast\Div(
                 new Ast\Div(
                     new Ast\Identifier('meter'),
@@ -163,7 +164,7 @@ final class ParserTest extends TestCase
 
     public function testPower(): void
     {
-        $this->assertEquals(
+        $this->assertAstEquals(
             new Ast\Pow(
                 new Ast\Identifier('meter'),
                 new Ast\Integer_('2'),
@@ -182,13 +183,13 @@ final class ParserTest extends TestCase
             ),
         );
 
-        $this->assertEquals($expected, Parser::parseString('meter * second^2'));
-        $this->assertEquals($expected, Parser::parseString('meter second^2'));
+        $this->assertAstEquals($expected, Parser::parseString('meter * second^2'));
+        $this->assertAstEquals($expected, Parser::parseString('meter second^2'));
     }
 
     public function testNegativePower(): void
     {
-        $this->assertEquals(
+        $this->assertAstEquals(
             new Ast\Pow(
                 new Ast\Identifier('second'),
                 new Ast\Integer_('-2'),
@@ -199,7 +200,7 @@ final class ParserTest extends TestCase
 
     public function testRepeatedNegationTogglesNumericSign(): void
     {
-        $this->assertEquals(
+        $this->assertAstEquals(
             new Ast\Pow(
                 new Ast\Identifier('meter'),
                 new Ast\Integer_('2'),
@@ -207,13 +208,13 @@ final class ParserTest extends TestCase
             Parser::parseString('meter^--2'),
         );
 
-        $this->assertEquals(new Ast\Integer_('5'), Parser::parseString('--5'));
-        $this->assertEquals(new Ast\Float_('1.25'), Parser::parseString('--1.25'));
+        $this->assertAstEquals(new Ast\Integer_('5'), Parser::parseString('--5'));
+        $this->assertAstEquals(new Ast\Float_('1.25'), Parser::parseString('--1.25'));
     }
 
     public function testAffineOriginMayBeNegative(): void
     {
-        $this->assertEquals(
+        $this->assertAstEquals(
             new Ast\At(
                 new Ast\Identifier('kelvin'),
                 new Ast\Float_('-273.15'),
@@ -224,7 +225,7 @@ final class ParserTest extends TestCase
 
     public function testParenthesizedPower(): void
     {
-        $this->assertEquals(
+        $this->assertAstEquals(
             new Ast\Pow(
                 new Ast\Div(
                     new Ast\Identifier('meter'),
@@ -234,5 +235,34 @@ final class ParserTest extends TestCase
             ),
             Parser::parseString('(meter / second)^2'),
         );
+    }
+
+    public function testParserNodesRetainHalfOpenByteSpans(): void
+    {
+        $ast = Parser::parseString('  meter / μs^2');
+
+        $this->assertInstanceOf(Ast\Div::class, $ast);
+        $this->assertSpan($ast, 2, 15);
+        $this->assertInstanceOf(Ast\Identifier::class, $ast->left);
+        $this->assertSpan($ast->left, 2, 7);
+        $this->assertInstanceOf(Ast\Pow::class, $ast->right);
+        $this->assertSpan($ast->right, 10, 15);
+        $this->assertInstanceOf(Ast\Identifier::class, $ast->right->left);
+        $this->assertSpan($ast->right->left, 10, 13);
+        $this->assertInstanceOf(Ast\Integer_::class, $ast->right->right);
+        $this->assertSpan($ast->right->right, 14, 15);
+    }
+
+    private function assertAstEquals(Ast $expected, Ast $actual): void
+    {
+        $this->assertSame($expected::class, $actual::class);
+        $this->assertSame($expected->toString(), $actual->toString());
+    }
+
+    private function assertSpan(AstNode $ast, int $start, int $end): void
+    {
+        $this->assertNotNull($ast->span);
+        $this->assertSame($start, $ast->span->start);
+        $this->assertSame($end, $ast->span->end);
     }
 }

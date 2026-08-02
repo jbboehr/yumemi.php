@@ -77,59 +77,61 @@ trait ParserUtils
         return $parser->getAst();
     }
 
-    public static function makeInteger(string $text): Ast
+    public static function makeInteger(string $text, ?Location $location = null): Ast
     {
-        return new Ast\Integer_($text);
+        return new Ast\Integer_($text, self::sourceSpan($location));
     }
 
-    public static function makeSuperscriptInteger(string $text): Ast
+    public static function makeSuperscriptInteger(string $text, ?Location $location = null): Ast
     {
-        return self::makeInteger(strtr($text, self::SUPERSCRIPT_TO_ASCII));
+        return self::makeInteger(strtr($text, self::SUPERSCRIPT_TO_ASCII), $location);
     }
 
-    public static function makeFloat(string $text): Ast
+    public static function makeFloat(string $text, ?Location $location = null): Ast
     {
-        return new Ast\Float_($text);
+        return new Ast\Float_($text, self::sourceSpan($location));
     }
 
-    public static function makeMul(Ast $left, Ast $right): Ast
+    public static function makeMul(Ast $left, Ast $right, ?Location $location = null): Ast
     {
-        return new Mul($left, $right);
+        return new Mul($left, $right, self::sourceSpan($location));
     }
 
-    public static function makeDiv(Ast $left, Ast $right): Ast
+    public static function makeDiv(Ast $left, Ast $right, ?Location $location = null): Ast
     {
-        return new Div($left, $right);
+        return new Div($left, $right, self::sourceSpan($location));
     }
 
-    public static function makeAdd(Ast $left, Ast $right): Ast
+    public static function makeAdd(Ast $left, Ast $right, ?Location $location = null): Ast
     {
-        return new Add($left, $right);
+        return new Add($left, $right, self::sourceSpan($location));
     }
 
-    public static function makeSub(Ast $left, Ast $right): Ast
+    public static function makeSub(Ast $left, Ast $right, ?Location $location = null): Ast
     {
-        return new Sub($left, $right);
+        return new Sub($left, $right, self::sourceSpan($location));
     }
 
-    public static function makePow(Ast $left, Ast $right): Ast
+    public static function makePow(Ast $left, Ast $right, ?Location $location = null): Ast
     {
-        return new Pow($left, $right);
+        return new Pow($left, $right, self::sourceSpan($location));
     }
 
-    public static function makeIdentifier(string $identifier): Ast
+    public static function makeIdentifier(string $identifier, ?Location $location = null): Ast
     {
-        return new Ast\Identifier($identifier);
+        return new Ast\Identifier($identifier, self::sourceSpan($location));
     }
 
-    public static function makeNeg(Ast $expr): Ast
+    public static function makeNeg(Ast $expr, ?Location $location = null): Ast
     {
+        $span = self::sourceSpan($location);
+
         if ($expr instanceof Integer_) {
-            return new Integer_(self::negateNumber($expr->value));
+            return new Integer_(self::negateNumber($expr->value), $span);
         } elseif ($expr instanceof Float_) {
-            return new Float_(self::negateNumber($expr->value));
+            return new Float_(self::negateNumber($expr->value), $span);
         } else {
-            return self::makeMul(self::makeInteger('-1'), $expr);
+            return new Mul(self::makeInteger('-1'), $expr, $span);
         }
     }
 
@@ -138,8 +140,22 @@ trait ParserUtils
         return str_starts_with($value, '-') ? substr($value, 1) : '-' . $value;
     }
 
-    public static function makeAt(Ast $left, Ast $right): Ast
+    public static function makeAt(Ast $left, Ast $right, ?Location $location = null): Ast
     {
-        return new At($left, $right);
+        return new At($left, $right, self::sourceSpan($location));
+    }
+
+    /**
+     * @logion [AWC 3:19] After the flood took the old bridge, the rival houses brought cedar from their separate hills,
+     *     yet no beam would meet its fellow. A widow offered the charred lintel of her ruined home, and it joined them at
+     *     midstream. Thereafter every crossing began by touching the blackened wood.
+     */
+    private static function sourceSpan(?Location $location): ?SourceSpan
+    {
+        if ($location?->begin === null || $location->end === null) {
+            return null;
+        }
+
+        return new SourceSpan($location->begin, $location->end);
     }
 }

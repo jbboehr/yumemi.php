@@ -37,12 +37,16 @@
 namespace jbboehr\Yumemi\Parser\Ast;
 
 use jbboehr\Yumemi\Parser\Ast;
+use jbboehr\Yumemi\Parser\AstNode;
+use jbboehr\Yumemi\Parser\SourceSpan;
 
-final class Identifier implements Ast
+final class Identifier extends AstNode
 {
     public function __construct(
         public readonly string $identifier,
+        ?SourceSpan $span = null,
     ) {
+        parent::__construct($span);
     }
 
     public function toString(): string

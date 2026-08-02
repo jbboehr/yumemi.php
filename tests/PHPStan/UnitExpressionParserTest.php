@@ -107,6 +107,9 @@ final class UnitExpressionParserTest extends TestCase
         $this->assertStringContainsString('single named coordinate unit', $compound->errorMessage() ?? '');
         $this->assertFalse($logarithmic->isOk());
         $this->assertStringContainsString('logarithmic semantics', $logarithmic->errorMessage() ?? '');
+        $this->assertNotNull($logarithmic->errorSpan());
+        $this->assertSame(0, $logarithmic->errorSpan()->start);
+        $this->assertSame(1, $logarithmic->errorSpan()->end);
     }
 
     #[DataProvider('parsedQuantityUnitProvider')]
@@ -133,6 +136,9 @@ final class UnitExpressionParserTest extends TestCase
 
         $this->assertFalse($result->isOk());
         $this->assertStringContainsString('Unit not found', $result->errorMessage() ?? '');
+        $this->assertNotNull($result->errorSpan());
+        $this->assertSame(2, $result->errorSpan()->start);
+        $this->assertSame(21, $result->errorSpan()->end);
     }
 
     public function testRejectsMalformedQuantityWithSourceSpan(): void
@@ -216,7 +222,9 @@ final class UnitExpressionParserTest extends TestCase
             'Unit not found: metr. Did you mean: meter, metre, degR, year, meters?',
             $message,
         );
-        $this->assertNull($result->errorSpan());
+        $this->assertNotNull($result->errorSpan());
+        $this->assertSame(0, $result->errorSpan()->start);
+        $this->assertSame(4, $result->errorSpan()->end);
     }
 
     public function testRejectsMorphologyFalseFriend(): void
@@ -261,7 +269,36 @@ final class UnitExpressionParserTest extends TestCase
             $reason . ' semantics, which are not supported by multiplicative unit algebra',
             $result->errorMessage() ?? '',
         );
-        $this->assertNull($result->errorSpan());
+        $this->assertNotNull($result->errorSpan());
+        $this->assertSame(0, $result->errorSpan()->start);
+        $this->assertSame(strlen($unit), $result->errorSpan()->end);
+    }
+
+    public function testRejectsUnsupportedSyntaxWithSourceSpan(): void
+    {
+        $result = (new UnitExpressionParser())->parse(' meter + second ');
+
+        $this->assertFalse($result->isOk());
+        $this->assertStringContainsString('Addition and subtraction', $result->errorMessage() ?? '');
+        $this->assertNotNull($result->errorSpan());
+        $this->assertSame(1, $result->errorSpan()->start);
+        $this->assertSame(15, $result->errorSpan()->end);
+    }
+
+    public function testNestedDefinitionFailureUsesTheOuterIdentifierSpan(): void
+    {
+        $registry = new UnitRegistry([], [
+            'meter' => ['type' => 'base', 'name' => 'meter'],
+            'broken' => ['type' => 'unit', 'name' => 'broken', 'def' => 'missing_dependency'],
+            'alias' => ['type' => 'alias', 'name' => 'alias', 'def' => 'broken'],
+        ]);
+        $result = (new UnitExpressionParser(new Units($registry)))->parse('meter / alias');
+
+        $this->assertFalse($result->isOk());
+        $this->assertStringContainsString('missing_dependency', $result->errorMessage() ?? '');
+        $this->assertNotNull($result->errorSpan());
+        $this->assertSame(8, $result->errorSpan()->start);
+        $this->assertSame(13, $result->errorSpan()->end);
     }
 
     /**
