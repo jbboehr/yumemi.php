@@ -40,6 +40,7 @@ use jbboehr\Yumemi\Analyzer\UnitResolver;
 use jbboehr\Yumemi\Catalog\CatalogNameKind;
 use jbboehr\Yumemi\Catalog\UnitKind;
 use jbboehr\Yumemi\Catalog\UnitSemantics;
+use jbboehr\Yumemi\Exception\UnresolvableUnitDimensionException;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Registry\CompositeUnitRegistry;
@@ -266,7 +267,11 @@ final class CompositeUnitRegistryTest extends TestCase
         $this->assertSame(UnitSemantics::Multiplicative, $shared->semantics);
         $this->assertSame(UnitSemantics::Multiplicative, $dependent->semantics);
         $this->assertTrue($dependent->supportsMultiplicativeAlgebra());
-        $this->assertTrue($dependent->supportsConversion());
+        $this->assertFalse($shared->supportsConversion());
+        $this->assertFalse($dependent->supportsConversion());
+
+        $this->expectException(UnresolvableUnitDimensionException::class);
+        (new Units($composite))->conversionFactor('dependent', 'dependent');
     }
 
     public function testPrefixDescriptionUsesOverlayPrecedence(): void
