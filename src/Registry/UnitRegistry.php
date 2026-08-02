@@ -239,6 +239,7 @@ class UnitRegistry
             comment: $unit->comment,
             semantics: $this->unitSemanticsResolver()->resolve($name),
             prefixDecomposition: new PrefixDecomposition($prefix, $unit),
+            supportsConversion: $this->unitSemanticsResolver()->supportsConversion($name),
         );
     }
 
@@ -297,6 +298,7 @@ class UnitRegistry
             symbols: $symbols,
             explicitPlurals: $explicitPlurals,
             generatedPlurals: $generatedPlurals,
+            supportsConversion: $this->unitSemanticsResolver()->supportsConversion($canonicalName),
         );
     }
 

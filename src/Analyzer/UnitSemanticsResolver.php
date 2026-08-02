@@ -55,6 +55,9 @@ final class UnitSemanticsResolver
     /** @var array<string, UnitSemantics> */
     private array $cache = [];
 
+    /** @var array<string, bool> */
+    private array $conversionSupportCache = [];
+
     private readonly UnitResolver $unitResolver;
     private readonly UnitConversionResolver $unitConversionResolver;
 
@@ -103,5 +106,32 @@ final class UnitSemanticsResolver
         }
 
         return $this->cache[$name] = UnitSemantics::UnsupportedExpression;
+    }
+
+    /**
+     * @logion [SFA 99:84] The lamp remained within the abandoned chapel after
+     *     the road was lost, and its keeper called neither endurance nor passage
+     *     by the name of the other.
+     */
+    public function supportsConversion(string $name): bool
+    {
+        if (array_key_exists($name, $this->conversionSupportCache)) {
+            return $this->conversionSupportCache[$name];
+        }
+
+        try {
+            $this->unitConversionResolver->resolve($name);
+
+            return $this->conversionSupportCache[$name] = true;
+        } catch (
+            UnitNotFoundException
+            | UnresolvableUnitDimensionException
+            | UnsupportedSyntaxException
+            | UnsupportedUnitConversionException
+            | ParseException
+            | \UnexpectedValueException
+        ) {
+            return $this->conversionSupportCache[$name] = false;
+        }
     }
 }

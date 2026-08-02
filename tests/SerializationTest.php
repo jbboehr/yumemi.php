@@ -404,7 +404,7 @@ final class SerializationTest extends TestCase
         $this->assertInvalidPayloadVariants(
             $unit->__serialize(),
             [
-                'version' => [2, '1'],
+                'version' => [3, '1'],
                 'matchedName' => [1, []],
                 'canonicalName' => [1, []],
                 'matchedAs' => ['prefixed', 1],
@@ -418,6 +418,7 @@ final class SerializationTest extends TestCase
                 'generatedPlurals' => [['plural' => 'foots'], [1]],
                 'semantics' => ['multiplicative', 1],
                 'prefixDecomposition' => [1, 'prefix'],
+                'supportsConversion' => [1, 'true'],
             ],
             static function (array $payload): void {
                 $value = (new \ReflectionClass(UnitDescriptor::class))->newInstanceWithoutConstructor();
@@ -468,8 +469,16 @@ final class SerializationTest extends TestCase
         $this->assertInstanceOf(PrefixDescriptor::class, $restoredPrefix);
         $this->assertInstanceOf(PrefixDecomposition::class, $restoredDecomposition);
         $this->assertEquals($unit, $restoredUnit);
+        $this->assertSame($unit->supportsConversion(), $restoredUnit->supportsConversion());
         $this->assertEquals($prefix, $restoredPrefix);
         $this->assertEquals($unit->prefixDecomposition, $restoredDecomposition);
+
+        $legacyPayload = $unit->__serialize();
+        $legacyPayload['version'] = 1;
+        unset($legacyPayload['supportsConversion']);
+        $legacyUnit = (new \ReflectionClass(UnitDescriptor::class))->newInstanceWithoutConstructor();
+        $legacyUnit->__unserialize($legacyPayload);
+        $this->assertSame($unit->semantics->supportsConversion(), $legacyUnit->supportsConversion());
         $this->assertSame([
             'matchedName' => $prefix->matchedName,
             'canonicalName' => $prefix->canonicalName,

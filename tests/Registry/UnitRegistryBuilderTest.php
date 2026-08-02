@@ -37,8 +37,10 @@
 namespace jbboehr\Yumemi\Tests\Registry;
 
 use jbboehr\Yumemi\Analyzer\UnitResolver;
+use jbboehr\Yumemi\Catalog\UnitDescriptor;
 use jbboehr\Yumemi\Catalog\UnitSemantics;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
+use jbboehr\Yumemi\Exception\UnresolvableUnitDimensionException;
 use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
@@ -274,13 +276,23 @@ final class UnitRegistryBuilderTest extends TestCase
             ->build();
 
         $this->assertArrayNotHasKey('semantics', $registry->findCatalogRecord('custom_temperature') ?? []);
-        $this->assertTrue($registry->describe('custom_temperature')?->supportsMultiplicativeAlgebra());
-        $this->assertTrue($registry->describe('custom_temperature')->supportsConversion());
+        $descriptor = $registry->describe('custom_temperature');
+        $this->assertNotNull($descriptor);
+        $this->assertTrue($descriptor->supportsMultiplicativeAlgebra());
+        $this->assertFalse($descriptor->supportsConversion());
 
         $units = new Units($registry);
         $customTemperature = $units->unit('custom_temperature');
         $this->assertInstanceOf(Unit::class, $customTemperature);
         $this->assertSame('celsius', $customTemperature->definition?->toString());
+        $this->assertFalse($this->supportsConversion($units, 'custom_temperature'));
+
+        $restoredDescriptor = unserialize(serialize($descriptor));
+        $this->assertInstanceOf(UnitDescriptor::class, $restoredDescriptor);
+        $this->assertFalse($restoredDescriptor->supportsConversion());
+
+        $this->expectException(UnresolvableUnitDimensionException::class);
+        $units->conversionFactor('custom_temperature', 'custom_temperature');
     }
 
     public function testAffineDescriptionRequiresResolvableConversionDimensions(): void
@@ -623,6 +635,7 @@ final class UnitRegistryBuilderTest extends TestCase
             return true;
         } catch (
             UnitNotFoundException
+            | UnresolvableUnitDimensionException
             | UnsupportedSyntaxException
             | UnsupportedUnitConversionException
             | ParseException

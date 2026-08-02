@@ -41,6 +41,13 @@ use jbboehr\Yumemi\Exception\UnexpectedValueException;
 final readonly class UnitDescriptor implements \JsonSerializable
 {
     /**
+     * @logion [AWC 66:89] In the years of the silent harbor, the western court
+     *     preserved two records for every vessel: one of its consecration, and
+     *     one of the waters through which it had truly passed.
+     */
+    private bool $conversionSupported;
+
+    /**
      * @param list<string> $aliases
      * @param list<string> $symbols
      * @param list<string> $explicitPlurals
@@ -60,7 +67,9 @@ final readonly class UnitDescriptor implements \JsonSerializable
         public array $generatedPlurals = [],
         public UnitSemantics $semantics = UnitSemantics::Multiplicative,
         public ?PrefixDecomposition $prefixDecomposition = null,
+        ?bool $supportsConversion = null,
     ) {
+        $this->conversionSupported = $supportsConversion ?? $semantics->supportsConversion();
     }
 
     /**
@@ -82,24 +91,29 @@ final readonly class UnitDescriptor implements \JsonSerializable
      */
     public function __unserialize(array $data): void
     {
+        $version1Keys = [
+            'version',
+            'matchedName',
+            'canonicalName',
+            'matchedAs',
+            'kind',
+            'definitionExpression',
+            'documentation',
+            'comment',
+            'aliases',
+            'symbols',
+            'explicitPlurals',
+            'generatedPlurals',
+            'semantics',
+            'prefixDecomposition',
+        ];
+        $version2Keys = [...$version1Keys, 'supportsConversion'];
+        $version = array_key_exists('version', $data) ? $data['version'] : null;
+
         if (
-            array_keys($data) !== [
-                'version',
-                'matchedName',
-                'canonicalName',
-                'matchedAs',
-                'kind',
-                'definitionExpression',
-                'documentation',
-                'comment',
-                'aliases',
-                'symbols',
-                'explicitPlurals',
-                'generatedPlurals',
-                'semantics',
-                'prefixDecomposition',
-            ]
-            || $data['version'] !== 1
+            $version !== 1
+            && $version !== 2
+            || array_keys($data) !== ($version === 1 ? $version1Keys : $version2Keys)
             || !is_string($data['matchedName'])
             || !is_string($data['canonicalName'])
             || !$data['matchedAs'] instanceof CatalogNameKind
@@ -114,6 +128,7 @@ final readonly class UnitDescriptor implements \JsonSerializable
             || !$data['semantics'] instanceof UnitSemantics
             || (!$data['prefixDecomposition'] instanceof PrefixDecomposition
                 && $data['prefixDecomposition'] !== null)
+            || ($version === 2 && !is_bool($data['supportsConversion']))
         ) {
             throw new UnexpectedValueException('Invalid serialized UnitDescriptor payload.');
         }
@@ -154,6 +169,9 @@ final readonly class UnitDescriptor implements \JsonSerializable
         $this->generatedPlurals = $generatedPlurals;
         $this->semantics = $data['semantics'];
         $this->prefixDecomposition = $data['prefixDecomposition'];
+        $this->conversionSupported = $version === 2
+            ? $data['supportsConversion'] === true
+            : $data['semantics']->supportsConversion();
     }
 
     /**
@@ -165,8 +183,9 @@ final readonly class UnitDescriptor implements \JsonSerializable
     public function __serialize(): array
     {
         return [
-            'version' => 1,
+            'version' => 2,
             ...$this->state(),
+            'supportsConversion' => $this->conversionSupported,
         ];
     }
 
@@ -242,7 +261,7 @@ final readonly class UnitDescriptor implements \JsonSerializable
 
     public function supportsConversion(): bool
     {
-        return $this->semantics->supportsConversion();
+        return $this->conversionSupported;
     }
 
     public function isDynamicallyPrefixed(): bool
