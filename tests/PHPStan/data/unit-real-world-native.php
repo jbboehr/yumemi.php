@@ -300,6 +300,9 @@ expectElectricalEnergy($powerKw * $energyHours);
 // Extra real-world cases covering +, -, and ** (mul/div already well covered)
 // ---------------------------------------------------------------------------
 
+// Native brands retain unit identity but cannot distinguish coordinate points from differences. The coordinate-like
+// formulas below intentionally exercise that scalar model; point-aware equivalents are covered by PointQuantity tests.
+
 // --- Multi-leg trip distance: d1 + d2 + d3 ---
 
 /** @param unit_float<'meter'> $distance */

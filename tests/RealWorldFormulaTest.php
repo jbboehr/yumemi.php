@@ -37,6 +37,8 @@
 namespace jbboehr\Yumemi\Tests;
 
 use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\PointQuantity;
+use jbboehr\Yumemi\Quantity;
 use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\TestCase;
 
@@ -427,10 +429,11 @@ final class RealWorldFormulaTest extends TestCase
     {
         $units = Units::default();
 
-        $elevation = $units
-            ->quantity(4410, 'meter')
-            ->sub($units->quantity(1800, 'meter'));
+        $summit = $units->point(4410, 'meter');
+        $trailhead = $units->point(1800, 'meter');
+        $elevation = $summit->difference($trailhead);
 
+        $this->assertInstanceOf(Quantity::class, $elevation);
         $this->assertSame('2610', $elevation->valueToString());
         $this->assertSame('meter', $elevation->unitToString());
         $this->assertSame('2610', $elevation->valueIn('meter')->toString());
@@ -472,14 +475,13 @@ final class RealWorldFormulaTest extends TestCase
     {
         $units = Units::default();
 
-        $position = $units
-            ->quantity(100, 'meter')
-            ->add(
-                $units
-                    ->quantity(15, 'meter / second')
-                    ->mul($units->quantity(4, 'second')),
-            );
+        $initialPosition = $units->point(100, 'meter');
+        $displacement = $units
+            ->quantity(15, 'meter / second')
+            ->mul($units->quantity(4, 'second'));
+        $position = $initialPosition->add($displacement);
 
+        $this->assertInstanceOf(PointQuantity::class, $position);
         $this->assertSame('160', $position->valueToString());
         $this->assertSame('meter', $position->unitToString());
         $this->assertSame('160', $position->valueIn('meter')->toString());
@@ -489,10 +491,11 @@ final class RealWorldFormulaTest extends TestCase
     {
         $units = Units::default();
 
-        $deltaT = $units
-            ->quantity(350, 'kelvin')
-            ->sub($units->quantity(300, 'kelvin'));
+        $finalTemperature = $units->point(350, 'kelvin');
+        $initialTemperature = $units->point(300, 'kelvin');
+        $deltaT = $finalTemperature->difference($initialTemperature);
 
+        $this->assertInstanceOf(Quantity::class, $deltaT);
         $this->assertSame('50', $deltaT->valueToString());
         $this->assertSame('kelvin', $deltaT->unitToString());
         $this->assertSame('50', $deltaT->valueIn('kelvin')->toString());

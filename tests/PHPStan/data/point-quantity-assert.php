@@ -17,6 +17,19 @@ assertType("PointQuantity<'celsius'>", $freezing->sub($rise));
 assertType("Quantity<'delta_fahrenheit'>", $boilingFahrenheit->difference($freezing));
 assertType("PointQuantity<'fahrenheit'>", $freezing->to('fahrenheit'));
 
+$summit = $units->point(4410, 'meter');
+$trailhead = $units->point(1800, 'meter');
+assertType("Quantity<'meter'>", $summit->difference($trailhead));
+
+$initialPosition = $units->point(100, 'meter');
+$displacement = $units->quantity(15, 'meter / second')->mul($units->quantity(4, 'second'));
+assertType("Quantity<'meter'>", $displacement);
+assertType("PointQuantity<'meter'>", $initialPosition->add($displacement));
+
+$finalTemperature = $units->point(350, 'kelvin');
+$initialTemperature = $units->point(300, 'kelvin');
+assertType("Quantity<'kelvin'>", $finalTemperature->difference($initialTemperature));
+
 assertType('jbboehr\\Yumemi\\Number\\Rational', $freezing->valueIn('fahrenheit'));
 assertType('int', $freezing->intValueIn('fahrenheit'));
 assertType('int', $freezing->exactIntValueIn('fahrenheit'));
