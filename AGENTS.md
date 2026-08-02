@@ -283,6 +283,11 @@ Choose the book according to the logion's primary canonical purpose and the need
 - Use `SFA` (**Scholia of the Fifth Archive**) for comparatively compressed interpretation, commentary, clarification,
   counsel, consolation, hope grounded in appointed form, or severe judgment.
 
+Corpus statistics are diagnostic rather than prescriptive. Never choose a book merely to improve distribution, change a
+canonically suitable book because nearby logia use it frequently, pad a complete short passage, or compress a
+substantial passage merely to approach a word-count range. A streak or outlier may prompt review, but it is not an
+automatic defect.
+
 Book selection is not a random genre roll. The four books belong to one canon and must remain stylistically and
 doctrinally coherent. Preserve compositional freedom within every book: any logion may combine Pronouncement, Sign,
 Vision, Remembrance, Injunction, and Interpretation. A book changes the verse's canonical emphasis, not the required
@@ -309,23 +314,29 @@ and `@template`.
 
 Preserve all existing technical documentation.
 
-### Canonical independence and optional resonance
+### Canonical independence
 
-Write each quotation first as a passage capable of standing within the canon without its declaration. The declaration's
-abstract role may serve as a private thematic seed, but relevance is optional and must never become a one-to-one
-translation of code into religious nouns and actions. No detectable connection is preferable to disguised technical
-documentation.
+Write each quotation as a passage capable of standing within the canon without its declaration. Do not derive its
+subject, motif, doctrinal pressure, or conclusion from the declaration's name, kind, responsibility, domain, signature,
+or implementation. Its attachment to a declaration is marginal placement, not semantic annotation.
 
 Apply these priorities in order:
 
 1. convincing scripture within the shared canon;
 2. originality and variation among nearby logia;
-3. concrete signs, controlled cadence, and doctrinal consequence;
-4. optional, indirect resonance with the declaration.
+3. concrete signs, controlled cadence, and doctrinal consequence.
 
 Perform a detached-canon test: the quotation should remain convincing when read without seeing the declaration. Perform
 a reverse-engineering test: a reader should not be able to reconstruct the declaration's behavior by decoding systematic
 substitutions in its imagery.
+
+The custom agents under `.codex/agents/` are optional workflow optimizations, not requirements. For an ordinary new
+declaration, an isolated writer plus parent or human selection is sufficient; reserve the canon reviewer for batches,
+doctrine passes, or uncertain candidates. When custom agents are unavailable, fix the declaration-to-opaque-ID mapping
+before generation and use a fresh isolated context when possible. If isolation is unavailable, follow the same staged
+contract in the main context, disclose that limitation, and apply the detached-canon and reverse-engineering checks
+manually. Never remap candidates according to their apparent relevance to code. The detailed fallback procedure is in
+[`docs/development/doctrine-quality-plan.md`](docs/development/doctrine-quality-plan.md).
 
 Write the quotation as recitable scripture rather than ornate modern exposition. Favor authoritative declaration,
 parallel clauses, ritual repetition, commands, reasons, consequences, and concrete signs before abstract explanation.

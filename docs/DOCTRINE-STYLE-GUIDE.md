@@ -331,10 +331,10 @@ books, codes, or abbreviations merely to satisfy this guide.
 
 ## 4. Length and development
 
-Prefer approximately **20–55 words** for most logia.
+Substantial logia commonly fall around **40–60 words**.
 
-Short foundational pronouncements, injunctions, or interpretations may use approximately **10–25 words**. Visions,
-remembrances, and mixed passages may extend to approximately **60 words** when their syntax remains controlled.
+Short foundational pronouncements, injunctions, interpretations, and compressed scholia may remain below that range.
+Visions, remembrances, and mixed passages may extend beyond it when their syntax and imagery remain controlled.
 
 These ranges are guidance, not metrical law. Do not pad a complete short verse, and do not truncate a developing
 revelation merely to meet a target.
@@ -1144,6 +1144,11 @@ As a loose diagnostic rather than a quota:
 - a substantial majority should contain some form of Pronouncement, Injunction, or Interpretation;
 - no movement should become a mandatory ingredient in every verse.
 
+These diagnostics establish no target percentages for books, movements, or lengths. Choose a book by the passage's
+canonical purpose even when that produces a locally uneven distribution. Let a complete short passage remain short and a
+substantial passage remain substantial; do not pad or compress either to improve a report. Corpus statistics may
+identify a pattern worth reviewing, but they do not reject an individual logion or compel a revision by themselves.
+
 The aesthetic balance defined earlier applies throughout. A command may be delivered beneath a synthetic moon; a
 remembered judgment may occur in a lacquered orbital cloister; an interpretation may retain apocalyptic pressure without
 staging an entire apparition.
@@ -1211,13 +1216,14 @@ attention to the passage's canonical purpose.
 
 ### Canonical independence
 
-A logion must first function as scripture when detached from the declaration that bears it. The declaration may suggest
-a distant thematic pressure, but that resonance is optional and subordinate to canonical quality, corpus variation,
-concrete imagery, cadence, and consequence.
+A logion must function as scripture when detached from the declaration that bears it. Do not derive its subject, motif,
+doctrinal pressure, or conclusion from the declaration's name, kind, responsibility, domain, signature, or
+implementation. Its attachment to a declaration is marginal placement, not semantic annotation.
 
 Do not translate implementation nouns and operations into corresponding archives, tribunals, seals, processions, or
 other doctrinal furniture. The reader should not be able to reconstruct the declaration's behavior by decoding the
-imagery. No obvious relevance is preferable to a passage that merely disguises technical documentation.
+imagery. Compose and select the passage solely by canonical quality, corpus variation, concrete imagery, cadence, and
+consequence.
 
 ### Concrete signs before abstractions
 
