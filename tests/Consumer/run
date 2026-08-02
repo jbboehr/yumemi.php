@@ -49,7 +49,18 @@ if [[ $PACKAGE_MODE == archive ]]; then
         fi
     done
 
-    excluded_paths=(.direnv .github .idea .phpbench .phpunit.cache tests vendor)
+    excluded_paths=(
+        .direnv
+        .github
+        .idea
+        .phpbench
+        .phpunit.cache
+        src/Catalog/PhpCatalogExporter.php
+        src/Catalog/Udunits2CatalogImporter.php
+        src/Command
+        tests
+        vendor
+    )
     for path in "${excluded_paths[@]}"; do
         if [[ -e $package_dir/$path ]]; then
             printf 'Composer archive contains excluded path %s.\n' "$path" >&2

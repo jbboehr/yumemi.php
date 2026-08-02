@@ -59,6 +59,9 @@
             "/phpunit.branch.xml.dist",
             "/phpunit.xml.dist",
             "/result*",
+            "/src/Catalog/PhpCatalogExporter.php",
+            "/src/Catalog/Udunits2CatalogImporter.php",
+            "/src/Command",
             "/tests",
             "/tmp",
             "/vendor"
