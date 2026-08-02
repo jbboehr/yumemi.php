@@ -145,171 +145,6 @@ assert($length->valueToString() === '5/4');
 `Rational::fromDecimalString()` are limited to the inclusive range `-10000` through `10000`. Zero powers follow PHP's
 computing convention: every base, including zero, raised to zero returns one.
 
-## Debugging, JSON, And Serialization
-
-`Rational`, `Quantity`, `PointQuantity`, `Dimension`, and the catalog descriptor value objects implement
-`JsonSerializable`. Exact rational components are decimal strings, so JSON encoding never loses precision:
-
-```php
-<?php
-
-use jbboehr\Yumemi\Number\Rational;
-use jbboehr\Yumemi\Units;
-
-$quantity = Units::default()->quantity(new Rational(1, 3), 'meter / second');
-$json = json_encode($quantity, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
-
-assert($json === '{"value":{"numerator":"1","denominator":"3"},"unit":"meter / second"}');
-
-$restored = unserialize(serialize($quantity));
-
-assert($restored->units() === Units::default());
-assert($restored->valueToString() === '1/3');
-assert($restored->unitToString() === 'meter / second');
-```
-
-`Rational` JSON contains `numerator` and `denominator` strings. Quantity JSON contains that exact `value` and a
-formatted `unit` string. Dimension JSON names all seven axes. Descriptor JSON follows its public constructor state,
-renders backed enums as strings, and nests dynamic prefix decomposition.
-
-Compact `__debugInfo()` output follows the same representation. Quantities add only a short context identity; dumping a
-quantity does not recursively print its `Units` registry and catalog.
-
-Native serialization is versioned and verifies unit semantics when restoring a quantity. Values created through
-`Units::default()` may use PHP's ordinary `serialize()` and `unserialize()` and always return to the shared default
-context. A quantity from a custom registry must be restored through that context:
-
-```php
-<?php
-
-use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
-use jbboehr\Yumemi\Units;
-
-$units = new Units(
-    UnitRegistryBuilder::default()
-        ->define('smoot = 1.7018 * meter')
-        ->build(),
-);
-$serialized = serialize($units->quantity(2, 'smoot'));
-$restored = $units->deserialize($serialized);
-
-assert($restored->units() === $units);
-assert($restored->valueIn('meter')->toString() === '8509/2500');
-```
-
-Raw `unserialize()` rejects a custom-context quantity with an exception directing the caller to `Units::deserialize()`.
-The scoped method restores its previous context in `finally`, including across nested calls, and forwards PHP's native
-`unserialize()` options. Pass `allowed_classes` to restrict which classes a known graph may instantiate and `max_depth`
-to bound nesting. The allow-list must include every serialized object class in the graph; `allowed_classes: false`
-produces `__PHP_Incomplete_Class` objects and cannot restore a quantity. Yumemi does not choose a default allow-list
-because `deserialize()` may return any caller-defined graph. Serialized unit semantics are checked against the selected
-registry, so a changed or incorrect registry is rejected rather than silently reinterpreting the value.
-
-One serialized graph may contain default values and values from one custom context. Graphs containing values from
-several distinct custom contexts require a future registry-identifier resolver. Never pass untrusted data to PHP
-deserialization; `allowed_classes` and `max_depth` reduce exposure but do not make arbitrary payloads safe. Serialize
-value objects directly: casting one to an array bypasses its controlled serialization representation.
-
-## Expression Operations
-
-The `Units` facade exposes expression-level operations:
-
-- `parse()` resolves and reduces a unit expression.
-- `parseUnit()` is an explicit alias of `parse()`.
-- `parseQuantity()` separates explicit constants from a symbolic unit expression and returns a `Quantity`.
-- `unit()` resolves one catalog unit name.
-- `dimension()` returns the seven-axis SI dimension vector.
-- `areCompatible()` checks dimensional compatibility.
-- `conversionFactor()` returns an exact value-independent factor and throws `NonMultiplicativeConversionException` when
-  the conversion includes an offset.
-- `convert()` applies an exact scale-and-offset conversion to an `int` or `Rational`.
-- `convertFloat()` applies the equivalent affine map in binary floating point.
-- `deltaUnit()` returns the multiplicative unit used for differences on a named coordinate scale.
-- `deltaQuantity()` constructs an exact difference using a coordinate scale's multiplicative unit.
-- `point()` constructs an exact `PointQuantity` on a named coordinate scale.
-- `normalize()` substitutes derived definitions and retains their scale in the expression.
-
-Incompatible conversions throw `IncompatibleUnitException`; unknown names throw `UnitNotFoundException`. Native float
-conversion rejects non-finite inputs, results that overflow to infinity, and nonzero exact results that underflow to
-zero. Exact results should use `convert()` instead.
-
-For native arithmetic, `unit_factor()` returns the conversion factor as a `float`. PHPStan brands that value as the
-target unit divided by the source unit, so ordinary multiplication cancels the source brand:
-
-```php
-<?php
-
-use function jbboehr\Yumemi\unit;
-use function jbboehr\Yumemi\unit_factor;
-
-$meters = unit(3, 'meter');
-$feet = $meters * unit_factor('meter', 'foot');
-
-assert(abs($feet - 9.84251968503937) < 1e-12);
-```
-
-Use `conversionFactor()` when the exact `Rational` is required. Both factor APIs reject conversions involving an offset;
-use `convert()`, `convertFloat()`, or `unit_to()` for affine conversion.
-
-### Affine Conversion
-
-Explicit conversion supports UDUNITS2 affine temperature units and custom `@` definitions. The exact conversion core
-maps each coordinate into canonical base units as `scale * value + offset`; decimal catalog constants remain exact
-`Rational` values. A custom `@` origin may be a signed integer or finite decimal literal:
-
-```php
-<?php
-
-use jbboehr\Yumemi\Units;
-
-use function jbboehr\Yumemi\unit_to;
-
-$units = Units::default();
-
-assert($units->convert(0, 'celsius', 'kelvin')->toString() === '5463/20');
-assert($units->convert(100, 'celsius', 'fahrenheit')->toString() === '212');
-assert($units->convert(-40, 'celsius', 'fahrenheit')->toString() === '-40');
-assert(abs($units->convertFloat(37.0, 'celsius', 'fahrenheit') - 98.6) < 1e-12);
-assert(unit_to(32, 'fahrenheit', 'celsius') === 0.0);
-```
-
-`dimension()` and `areCompatible()` understand the affine unit's reference dimension. `conversionFactor()` succeeds for
-an identity or another offset-free conversion, such as `celsius` to an equivalent alias, but it cannot represent
-`celsius` to `kelvin` because that result depends on the input value.
-
-Use `PointQuantity` when a program must retain an exact coordinate point and perform affine arithmetic:
-
-```php
-<?php
-
-use jbboehr\Yumemi\Units;
-
-$units = Units::default();
-$freezing = $units->point(0, 'celsius');
-$rise = $units->deltaQuantity(18, 'fahrenheit');
-$warmer = $freezing->add($rise);
-$interval = $units->point(100, 'celsius')->difference($freezing);
-
-assert($freezing->valueIn('kelvin')->toString() === '5463/20');
-assert($warmer->toString() === '10 * celsius');
-assert($interval->toString() === '100 * delta_celsius');
-assert($interval->valueIn('delta_fahrenheit')->toString() === '180');
-```
-
-A `PointQuantity` retains an exact `Rational` coordinate and a named scale. `to()`, `valueIn()`, comparisons, and native
-numeric output apply full scale-and-offset conversion. `difference()` subtracts another compatible point and returns a
-`Quantity` in the receiver's delta unit. `add()` and `sub()` translate the point by a compatible `Quantity` while
-preserving the point's coordinate unit. All operands must belong to the same `Units` context.
-
-The catalog provides explicit multiplicative difference units such as `delta_celsius`, `delta_fahrenheit`, `Δ°C`, and
-`Δ°F`. They participate in ordinary quantity and expression algebra, so `delta_celsius / second` is valid. Formatter
-symbol mode renders the named aliases as `Δ°C` and `Δ°F` with Unicode typography.
-
-No affine unit is silently rewritten inside algebra. `celsius / second` and `Units::quantity(1, 'celsius')` remain
-invalid; use `delta_celsius / second` for a rate or `Units::point(1, 'celsius')` for a coordinate. `parse()`,
-`parseUnit()`, `unit()`, `parseQuantity()`, `quantity()`, normalization, multiplication, division, powers, and prefixes
-continue to reject the affine unit itself. Logarithmic definitions remain recognized but unevaluable.
-
 ## Quantity Arithmetic
 
 Multiplication and division combine magnitudes and reduce the chosen symbolic unit syntax. They do not substitute unit
@@ -380,6 +215,90 @@ assert($rate->toString() === '2/3 * centimeter / (foot * second)');
 assert($rate->valueIn('1 / second')->toString() === '25/1143');
 ```
 
+## Native Numeric Output
+
+Exact `Rational` values can be extracted after conversion:
+
+- `intValueIn()` follows `intdiv()`-style truncation toward zero and throws if the result does not fit a PHP integer.
+- `exactIntValueIn()` additionally requires an integral result.
+- `decimalValueIn()` returns a fixed number of decimal places using an explicit `RoundingMode`.
+- `exactDecimalValueIn()` returns a minimal terminating decimal or throws for non-terminating rational values.
+- `floatValueIn()` rounds to binary64 with ties to even and throws on infinity or nonzero underflow to zero.
+
+PHP 8.2 and 8.3 receive the PHP 8.4 `RoundingMode` enum through `symfony/polyfill-php84`.
+
+```php
+<?php
+
+use jbboehr\Yumemi\Units;
+
+$length = Units::default()->quantity(1, 'foot');
+
+assert($length->intValueIn('meter') === 0);
+assert($length->exactDecimalValueIn('meter') === '0.3048');
+assert($length->decimalValueIn('meter', 2, \RoundingMode::HalfEven) === '0.30');
+assert($length->floatValueIn('meter') === 0.3048);
+```
+
+## Affine Conversion
+
+Explicit conversion supports UDUNITS2 affine temperature units and custom `@` definitions. The exact conversion core
+maps each coordinate into canonical base units as `scale * value + offset`; decimal catalog constants remain exact
+`Rational` values. A custom `@` origin may be a signed integer or finite decimal literal:
+
+```php
+<?php
+
+use jbboehr\Yumemi\Units;
+
+use function jbboehr\Yumemi\unit_to;
+
+$units = Units::default();
+
+assert($units->convert(0, 'celsius', 'kelvin')->toString() === '5463/20');
+assert($units->convert(100, 'celsius', 'fahrenheit')->toString() === '212');
+assert($units->convert(-40, 'celsius', 'fahrenheit')->toString() === '-40');
+assert(abs($units->convertFloat(37.0, 'celsius', 'fahrenheit') - 98.6) < 1e-12);
+assert(unit_to(32, 'fahrenheit', 'celsius') === 0.0);
+```
+
+`dimension()` and `areCompatible()` understand the affine unit's reference dimension. `conversionFactor()` succeeds for
+an identity or another offset-free conversion, such as `celsius` to an equivalent alias, but it cannot represent
+`celsius` to `kelvin` because that result depends on the input value.
+
+Use `PointQuantity` when a program must retain an exact coordinate point and perform affine arithmetic:
+
+```php
+<?php
+
+use jbboehr\Yumemi\Units;
+
+$units = Units::default();
+$freezing = $units->point(0, 'celsius');
+$rise = $units->deltaQuantity(18, 'fahrenheit');
+$warmer = $freezing->add($rise);
+$interval = $units->point(100, 'celsius')->difference($freezing);
+
+assert($freezing->valueIn('kelvin')->toString() === '5463/20');
+assert($warmer->toString() === '10 * celsius');
+assert($interval->toString() === '100 * delta_celsius');
+assert($interval->valueIn('delta_fahrenheit')->toString() === '180');
+```
+
+A `PointQuantity` retains an exact `Rational` coordinate and a named scale. `to()`, `valueIn()`, comparisons, and native
+numeric output apply full scale-and-offset conversion. `difference()` subtracts another compatible point and returns a
+`Quantity` in the receiver's delta unit. `add()` and `sub()` translate the point by a compatible `Quantity` while
+preserving the point's coordinate unit. All operands must belong to the same `Units` context.
+
+The catalog provides explicit multiplicative difference units such as `delta_celsius`, `delta_fahrenheit`, `Δ°C`, and
+`Δ°F`. They participate in ordinary quantity and expression algebra, so `delta_celsius / second` is valid. Formatter
+symbol mode renders the named aliases as `Δ°C` and `Δ°F` with Unicode typography.
+
+No affine unit is silently rewritten inside algebra. `celsius / second` and `Units::quantity(1, 'celsius')` remain
+invalid; use `delta_celsius / second` for a rate or `Units::point(1, 'celsius')` for a coordinate. `parse()`,
+`parseUnit()`, `unit()`, `parseQuantity()`, `quantity()`, normalization, multiplication, division, powers, and prefixes
+continue to reject the affine unit itself. Logarithmic definitions remain recognized but unevaluable.
+
 ## Normalization And Simplification
 
 `normalize()` and `simplify()` deliberately have different value behavior:
@@ -406,30 +325,46 @@ assert($simplified->unitToString() === 'meter');
 Neither operation chooses a preferred human-scale unit. Explicit conversion through `to()` is the operation for
 requesting a particular display unit.
 
-## Native Numeric Output
+## Expression Operations
 
-Exact `Rational` values can be extracted after conversion:
+The `Units` facade exposes expression-level operations:
 
-- `intValueIn()` follows `intdiv()`-style truncation toward zero and throws if the result does not fit a PHP integer.
-- `exactIntValueIn()` additionally requires an integral result.
-- `decimalValueIn()` returns a fixed number of decimal places using an explicit `RoundingMode`.
-- `exactDecimalValueIn()` returns a minimal terminating decimal or throws for non-terminating rational values.
-- `floatValueIn()` rounds to binary64 with ties to even and throws on infinity or nonzero underflow to zero.
+- `parse()` resolves and reduces a unit expression.
+- `parseUnit()` is an explicit alias of `parse()`.
+- `parseQuantity()` separates explicit constants from a symbolic unit expression and returns a `Quantity`.
+- `unit()` resolves one catalog unit name.
+- `dimension()` returns the seven-axis SI dimension vector.
+- `areCompatible()` checks dimensional compatibility.
+- `conversionFactor()` returns an exact value-independent factor and throws `NonMultiplicativeConversionException` when
+  the conversion includes an offset.
+- `convert()` applies an exact scale-and-offset conversion to an `int` or `Rational`.
+- `convertFloat()` applies the equivalent affine map in binary floating point.
+- `deltaUnit()` returns the multiplicative unit used for differences on a named coordinate scale.
+- `deltaQuantity()` constructs an exact difference using a coordinate scale's multiplicative unit.
+- `point()` constructs an exact `PointQuantity` on a named coordinate scale.
+- `normalize()` substitutes derived definitions and retains their scale in the expression.
 
-PHP 8.2 and 8.3 receive the PHP 8.4 `RoundingMode` enum through `symfony/polyfill-php84`.
+Incompatible conversions throw `IncompatibleUnitException`; unknown names throw `UnitNotFoundException`. Native float
+conversion rejects non-finite inputs, results that overflow to infinity, and nonzero exact results that underflow to
+zero. Exact results should use `convert()` instead.
+
+For native arithmetic, `unit_factor()` returns the conversion factor as a `float`. PHPStan brands that value as the
+target unit divided by the source unit, so ordinary multiplication cancels the source brand:
 
 ```php
 <?php
 
-use jbboehr\Yumemi\Units;
+use function jbboehr\Yumemi\unit;
+use function jbboehr\Yumemi\unit_factor;
 
-$length = Units::default()->quantity(1, 'foot');
+$meters = unit(3, 'meter');
+$feet = $meters * unit_factor('meter', 'foot');
 
-assert($length->intValueIn('meter') === 0);
-assert($length->exactDecimalValueIn('meter') === '0.3048');
-assert($length->decimalValueIn('meter', 2, \RoundingMode::HalfEven) === '0.30');
-assert($length->floatValueIn('meter') === 0.3048);
+assert(abs($feet - 9.84251968503937) < 1e-12);
 ```
+
+Use `conversionFactor()` when the exact `Rational` is required. Both factor APIs reject conversions involving an offset;
+use `convert()`, `convertFloat()`, or `unit_to()` for affine conversion.
 
 ## Dimensions
 
@@ -500,3 +435,68 @@ already been catalog-resolved. Formatting never recovers source spelling that ha
 rational magnitude. `Expr::toString()` is a structural/debug representation and is not the configurable display API.
 
 Expression equality is structural. It does not compare either display strings or normalized physical dimensions.
+
+## Debugging, JSON, And Serialization
+
+`Rational`, `Quantity`, `PointQuantity`, `Dimension`, and the catalog descriptor value objects implement
+`JsonSerializable`. Exact rational components are decimal strings, so JSON encoding never loses precision:
+
+```php
+<?php
+
+use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\Units;
+
+$quantity = Units::default()->quantity(new Rational(1, 3), 'meter / second');
+$json = json_encode($quantity, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+
+assert($json === '{"value":{"numerator":"1","denominator":"3"},"unit":"meter / second"}');
+
+$restored = unserialize(serialize($quantity));
+
+assert($restored->units() === Units::default());
+assert($restored->valueToString() === '1/3');
+assert($restored->unitToString() === 'meter / second');
+```
+
+`Rational` JSON contains `numerator` and `denominator` strings. Quantity JSON contains that exact `value` and a
+formatted `unit` string. Dimension JSON names all seven axes. Descriptor JSON follows its public constructor state,
+renders backed enums as strings, and nests dynamic prefix decomposition.
+
+Compact `__debugInfo()` output follows the same representation. Quantities add only a short context identity; dumping a
+quantity does not recursively print its `Units` registry and catalog.
+
+Native serialization is versioned and verifies unit semantics when restoring a quantity. Values created through
+`Units::default()` may use PHP's ordinary `serialize()` and `unserialize()` and always return to the shared default
+context. A quantity from a custom registry must be restored through that context:
+
+```php
+<?php
+
+use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
+use jbboehr\Yumemi\Units;
+
+$units = new Units(
+    UnitRegistryBuilder::default()
+        ->define('smoot = 1.7018 * meter')
+        ->build(),
+);
+$serialized = serialize($units->quantity(2, 'smoot'));
+$restored = $units->deserialize($serialized);
+
+assert($restored->units() === $units);
+assert($restored->valueIn('meter')->toString() === '8509/2500');
+```
+
+Raw `unserialize()` rejects a custom-context quantity with an exception directing the caller to `Units::deserialize()`.
+The scoped method restores its previous context in `finally`, including across nested calls, and forwards PHP's native
+`unserialize()` options. Pass `allowed_classes` to restrict which classes a known graph may instantiate and `max_depth`
+to bound nesting. The allow-list must include every serialized object class in the graph; `allowed_classes: false`
+produces `__PHP_Incomplete_Class` objects and cannot restore a quantity. Yumemi does not choose a default allow-list
+because `deserialize()` may return any caller-defined graph. Serialized unit semantics are checked against the selected
+registry, so a changed or incorrect registry is rejected rather than silently reinterpreting the value.
+
+One serialized graph may contain default values and values from one custom context. Graphs containing values from
+several distinct custom contexts require a future registry-identifier resolver. Never pass untrusted data to PHP
+deserialization; `allowed_classes` and `max_depth` reduce exposure but do not make arbitrary payloads safe. Serialize
+value objects directly: casting one to an array bypasses its controlled serialization representation.

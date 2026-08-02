@@ -47,16 +47,20 @@ assert($units->parse('meter / second kilogram')->equals($units->parse('meter / s
 assert($units->dimension('(meter / second)^2')->toString() === 'length ^ 2 / time ^ 2');
 ```
 
-At explicit conversion boundaries, `identifier @ number` defines an affine coordinate origin. For example,
-`kelvin @ 273.15` maps zero in the new coordinate system to exactly `273.15 kelvin`. `convert()`, `convertFloat()`, and
-`unit_to()` apply value-dependent affine conversions; `areCompatible()` and `dimension()` inspect their dimensions.
-`conversionFactor()` succeeds only when the resulting conversion has no offset and otherwise throws
-`NonMultiplicativeConversionException`. Custom registry definitions may use the affine form, and `Units::point()` uses a
-named affine definition as a coordinate scale.
+## Temperatures And Offset Units
 
-Affine units are not part of ordinary multiplicative expression or quantity algebra. Their generated difference units
-are: use `delta_celsius`, `delta_fahrenheit`, `Δ°C`, or `Δ°F` when a temperature interval participates in products,
-quotients, or powers. Yumemi never rewrites `celsius / second` implicitly; write `delta_celsius / second` explicitly.
+Temperature scales such as Celsius have an offset as well as a scale. Convert them with `convert()`, `convertFloat()`,
+or `unit_to()`. Use `Units::point()` when an exact value must retain its coordinate scale.
+
+The parser form `identifier @ number` defines an affine coordinate origin. For example, `kelvin @ 273.15` maps zero in
+the new coordinate system to exactly `273.15 kelvin`. `areCompatible()` and `dimension()` inspect the resulting
+dimension. `conversionFactor()` succeeds only when the conversion has no offset and otherwise throws
+`NonMultiplicativeConversionException`. Custom registry definitions may use the same `@` form.
+
+Affine units are not part of ordinary multiplicative expression or quantity algebra. Use their generated difference
+units, such as `delta_celsius`, `delta_fahrenheit`, `Δ°C`, or `Δ°F`, when a temperature interval participates in
+products, quotients, or powers. Yumemi never rewrites `celsius / second` implicitly; write `delta_celsius / second`
+explicitly. See [Affine Conversion](runtime.md#affine-conversion) for executable conversion and point operations.
 
 ## Unit Names
 

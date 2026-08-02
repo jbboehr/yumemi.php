@@ -27,6 +27,48 @@ aliases when an application needs custom units rather than a replacement generat
 Lookup is case-sensitive. Exact names win before dynamic prefix decomposition, and prefixes apply only when the
 remaining suffix is an exact unit name. See the [unit syntax reference](unit-syntax.md#unit-names) for examples.
 
+## Custom Registries
+
+Use `UnitRegistryBuilder::default()` to layer custom definitions and aliases over UDUNITS2. Use
+`UnitRegistryBuilder::empty()` for an isolated catalog.
+
+Definitions use the normal unit language and are parsed against the completed registry on first use. Multiplicative
+definitions work throughout the runtime. An affine definition such as `degree_widget = kelvin @ 100` works as a
+coordinate scale and receives a generated multiplicative `delta_degree_widget` definition. The affine name remains
+unavailable to expression and `Quantity` algebra; use `PointQuantity` for coordinates and the generated delta name for
+differences. The builder is mutable: each fluent method updates and returns the same builder. Every `build()` call
+creates an immutable registry snapshot that is unaffected by later builder changes.
+
+```php
+<?php
+
+use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
+use jbboehr\Yumemi\Units;
+
+$registry = UnitRegistryBuilder::default()
+    ->define('widget = 12 * meter')
+    ->define('degree_widget = kelvin @ 100')
+    ->alias('widgets', 'widget')
+    ->build();
+
+$units = new Units($registry);
+
+assert($units->quantity(2, 'widgets')->valueIn('meter')->toString() === '24');
+assert($units->describe('widgets')?->canonicalName === 'widget');
+assert($units->convert(0, 'degree_widget', 'kelvin')->toString() === '100');
+assert($units->point(0, 'degree_widget')->valueIn('kelvin')->toString() === '100');
+assert($units->deltaQuantity(2, 'degree_widget')->valueIn('kelvin')->toString() === '2');
+```
+
+An overlay definition wins over a base UDUNITS2 record with the same name. Aliases resolve through the composed
+registry, so an overlay alias may target either another custom definition or a base catalog unit. Affine delta synthesis
+runs when `build()` creates the immutable snapshot, after all overlay definitions and aliases are known. An explicit
+overlay name that conflicts with one of its generated `delta_*` or `Δ` names is rejected rather than silently replaced.
+
+For PHPStan, configure one `UnitRegistryFactory` that returns the complete registry. Runtime code should construct its
+`Units` context from the same registry. PHPStan assumes one authoritative registry for an analysis run and does not
+track a separate catalog identity for each value.
+
 ## Introspection
 
 `Units::describe()` first describes an exact catalog spelling and follows aliases to its canonical entry. If no exact
@@ -76,48 +118,6 @@ Prefixed affine and logarithmic names receive synthesized descriptors whose top-
 `UnitSemantics::UnsupportedExpression`, because the complete prefixed spelling is executable by neither runtime path.
 The residual descriptor retains `UnitSemantics::Affine` or `UnitSemantics::Logarithmic`, identifying the underlying
 reason. Use `supportsMultiplicativeAlgebra()` and `supportsConversion()` to inspect concrete capabilities.
-
-## Custom Registries
-
-Use `UnitRegistryBuilder::default()` to layer custom definitions and aliases over UDUNITS2. Use
-`UnitRegistryBuilder::empty()` for an isolated catalog.
-
-Definitions use the normal unit language and are parsed against the completed registry on first use. Multiplicative
-definitions work throughout the runtime. An affine definition such as `degree_widget = kelvin @ 100` works as a
-coordinate scale and receives a generated multiplicative `delta_degree_widget` definition. The affine name remains
-unavailable to expression and `Quantity` algebra; use `PointQuantity` for coordinates and the generated delta name for
-differences. The builder is mutable: each fluent method updates and returns the same builder. Every `build()` call
-creates an immutable registry snapshot that is unaffected by later builder changes.
-
-```php
-<?php
-
-use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
-use jbboehr\Yumemi\Units;
-
-$registry = UnitRegistryBuilder::default()
-    ->define('widget = 12 * meter')
-    ->define('degree_widget = kelvin @ 100')
-    ->alias('widgets', 'widget')
-    ->build();
-
-$units = new Units($registry);
-
-assert($units->quantity(2, 'widgets')->valueIn('meter')->toString() === '24');
-assert($units->describe('widgets')?->canonicalName === 'widget');
-assert($units->convert(0, 'degree_widget', 'kelvin')->toString() === '100');
-assert($units->point(0, 'degree_widget')->valueIn('kelvin')->toString() === '100');
-assert($units->deltaQuantity(2, 'degree_widget')->valueIn('kelvin')->toString() === '2');
-```
-
-An overlay definition wins over a base UDUNITS2 record with the same name. Aliases resolve through the composed
-registry, so an overlay alias may target either another custom definition or a base catalog unit. Affine delta synthesis
-runs when `build()` creates the immutable snapshot, after all overlay definitions and aliases are known. An explicit
-overlay name that conflicts with one of its generated `delta_*` or `Δ` names is rejected rather than silently replaced.
-
-For PHPStan, configure one `UnitRegistryFactory` that returns the complete registry. Runtime code should construct its
-`Units` context from the same registry. PHPStan assumes one authoritative registry for an analysis run and does not
-track a separate catalog identity for each value.
 
 ## Catalog Semantic Support
 

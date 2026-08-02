@@ -14,7 +14,7 @@ The examples below assume the Composer autoloader has already been loaded as sho
 | ------------------------------------------------------------- | --------------------------------------- |
 | Add unit checking to existing PHP numbers and operators       | `unit_int<'...'>` / `unit_float<'...'>` |
 | Perform exact conversion or unit-aware runtime arithmetic     | `Quantity<'...'>`                       |
-| Represent an exact point on an affine coordinate scale        | `PointQuantity<'...'>`                  |
+| Represent an exact temperature or other coordinate point      | `PointQuantity<'...'>`                  |
 | Convert at an application boundary and return a native number | `unit_to()`                             |
 
 A branded native value is an ordinary PHP `int` or `float`; the unit exists only in PHPStan. Branded values therefore

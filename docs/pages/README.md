@@ -8,7 +8,7 @@ Yumemi provides static dimensional analysis for PHPStan and exact runtime unit c
 
 The PHPStan extension tracks units on ordinary `int` and `float` values. It can reject incompatible arguments and
 arithmetic without requiring runtime wrapper objects. The runtime library uses the same parser, unit catalog, and
-normalization engine for exact quantity arithmetic, affine coordinate points, and conversion.
+normalization engine for exact quantity arithmetic, temperature scales and other coordinate points, and conversion.
 
 ## Start Here
 
@@ -29,7 +29,7 @@ records part of the diagnostic expected on the following line. It is documentati
 
 - **I want PHPStan to catch unit mistakes in native numbers.** Start with
   [Static Analysis](getting-started.md#verify-static-analysis).
-- **I need exact runtime conversion, quantity arithmetic, or affine points.** Start with
+- **I need exact runtime conversion, quantity arithmetic, or values on temperature scales such as Celsius.** Start with
   [Runtime Conversion](getting-started.md#runtime-conversion).
 
 A **branded native value** is still an ordinary PHP `int` or `float`. Types such as `unit_float<'meter'>` add a unit

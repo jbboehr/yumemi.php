@@ -1,6 +1,7 @@
 # Getting Started
 
-Yumemi requires PHP 8.2 or later and the GMP extension.
+Yumemi requires PHP 8.2 or later and the GMP extension, which provides the arbitrary-precision integers used for exact
+rational arithmetic and conversion.
 
 ## Installation
 
@@ -42,8 +43,21 @@ can instead use the deliberately opt-in
 
 ## Verify Static Analysis
 
+Configure at least one source path for PHPStan. For an application whose PHP code lives under `src/`, a minimal
+`phpstan.neon` is:
+
+```neon
+parameters:
+    level: 8
+    paths:
+        - src
+```
+
+When automatic extension registration is unavailable, add the `includes` entry shown in [Installation](#installation) to
+the same file.
+
 Use `unit()` to brand an ordinary native value at a system boundary. PHPStan then carries the unit through arithmetic
-and rejects a deliberately incorrect result:
+and rejects a deliberately incorrect result. Place this example under a configured path, such as `src/YumemiCheck.php`:
 
 ```php
 <?php
@@ -75,6 +89,9 @@ vendor/bin/phpstan analyse
 PHPStan should accept `$speed` and report the expected unit mismatch for the final call. The `//!` line records the
 diagnostic expected by Yumemi's documentation tests; it is an ordinary comment, not a required annotation. Remove the
 incorrect call once the extension is working.
+
+If PHPStan instead reports unknown `unit_int` or `unit_float` PHPDoc types, the extension is not registered. Install
+`phpstan/extension-installer` or add Yumemi's `extension.neon` include explicitly.
 
 The runtime values remain ordinary floats. The additional unit information exists only in PHPStan's type system.
 
