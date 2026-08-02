@@ -1,0 +1,94 @@
+<?php
+
+namespace Illuminate\Http\Client;
+
+class PendingRequest
+{
+    /**
+     * @param int|float $seconds
+     * @return $this
+     *
+     * @phpstan-param unit_int<'second'>|unit_float<'second'> $seconds
+     * @yumemi-param unit_int<'second'>|unit_float<'second'> $seconds
+     */
+    public function timeout(int|float $seconds)
+    {
+    }
+
+    /**
+     * @param int|float $seconds
+     * @return $this
+     *
+     * @phpstan-param unit_int<'second'>|unit_float<'second'> $seconds
+     * @yumemi-param unit_int<'second'>|unit_float<'second'> $seconds
+     */
+    public function connectTimeout(int|float $seconds)
+    {
+    }
+
+    /**
+     * @param array<int, int>|int $times
+     * @param (\Closure(int, mixed): int)|int $sleepMilliseconds
+     * @return $this
+     *
+     * @phpstan-param array<int, unit_int<'millisecond'>>|int $times
+     * @phpstan-param (\Closure(int, mixed): unit_int<'millisecond'>)|unit_int<'millisecond'> $sleepMilliseconds
+     * @yumemi-param array<int, unit_int<'millisecond'>>|int $times
+     * @yumemi-param (\Closure(int, mixed): unit_int<'millisecond'>)|unit_int<'millisecond'> $sleepMilliseconds
+     */
+    public function retry(
+        array|int $times,
+        \Closure|int $sleepMilliseconds = 0,
+        ?callable $when = null,
+        bool $throw = true,
+    ) {
+    }
+}
+
+namespace Illuminate\Http\Testing;
+
+class FileFactory
+{
+    /**
+     * @param string|int $kilobytes
+     * @return File
+     *
+     * @phpstan-param string|unit_int<'1024 * byte'> $kilobytes
+     * @yumemi-param string|unit_int<'1024 * byte'> $kilobytes
+     */
+    public function create($name, $kilobytes = 0, $mimeType = null)
+    {
+    }
+}
+
+class File
+{
+    /**
+     * @param string|int $kilobytes
+     * @return File
+     *
+     * @phpstan-param string|unit_int<'1024 * byte'> $kilobytes
+     * @yumemi-param string|unit_int<'1024 * byte'> $kilobytes
+     */
+    public static function create($name, $kilobytes = 0)
+    {
+    }
+
+    /**
+     * @param int $kilobytes
+     * @return $this
+     *
+     * @yumemi-param unit_int<'1024 * byte'> $kilobytes
+     */
+    public function size($kilobytes)
+    {
+    }
+
+    /**
+     * @return int
+     * @yumemi-return unit_int<'byte'>
+     */
+    public function getSize(): int
+    {
+    }
+}

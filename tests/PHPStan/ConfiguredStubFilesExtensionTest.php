@@ -54,23 +54,54 @@ final class ConfiguredStubFilesExtensionTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{string}>
+     * @return iterable<string, array{string, string, string}>
      */
-    public static function supportedVersions(): iterable
+    public static function supportedPackageVersions(): iterable
     {
-        yield 'Laravel 11 development branch' => ['11.x-dev'];
-        yield 'Laravel 12 tagged release' => ['v12.4.1'];
-        yield 'Laravel 13 normalized version' => ['13.0.0.0'];
+        yield 'Cache on Laravel 11 development branch' => [
+            'illuminate/cache',
+            '11.x-dev',
+            'illuminate-cache.stub',
+        ];
+        yield 'HTTP on Laravel 12 tagged release' => [
+            'illuminate/http',
+            'v12.4.1',
+            'illuminate-http.stub',
+        ];
+        yield 'HTTP on Laravel 13 normalized version' => [
+            'illuminate/http',
+            '13.0.0.0',
+            'illuminate-http.stub',
+        ];
     }
 
-    #[DataProvider('supportedVersions')]
-    public function testSupportedVersionReturnsStubFile(string $version): void
+    #[DataProvider('supportedPackageVersions')]
+    public function testSupportedVersionReturnsStubFile(string $package, string $version, string $file): void
     {
-        $extension = $this->extension(['illuminate/cache'], $version);
+        $extension = $this->extension([$package], $package, $version);
+
+        self::assertSame([
+            realpath(__DIR__ . '/../../stubs/' . $file),
+        ], $extension->getFiles());
+    }
+
+    public function testPackagesReturnStubFilesInDeterministicOrder(): void
+    {
+        $resolved = [];
+        $extension = new ConfiguredStubFilesExtension(
+            ['illuminate/http', 'illuminate/cache'],
+            static function (string $package) use (&$resolved): string {
+                $resolved[] = $package;
+
+                return '12.0.0';
+            },
+        );
 
         self::assertSame([
             realpath(__DIR__ . '/../../stubs/illuminate-cache.stub'),
+            realpath(__DIR__ . '/../../stubs/illuminate-http.stub'),
         ], $extension->getFiles());
+        self::assertSame(['illuminate/cache', 'illuminate/http'], $resolved);
     }
 
     public function testDuplicatePackagesReturnOneStubFile(): void
@@ -98,7 +129,7 @@ final class ConfiguredStubFilesExtensionTest extends TestCase
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage(
-            'Unsupported Yumemi stub package "illuminate/database"; supported packages: illuminate/cache.',
+            'Unsupported Yumemi stub package "illuminate/database"; supported packages: illuminate/cache, illuminate/http.',
         );
 
         $extension->getFiles();
@@ -106,33 +137,34 @@ final class ConfiguredStubFilesExtensionTest extends TestCase
 
     public function testMissingPackageIsRejected(): void
     {
-        $extension = $this->extension(['illuminate/cache'], null);
+        $extension = $this->extension(['illuminate/http'], 'illuminate/http', null);
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage(
-            'Yumemi stubs for "illuminate/cache" were enabled, but that Composer package is not installed.',
+            'Yumemi stubs for "illuminate/http" were enabled, but that Composer package is not installed.',
         );
 
         $extension->getFiles();
     }
 
     /**
-     * @return iterable<string, array{string}>
+     * @return iterable<string, array{string, string}>
      */
     public static function unsupportedVersions(): iterable
     {
-        yield 'Laravel 10' => ['10.48.0'];
-        yield 'future Laravel major' => ['14.x-dev'];
+        yield 'Cache on Laravel 10' => ['illuminate/cache', '10.48.0'];
+        yield 'HTTP on future Laravel major' => ['illuminate/http', '14.x-dev'];
     }
 
     #[DataProvider('unsupportedVersions')]
-    public function testUnsupportedMajorVersionIsRejected(string $version): void
+    public function testUnsupportedMajorVersionIsRejected(string $package, string $version): void
     {
-        $extension = $this->extension(['illuminate/cache'], $version);
+        $extension = $this->extension([$package], $package, $version);
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage(sprintf(
-            'Yumemi stubs for "illuminate/cache" support major versions 11, 12, 13; installed version is %s.',
+            'Yumemi stubs for "%s" support major versions 11, 12, 13; installed version is %s.',
+            $package,
             $version,
         ));
 
@@ -141,11 +173,11 @@ final class ConfiguredStubFilesExtensionTest extends TestCase
 
     public function testUnparseableVersionIsRejected(): void
     {
-        $extension = $this->extension(['illuminate/cache'], 'dev-main');
+        $extension = $this->extension(['illuminate/http'], 'illuminate/http', 'dev-main');
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage(
-            'Unable to determine the installed major version of Yumemi stub package "illuminate/cache" from "dev-main".',
+            'Unable to determine the installed major version of Yumemi stub package "illuminate/http" from "dev-main".',
         );
 
         $extension->getFiles();
@@ -154,12 +186,12 @@ final class ConfiguredStubFilesExtensionTest extends TestCase
     /**
      * @param list<string> $packages
      */
-    private function extension(array $packages, ?string $version): ConfiguredStubFilesExtension
+    private function extension(array $packages, string $expectedPackage, ?string $version): ConfiguredStubFilesExtension
     {
         return new ConfiguredStubFilesExtension(
             $packages,
-            static function (string $package) use ($version): ?string {
-                self::assertSame('illuminate/cache', $package);
+            static function (string $package) use ($expectedPackage, $version): ?string {
+                self::assertSame($expectedPackage, $package);
 
                 return $version;
             },

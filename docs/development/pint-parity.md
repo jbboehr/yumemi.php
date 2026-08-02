@@ -262,12 +262,13 @@ quantity, and point operations; validates construction, conversion, extraction, 
 conversion helpers; preserves finite literal-string unions; configures custom registries; and provides stable
 diagnostics.
 
-The first package-aware integration supplies exact duration stubs for `illuminate/cache` 11 through 13. Overflow-capable
-branded integer arithmetic conservatively preserves `unit_int|unit_float`, with an opt-out for applications that assume
-integer-safe magnitudes. Retaining PHPStan constant and integer-range bounds could narrow those results later, but is
-precision work rather than missing core soundness. Remaining work is integration breadth: selected casts and built-ins,
-additional evidence-driven third-party stubs, more precise diagnostics, and future advanced unit semantics. Dynamic
-strings intentionally fall back to unbranded types.
+Package-aware integrations supply exact duration stubs for `illuminate/cache` and second, millisecond, and byte-scale
+stubs for `illuminate/http`, each against Laravel 11 through 13. Overflow-capable branded integer arithmetic
+conservatively preserves `unit_int|unit_float`, with an opt-out for applications that assume integer-safe magnitudes.
+Retaining PHPStan constant and integer-range bounds could narrow those results later, but is precision work rather than
+missing core soundness. Remaining work is integration breadth: selected casts and built-ins, additional evidence-driven
+third-party stubs, more precise diagnostics, and future advanced unit semantics. Dynamic strings intentionally fall back
+to unbranded types.
 
 ### 22. Function Boundary Checking
 
@@ -275,7 +276,8 @@ Status: **Done statically; runtime decorators absent** | Importance: **P1/P2** |
 
 Ordinary PHPDoc parameters and returns enforce branded native and generic quantity types through PHPStan. Optional
 `@yumemi-*` tags support extension-optional libraries. An explicit package-stub loader applies those semantics to
-selected third-party APIs; its first integration brands cache, lock, and rate-limiter durations in Illuminate Cache.
+selected third-party APIs. Illuminate Cache brands cache, lock, and rate-limiter durations; Illuminate HTTP brands
+client timeouts, retry delays, and fake-upload sizes.
 
 Pint-style runtime decorators or PHP attributes that convert arguments are absent. They should be introduced only if
 static contracts and explicit runtime conversion prove insufficient.
@@ -381,8 +383,8 @@ Status: **Done for development; release automation absent** | Importance: **P0/P
 Composer, Nix, treefmt, pre-commit hooks, PHP-CS-Fixer, PHPStan, PHPUnit, generated artifacts, GitHub Actions, and
 Infection with enforced mutation-score floors are configured. Catalog and parser regeneration are documented. An
 isolated consumer smoke test verifies runtime use plus automatic and manual PHPStan registration from a release-style
-Composer archive. A separate isolated matrix installs Illuminate Cache 11 through 13 and verifies bundled stub shapes,
-accepted calls, and exact-unit diagnostics without adding Laravel to the root dependency graph.
+Composer archive. Separate isolated matrices install Illuminate Cache and HTTP 11 through 13 and verify bundled stub
+shapes, accepted calls, and exact-unit diagnostics without adding Laravel to the root dependency graph.
 
 The project still lacks a tagged release and release workflow. Lowest- and highest-dependency jobs may be useful after
 the first release establishes a compatibility promise.

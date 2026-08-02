@@ -40,6 +40,7 @@ if [[ $PACKAGE_MODE == archive ]]; then
         extension.neon
         src/Parser/Parser.php
         stubs/illuminate-cache.stub
+        stubs/illuminate-http.stub
         yumemi-tags.neon
     )
     for path in "${required_paths[@]}"; do
@@ -68,7 +69,7 @@ if [[ $PACKAGE_MODE == archive ]]; then
         fi
     done
 elif [[ $PACKAGE_MODE != source ]]; then
-    printf 'Usage: %s [source|archive] [core|illuminate-cache] [framework-major]\n' "$0" >&2
+    printf 'Usage: %s [source|archive] [core|illuminate-cache|illuminate-http] [framework-major]\n' "$0" >&2
     exit 2
 fi
 
@@ -198,6 +199,80 @@ run_illuminate_cache() {
     fi
 }
 
+run_illuminate_http() {
+    local project_dir=$WORK_DIR/illuminate-http
+    local documentation_case=$project_dir/cases/documentation-invalid.php
+    local documentation_diagnostic="::timeout() expects unit_float<'second'>|unit_int<'second'>, unit_int<'1/1000 * second'> given"
+    local output
+    local expected_diagnostics=(
+        "::timeout() expects unit_float<'second'>|unit_int<'second'>, int given"
+        "::timeout() expects unit_float<'second'>|unit_int<'second'>, unit_int<'1/1000 * second'> given"
+        "::timeout() expects unit_float<'second'>|unit_int<'second'>, unit_int<'meter'> given"
+        "::connectTimeout() expects unit_float<'second'>|unit_int<'second'>, unit_int<'minute'> given"
+        "::retry() expects (Closure(int, mixed): int)|unit_int<'1/1000 * second'>, 250 given"
+        "::retry() expects (Closure(int, mixed): int)|unit_int<'1/1000 * second'>, unit_int<'second'> given"
+        "::retry() expects array<int, unit_int<'1/1000 * second'>>|int, array<int, int> given"
+        "::retry() expects array<int, unit_int<'1/1000 * second'>>|int, array<int, unit_int<'second'>> given"
+        "::retry() expects (Closure(int, mixed): int)|unit_int<'1/1000 * second'>, Closure(int, mixed): 250 given"
+        "FileFactory::create() expects string|unit_int<'1024 * octet'>, int given"
+        "FileFactory::create() expects string|unit_int<'1024 * octet'>, unit_int<'1000 * octet'> given"
+        "FileFactory::create() expects string|unit_int<'1024 * octet'>, unit_int<'second'> given"
+        "File::create() expects string|unit_int<'1024 * octet'>, int given"
+        "File::size() expects unit_int<'1024 * octet'>, unit_int<'1000 * octet'> given"
+        "acceptHttpSeconds expects unit_int<'second'>, unit_int<'octet'> given"
+    )
+    local phpstan=(vendor/bin/phpstan analyse --no-progress --error-format=raw --configuration=phpstan.neon)
+
+    if [[ ! $FRAMEWORK_MAJOR =~ ^(11|12|13)$ ]]; then
+        printf 'Illuminate HTTP consumer tests require framework major 11, 12, or 13.\n' >&2
+        exit 2
+    fi
+
+    mkdir -p -- "$project_dir"
+    cp -R -- "$FIXTURES_DIR/illuminate-http/." "$project_dir/"
+
+    composer --working-dir="$project_dir" repo add yumemi "$repository_json" --no-interaction
+    composer --working-dir="$project_dir" require --dev "illuminate/http:^$FRAMEWORK_MAJOR.0" --no-update --no-interaction
+    composer --working-dir="$project_dir" update --prefer-dist --no-interaction --no-progress
+
+    php "$project_dir/verify.php"
+    php "$PROJECT_ROOT/tests/Documentation/extract-markdown-example.php" \
+        "$PROJECT_ROOT/docs/pages/reference/phpstan.md" illuminate-http-invalid > "$documentation_case"
+
+    (
+        cd -- "$project_dir"
+        "${phpstan[@]}" cases/valid.php
+    )
+
+    if output=$(
+        cd -- "$project_dir"
+        "${phpstan[@]}" cases/invalid.php 2>&1
+    ); then
+        printf 'Illuminate HTTP consumer PHPStan fixture unexpectedly accepted invalid units.\n' >&2
+        exit 1
+    fi
+
+    for diagnostic in "${expected_diagnostics[@]}"; do
+        if [[ $output != *"$diagnostic"* ]]; then
+            printf 'Illuminate HTTP consumer PHPStan fixture missed diagnostic %s:\n%s\n' "$diagnostic" "$output" >&2
+            exit 1
+        fi
+    done
+
+    if output=$(
+        cd -- "$project_dir"
+        "${phpstan[@]}" cases/documentation-invalid.php 2>&1
+    ); then
+        printf 'Illuminate HTTP documentation example unexpectedly passed PHPStan.\n' >&2
+        exit 1
+    fi
+
+    if [[ $output != *"$documentation_diagnostic"* ]]; then
+        printf 'Illuminate HTTP documentation example reported an unexpected diagnostic:\n%s\n' "$output" >&2
+        exit 1
+    fi
+}
+
 case $FIXTURE_SUITE in
     core)
         run_core
@@ -205,8 +280,11 @@ case $FIXTURE_SUITE in
     illuminate-cache)
         run_illuminate_cache
         ;;
+    illuminate-http)
+        run_illuminate_http
+        ;;
     *)
-        printf 'Usage: %s [source|archive] [core|illuminate-cache] [framework-major]\n' "$0" >&2
+        printf 'Usage: %s [source|archive] [core|illuminate-cache|illuminate-http] [framework-major]\n' "$0" >&2
         exit 2
         ;;
 esac

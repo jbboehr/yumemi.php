@@ -73,8 +73,8 @@ The implemented foundation now includes:
 - configurable ASCII and Unicode formatting with catalog-aware names and fraction or negative-power division;
 - native `unit_int` / `unit_float` and object `Quantity<'...'>` / `PointQuantity<'...'>` PHPStan types with arithmetic
   inference, diagnostics, custom registries, finite literal-string unions, and optional `@yumemi-*` promotion;
-- an explicit package-stub loader with unit-aware cache, lock, and rate-limiter signatures for `illuminate/cache` 11
-  through 13;
+- an explicit package-stub loader with unit-aware cache, lock, rate-limiter, HTTP-client, retry, and fake-upload
+  signatures for `illuminate/cache` and `illuminate/http` 11 through 13;
 - focused public documentation whose executable PHP and PHPStan examples are verified in process.
 
 The public behavior is documented in [Core Concepts](../pages/core-concepts.md) and the
@@ -96,10 +96,11 @@ Current verification:
 - a separate Xdebug development shell supports [focused, local branch and path coverage audits](branch-coverage.md)
   without adding their cost to CI or `nix flake check`; branch and path percentages currently have no enforced floor
 - isolated consumer fixtures install a mirrored Composer package, verify automatic and manual PHPStan registration, and
-  run against release-style `composer archive` output in CI; a separate matrix verifies the optional Illuminate Cache
-  stubs against majors 11 through 13 without adding Laravel to the root development dependencies. The 2026-07-31 local
-  verification snapshots are `illuminate/cache` `v11.51.0`, `v12.64.0`, and `v13.23.0`; CI continues to resolve the
-  latest compatible release in each major rather than pinning those patch versions
+  run against release-style `composer archive` output in CI; separate matrices verify the optional Illuminate Cache and
+  HTTP stubs against majors 11 through 13 without adding Laravel to the root development dependencies. The local
+  verification snapshots are `illuminate/cache` `v11.51.0`, `v12.64.0`, and `v13.23.0` on 2026-07-31, and
+  `illuminate/http` `v11.51.0`, `v12.64.0`, and `v13.23.0` on 2026-08-02. CI continues to resolve the latest compatible
+  release in each major rather than pinning those patch versions
 
 ## PHPStan Model And Status
 
@@ -127,10 +128,13 @@ upgrade and extension-conflict risk. The exact structural rules belong in
 
 The same opt-in configuration exposes `yumemi.stubs`, an explicit list of supported Composer packages. The loader
 detects installed versions through Composer, sorts and deduplicates selections, and rejects unknown, absent, or
-unsupported package majors. The first integration covers duration boundaries shared by `illuminate/cache` 11 through 13.
-Complex union signatures carry an equivalent pre-promoted PHPStan tag alongside `@yumemi-param`: PHPStan can request
-stub reflection recursively while the promoting parser is still initializing, so the direct tag supplies a stable
-bootstrap representation while idempotent promotion verifies that both declarations remain identical.
+unsupported package majors. Laravel integrations target every released and verified major beginning with Laravel 11; the
+explicit list is currently 11 through 13, and future majors remain rejected until their signatures pass the same
+compatibility matrix. Illuminate Cache is the reference integration. Illuminate HTTP adds second and millisecond client
+boundaries plus exact fake-upload sizes and byte returns shared by those majors. Complex union signatures carry an
+equivalent pre-promoted PHPStan tag alongside `@yumemi-param`: PHPStan can request stub reflection recursively while the
+promoting parser is still initializing, so the direct tag supplies a stable bootstrap representation while idempotent
+promotion verifies that both declarations remain identical.
 
 ### Registry Configuration
 
@@ -435,8 +439,14 @@ deferred advanced features.
   bounds. A future branded range representation could prove an operation always remains integer, always overflows to
   float, or needs the union. It must preserve and compose signed bounds correctly through addition, subtraction,
   multiplication, unary negation of `PHP_INT_MIN`, and positive powers rather than adding isolated operator exceptions.
-- Additional bundled third-party stubs until a specific integration demonstrates enough unit-bearing boundaries to
-  justify its maintenance and compatibility matrix. The Illuminate Cache integration is the initial reference design.
+- Additional bundled Laravel stubs remain evidence-driven. `illuminate/support` is the highest-value next candidate:
+  `Benchmark` returns milliseconds, `Sleep` exposes direct second and microsecond entry points, and `Timebox` accepts
+  microseconds, although fluent `Sleep::for(...)->seconds()` cannot brand the value before its later unit selector with
+  stubs alone. `illuminate/process` follows with second-based timeouts but changed from `int` to `CarbonInterval|int` in
+  Laravel 13. `illuminate/queue` has a broader duration surface plus worker memory, but needs explicit policies for
+  arrays, date-like delays, counts, and decimal megabytes versus mebibytes. Smaller candidates include Cookie lifetimes
+  and scheduler overlap locks in minutes and Filesystem sizes in bytes. Absolute timestamps such as file modification
+  times remain deferred until branded native point semantics can distinguish coordinates from elapsed durations.
 - A possible `unit_numeric_string<'...'>` PHPStan type for numeric values that cross string-oriented framework
   boundaries, such as Laravel configuration, environment values, request parameters, headers, and serialized scalar
   fields. It should remain a subtype of `numeric-string`, carry the same unit expression as native brands, and require

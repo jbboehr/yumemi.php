@@ -65,6 +65,10 @@ final class ConfiguredStubFilesExtension implements StubFilesExtension
             'majors' => [11, 12, 13],
             'files' => [__DIR__ . '/../../stubs/illuminate-cache.stub'],
         ],
+        'illuminate/http' => [
+            'majors' => [11, 12, 13],
+            'files' => [__DIR__ . '/../../stubs/illuminate-http.stub'],
+        ],
     ];
 
     /**

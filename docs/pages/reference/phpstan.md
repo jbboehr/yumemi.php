@@ -339,15 +339,18 @@ parameters:
     yumemi:
         stubs:
             - illuminate/cache
+            - illuminate/http
 ```
 
-The `illuminate/cache` integration supports major versions 11 through 13. As of 2026-07-31, the isolated consumer suite
-has verified the stubs against `v11.51.0`, `v12.64.0`, and `v13.23.0`. CI resolves the latest compatible release of each
-supported major, so these versions are verification snapshots rather than pins.
+Bundled Laravel integrations support every released and verified major beginning with Laravel 11. The currently verified
+range is 11 through 13; an unknown future major is rejected until its signatures have been checked rather than receiving
+potentially stale stubs. CI resolves the latest compatible release of each supported major, so the versions below are
+verification snapshots rather than pins.
 
-The integration brands integer duration boundaries in the cache contracts and concrete repository, cache stores and
-locks, `RateLimiter`, and `RateLimiting\Limit`. Seconds, milliseconds, minutes, hours, and days remain distinct exact
-units. Representative examples include:
+The `illuminate/cache` integration was verified against `v11.51.0`, `v12.64.0`, and `v13.23.0` on 2026-07-31. It brands
+integer duration boundaries in the cache contracts and concrete repository, cache stores and locks, `RateLimiter`, and
+`RateLimiting\Limit`. Seconds, milliseconds, minutes, hours, and days remain distinct exact units. Representative
+examples include:
 
 <!-- yumemi-example: illuminate-cache-invalid -->
 
@@ -375,9 +378,37 @@ are not converted implicitly. Existing `DateTimeInterface` and `DateInterval` al
 that omit an optional duration and use Laravel's default. Branded return and property types cover
 `Repository::getDefaultCacheTime()`, `RateLimiter::availableIn()`, and `Limit::$decaySeconds`.
 
-The stub is deliberately limited to signatures shared by all supported majors. Version-specific APIs can be added when
-their compatibility policy and test matrix are clear. Laravel itself remains optional and is not a Yumemi development
-dependency; isolated consumer tests install each supported major separately.
+The `illuminate/http` integration was verified against `v11.51.0`, `v12.64.0`, and `v13.23.0` on 2026-08-02. It brands
+integer and floating-point request timeouts as seconds. Scalar retry delays, array-form retry schedules, and retry
+callback results use milliseconds.
+
+Laravel's fake-upload API describes its size argument as kilobytes but computes it as the supplied value multiplied
+by 1024. Yumemi therefore uses the exact unit `1024 * byte`; the decimal UDUNITS `kilobyte` is not definitionally
+equivalent. `Illuminate\Http\Testing\File::getSize()` returns branded bytes.
+
+<!-- yumemi-example: illuminate-http-invalid -->
+
+```php
+<?php
+
+use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Testing\FileFactory;
+
+use function jbboehr\Yumemi\unit;
+
+function configureHttpBoundaries(PendingRequest $request, FileFactory $files): void
+{
+    $request->timeout(unit(30, 'second'));
+    $request->retry([unit(100, 'millisecond'), unit(250, 'millisecond')]);
+    $files->create('report.txt', unit(2, '1024 * byte'));
+
+    $request->timeout(unit(250, 'millisecond')); // PHPStan rejects milliseconds at this seconds boundary.
+}
+```
+
+Both stubs are deliberately limited to signatures shared by all supported majors. Version-specific APIs can be added
+when their compatibility policy and test matrix are clear. Laravel itself remains optional and is not a Yumemi
+development dependency; isolated consumer tests install each supported major separately.
 
 ## Diagnostics
 
