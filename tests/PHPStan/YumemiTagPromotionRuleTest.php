@@ -67,7 +67,7 @@ final class YumemiTagPromotionRuleTest extends RuleTestCase
                 40,
             ],
             [
-                "PHPDoc tag @yumemi-return has invalid type: expected a type containing unit_int<'...'>, unit_float<'...'>, or Quantity<'...'>.",
+                "PHPDoc tag @yumemi-return has invalid type: expected a type containing unit_int<'...'>, unit_float<'...'>, Quantity<'...'>, or PointQuantity<'...'>.",
                 45,
             ],
             ['PHPDoc tag @yumemi-param references unknown parameter $missing.', 51],

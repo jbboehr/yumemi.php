@@ -277,10 +277,11 @@ Yumemi promotes them onto PHPStan's normal type surface for parameters, returns,
 
 A Yumemi tag may replace a fallback only when erasing its units produces the same PHPDoc structure. Every
 `unit_int<'...'>` must erase to `int`, every `unit_float<'...'>` to `float`, and every `Quantity<'...'>` to `Quantity`,
-including within nullable, union, intersection, and generic types. Parameter references and variadic markers must also
-match. Union and intersection order and nullable spelling do not matter. `@phpstan-*` takes priority over the ordinary
-tag. An already promoted `@phpstan-*` tag with exactly the same unit-bearing structure is accepted idempotently. Any
-other mismatch leaves the fallback unchanged and reports a diagnostic.
+and every `PointQuantity<'...'>` to `PointQuantity`, including within nullable, union, intersection, and generic types.
+Parameter references and variadic markers must also match. Union and intersection order and nullable spelling do not
+matter. `@phpstan-*` takes priority over the ordinary tag. An already promoted `@phpstan-*` tag with exactly the same
+unit-bearing structure is accepted idempotently. Any other mismatch leaves the fallback unchanged and reports a
+diagnostic.
 
 ```php
 <?php

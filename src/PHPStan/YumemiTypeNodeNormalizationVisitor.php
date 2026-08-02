@@ -94,7 +94,7 @@ final class YumemiTypeNodeNormalizationVisitor extends AbstractNodeVisitor
         return match ($shortName) {
             'unit_int' => new IdentifierTypeNode('int'),
             'unit_float' => new IdentifierTypeNode('float'),
-            'quantity' => new IdentifierTypeNode($node->type->name),
+            'quantity', 'pointquantity' => new IdentifierTypeNode($node->type->name),
             default => null,
         };
     }

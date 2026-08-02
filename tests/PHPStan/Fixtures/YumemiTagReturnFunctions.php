@@ -2,6 +2,7 @@
 
 namespace jbboehr\Yumemi\Tests\PHPStan\Fixtures;
 
+use jbboehr\Yumemi\PointQuantity;
 use jbboehr\Yumemi\Quantity;
 use jbboehr\Yumemi\Units;
 
@@ -38,6 +39,14 @@ function currentSpeed(): float
 function appliedForce(Units $units): Quantity
 {
     return $units->quantity(1, 'newton');
+}
+
+/**
+ * @yumemi-return PointQuantity<'celsius'>
+ */
+function freezingPoint(Units $units): PointQuantity
+{
+    return $units->point(0, 'celsius');
 }
 
 // No tag → native return type is unchanged.

@@ -7,6 +7,7 @@
  * process); here we only assert the branded (or native-fallback) return type at each call site.
  */
 
+use jbboehr\Yumemi\PointQuantity;
 use jbboehr\Yumemi\Units;
 use jbboehr\Yumemi\Tests\PHPStan\Fixtures\TaggedProperties;
 
@@ -14,6 +15,7 @@ use function jbboehr\Yumemi\Tests\PHPStan\Fixtures\appliedForce;
 use function jbboehr\Yumemi\Tests\PHPStan\Fixtures\bogusUnit;
 use function jbboehr\Yumemi\Tests\PHPStan\Fixtures\currentSpeed;
 use function jbboehr\Yumemi\Tests\PHPStan\Fixtures\durations;
+use function jbboehr\Yumemi\Tests\PHPStan\Fixtures\freezingPoint;
 use function jbboehr\Yumemi\Tests\PHPStan\Fixtures\measuredFeet;
 use function jbboehr\Yumemi\Tests\PHPStan\Fixtures\mismatchedFallback;
 use function jbboehr\Yumemi\Tests\PHPStan\Fixtures\plainLength;
@@ -25,6 +27,7 @@ use function PHPStan\Testing\assertType;
 assertType("unit_int<'international_foot'>", measuredFeet());
 assertType("unit_float<'meter / second'>", currentSpeed());
 assertType("Quantity<'newton'>", appliedForce(Units::default()));
+assertType("PointQuantity<'celsius'>", freezingPoint(Units::default()));
 
 // No tag / invalid unit → native return type. Trailing prose is a PHPDoc description and remains valid.
 assertType('int', plainLength());
@@ -57,4 +60,22 @@ assertType("unit_int<'second'>|null", $localDuration);
 /** @yumemi-var unit_float<'meter / second'> $localSpeed */
 $localSpeed = 1.0;
 assertType("unit_float<'meter / second'>", $localSpeed);
+
+/**
+ * @var PointQuantity $localPoint
+ * @yumemi-var PointQuantity<'celsius'> $localPoint
+ */
+$localPoint = Units::default()->point(0, 'celsius');
+assertType("PointQuantity<'celsius'>", $localPoint);
+
+/**
+ * @param PointQuantity $point
+ * @yumemi-param PointQuantity<'celsius'> $point
+ */
+function inspectPromotedPoint(PointQuantity $point): void
+{
+    assertType("PointQuantity<'celsius'>", $point);
+}
+
+inspectPromotedPoint($localPoint);
 assertType("unit_int<'meter'>", (new TaggedProperties())->length);

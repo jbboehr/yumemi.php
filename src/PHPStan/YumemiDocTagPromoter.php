@@ -328,7 +328,12 @@ final class YumemiDocTagPromoter extends NodeVisitorAbstract
 
                 return $inner;
             }
-            if ($inner instanceof UnitIntegerType || $inner instanceof UnitFloatType || $inner instanceof QuantityType) {
+            if (
+                $inner instanceof UnitIntegerType
+                || $inner instanceof UnitFloatType
+                || $inner instanceof QuantityType
+                || $inner instanceof PointQuantityType
+            ) {
                 $hasUnit = true;
             }
 
@@ -339,7 +344,9 @@ final class YumemiDocTagPromoter extends NodeVisitorAbstract
             return $error;
         }
 
-        return $hasUnit ? null : "expected a type containing unit_int<'...'>, unit_float<'...'>, or Quantity<'...'>.";
+        return $hasUnit
+            ? null
+            : "expected a type containing unit_int<'...'>, unit_float<'...'>, Quantity<'...'>, or PointQuantity<'...'>.";
     }
 
     /**
