@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\Analyzer;
 
+use jbboehr\Yumemi\Catalog\CatalogNameKind;
 use jbboehr\Yumemi\Catalog\UnitSemantics;
 use jbboehr\Yumemi\Exception\LogicException;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
@@ -117,10 +118,14 @@ final class UnitResolver
     private function suggestNames(string $name): array
     {
         $names = $this->unitRegistry->names();
-        if ($names === []) {
-            return [];
-        }
-
+        /**
+         * @var list<array{
+         *     name: string,
+         *     distance: int,
+         *     lengthDifference: int,
+         *     kindRank: int,
+         * }> $suggestions
+         */
         $suggestions = [];
         $nameLower = strtolower($name);
 
@@ -129,29 +134,61 @@ final class UnitResolver
                 continue;
             }
 
-            if (strcasecmp($candidate, $name) === 0) {
-                $suggestions[$candidate] = 0;
-            }
-        }
-
-        foreach ($names as $candidate) {
-            if (isset($suggestions[$candidate]) || $candidate === $name) {
+            $candidateLower = strtolower($candidate);
+            $caseFoldMatch = $candidateLower === $nameLower;
+            $lengthDifference = abs(strlen($candidate) - strlen($name));
+            if ($lengthDifference > 2) {
                 continue;
             }
 
-            if (abs(strlen($candidate) - strlen($name)) > 2) {
+            $distance = $caseFoldMatch ? 0 : levenshtein($nameLower, $candidateLower);
+            if ($distance > 2) {
                 continue;
             }
 
-            $distance = levenshtein($nameLower, strtolower($candidate));
-            if ($distance > 0 && $distance <= 2) {
-                $suggestions[$candidate] = $distance;
+            $record = $this->unitRegistry->findCatalogRecord($candidate);
+            if ($record === null) {
+                $unit = $this->unitRegistry->findPrebuiltUnit($candidate);
+                $nameKind = $unit?->name === $candidate
+                    ? CatalogNameKind::Canonical
+                    : CatalogNameKind::Alias;
+            } elseif ($record['type'] !== 'alias') {
+                $nameKind = CatalogNameKind::Canonical;
+            } else {
+                $nameKind = isset($record['aliasKind'])
+                    ? CatalogNameKind::from($record['aliasKind'])
+                    : CatalogNameKind::Alias;
             }
+
+            $suggestions[] = [
+                'name' => $candidate,
+                'distance' => $distance,
+                'lengthDifference' => $lengthDifference,
+                'kindRank' => match ($nameKind) {
+                    CatalogNameKind::Canonical => 0,
+                    CatalogNameKind::Alias => 1,
+                    CatalogNameKind::ExplicitPlural,
+                    CatalogNameKind::GeneratedPlural => 2,
+                    CatalogNameKind::Symbol => 3,
+                },
+            ];
         }
 
-        asort($suggestions, SORT_NUMERIC);
+        usort(
+            $suggestions,
+            static function (array $left, array $right): int {
+                foreach (['distance', 'lengthDifference', 'kindRank'] as $criterion) {
+                    $comparison = $left[$criterion] <=> $right[$criterion];
+                    if ($comparison !== 0) {
+                        return $comparison;
+                    }
+                }
 
-        return array_slice(array_keys($suggestions), 0, 5);
+                return strcmp($left['name'], $right['name']);
+            },
+        );
+
+        return array_column(array_slice($suggestions, 0, 5), 'name');
     }
 
     private function resolveUncached(string $name): ?Expr

@@ -352,10 +352,10 @@ All authored Yumemi exceptions implement one marker interface, including wrapper
 exception families. Unexpected failures crossing PHPStan extension entry points are attributed to Yumemi and include an
 actionable issue link without rewriting expected PHPStan internal failures.
 
-Unknown-unit suggestions and source spans for post-parse semantic errors remain absent. Diagnostic identifiers may be
-split further only where users need more precise suppression. Suggestions should use a fully deterministic candidate
-order and tie-break policy, remain bounded, and be stored structurally so equivalent immutable registries produce exact
-stable messages regardless of construction order or locale.
+Unknown-unit errors carry bounded structured suggestions under a complete deterministic ranking shared by runtime and
+PHPStan diagnostics. Equivalent immutable registries produce identical suggestion order regardless of insertion or
+composite-layer enumeration. Source spans for post-parse semantic errors remain absent, and diagnostic identifiers may
+be split further only where users need more precise suppression.
 
 ### 31. Documentation And Examples
 
@@ -424,9 +424,9 @@ Yumemi should continue to optimize for shared runtime and static semantics rathe
 strongest choices remain string unit expressions, generated catalog data, exact rational conversion, explicit registry
 contexts, and native PHPStan brands alongside exact quantity objects.
 
-The highest-value Pint gaps are those that improve ordinary PHP workflows: deterministic unit suggestions, extensible
-primitive dimensions, better formatting, broader registry resolution for serialized graphs, and integrations proven by
-actual applications. Contexts, nonlinear units, uncertainty, and scientific-array features should remain independent
-decisions rather than a presumed route to parity.
+The highest-value Pint gaps are those that improve ordinary PHP workflows: extensible primitive dimensions, better
+formatting, broader registry resolution for serialized graphs, and integrations proven by actual applications. Contexts,
+nonlinear units, uncertainty, and scientific-array features should remain independent decisions rather than a presumed
+route to parity.
 
 See [planning.md](planning.md) for the current ordering of work.

@@ -212,8 +212,10 @@ final class UnitExpressionParserTest extends TestCase
         $this->assertFalse($result->isOk());
         $message = $result->errorMessage();
         $this->assertNotNull($message);
-        $this->assertStringContainsString('Unit not found', $message);
-        $this->assertStringContainsString('Did you mean', $message);
+        $this->assertSame(
+            'Unit not found: metr. Did you mean: meter, metre, degR, year, meters?',
+            $message,
+        );
         $this->assertNull($result->errorSpan());
     }
 

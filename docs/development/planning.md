@@ -291,25 +291,26 @@ semantics are stable enough that formula strings can share the same runtime/stat
 
 ## Deterministic Unknown-Unit Suggestions
 
-Unknown-unit diagnostics should eventually suggest close names, but suggestion text must be deterministic for one
-immutable registry snapshot. Candidate enumeration must not inherit catalog insertion order, overlay construction order,
-or locale-sensitive collation.
+Unknown-unit diagnostics suggest close names deterministically for one immutable registry snapshot. Candidate
+enumeration does not affect the result: catalog insertion order and composite-registry layer enumeration are removed by
+a complete locale-independent ordering.
 
-The ranking should define a total order using stable criteria such as:
+The ranking defines this total order:
 
 1. ASCII case-folded exact match;
 2. edit distance;
-3. absolute length difference;
+3. absolute byte-length difference;
 4. candidate kind, preferring canonical names before aliases, plurals, and symbols;
-5. raw UTF-8 byte order through locale-independent comparison.
+5. raw UTF-8 byte order through `strcmp()`.
 
-Sort the effective candidate set before scoring, cap the result to a small fixed number, and omit suggestions when no
-candidate passes a documented threshold. Symbol-heavy candidates should normally be considered only for symbol-like
-input. `UnknownUnitException` should retain the ordered suggestions structurally so runtime and PHPStan renderers can
-share the same result and tests can assert exact messages and tie behavior.
+Non-case variants must differ by no more than two bytes in length and have a bytewise Levenshtein distance of at most
+two. The resolver returns at most five suggestions and omits the clause when no candidate passes. Symbols rank after
+canonical names, aliases, and plurals rather than displacing equally close word-like spellings.
 
-A changed registry may legitimately change a suggestion. The required guarantee is that equivalent immutable registry
-snapshots produce the same ordered suggestions regardless of how their entries were constructed.
+`UnitNotFoundException` retains the ordered suggestions structurally, and runtime and PHPStan diagnostics render the
+same exception message. Exact-order tests cover case variants, name-kind ties, result bounds, reversed insertion order,
+and equivalent composite registries with different layer enumeration. A changed registry may legitimately change a
+suggestion; equivalent immutable registry snapshots produce the same ordered suggestions regardless of construction.
 
 ## Extensible Base Dimensions And Currency
 
@@ -360,7 +361,6 @@ deferred advanced features.
 
 ### Near-Term Work
 
-- Add deterministic unknown-unit suggestions under the ranking and stability contract above.
 - Extend `Dimension` and registry metadata with user-defined primitive dimensions while preserving the seven-axis SI
   fast path; use currency as a custom-registry acceptance case without bundling exchange-rate data.
 - Split broad PHPStan diagnostic identifiers only where users need more precise suppression.

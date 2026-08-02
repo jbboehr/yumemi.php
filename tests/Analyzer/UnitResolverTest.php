@@ -43,6 +43,7 @@ use jbboehr\Yumemi\Catalog\UnitSemantics;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
 use jbboehr\Yumemi\Expr\Unit;
+use jbboehr\Yumemi\Registry\CompositeUnitRegistry;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 use jbboehr\Yumemi\Units;
@@ -198,8 +199,7 @@ final class UnitResolverTest extends TestCase
             self::fail('Expected UnitNotFoundException');
         } catch (UnitNotFoundException $exception) {
             $this->assertSame('metr', $exception->unitName);
-            $this->assertNotEmpty($exception->suggestions);
-            $this->assertContains('meter', $exception->suggestions);
+            $this->assertSame('meter', $exception->suggestions[0] ?? null);
             $this->assertStringContainsString('Did you mean', $exception->getMessage());
         }
     }
@@ -209,11 +209,115 @@ final class UnitResolverTest extends TestCase
         $resolver = new UnitResolver(new Udunits2UnitRegistry());
 
         try {
-            $resolver->resolveOrFail('Meter');
-            self::fail('Expected UnitNotFoundException for Meter');
+            $resolver->resolveOrFail('METER');
+            self::fail('Expected UnitNotFoundException for METER');
         } catch (UnitNotFoundException $exception) {
-            $this->assertSame('Meter', $exception->unitName);
-            $this->assertContains('meter', $exception->suggestions);
+            $this->assertSame('METER', $exception->unitName);
+            $this->assertSame('meter', $exception->suggestions[0] ?? null);
+        }
+    }
+
+    public function testUnknownUnitSuggestionsAreIndependentOfRegistryEnumerationOrder(): void
+    {
+        $forward = new UnitRegistry([
+            new Unit('cur'),
+            new Unit('cot'),
+            new Unit('cat'),
+        ]);
+        $reverse = new UnitRegistry([
+            new Unit('cat'),
+            new Unit('cot'),
+            new Unit('cur'),
+        ]);
+
+        $expected = ['cat', 'cot', 'cur'];
+        $this->assertSame($expected, self::suggestionsFor($forward, 'cut'));
+        $this->assertSame($expected, self::suggestionsFor($reverse, 'cut'));
+    }
+
+    public function testUnknownUnitSuggestionsAreEmptyForAnEmptyRegistry(): void
+    {
+        try {
+            (new UnitResolver(new UnitRegistry()))->resolveOrFail('missing');
+            self::fail('Expected UnitNotFoundException');
+        } catch (UnitNotFoundException $exception) {
+            $this->assertSame([], $exception->suggestions);
+            $this->assertSame('Unit not found: missing.', $exception->getMessage());
+        }
+    }
+
+    public function testUnknownUnitSuggestionsAreIndependentOfCompositeLayerEnumerationOrder(): void
+    {
+        $first = new CompositeUnitRegistry(
+            new UnitRegistry([new Unit('cur'), new Unit('cot')]),
+            new UnitRegistry([new Unit('cat')]),
+        );
+        $second = new CompositeUnitRegistry(
+            new UnitRegistry([new Unit('cat')]),
+            new UnitRegistry([new Unit('cot'), new Unit('cur')]),
+        );
+
+        $expected = ['cat', 'cot', 'cur'];
+        $this->assertSame($expected, self::suggestionsFor($first, 'cut'));
+        $this->assertSame($expected, self::suggestionsFor($second, 'cut'));
+    }
+
+    public function testUnknownUnitSuggestionsUseNameKindBeforeByteOrderAndRemainBounded(): void
+    {
+        $registry = new UnitRegistry([], [
+            'aone' => [
+                'type' => 'alias',
+                'name' => 'aone',
+                'def' => 'zone',
+                'aliasKind' => 'symbol',
+            ],
+            'wone' => [
+                'type' => 'alias',
+                'name' => 'wone',
+                'def' => 'zone',
+                'aliasKind' => 'generated_plural',
+            ],
+            'xone' => [
+                'type' => 'alias',
+                'name' => 'xone',
+                'def' => 'zone',
+                'aliasKind' => 'explicit_plural',
+            ],
+            'yone' => ['type' => 'alias', 'name' => 'yone', 'def' => 'zone'],
+            'zone' => ['type' => 'base', 'name' => 'zone'],
+            'vone' => ['type' => 'alias', 'name' => 'vone', 'def' => 'zone'],
+        ]);
+
+        $suggestions = self::suggestionsFor($registry, 'tone!');
+
+        $this->assertSame(['zone', 'vone', 'yone', 'wone', 'xone'], $suggestions);
+        $this->assertNotContains('aone', $suggestions);
+    }
+
+    public function testUnknownUnitSuggestionsDistinguishPrebuiltCanonicalNamesFromAliases(): void
+    {
+        $canonical = new Unit('zone');
+        $registry = new UnitRegistry([
+            'aone' => $canonical,
+            'zone' => $canonical,
+        ]);
+
+        $this->assertSame(['zone', 'aone'], self::suggestionsFor($registry, 'tone!'));
+    }
+
+    public function testUnknownUnitSuggestionMessageUsesTheDeterministicOrder(): void
+    {
+        $registry = new UnitRegistry([
+            new Unit('cur'),
+            new Unit('cat'),
+            new Unit('cot'),
+        ]);
+
+        try {
+            (new UnitResolver($registry))->resolveOrFail('cut');
+            self::fail('Expected UnitNotFoundException');
+        } catch (UnitNotFoundException $exception) {
+            $this->assertSame('Unit not found: cut. Did you mean: cat, cot, cur?', $exception->getMessage());
         }
     }
 
@@ -261,6 +365,19 @@ final class UnitResolverTest extends TestCase
                     $exception->getMessage(),
                 );
             }
+        }
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function suggestionsFor(UnitRegistry $registry, string $name): array
+    {
+        try {
+            (new UnitResolver($registry))->resolveOrFail($name);
+            self::fail('Expected UnitNotFoundException');
+        } catch (UnitNotFoundException $exception) {
+            return $exception->suggestions;
         }
     }
 }
