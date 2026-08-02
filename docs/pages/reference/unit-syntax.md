@@ -134,6 +134,7 @@ are limited to the inclusive range `-10000` through `10000`, including powers fo
 
 Malformed syntax throws `Parser\ParseException`. When available, its `SourceSpan` is a zero-based, half-open byte range
 in the decoded unit expression. The exception message renders a one-based line and column plus a bounded caret excerpt.
+Malformed numeric text such as `1.2.3` is reported as syntax, and the source span covers the complete malformed token.
 
 Unknown names throw `UnitNotFoundException`. Parsed but unsupported constructs throw `UnsupportedSyntaxException`. Those
 failures occur after parsing and currently do not carry source spans.

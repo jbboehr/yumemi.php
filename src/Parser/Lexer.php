@@ -92,6 +92,10 @@ class Lexer extends AbstractLexer implements LexerInterface
             return self::T_INTEGER;
         }
 
+        if (preg_match('/^\d+(?:\.\d+)+(?:e[+-]?\d+)?$/', $value) === 1) {
+            return self::T_INVALID_NUMBER;
+        }
+
         switch ($value) {
             case '*':
             case '·':

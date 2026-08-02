@@ -45,6 +45,7 @@
 %token T_LEFT_PAREN "("
 %token T_RIGHT_PAREN ")"
 %token T_AT "@"
+%token T_INVALID_NUMBER "malformed number"
 
 %%
 start:

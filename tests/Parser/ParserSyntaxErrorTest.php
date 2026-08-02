@@ -77,6 +77,15 @@ final class ParserSyntaxErrorTest extends TestCase
                 . "| meter * / second\n"
                 . '|         ^',
         ];
+        yield 'malformed decimal' => [
+            'meter * 1.2.3',
+            8,
+            13,
+            "Syntax error, unexpected 'malformed number' "
+                . "at line 1, column 9 (byte offset 8).\n"
+                . "| meter * 1.2.3\n"
+                . '|         ^~~~~',
+        ];
         yield 'end of input' => [
             'meter /',
             7,
