@@ -381,13 +381,16 @@ comparison are now present.
 Status: **Done for development; release automation absent** | Importance: **P0/P1** | Remaining difficulty: **M**
 
 Composer, Nix, treefmt, pre-commit hooks, PHP-CS-Fixer, PHPStan, PHPUnit, generated artifacts, GitHub Actions, and
-Infection with enforced mutation-score floors are configured. Catalog and parser regeneration are documented. An
-isolated consumer smoke test verifies runtime use plus automatic and manual PHPStan registration from a release-style
-Composer archive. Separate isolated matrices install Illuminate Cache and HTTP 11 through 13 and verify bundled stub
-shapes, accepted calls, and exact-unit diagnostics without adding Laravel to the root dependency graph.
+Infection with enforced mutation-score floors are configured. Catalog and parser regeneration are documented. A
+Nix-backed differential suite compares representative conversions against the `udunits2` executable, and a deterministic
+generative suite exercises bounded expression, quantity, and point identities. An isolated consumer smoke test verifies
+runtime use plus automatic and manual PHPStan registration from a release-style Composer archive. Separate isolated
+matrices install Illuminate Cache and HTTP 11 through 13 and verify bundled stub shapes, accepted calls, and exact-unit
+diagnostics without adding Laravel to the root dependency graph. A PHP 8.2 lowest-dependency job verifies the declared
+lower bounds through `composer update --prefer-lowest --prefer-stable`.
 
-The project still lacks a tagged release and release workflow. Lowest- and highest-dependency jobs may be useful after
-the first release establishes a compatibility promise.
+The project still lacks a tagged release and release workflow. A highest-dependency job may be useful after the first
+release establishes a compatibility promise.
 
 ## Parity Matrix
 
