@@ -1,7 +1,7 @@
 .DEFAULT: all
 .PHONY: all clean coverage-branch docs docs-check docs-serve generate-catalog test-consumer test-consumer-archive \
 	test-consumer-illuminate-cache test-consumer-illuminate-cache-archive test-consumer-illuminate-http \
-	test-consumer-illuminate-http-archive
+	test-consumer-illuminate-http-archive test-udunits2
 
 BRANCH_COVERAGE_OUTPUT ?= coverage/branch
 BRANCH_COVERAGE_SOURCE ?= src/Number
@@ -9,6 +9,8 @@ BRANCH_COVERAGE_TESTS ?=
 BRANCH_COVERAGE_XDEBUG_ERROR := Xdebug is not loaded; enter nix develop .\#xdebug.
 ILLUMINATE_CACHE_MAJOR ?= 12
 ILLUMINATE_HTTP_MAJOR ?= 12
+UDUNITS2_BIN ?= udunits2
+UDUNITS2_XML ?= $(UDUNITS_XML_DIR)/udunits2.xml
 
 UDUNITS_XML_FILES := \
 	$(UDUNITS_XML_DIR)/udunits2-prefixes.xml \
@@ -59,6 +61,18 @@ test-consumer-illuminate-http:
 
 test-consumer-illuminate-http-archive:
 	tests/Consumer/run archive illuminate-http $(ILLUMINATE_HTTP_MAJOR)
+
+test-udunits2:
+	@command -v "$(UDUNITS2_BIN)" >/dev/null || { \
+		echo 'udunits2 is not available; enter the Nix dev shell or specify UDUNITS2_BIN.' >&2; \
+		exit 1; \
+	}
+	@test -f "$(UDUNITS2_XML)" || { \
+		echo 'The UDUNITS2 XML database is not available; enter the Nix dev shell or specify UDUNITS2_XML.' >&2; \
+		exit 1; \
+	}
+	UDUNITS2_BIN="$$(command -v "$(UDUNITS2_BIN)")" UDUNITS2_XML="$(UDUNITS2_XML)" \
+		php vendor/bin/phpunit --group udunits2 --no-coverage
 
 ifneq ($(strip $(UDUNITS_XML_DIR)),)
 generate-catalog: $(UDUNITS_XML_FILES)

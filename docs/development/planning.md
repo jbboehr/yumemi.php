@@ -373,10 +373,12 @@ deferred advanced features.
 Verification work should prioritize independent evidence and algebraic invariants over additional examples that can
 repeat the implementation's assumptions:
 
-- Add a separate Nix-backed differential suite against the `udunits2` executable. Compare representative base, prefixed,
-  accepted, compound, affine, alias, and incompatible-unit cases with Yumemi's results. Yumemi's expectations remain
-  exact; comparisons against UDUNITS2's textual floating-point output require an explicit tolerance. Keep this outside
-  the ordinary PHPUnit requirement because it depends on an external executable and database.
+- Maintain the Nix-backed differential PHPUnit suite against the `udunits2` executable. It compares representative base,
+  prefixed, accepted, compound, affine, alias, incompatible, unknown, and intentionally unsupported cases. Fixtures
+  carry separate Yumemi and UDUNITS2 spellings where the parser dialects differ instead of assuming AST or syntax
+  parity. Yumemi's expectations remain exact; UDUNITS2's six-significant-digit textual output is compared with a `5e-6`
+  relative plus `5e-12` absolute tolerance. Ordinary PHPUnit runs skip the group when the external executable or
+  matching XML database is unavailable, while `nix flake check` supplies both and requires the suite to pass.
 - Add deterministic generative tests for bounded expression ASTs, rational magnitudes, compatible unit pairs and
   triples, formatter modes, quantities, and affine points. Verify reduction and normalization idempotence,
   parser/formatter round trips, conversion composition and reversal, quantity arithmetic identities, and point

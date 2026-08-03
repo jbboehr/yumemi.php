@@ -131,7 +131,8 @@
         "test:consumer:illuminate-cache": "make test-consumer-illuminate-cache",
         "test:consumer:illuminate-cache:archive": "make test-consumer-illuminate-cache-archive",
         "test:consumer:illuminate-http": "make test-consumer-illuminate-http",
-        "test:consumer:illuminate-http:archive": "make test-consumer-illuminate-http-archive"
+        "test:consumer:illuminate-http:archive": "make test-consumer-illuminate-http-archive",
+        "test:udunits2": "make test-udunits2"
     },
     "config": {
         "allow-plugins": {

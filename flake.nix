@@ -72,6 +72,31 @@
             enabled ++ [ all.xdebug ];
         };
         src = gitignore.lib.gitignoreSource ./.;
+        udunits2-differential = php-unwrapped.buildComposerProject2 (finalAttrs: {
+          pname = "yumemi-udunits2-differential";
+          version = "0";
+
+          inherit src;
+
+          composerNoDev = false;
+          vendorHash = "sha256-xo+41Kbqx9y1KmquQAyEFFjOxuNph5Ac37jEvrwYjrU=";
+
+          nativeCheckInputs = [ pkgs.udunits ];
+          checkPhase = ''
+            runHook preCheck
+
+            export HOME="$TMPDIR"
+            export UDUNITS2_BIN=${pkgs.udunits}/bin/udunits2
+            export UDUNITS2_XML=${pkgs.udunits}/share/udunits/udunits2.xml
+            php vendor/bin/phpunit --group udunits2 --no-coverage --colors=never
+
+            runHook postCheck
+          '';
+          installPhase = ''
+            mkdir -p "$out"
+            touch "$out/passed"
+          '';
+        });
 
         mkDevShell =
           php:
@@ -131,7 +156,7 @@
       in
       rec {
         checks = {
-          inherit pre-commit-check;
+          inherit pre-commit-check udunits2-differential;
           documentation =
             pkgs.runCommand "yumemi-documentation"
               {
