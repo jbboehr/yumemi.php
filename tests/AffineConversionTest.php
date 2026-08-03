@@ -316,7 +316,9 @@ final class AffineConversionTest extends TestCase
             ->build());
 
         $this->expectException(\UnexpectedValueException::class);
-        $this->expectExceptionMessage('Circular unit alias or definition');
+        // Assert the full message, including the offending unit name, so the
+        // diagnostic's content is pinned rather than only its leading phrase.
+        $this->expectExceptionMessage('Circular unit alias or definition for: loop_a');
 
         $units->convert(1, 'loop_a', 'kelvin');
     }

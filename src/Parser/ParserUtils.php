@@ -77,52 +77,52 @@ trait ParserUtils
         return $parser->getAst();
     }
 
-    public static function makeInteger(string $text, ?Location $location = null): Ast
+    private static function makeInteger(string $text, ?Location $location = null): Ast
     {
         return new Ast\Integer_($text, self::sourceSpan($location));
     }
 
-    public static function makeSuperscriptInteger(string $text, ?Location $location = null): Ast
+    private static function makeSuperscriptInteger(string $text, ?Location $location = null): Ast
     {
         return self::makeInteger(strtr($text, self::SUPERSCRIPT_TO_ASCII), $location);
     }
 
-    public static function makeFloat(string $text, ?Location $location = null): Ast
+    private static function makeFloat(string $text, ?Location $location = null): Ast
     {
         return new Ast\Float_($text, self::sourceSpan($location));
     }
 
-    public static function makeMul(Ast $left, Ast $right, ?Location $location = null): Ast
+    private static function makeMul(Ast $left, Ast $right, ?Location $location = null): Ast
     {
         return new Mul($left, $right, self::sourceSpan($location));
     }
 
-    public static function makeDiv(Ast $left, Ast $right, ?Location $location = null): Ast
+    private static function makeDiv(Ast $left, Ast $right, ?Location $location = null): Ast
     {
         return new Div($left, $right, self::sourceSpan($location));
     }
 
-    public static function makeAdd(Ast $left, Ast $right, ?Location $location = null): Ast
+    private static function makeAdd(Ast $left, Ast $right, ?Location $location = null): Ast
     {
         return new Add($left, $right, self::sourceSpan($location));
     }
 
-    public static function makeSub(Ast $left, Ast $right, ?Location $location = null): Ast
+    private static function makeSub(Ast $left, Ast $right, ?Location $location = null): Ast
     {
         return new Sub($left, $right, self::sourceSpan($location));
     }
 
-    public static function makePow(Ast $left, Ast $right, ?Location $location = null): Ast
+    private static function makePow(Ast $left, Ast $right, ?Location $location = null): Ast
     {
         return new Pow($left, $right, self::sourceSpan($location));
     }
 
-    public static function makeIdentifier(string $identifier, ?Location $location = null): Ast
+    private static function makeIdentifier(string $identifier, ?Location $location = null): Ast
     {
         return new Ast\Identifier($identifier, self::sourceSpan($location));
     }
 
-    public static function makeNeg(Ast $expr, ?Location $location = null): Ast
+    private static function makeNeg(Ast $expr, ?Location $location = null): Ast
     {
         $span = self::sourceSpan($location);
 
@@ -140,7 +140,7 @@ trait ParserUtils
         return str_starts_with($value, '-') ? substr($value, 1) : '-' . $value;
     }
 
-    public static function makeAt(Ast $left, Ast $right, ?Location $location = null): Ast
+    private static function makeAt(Ast $left, Ast $right, ?Location $location = null): Ast
     {
         return new At($left, $right, self::sourceSpan($location));
     }

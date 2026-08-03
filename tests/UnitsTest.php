@@ -211,6 +211,35 @@ final class UnitsTest extends TestCase
         Units::default()->parseUnit('not_a_real_unit_xyz');
     }
 
+    public function testParseReportsAnAliasTargetThatCannotBeResolved(): void
+    {
+        $units = new Units(UnitRegistryBuilder::default()
+            ->define('danglor = totallybogus_target')
+            ->build());
+
+        // The diagnostic must name the unresolvable alias target, not the outer
+        // alias, so a broken catalog definition points at the missing unit.
+        $this->expectException(UnitNotFoundException::class);
+        $this->expectExceptionMessage('Unit not found: totallybogus_target');
+
+        $units->parse('danglor');
+    }
+
+    public function testParseRejectsCircularDefinitionsWithTheOffendingName(): void
+    {
+        $units = new Units(UnitRegistryBuilder::default()
+            ->define('loop_a = loop_b')
+            ->define('loop_b = loop_a')
+            ->build());
+
+        $this->expectException(\UnexpectedValueException::class);
+        // Pin the full message, including the offending unit name, so the
+        // expression-resolution cycle guard reports which name it rejected.
+        $this->expectExceptionMessage('Circular unit alias or definition for: loop_a');
+
+        $units->parse('loop_a');
+    }
+
     #[DataProvider('parsedQuantityProvider')]
     public function testParseQuantityExtractsTheCompleteExplicitConstant(
         string $input,
