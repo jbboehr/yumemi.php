@@ -368,6 +368,35 @@ deferred advanced features.
 - Before creating the first release tag, remove `:dev-master` from the README installation command; after Packagist
   imports the tag, verify that the unqualified command installs the tagged release.
 
+### Verification Roadmap
+
+Verification work should prioritize independent evidence and algebraic invariants over additional examples that can
+repeat the implementation's assumptions:
+
+- Add a separate Nix-backed differential suite against the `udunits2` executable. Compare representative base, prefixed,
+  accepted, compound, affine, alias, and incompatible-unit cases with Yumemi's results. Yumemi's expectations remain
+  exact; comparisons against UDUNITS2's textual floating-point output require an explicit tolerance. Keep this outside
+  the ordinary PHPUnit requirement because it depends on an external executable and database.
+- Add deterministic generative tests for bounded expression ASTs, rational magnitudes, compatible unit pairs and
+  triples, formatter modes, quantities, and affine points. Verify reduction and normalization idempotence,
+  parser/formatter round trips, conversion composition and reversal, quantity arithmetic identities, and point
+  difference/translation identities. Use fixed seeds or finite enumeration, bounded depth and exponents, and report a
+  replayable seed and input for every failure.
+- Add a PHP 8.2 lowest-dependency CI job using `composer update --prefer-lowest --prefer-stable`, followed by the normal
+  static analysis and PHPUnit checks. Ordinary lock-file jobs verify only one dependency snapshot and do not prove the
+  lower bounds declared in `composer.json`.
+- Continue focused Xdebug branch audits rather than enforcing a global path-coverage floor. Audit `src/Registry`,
+  `src/Catalog`, `PointQuantity`, formatting, and parser diagnostics next; add tests for uncovered decisions only when
+  an outcome is reachable and observably meaningful. Path coverage remains informational because combinations grow
+  rapidly.
+- Triage Infection's escaped and timed-out mutants periodically before raising the MSI floor. Add contract-level
+  assertions for observable survivors, record or ignore behaviorally equivalent mutations, distinguish deliberately
+  unreachable defensive branches, and confirm that timeouts are explained by removed termination guards rather than
+  ordinary performance failures.
+- After the first public release establishes a compatibility baseline, run an API compatibility checker such as Roave
+  Backward Compatibility Check against the latest release tag. Treat intentional breaking changes through an explicit
+  versioning policy instead of weakening or bypassing the check.
+
 ### Near-Term Work
 
 - Extend `Dimension` and registry metadata with user-defined primitive dimensions while preserving the seven-axis SI

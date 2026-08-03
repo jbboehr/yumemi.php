@@ -40,13 +40,21 @@ use jbboehr\Yumemi\Tests\Documentation\GeneratedDocumentationLinkChecker;
 
 require __DIR__ . '/GeneratedDocumentationLinkChecker.php';
 
-if ($argc !== 2) {
-    fwrite(STDERR, sprintf("Usage: %s GENERATED-DOCUMENTATION-DIRECTORY\n", $argv[0]));
+$arguments = $_SERVER['argv'] ?? null;
+
+if (
+    !is_array($arguments)
+    || !array_is_list($arguments)
+    || count($arguments) !== 2
+    || !is_string($arguments[0])
+    || !is_string($arguments[1])
+) {
+    fwrite(STDERR, sprintf("Usage: %s GENERATED-DOCUMENTATION-DIRECTORY\n", __FILE__));
     exit(2);
 }
 
 try {
-    $errors = (new GeneratedDocumentationLinkChecker())->check($argv[1]);
+    $errors = (new GeneratedDocumentationLinkChecker())->check($arguments[1]);
 } catch (Throwable $exception) {
     fwrite(STDERR, $exception->getMessage() . "\n");
     exit(1);

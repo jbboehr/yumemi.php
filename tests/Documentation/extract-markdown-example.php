@@ -40,13 +40,22 @@ use jbboehr\Yumemi\Tests\Documentation\MarkedCodeBlockExtractor;
 
 require __DIR__ . '/MarkedCodeBlockExtractor.php';
 
-if ($argc !== 3) {
-    fwrite(STDERR, sprintf("Usage: %s MARKDOWN-FILE EXAMPLE-ID\n", $argv[0]));
+$arguments = $_SERVER['argv'] ?? null;
+
+if (
+    !is_array($arguments)
+    || !array_is_list($arguments)
+    || count($arguments) !== 3
+    || !is_string($arguments[0])
+    || !is_string($arguments[1])
+    || !is_string($arguments[2])
+) {
+    fwrite(STDERR, sprintf("Usage: %s MARKDOWN-FILE EXAMPLE-ID\n", __FILE__));
     exit(2);
 }
 
 try {
-    fwrite(STDOUT, MarkedCodeBlockExtractor::extract($argv[1], $argv[2]));
+    fwrite(STDOUT, MarkedCodeBlockExtractor::extract($arguments[1], $arguments[2]));
 } catch (Throwable $exception) {
     fwrite(STDERR, $exception->getMessage() . "\n");
     exit(1);
