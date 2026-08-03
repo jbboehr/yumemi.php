@@ -3,6 +3,8 @@
 composer.lock linguist-generated
 composer-project.nix linguist-generated
 
+.claude export-ignore
+.codex export-ignore
 .editorconfig export-ignore
 .envrc export-ignore
 .gitattributes export-ignore

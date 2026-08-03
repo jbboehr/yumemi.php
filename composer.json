@@ -22,6 +22,8 @@
     ],
     "archive": {
         "exclude": [
+            "/.claude",
+            "/.codex",
             "/.direnv",
             "/.envrc",
             "/.github",
@@ -94,7 +96,7 @@
         "brick/varexporter": "^0.6",
         "friendsofphp/php-cs-fixer": "^3",
         "infection/infection": "^0.32.6",
-        "jbboehr/phpbench-perfidious": "dev-develop",
+        "jbboehr/phpbench-perfidious": "dev-master",
         "mrsuh/php-bison-skeleton": "^1.2",
         "phpbench/phpbench": "^1.7",
         "phpstan/phpstan": "^2.2.5",

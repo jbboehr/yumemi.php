@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "aff7ab409b56cdb303667dd00369f369",
+    "content-hash": "a4fbe8a2f7e4f93e1d8a70b6b39c4748",
     "packages": [
         {
             "name": "doctrine/lexer",
@@ -1312,32 +1312,34 @@
         },
         {
             "name": "jbboehr/phpbench-perfidious",
-            "version": "dev-develop",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jbboehr/phpbench-perfidious.git",
-                "reference": "e9be9eefa781b364a275eed765dc98d84a7f468d"
+                "reference": "e26c11ff103ac99a3df8c86a65d88979008d1a17"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jbboehr/phpbench-perfidious/zipball/e9be9eefa781b364a275eed765dc98d84a7f468d",
-                "reference": "e9be9eefa781b364a275eed765dc98d84a7f468d",
+                "url": "https://api.github.com/repos/jbboehr/phpbench-perfidious/zipball/e26c11ff103ac99a3df8c86a65d88979008d1a17",
+                "reference": "e26c11ff103ac99a3df8c86a65d88979008d1a17",
                 "shasum": ""
             },
             "require": {
                 "php": "^8.1",
-                "phpbench/phpbench": "^1.2"
+                "phpbench/phpbench": "^1.4"
             },
             "require-dev": {
-                "phpstan/phpstan": "^1.10",
-                "phpstan/phpstan-phpunit": "^1.3",
-                "phpstan/phpstan-strict-rules": "^1.5",
-                "phpunit/phpunit": "^10.5",
-                "squizlabs/php_codesniffer": "^3.9"
+                "friendsofphp/php-cs-fixer": "^3",
+                "infection/infection": "^0.28",
+                "phpstan/phpstan": "^2.0",
+                "phpstan/phpstan-phpunit": "^2.0",
+                "phpstan/phpstan-strict-rules": "^2.0",
+                "phpunit/phpunit": "^10.5"
             },
             "suggest": {
                 "ext-perfidious": "*"
             },
+            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -1349,8 +1351,19 @@
                     "jbboehr\\PhpBenchPerfidious\\Tests\\": "tests"
                 }
             },
+            "scripts": {
+                "cs": [
+                    "php-cs-fixer fix --dry-run --diff"
+                ],
+                "cs:fix": [
+                    "php-cs-fixer fix"
+                ],
+                "infection": [
+                    "infection --threads=max"
+                ]
+            },
             "license": [
-                "AGPL-3.0-or-later"
+                "AGPL-3.0-only WITH romic-exception"
             ],
             "authors": [
                 {
@@ -1358,11 +1371,22 @@
                     "email": "jbboehr@gmail.com"
                 }
             ],
+            "description": "PHPBench executor, progress logger, and report generator backed by perf_event_open hardware/software performance counters (via ext-perfidious)",
+            "homepage": "https://github.com/jbboehr/phpbench-perfidious",
+            "keywords": [
+                "benchmarking",
+                "libpfm4",
+                "perf",
+                "perf_event_open",
+                "perfidious",
+                "phpbench",
+                "profiling"
+            ],
             "support": {
-                "source": "https://github.com/jbboehr/phpbench-perfidious/tree/develop",
-                "issues": "https://github.com/jbboehr/phpbench-perfidious/issues"
+                "issues": "https://github.com/jbboehr/phpbench-perfidious/issues",
+                "source": "https://github.com/jbboehr/phpbench-perfidious"
             },
-            "time": "2024-09-29T03:03:11+00:00"
+            "time": "2026-08-03T05:00:15+00:00"
         },
         {
             "name": "justinrainbow/json-schema",
