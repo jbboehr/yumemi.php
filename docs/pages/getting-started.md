@@ -16,7 +16,7 @@ Yumemi does not install PHPStan automatically in consuming projects. Install PHP
 development dependencies to enable automatic registration:
 
 ```shell
-composer require --dev phpstan/phpstan:^2.1 phpstan/extension-installer
+composer require --dev phpstan/phpstan:^2.2.5 phpstan/extension-installer
 ```
 
 Projects that do not use [`phpstan/extension-installer`](https://github.com/phpstan/extension-installer) should install

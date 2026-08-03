@@ -23,7 +23,7 @@ composer require jbboehr/yumemi:dev-master
 Applications using the extension must install PHPStan separately as a development dependency:
 
 ```shell
-composer require --dev phpstan/phpstan:^2.1
+composer require --dev phpstan/phpstan:^2.2.5
 ```
 
 When [`phpstan/extension-installer`](https://github.com/phpstan/extension-installer) is also installed as a development

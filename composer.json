@@ -76,7 +76,7 @@
     "suggest": {
         "illuminate/cache": "Enables optional unit-aware cache, lock, and rate-limiter stubs through yumemi-tags.neon (Laravel 11-13).",
         "illuminate/http": "Enables optional unit-aware HTTP client and fake-upload stubs through yumemi-tags.neon (Laravel 11-13).",
-        "phpstan/phpstan": "Enables the bundled Yumemi unit types extension (extension.neon; develop against PHPStan 2.x)."
+        "phpstan/phpstan": "Enables the bundled Yumemi unit types extension (extension.neon; requires PHPStan 2.2.5 or later)."
     },
     "autoload": {
         "psr-4": {
@@ -97,8 +97,8 @@
         "jbboehr/phpbench-perfidious": "dev-develop",
         "mrsuh/php-bison-skeleton": "^1.2",
         "phpbench/phpbench": "^1.7",
-        "phpstan/phpstan": "^2.1",
-        "phpstan/phpstan-phpunit": "^2.0",
+        "phpstan/phpstan": "^2.2.5",
+        "phpstan/phpstan-phpunit": "^2.0.13",
         "phpstan/phpstan-strict-rules": "^2.0",
         "phpunit/phpunit": "^11.5"
     },

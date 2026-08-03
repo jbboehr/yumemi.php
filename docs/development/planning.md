@@ -384,9 +384,9 @@ repeat the implementation's assumptions:
   normalization idempotence, parser/formatter round trips, conversion composition and reversal, rational and quantity
   arithmetic identities, and point difference/translation identities. Expression depth and exponents are bounded, and
   named data sets report the complete replayable input for every failure.
-- Add a PHP 8.2 lowest-dependency CI job using `composer update --prefer-lowest --prefer-stable`, followed by the normal
-  static analysis and PHPUnit checks. Ordinary lock-file jobs verify only one dependency snapshot and do not prove the
-  lower bounds declared in `composer.json`.
+- Maintain the PHP 8.2 lowest-dependency CI job, which uses `composer update --prefer-lowest --prefer-stable` followed
+  by PHPStan and PHPUnit. Ordinary lock-file jobs verify only one dependency snapshot and do not prove the lower bounds
+  declared in `composer.json`.
 - Continue focused Xdebug branch audits rather than enforcing a global path-coverage floor. Audit `src/Registry`,
   `src/Catalog`, `PointQuantity`, formatting, and parser diagnostics next; add tests for uncovered decisions only when
   an outcome is reachable and observably meaningful. Path coverage remains informational because combinations grow
