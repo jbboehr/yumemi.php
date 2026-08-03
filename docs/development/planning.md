@@ -379,11 +379,11 @@ repeat the implementation's assumptions:
   parity. Yumemi's expectations remain exact; UDUNITS2's six-significant-digit textual output is compared with a `5e-6`
   relative plus `5e-12` absolute tolerance. Ordinary PHPUnit runs skip the group when the external executable or
   matching XML database is unavailable, while `nix flake check` supplies both and requires the suite to pass.
-- Add deterministic generative tests for bounded expression ASTs, rational magnitudes, compatible unit pairs and
-  triples, formatter modes, quantities, and affine points. Verify reduction and normalization idempotence,
-  parser/formatter round trips, conversion composition and reversal, quantity arithmetic identities, and point
-  difference/translation identities. Use fixed seeds or finite enumeration, bounded depth and exponents, and report a
-  replayable seed and input for every failure.
+- Maintain the deterministic finite generative PHPUnit suite for bounded expression ASTs, rational magnitudes,
+  compatible unit pairs and triples, formatter modes, quantities, and affine points. It verifies reduction and
+  normalization idempotence, parser/formatter round trips, conversion composition and reversal, rational and quantity
+  arithmetic identities, and point difference/translation identities. Expression depth and exponents are bounded, and
+  named data sets report the complete replayable input for every failure.
 - Add a PHP 8.2 lowest-dependency CI job using `composer update --prefer-lowest --prefer-stable`, followed by the normal
   static analysis and PHPUnit checks. Ordinary lock-file jobs verify only one dependency snapshot and do not prove the
   lower bounds declared in `composer.json`.
