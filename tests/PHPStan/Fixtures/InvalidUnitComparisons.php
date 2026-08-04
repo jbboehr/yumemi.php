@@ -30,12 +30,14 @@ $meters <=> unit(1.0, 'meter');
 function compareUnitUnion(int $value): void
 {
     $value == unit(1, 'meter');
+    unit(1, 'meter') == $value;
 }
 
 /** @param int|unit_int<'meter'> $value */
 function compareMixedUnion(int $value): void
 {
     $value == unit(1, 'meter');
+    unit(1, 'meter') == $value;
 }
 
 /** @param unit_int<'meter'>|null $value */
@@ -43,6 +45,33 @@ function compareNullableUnit(?int $value): void
 {
     $value !== null;
     $value != null;
+    $value == unit(1, 'meter');
+    unit(1, 'meter') == $value;
+    $value === unit(1, 'meter');
+    unit(1, 'meter') !== $value;
 }
 
 $meters === 1;
+
+$object = new \stdClass();
+$object == $meters;
+$meters != $object;
+$object === $meters;
+$meters !== $object;
+
+/** @param unit_int<'second'>|unit_int<'kilogram'> $value */
+function compareIncompatibleUnitUnion(int $value): void
+{
+    unit(1, 'meter') == $value;
+}
+
+/** @param unit_int<'meter'>|\stdClass $value */
+function compareUnitAndObject(int|\stdClass $value): void
+{
+    $value == unit(1, 'meter');
+    unit(1, 'meter') == $value;
+
+    // Valid: strict identity may compare a unit arm with a nonnumeric, nonunit arm.
+    $value === unit(1, 'meter');
+    unit(1, 'meter') !== $value;
+}

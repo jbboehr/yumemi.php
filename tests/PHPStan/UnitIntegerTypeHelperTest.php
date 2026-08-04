@@ -43,9 +43,13 @@ use jbboehr\Yumemi\PHPStan\UnitFloatType;
 use jbboehr\Yumemi\PHPStan\UnitIntegerType;
 use jbboehr\Yumemi\PHPStan\UnitIntegerTypeHelper;
 use PHPStan\Type\Constant\ConstantIntegerType;
+use PHPStan\Type\IntersectionType;
 use PHPStan\Type\IntegerRangeType;
 use PHPStan\Type\IntegerType;
+use PHPStan\Type\NeverType;
+use PHPStan\Type\StringType;
 use PHPStan\Type\TypeCombinator;
+use PHPStan\Type\UnionType;
 use PHPStan\Type\VerbosityLevel;
 use PHPUnit\Framework\TestCase;
 
@@ -71,11 +75,19 @@ final class UnitIntegerTypeHelperTest extends TestCase
         $constant = UnitIntegerTypeHelper::create($this->meters, 3, 3);
         $range = UnitIntegerTypeHelper::create($this->meters, 0, 100);
         $unbounded = UnitIntegerTypeHelper::create($this->meters, null, null);
+        $minimumBound = UnitIntegerTypeHelper::create($this->meters, PHP_INT_MIN, 0);
+        $maximumBound = UnitIntegerTypeHelper::create($this->meters, 0, PHP_INT_MAX);
+        $nativeBounds = UnitIntegerTypeHelper::create($this->meters, PHP_INT_MIN, PHP_INT_MAX);
+        $impossible = UnitIntegerTypeHelper::create($this->meters, 1, 0);
 
         self::assertInstanceOf(UnitConstantIntegerType::class, $constant);
         self::assertSame("3&unit_int<'meter'>", $constant->describe(VerbosityLevel::precise()));
         self::assertSame("unit_int<'meter'>&int<0, 100>", $range->describe(VerbosityLevel::precise()));
         self::assertInstanceOf(UnitIntegerType::class, $unbounded);
+        self::assertSame("unit_int<'meter'>&int<min, 0>", $minimumBound->describe(VerbosityLevel::precise()));
+        self::assertSame("unit_int<'meter'>&int<0, max>", $maximumBound->describe(VerbosityLevel::precise()));
+        self::assertInstanceOf(UnitIntegerType::class, $nativeBounds);
+        self::assertInstanceOf(NeverType::class, $impossible);
     }
 
     public function testExtractsStandardRangeAndLiteralIntersections(): void
@@ -120,12 +132,47 @@ final class UnitIntegerTypeHelperTest extends TestCase
     public function testBrandedConstantRetainsConstantAndUnitRelations(): void
     {
         $threeMeters = new UnitConstantIntegerType(3, $this->meters);
+        $equivalentThreeMeters = new UnitConstantIntegerType(
+            3,
+            (new UnitExpressionParser())->parse('100 * centimeter')->expression(),
+        );
+        $overlapsBelow = UnitIntegerTypeHelper::create($this->meters, 1, 3);
+        $overlapsAbove = UnitIntegerTypeHelper::create($this->meters, 3, 5);
+        $contains = UnitIntegerTypeHelper::create($this->meters, 1, 5);
+        $below = UnitIntegerTypeHelper::create($this->meters, 1, 2);
+        $above = UnitIntegerTypeHelper::create($this->meters, 4, 5);
+        $unboundedBelow = UnitIntegerTypeHelper::create($this->meters, null, 2);
+        $unboundedAbove = UnitIntegerTypeHelper::create($this->meters, 4, null);
 
         self::assertSame(3, $threeMeters->getValue());
-        self::assertTrue($threeMeters->accepts(new UnitConstantIntegerType(3, $this->meters), true)->yes());
+        self::assertTrue($threeMeters->equals($equivalentThreeMeters));
+        self::assertFalse($threeMeters->equals(new UnitConstantIntegerType(4, $this->meters)));
+        self::assertFalse($threeMeters->equals(new UnitConstantIntegerType(3, $this->seconds)));
+        self::assertFalse($threeMeters->equals(new ConstantIntegerType(3)));
+
+        self::assertTrue($threeMeters->accepts($equivalentThreeMeters, true)->yes());
         self::assertTrue($threeMeters->accepts(new UnitConstantIntegerType(4, $this->meters), true)->no());
-        self::assertTrue($threeMeters->accepts(new UnitConstantIntegerType(3, $this->seconds), true)->no());
-        self::assertTrue($threeMeters->accepts(new ConstantIntegerType(3), true)->no());
+        self::assertTrue($threeMeters->accepts($overlapsBelow, true)->maybe());
+        self::assertTrue($threeMeters->accepts($overlapsAbove, true)->maybe());
+        self::assertTrue($threeMeters->accepts($contains, true)->maybe());
+        self::assertTrue($threeMeters->accepts($below, true)->no());
+        self::assertTrue($threeMeters->accepts($above, true)->no());
+        self::assertTrue($threeMeters->accepts($unboundedBelow, true)->no());
+        self::assertTrue($threeMeters->accepts($unboundedAbove, true)->no());
+
+        $wrongUnit = $threeMeters->accepts(new UnitConstantIntegerType(3, $this->seconds), true);
+        $bareInteger = $threeMeters->accepts(new ConstantIntegerType(3), true);
+        $unrelated = $threeMeters->accepts(new StringType(), true);
+        self::assertTrue($wrongUnit->no());
+        self::assertNotSame([], $wrongUnit->reasons);
+        self::assertTrue($bareInteger->no());
+        self::assertNotSame([], $bareInteger->reasons);
+        self::assertTrue($unrelated->no());
+        self::assertSame([], $unrelated->reasons);
+
+        self::assertTrue($threeMeters->isSuperTypeOf($equivalentThreeMeters)->yes());
+        self::assertTrue($threeMeters->isSuperTypeOf($contains)->maybe());
+        self::assertTrue($threeMeters->isSuperTypeOf($below)->no());
         self::assertTrue((new UnitFloatType($this->meters))->accepts($threeMeters, true)->yes());
         self::assertTrue((new UnitFloatType($this->meters))->accepts(
             UnitIntegerTypeHelper::create($this->meters, 1, 5),
@@ -152,5 +199,62 @@ final class UnitIntegerTypeHelperTest extends TestCase
             $union->describe(VerbosityLevel::precise()),
         );
         self::assertInstanceOf(UnitIntegerType::class, UnitIntegerTypeHelper::brand(new IntegerType(), $this->meters));
+    }
+
+    public function testExtractRejectsUnionsAndMalformedIntersections(): void
+    {
+        $constant = new UnitConstantIntegerType(7, $this->meters);
+        $unbounded = new UnitIntegerType($this->meters);
+        $union = new UnionType([
+            new UnitConstantIntegerType(1, $this->meters),
+            new UnitConstantIntegerType(2, $this->meters),
+        ]);
+        $conflictingUnits = new IntersectionType([
+            new UnitIntegerType($this->meters),
+            new UnitIntegerType($this->seconds),
+        ]);
+        $conflictingBounds = new IntersectionType([
+            new UnitIntegerType($this->meters),
+            IntegerRangeType::fromInterval(0, 2),
+            IntegerRangeType::fromInterval(3, 5),
+        ]);
+
+        self::assertSame(
+            ['unit' => $this->meters, 'min' => 7, 'max' => 7],
+            UnitIntegerTypeHelper::extract($constant),
+        );
+        self::assertSame(
+            ['unit' => $this->meters, 'min' => null, 'max' => null],
+            UnitIntegerTypeHelper::extract($unbounded),
+        );
+        self::assertNull(UnitIntegerTypeHelper::extract($union));
+        self::assertNull(UnitIntegerTypeHelper::extract(IntegerRangeType::fromInterval(0, 10)));
+        self::assertNull(UnitIntegerTypeHelper::extract($conflictingUnits));
+        self::assertNull(UnitIntegerTypeHelper::extract($conflictingBounds));
+    }
+
+    public function testIntegerBoundsHandleDirectNestedAndUnsupportedTypes(): void
+    {
+        $intersection = new IntersectionType([
+            new IntegerType(),
+            IntegerRangeType::fromInterval(null, 10),
+            IntegerRangeType::fromInterval(2, null),
+            IntegerRangeType::fromInterval(0, 20),
+        ]);
+        $union = new UnionType([
+            new ConstantIntegerType(1),
+            new ConstantIntegerType(2),
+        ]);
+
+        self::assertSame(['min' => 7, 'max' => 7], UnitIntegerTypeHelper::integerBounds(
+            new ConstantIntegerType(7),
+        ));
+        self::assertSame(['min' => null, 'max' => 10], UnitIntegerTypeHelper::integerBounds(
+            IntegerRangeType::fromInterval(null, 10),
+        ));
+        self::assertSame(['min' => 2, 'max' => 10], UnitIntegerTypeHelper::integerBounds($intersection));
+        self::assertSame(['min' => null, 'max' => null], UnitIntegerTypeHelper::integerBounds(new IntegerType()));
+        self::assertNull(UnitIntegerTypeHelper::integerBounds($union));
+        self::assertNull(UnitIntegerTypeHelper::integerBounds(new StringType()));
     }
 }

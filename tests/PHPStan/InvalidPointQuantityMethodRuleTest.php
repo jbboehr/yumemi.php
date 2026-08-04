@@ -94,14 +94,39 @@ final class InvalidPointQuantityMethodRuleTest extends RuleTestCase
                 18,
             ],
             [
+                'Cannot call PointQuantity::lessThan() with dimensionally incompatible point units celsius '
+                    . '(temperature) and meter (length).',
+                19,
+            ],
+            [
+                'Cannot call PointQuantity::lessThanOrEqualTo() with dimensionally incompatible point units celsius '
+                    . '(temperature) and meter (length).',
+                20,
+            ],
+            [
+                'Cannot call PointQuantity::greaterThan() with dimensionally incompatible point units celsius '
+                    . '(temperature) and meter (length).',
+                21,
+            ],
+            [
+                'Cannot call PointQuantity::greaterThanOrEqualTo() with dimensionally incompatible point units celsius '
+                    . '(temperature) and meter (length).',
+                22,
+            ],
+            [
                 'Cannot call PointQuantity::to() with dimensionally incompatible point units meter '
                     . '(length) and fahrenheit (temperature).',
-                37,
+                46,
             ],
             [
                 'Cannot call PointQuantity::difference() with dimensionally incompatible point units celsius '
                     . '(temperature) and meter (length).',
-                43,
+                52,
+            ],
+            [
+                'Cannot call PointQuantity::lessThan() with dimensionally incompatible point units celsius '
+                    . '(temperature) and meter (length).',
+                58,
             ],
         ]);
     }

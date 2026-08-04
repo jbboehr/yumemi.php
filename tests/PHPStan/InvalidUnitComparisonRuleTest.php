@@ -74,9 +74,21 @@ final class InvalidUnitComparisonRuleTest extends RuleTestCase
             ['Cannot use == between a unit type and a bare value; every possible operand needs a unit.', 21],
             ['Cannot use < between a unit type and a bare value; every possible operand needs a unit.', 22],
             ['Cannot use == with units second and meter because they are not definitionally equivalent.', 32],
-            ['Cannot use == between a unit type and a bare value; every possible operand needs a unit.', 38],
-            ['Cannot use != between a unit type and a bare value; every possible operand needs a unit.', 45],
-            ['Cannot use === between a unit type and a bare value; every possible operand needs a unit.', 48],
+            ['Cannot use == with units meter and second because they are not definitionally equivalent.', 33],
+            ['Cannot use == between a unit type and a bare value; every possible operand needs a unit.', 39],
+            ['Cannot use == between a unit type and a bare value; every possible operand needs a unit.', 40],
+            ['Cannot use != between a unit type and a bare value; every possible operand needs a unit.', 47],
+            ['Cannot use == between a unit type and a bare value; every possible operand needs a unit.', 48],
+            ['Cannot use == between a unit type and a bare value; every possible operand needs a unit.', 49],
+            ['Cannot use === between a unit type and a bare value; every possible operand needs a unit.', 54],
+            ['Cannot use == between a unit type and a bare value; every possible operand needs a unit.', 57],
+            ['Cannot use != between a unit type and a bare value; every possible operand needs a unit.', 58],
+            [
+                'Cannot use == with units meter and kilogram because they are not definitionally equivalent.',
+                65,
+            ],
+            ['Cannot use == between a unit type and a bare value; every possible operand needs a unit.', 71],
+            ['Cannot use == between a unit type and a bare value; every possible operand needs a unit.', 72],
         ]);
     }
 }

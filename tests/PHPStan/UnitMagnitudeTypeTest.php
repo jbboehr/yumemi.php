@@ -39,8 +39,10 @@ namespace jbboehr\Yumemi\Tests\PHPStan;
 use jbboehr\Yumemi\PHPStan\UnitExpressionParser;
 use jbboehr\Yumemi\PHPStan\UnitFloatType;
 use jbboehr\Yumemi\PHPStan\UnitIntegerType;
+use jbboehr\Yumemi\PHPStan\UnitIntegerTypeHelper;
 use PHPStan\Type\FloatType;
 use PHPStan\Type\IntegerType;
+use PHPStan\Type\StringType;
 use PHPStan\Type\VerbosityLevel;
 use PHPUnit\Framework\TestCase;
 
@@ -92,12 +94,46 @@ final class UnitMagnitudeTypeTest extends TestCase
         $this->assertTrue($meters->isSuperTypeOf($bare)->no());
     }
 
-    public function testBareFloatIsNotAssignableToUnitFloat(): void
+    public function testUnitFloatRelationshipMatrix(): void
     {
         $meters = $this->unitFloat('meter');
-        $bare = new FloatType();
+        $equivalentMeters = $this->unitFloat('100 * centimeter');
+        $feet = $this->unitFloat('foot');
+        $integerMeters = $this->unitInt('meter');
+        $integerFeet = $this->unitInt('foot');
+        $constantMeters = UnitIntegerTypeHelper::create($meters->getUnitExpression(), 3, 3);
+        $rangeMeters = UnitIntegerTypeHelper::create($meters->getUnitExpression(), 1, 5);
+        $rangeFeet = UnitIntegerTypeHelper::create($feet->getUnitExpression(), 1, 5);
 
-        $this->assertTrue($meters->accepts($bare, true)->no());
+        $this->assertTrue($meters->equals($equivalentMeters));
+        $this->assertFalse($meters->equals($feet));
+        $this->assertFalse($meters->equals($integerMeters));
+
+        $this->assertTrue($meters->accepts($equivalentMeters, true)->yes());
+        $this->assertTrue($meters->accepts($feet, true)->no());
+        $this->assertTrue($meters->accepts($integerMeters, true)->yes());
+        $this->assertTrue($meters->accepts($integerFeet, true)->no());
+        $this->assertTrue($meters->accepts($constantMeters, true)->yes());
+        $this->assertTrue($meters->accepts($rangeMeters, true)->yes());
+        $this->assertTrue($meters->accepts($rangeFeet, true)->no());
+
+        $this->assertTrue($meters->isSuperTypeOf($equivalentMeters)->yes());
+        $this->assertTrue($meters->isSuperTypeOf($feet)->no());
+        $this->assertTrue($meters->isSuperTypeOf($integerMeters)->no());
+        $this->assertTrue($meters->isSuperTypeOf($constantMeters)->no());
+
+        $bareFloatAcceptance = $meters->accepts(new FloatType(), true);
+        $bareIntegerAcceptance = $meters->accepts(new IntegerType(), true);
+        $unrelatedAcceptance = $meters->accepts(new StringType(), true);
+
+        $this->assertTrue($bareFloatAcceptance->no());
+        $this->assertNotSame([], $bareFloatAcceptance->reasons);
+        $this->assertTrue($bareIntegerAcceptance->no());
+        $this->assertNotSame([], $bareIntegerAcceptance->reasons);
+        $this->assertTrue($unrelatedAcceptance->no());
+        $this->assertSame([], $unrelatedAcceptance->reasons);
+        $this->assertTrue($meters->isSuperTypeOf(new FloatType())->no());
+        $this->assertTrue($meters->isSuperTypeOf(new IntegerType())->no());
     }
 
     public function testIntegerAndFloatUnitTypesAreDistinct(): void

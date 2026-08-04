@@ -38,8 +38,12 @@ namespace jbboehr\Yumemi\Tests\PHPStan;
 
 use jbboehr\Yumemi\PHPStan\UnitExpression;
 use jbboehr\Yumemi\PHPStan\UnitExpressionParser;
+use jbboehr\Yumemi\PHPStan\UnitFloatType;
 use jbboehr\Yumemi\PHPStan\UnitIntegerRangeMath;
+use jbboehr\Yumemi\PHPStan\UnitIntegerType;
 use jbboehr\Yumemi\PHPStan\UnitIntegerTypeHelper;
+use PHPStan\Type\BenevolentUnionType;
+use PHPStan\Type\Type;
 use PHPUnit\Framework\TestCase;
 
 final class UnitIntegerRangeMathTest extends TestCase
@@ -116,6 +120,183 @@ final class UnitIntegerRangeMathTest extends TestCase
         }
     }
 
+    public function testExactNativeIntegerLimitsRemainBrandedConstants(): void
+    {
+        $maximum = UnitIntegerRangeMath::add(
+            $this->unit,
+            ['min' => PHP_INT_MAX - 1, 'max' => PHP_INT_MAX - 1],
+            ['min' => 1, 'max' => 1],
+            true,
+        );
+        $minimum = UnitIntegerRangeMath::subtract(
+            $this->unit,
+            ['min' => PHP_INT_MIN + 1, 'max' => PHP_INT_MIN + 1],
+            ['min' => 1, 'max' => 1],
+            true,
+        );
+
+        self::assertSame(
+            ['unit' => $this->unit, 'min' => PHP_INT_MAX, 'max' => PHP_INT_MAX],
+            UnitIntegerTypeHelper::extract($maximum),
+        );
+        self::assertSame(
+            ['unit' => $this->unit, 'min' => PHP_INT_MIN, 'max' => PHP_INT_MIN],
+            UnitIntegerTypeHelper::extract($minimum),
+        );
+    }
+
+    public function testPartialOverflowAndUnderflowPreserveTheirIntegerSubranges(): void
+    {
+        $upperAddition = UnitIntegerRangeMath::add(
+            $this->unit,
+            ['min' => PHP_INT_MAX - 1, 'max' => PHP_INT_MAX],
+            ['min' => 0, 'max' => 1],
+            true,
+        );
+        $lowerAddition = UnitIntegerRangeMath::add(
+            $this->unit,
+            ['min' => PHP_INT_MIN, 'max' => PHP_INT_MIN + 1],
+            ['min' => -1, 'max' => 0],
+            true,
+        );
+        $upperSubtraction = UnitIntegerRangeMath::subtract(
+            $this->unit,
+            ['min' => PHP_INT_MAX - 1, 'max' => PHP_INT_MAX],
+            ['min' => -1, 'max' => 0],
+            true,
+        );
+        $lowerSubtraction = UnitIntegerRangeMath::subtract(
+            $this->unit,
+            ['min' => PHP_INT_MIN, 'max' => PHP_INT_MIN + 1],
+            ['min' => 0, 'max' => 1],
+            true,
+        );
+        $upperMultiplication = UnitIntegerRangeMath::multiply(
+            $this->unit,
+            ['min' => intdiv(PHP_INT_MAX, 2), 'max' => intdiv(PHP_INT_MAX, 2) + 1],
+            ['min' => 2, 'max' => 2],
+            true,
+        );
+        $lowerMultiplication = UnitIntegerRangeMath::multiply(
+            $this->unit,
+            ['min' => intdiv(PHP_INT_MIN, 2) - 1, 'max' => intdiv(PHP_INT_MIN, 2)],
+            ['min' => 2, 'max' => 2],
+            true,
+        );
+        $negation = UnitIntegerRangeMath::negate(
+            $this->unit,
+            ['min' => PHP_INT_MIN, 'max' => PHP_INT_MIN + 1],
+            true,
+        );
+
+        $this->assertIntegerAndFloat($upperAddition, PHP_INT_MAX - 1, null);
+        $this->assertIntegerAndFloat($lowerAddition, null, PHP_INT_MIN + 1);
+        $this->assertIntegerAndFloat($upperSubtraction, PHP_INT_MAX - 1, null);
+        $this->assertIntegerAndFloat($lowerSubtraction, null, PHP_INT_MIN + 1);
+        $this->assertIntegerAndFloat($upperMultiplication, PHP_INT_MAX - 1, null);
+        $this->assertIntegerAndFloat($lowerMultiplication, PHP_INT_MIN, PHP_INT_MIN);
+        $this->assertIntegerAndFloat($negation, PHP_INT_MAX, PHP_INT_MAX);
+    }
+
+    public function testGuaranteedOverflowAndUnderflowPromoteSymmetrically(): void
+    {
+        $cases = [
+            UnitIntegerRangeMath::add(
+                $this->unit,
+                ['min' => PHP_INT_MAX, 'max' => PHP_INT_MAX],
+                ['min' => 1, 'max' => 1],
+                true,
+            ),
+            UnitIntegerRangeMath::add(
+                $this->unit,
+                ['min' => PHP_INT_MIN, 'max' => PHP_INT_MIN],
+                ['min' => -1, 'max' => -1],
+                true,
+            ),
+            UnitIntegerRangeMath::subtract(
+                $this->unit,
+                ['min' => PHP_INT_MAX, 'max' => PHP_INT_MAX],
+                ['min' => -1, 'max' => -1],
+                true,
+            ),
+            UnitIntegerRangeMath::subtract(
+                $this->unit,
+                ['min' => PHP_INT_MIN, 'max' => PHP_INT_MIN],
+                ['min' => 1, 'max' => 1],
+                true,
+            ),
+            UnitIntegerRangeMath::multiply(
+                $this->unit,
+                ['min' => PHP_INT_MAX, 'max' => PHP_INT_MAX],
+                ['min' => 2, 'max' => 2],
+                true,
+            ),
+            UnitIntegerRangeMath::multiply(
+                $this->unit,
+                ['min' => PHP_INT_MIN, 'max' => PHP_INT_MIN],
+                ['min' => 2, 'max' => 2],
+                true,
+            ),
+            UnitIntegerRangeMath::negate(
+                $this->unit,
+                ['min' => PHP_INT_MIN, 'max' => PHP_INT_MIN],
+                true,
+            ),
+            UnitIntegerRangeMath::power(
+                $this->unit,
+                ['min' => PHP_INT_MAX, 'max' => PHP_INT_MAX],
+                2,
+                true,
+            ),
+            UnitIntegerRangeMath::power(
+                $this->unit,
+                ['min' => PHP_INT_MIN, 'max' => PHP_INT_MIN],
+                2,
+                true,
+            ),
+        ];
+
+        foreach ($cases as $type) {
+            self::assertInstanceOf(UnitFloatType::class, $type);
+            self::assertTrue($this->unit->equivalent($type->getUnitExpression()));
+        }
+    }
+
+    public function testDisabledPromotionWidensPartialAndGuaranteedBoundaryResultsToUnitInteger(): void
+    {
+        $cases = [
+            UnitIntegerRangeMath::add(
+                $this->unit,
+                ['min' => PHP_INT_MAX - 1, 'max' => PHP_INT_MAX],
+                ['min' => 0, 'max' => 1],
+                false,
+            ),
+            UnitIntegerRangeMath::add(
+                $this->unit,
+                ['min' => PHP_INT_MIN, 'max' => PHP_INT_MIN + 1],
+                ['min' => -1, 'max' => 0],
+                false,
+            ),
+            UnitIntegerRangeMath::add(
+                $this->unit,
+                ['min' => PHP_INT_MAX, 'max' => PHP_INT_MAX],
+                ['min' => 1, 'max' => 1],
+                false,
+            ),
+            UnitIntegerRangeMath::add(
+                $this->unit,
+                ['min' => PHP_INT_MIN, 'max' => PHP_INT_MIN],
+                ['min' => -1, 'max' => -1],
+                false,
+            ),
+        ];
+
+        foreach ($cases as $type) {
+            self::assertInstanceOf(UnitIntegerType::class, $type);
+            self::assertTrue($this->unit->equivalent($type->getUnitExpression()));
+        }
+    }
+
     /** @return list<array{min: int, max: int}> */
     private static function smallIntervals(): array
     {
@@ -137,5 +318,30 @@ final class UnitIntegerRangeMathTest extends TestCase
         }
 
         return $result;
+    }
+
+    private function assertIntegerAndFloat(Type $type, ?int $integerMin, ?int $integerMax): void
+    {
+        self::assertInstanceOf(BenevolentUnionType::class, $type);
+        self::assertCount(2, $type->getTypes());
+
+        $integer = null;
+        $hasFloat = false;
+        foreach ($type->getTypes() as $innerType) {
+            if ($innerType instanceof UnitFloatType) {
+                self::assertTrue($this->unit->equivalent($innerType->getUnitExpression()));
+                $hasFloat = true;
+
+                continue;
+            }
+
+            $integer = UnitIntegerTypeHelper::extract($innerType);
+        }
+
+        self::assertTrue($hasFloat);
+        self::assertSame(
+            ['unit' => $this->unit, 'min' => $integerMin, 'max' => $integerMax],
+            $integer,
+        );
     }
 }
