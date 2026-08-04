@@ -21,6 +21,8 @@ docs/development export-ignore
 docs/pages/images/logia export-ignore
 docs/pages/images/logia/** export-ignore
 infection.json5.dist export-ignore
+infection.phpstan.bootstrap.php export-ignore
+infection.phpstan.json5.dist export-ignore
 phpbench-perfidious.json export-ignore
 phpbench.json export-ignore
 phpstan.neon.dist export-ignore

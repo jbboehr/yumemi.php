@@ -54,6 +54,8 @@
             "/flake.lock",
             "/flake.nix",
             "/infection.json5.dist",
+            "/infection.phpstan.bootstrap.php",
+            "/infection.phpstan.json5.dist",
             "/*.log",
             "/phpbench-perfidious.json",
             "/phpbench.json",
@@ -127,6 +129,9 @@
         "infection": "infection --no-progress",
         "infection:ci": "infection --no-progress --min-msi=86 --min-covered-msi=86",
         "infection:core": "infection --no-progress --filter=src/Number/Rational.php,src/Dimension.php,src/Analyzer",
+        "infection:phpstan": "infection --configuration=infection.phpstan.json5.dist --no-progress",
+        "infection:phpstan:ci": "infection --configuration=infection.phpstan.json5.dist --no-progress --min-msi=85 --min-covered-msi=85",
+        "infection:phpstan:core": "infection --configuration=infection.phpstan.json5.dist --no-progress --filter=src/PHPStan/UnitExpression.php,src/PHPStan/UnitExpressionAlgebra.php,src/PHPStan/UnitExpressionParseResult.php,src/PHPStan/UnitExpressionParser.php,src/PHPStan/UnitConstantIntegerType.php,src/PHPStan/UnitFloatType.php,src/PHPStan/UnitIntegerRangeMath.php,src/PHPStan/UnitIntegerType.php,src/PHPStan/UnitIntegerTypeHelper.php,src/PHPStan/UnitOperatorTypeSpecifyingExtension.php,src/PHPStan/UnitUnaryOperatorTypeSpecifyingExtension.php,src/PHPStan/QuantityType.php,src/PHPStan/PointQuantityType.php,src/PHPStan/PointUnitExpression.php,src/PHPStan/PointUnitExpressionParseResult.php",
         "test:consumer": "make test-consumer",
         "test:consumer:archive": "make test-consumer-archive",
         "test:udunits2": "make test-udunits2"

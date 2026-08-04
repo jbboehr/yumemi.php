@@ -22,18 +22,48 @@ Run the full campaign over all configured handwritten runtime source:
 composer infection
 ```
 
+Run the focused campaign over the directly tested PHPStan type, expression, interval, and operator layer:
+
+```console
+composer infection:phpstan:core
+```
+
+Run the broader experimental campaign over all handwritten PHPStan adapter source:
+
+```console
+composer infection:phpstan
+```
+
 CI runs the same full campaign with minimum total and covered MSI thresholds of 86%:
 
 ```console
 composer infection:ci
 ```
 
-All three commands exclude the generated Bison parser and the PHPStan adapter. The generated parser should be tested
-through its grammar and regeneration checks. PHPStan mutation testing is deferred until the PHPUnit-only results have a
-stable, understandable baseline.
+CI runs the full PHPStan campaign separately with minimum total and covered MSI thresholds of 85%:
 
-Infection writes the complete escaped-mutant report to `infection.log` and aggregate counts to `infection-summary.log`.
-These files are ignored by Git and uploaded by the mutation CI job.
+```console
+composer infection:phpstan:ci
+```
+
+The runtime commands exclude the generated Bison parser and the PHPStan adapter. The generated parser should be tested
+through its grammar and regeneration checks. PHPStan uses a separate configuration and separate report files so its
+slower analyzer-backed tests and initial score do not affect the established runtime campaign or CI floor. The PHPStan
+campaign runs in a separate CI job, while the focused command remains available for local investigation.
+
+Most PHPStan adapter tests execute in the PHPUnit process through direct unit tests, `RuleTestCase`, `PHPStanTestCase`,
+or `TypeInferenceTestCase`. Infection can therefore replace those source paths normally. CLI integration tests that
+spawn the real PHPStan binary remain useful end-to-end checks, but their child processes do not reliably execute the
+active mutant and should not be treated as mutation coverage.
+
+PHPStan bundles `phpstan/phpdoc-parser` inside its PHAR rather than exposing it through Composer's project autoloader.
+The PHPStan Infection configuration loads `infection.phpstan.bootstrap.php` only in Infection's mutation generator so it
+can reflect adapter classes that extend those bundled AST visitors. This does not add a runtime dependency or alter the
+autoloading used by PHPUnit, PHPStan, or consumers.
+
+Infection writes the runtime campaign's complete escaped-mutant report to `infection.log` and aggregate counts to
+`infection-summary.log`. PHPStan campaigns use `infection-phpstan.log` and `infection-phpstan-summary.log`. These files
+are ignored by Git; CI uploads both report sets as separate artifacts.
 
 ## Reading Results
 
@@ -48,9 +78,9 @@ The most useful result categories are:
   this, but repeated unexplained timeouts need investigation.
 
 The mutation score indicator (MSI) is the percentage of all generated mutants that were defeated. Covered MSI ignores
-uncovered mutants and is usually the clearer measure of assertion quality. CI enforces an 86% floor for both scores, so
-it detects regressions in assertion quality as well as mutation coverage. The threshold intentionally remains below the
-current score to allow minor tool and runtime variation.
+uncovered mutants and is usually the clearer measure of assertion quality. CI enforces both total and covered MSI floors
+of 86% for runtime source and 85% for PHPStan source, so it detects regressions in assertion quality as well as mutation
+coverage. The thresholds intentionally remain below the current scores to allow minor tool and runtime variation.
 
 ## Investigating An Escape
 

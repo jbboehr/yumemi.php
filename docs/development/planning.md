@@ -92,8 +92,8 @@ Current verification:
 - Nix flake checks pass
 - PHPBench covers representative cold and warm runtime workflows; CI smoke-tests benchmark discovery without timing
   floors, while an optional Linux Perfidious profile captures local `perf_events` counters
-- Infection runs against all handwritten runtime source in CI with 86% total and covered MSI floors; the PHPStan adapter
-  and generated parser are excluded
+- Infection runs separate CI campaigns against all handwritten runtime source and the in-process PHPStan adapter tests,
+  with respective total and covered MSI floors of 86% and 85%; the generated parser remains excluded
 - a separate Xdebug development shell supports [focused, local branch and path coverage audits](branch-coverage.md)
   without adding their cost to CI or `nix flake check`; branch and path percentages currently have no enforced floor
 - isolated consumer fixtures install a mirrored Composer package, verify automatic and manual PHPStan registration, and

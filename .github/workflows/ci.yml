@@ -170,3 +170,34 @@ jobs:
                       infection.log
                       infection-summary.log
                   if-no-files-found: warn
+
+    phpstan-mutation:
+        name: PHPStan mutation testing
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Install PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  coverage: pcov
+                  extensions: dom, gmp
+                  php-version: "8.2"
+                  tools: composer:v2
+
+            - name: Install dependencies
+              run: composer install --prefer-dist --no-interaction --no-progress
+
+            - name: Run PHPStan mutation tests
+              run: composer infection:phpstan:ci
+
+            - name: Upload PHPStan mutation reports
+              if: always()
+              uses: actions/upload-artifact@v7
+              with:
+                  name: infection-phpstan-reports
+                  path: |
+                      infection-phpstan.log
+                      infection-phpstan-summary.log
+                  if-no-files-found: warn

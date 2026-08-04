@@ -1,0 +1,18 @@
+{
+    bootstrap: "infection.phpstan.bootstrap.php",
+    source: {
+        directories: [
+            "src/PHPStan",
+        ],
+    },
+    timeout: 20,
+    threads: "max",
+    logs: {
+        text: "infection-phpstan.log",
+        summary: "infection-phpstan-summary.log",
+    },
+    testFramework: "phpunit",
+    mutators: {
+        "@default": true,
+    },
+}
