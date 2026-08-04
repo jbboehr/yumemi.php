@@ -31,6 +31,10 @@
                 title: "Branded Native Types",
                 children: [
                     {
+                        id: "integer-constants-and-ranges",
+                        title: "Integer Constants And Ranges",
+                    },
+                    {
                         id: "definitional-equivalence-and-compatibility",
                         title: "Definitional Equivalence And Compatibility",
                     },

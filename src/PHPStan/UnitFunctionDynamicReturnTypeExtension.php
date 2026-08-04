@@ -108,7 +108,7 @@ final class UnitFunctionDynamicReturnTypeExtension implements DynamicFunctionRet
         // Prefer int branding when the magnitude is definitely an integer (not a float).
         if ($valueType->isInteger()->yes() && !$valueType->isFloat()->yes()) {
             return TypeCombinator::union(...array_map(
-                static fn (UnitExpression $unit): UnitIntegerType => new UnitIntegerType($unit),
+                static fn (UnitExpression $unit): Type => UnitIntegerTypeHelper::brand($valueType, $unit),
                 $units,
             ));
         }

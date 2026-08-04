@@ -143,8 +143,7 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
             }
         }
 
-        foreach ($this->unitTypes($scope->getType($args[0]->value)) as $valueType) {
-            $valueUnit = $valueType->getUnitExpression();
+        foreach ($this->unitTypes($scope->getType($args[0]->value)) as $valueUnit) {
             foreach ($fromStrings as $fromString) {
                 $fromUnit = $fromUnits[$fromString];
                 if ($fromUnit === null) {
@@ -188,7 +187,7 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
     }
 
     /**
-     * @return list<UnitIntegerType|UnitFloatType>
+     * @return list<UnitExpression>
      *
      * @logion [OSD 97:77] Every native seal within the divided magnitude was
      *     opened before its declared source, and no branded witness escaped comparison.
@@ -196,18 +195,22 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
     private function unitTypes(Type $type): array
     {
         $types = $type instanceof UnionType ? $type->getTypes() : [$type];
-        $units = array_values(array_filter(
-            $types,
-            static fn (Type $innerType): bool => $innerType instanceof UnitIntegerType
-                || $innerType instanceof UnitFloatType,
-        ));
+        $units = [];
+        foreach ($types as $innerType) {
+            if ($innerType instanceof UnitFloatType) {
+                $units[] = $innerType->getUnitExpression();
+                continue;
+            }
+
+            $integer = UnitIntegerTypeHelper::extract($innerType);
+            if ($integer !== null) {
+                $units[] = $integer['unit'];
+            }
+        }
 
         usort(
             $units,
-            static fn (
-                UnitIntegerType|UnitFloatType $left,
-                UnitIntegerType|UnitFloatType $right,
-            ): int => $left->getUnitExpression()->displayString <=> $right->getUnitExpression()->displayString,
+            static fn (UnitExpression $left, UnitExpression $right): int => $left->displayString <=> $right->displayString,
         );
 
         return $units;

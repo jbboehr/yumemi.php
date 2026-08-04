@@ -194,8 +194,9 @@ final class UnitsQuantityReturnTypeExtension implements DynamicMethodReturnTypeE
 
         $valueType = $scope->getType($args[0]->value);
 
-        if ($valueType instanceof UnitIntegerType) {
-            $valueUnit = $valueType->getUnitExpression();
+        $integer = UnitIntegerTypeHelper::extract($valueType);
+        if ($integer !== null) {
+            $valueUnit = $integer['unit'];
             foreach ($targetUnits as $targetUnit) {
                 if (!$valueUnit->equivalent($targetUnit)) {
                     return new ErrorType(sprintf(

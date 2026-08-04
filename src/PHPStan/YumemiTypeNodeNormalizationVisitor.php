@@ -37,7 +37,9 @@
 namespace jbboehr\Yumemi\PHPStan;
 
 use PHPStan\PhpDocParser\Ast\AbstractNodeVisitor;
+use PHPStan\PhpDocParser\Ast\ConstExpr\ConstExprIntegerNode;
 use PHPStan\PhpDocParser\Ast\Node;
+use PHPStan\PhpDocParser\Ast\Type\ConstTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\GenericTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\IntersectionTypeNode;
@@ -122,6 +124,35 @@ final class YumemiTypeNodeNormalizationVisitor extends AbstractNodeVisitor
             $byDescription[(string) $type] = $type;
         }
         ksort($byDescription);
+
+        if (!$union && isset($byDescription['int'])) {
+            $hasIntegerRefinement = false;
+            foreach ($byDescription as $description => $type) {
+                if ($description === 'int') {
+                    continue;
+                }
+
+                if (
+                    ($type instanceof GenericTypeNode && strtolower($type->type->name) === 'int')
+                    || ($type instanceof ConstTypeNode && $type->constExpr instanceof ConstExprIntegerNode)
+                    || ($type instanceof IdentifierTypeNode && in_array(strtolower($type->name), [
+                        'negative-int',
+                        'non-negative-int',
+                        'non-positive-int',
+                        'non-zero-int',
+                        'positive-int',
+                    ], true))
+                ) {
+                    $hasIntegerRefinement = true;
+                    break;
+                }
+            }
+
+            if ($hasIntegerRefinement) {
+                unset($byDescription['int']);
+            }
+        }
+
         $normalized = array_values($byDescription);
 
         if (count($normalized) === 1) {

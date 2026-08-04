@@ -82,9 +82,9 @@ final class UnitArgumentTypeRuleTest extends RuleTestCase
                 'Type #3 from the union: Bare int is not assignable to unit_int<\'second\'>; keep the unit annotation.',
             ],
             [
-                'Parameter #1 $ttl of method jbboehr\Yumemi\Tests\PHPStan\Fixtures\UnitUnionCase::acceptTtl() expects DateInterval|DateTimeInterface|unit_int<\'second\'>|null, unit_int<\'minute\'> given.',
+                'Parameter #1 $ttl of method jbboehr\Yumemi\Tests\PHPStan\Fixtures\UnitUnionCase::acceptTtl() expects DateInterval|DateTimeInterface|unit_int<\'second\'>|null, 2&unit_int<\'minute\'> given.',
                 19,
-                'Type #3 from the union: Unit unit_int<\'minute\'> is not assignable to unit_int<\'second\'> (normalized forms differ).',
+                'Type #3 from the union: Unit 2&unit_int<\'minute\'> is not assignable to unit_int<\'second\'> (normalized forms differ).',
             ],
         ]);
     }

@@ -52,6 +52,30 @@ ordinary comment used by the documentation tests, not a Yumemi annotation.
 The catalog canonicalizes aliases when it constructs a brand, which is why the diagnostic names `international_foot`.
 The [catalog reference](catalog.md) describes canonical names, aliases, symbols, plurals, and prefixes.
 
+### Integer Constants And Ranges
+
+Integer precision composes with a unit brand through PHPStan's ordinary intersection syntax:
+
+```php
+<?php
+
+use function jbboehr\Yumemi\unit;
+
+/** @param unit_int<'second'>&int<0, max> $delay */
+function scheduleBoundedRetry(int $delay): void {}
+
+scheduleBoundedRetry(unit(30, 'second'));
+```
+
+`unit(30, 'second')` is inferred as the branded constant `30&unit_int<'second'>`. A native `int<0, 100>` passed to
+`unit($value, 'second')` becomes `unit_int<'second'>&int<0, 100>`. Standard refinements such as `positive-int` and
+`non-negative-int` may be intersected with `unit_int` in the same way. There is no separate `unit_const_int` syntax:
+literal and range precision remain ordinary PHPStan types, while `unit_int` contributes only the unit identity.
+
+Bounded targets enforce both parts. A bare `int<0, 100>` lacks the required unit, a branded value outside the range
+violates the bound, and a value with another unit violates the brand. An unbounded `unit_int<'second'>` accepts bounded
+and constant seconds.
+
 ### Definitional Equivalence And Compatibility
 
 Native arithmetic cannot change either operand's magnitude to a different scale. Addition, subtraction, and assignment
@@ -75,14 +99,24 @@ Yumemi infers native unit types for unary `+` and `-` and for these binary opera
 | Comparisons | Require definitionally equivalent units and retain PHP's native result    |
 
 Multiplication and division may combine a unit value with a bare numeric scalar. Division always produces a
-`unit_float`; operations involving a float-like magnitude also produce a float brand. PHP can promote overflowing
-integer arithmetic to `float`, so integer `+`, `-`, `*`, unary `-`, and powers above one conservatively produce a
-benevolent union of matching `unit_int` and `unit_float` brands. Modulo, unary `+`, powers zero and one, and
-multiplication by a statically known bare zero or one remain `unit_int`. Finite operand unions are evaluated arm by arm;
-Yumemi returns the union of valid results and rejects the whole operation if any possible pairing is invalid.
+`unit_float`; operations involving a float-like magnitude also produce a float brand. Yumemi preserves known integer
+constants and signed ranges through addition, subtraction, multiplication, unary signs, and nonnegative powers. Exact
+endpoint arithmetic determines the result kind:
 
-Applications that guarantee their branded integer arithmetic cannot overflow can retain PHPStan's ordinary
-integer-preserving approximation:
+| Mathematical result relative to PHP's integer range | Inferred type                                           |
+| --------------------------------------------------- | ------------------------------------------------------- |
+| Entirely inside                                     | Branded constant or bounded `unit_int`                  |
+| Entirely outside                                    | `unit_float`                                            |
+| Partly inside                                       | Benevolent union of bounded `unit_int` and `unit_float` |
+
+For a mixed result, the integer branch is clipped to values PHP can actually retain as integers. Unary negation
+therefore isolates the `PHP_INT_MIN` case rather than treating every integer as equally likely to overflow. Modulo
+preserves a branded constant when both operands are known and the divisor is nonzero; other modulo results remain an
+unbounded `unit_int`. Finite operand unions are evaluated arm by arm, and Yumemi rejects the whole operation if any
+possible pairing is invalid.
+
+Applications that intentionally prefer PHPStan's integer-preserving approximation for potentially overflowing arithmetic
+can disable float promotion:
 
 ```neon
 parameters:
@@ -90,7 +124,9 @@ parameters:
         integerOverflowToFloat: false
 ```
 
-This setting changes static inference only; it cannot alter PHP's runtime overflow behavior.
+This setting changes static inference only; it cannot alter PHP's runtime overflow behavior. Proven-safe constants and
+ranges remain precise; a potentially overflowing result widens to an unbounded `unit_int` because PHPStan cannot
+represent an integer endpoint outside PHP's platform range.
 
 For example, distance divided by time is inferred as speed, while distance multiplied by time is rejected at a speed
 boundary:
@@ -293,6 +329,7 @@ Yumemi promotes them onto PHPStan's normal type surface for parameters, returns,
 A Yumemi tag may replace a fallback only when erasing its units produces the same PHPDoc structure. Every
 `unit_int<'...'>` must erase to `int`, every `unit_float<'...'>` to `float`, and every `Quantity<'...'>` to `Quantity`,
 and every `PointQuantity<'...'>` to `PointQuantity`, including within nullable, union, intersection, and generic types.
+For example, `unit_int<'second'>&int<0, max>` erases to `int<0, max>`, while `3&unit_int<'meter'>` erases to `3`.
 Parameter references and variadic markers must also match. Union and intersection order and nullable spelling do not
 matter. `@phpstan-*` takes priority over the ordinary tag. An already promoted `@phpstan-*` tag with exactly the same
 unit-bearing structure is accepted idempotently. Any other mismatch leaves the fallback unchanged and reports a
@@ -313,7 +350,7 @@ function storeWarehouseLength(int $length): void {}
 //! expects unit_int<'meter'>, int given
 storeWarehouseLength(5);
 
-//! expects unit_int<'meter'>, unit_int<'international_foot'> given
+//! expects unit_int<'meter'>, 3&unit_int<'international_foot'> given
 storeWarehouseLength(unit(3, 'foot'));
 ```
 
@@ -383,8 +420,7 @@ Important limits of the current static model are:
 - `unit_to()` and `unit_factor()` do not preserve correlation across independent source and target unions. They validate
   the Cartesian product and therefore reject a correlated union call if any cross-pairing would be invalid.
 - Unit exponentiation supports constant integers only.
-- Branded integer types do not retain PHPStan integer ranges, so overflow-aware inference is conservative unless
-  `integerOverflowToFloat` is disabled.
+- PHPStan has no corresponding native float-range syntax, so branded floats do not retain continuous bounds.
 - Dimensional analysis cannot distinguish different physical meanings with the same dimension, such as gray and sievert.
 
 Add targeted PHPStan integrations for demonstrated application workflows rather than assuming every cast, built-in, or

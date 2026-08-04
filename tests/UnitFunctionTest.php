@@ -56,7 +56,7 @@ final class UnitFunctionTest extends TestCase
     public function testReturnsMagnitudeUnchanged(): void
     {
         $this->assertSame(1500.0, unit(1500.0, 'kilogram'));
-        $this->assertSame(3, unit(3, 'meter'));
+        $this->assertSame(3, unit(self::three(), 'meter'));
     }
 
     public function testNativeHelpersUseConfiguredDefaultContext(): void
@@ -71,7 +71,7 @@ final class UnitFunctionTest extends TestCase
         $meter = 'meter';
 
         try {
-            $this->assertSame(3, unit(3, $widget));
+            $this->assertSame(3, unit(self::three(), $widget));
             $this->assertSame(2.0, unit_factor($widget, $meter));
             $this->assertSame(6.0, unit_to(3, $widget, $meter));
         } finally {
@@ -85,6 +85,11 @@ final class UnitFunctionTest extends TestCase
         $this->expectExceptionMessage('Invalid unit expression');
 
         unit(1.0, 'not_a_real_unit_xyz'); // @phpstan-ignore yumemi.invalidUnitCall (intentional: exercises the runtime rejection path)
+    }
+
+    private static function three(): int
+    {
+        return 3;
     }
 
     /**

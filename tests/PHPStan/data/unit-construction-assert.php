@@ -1,5 +1,7 @@
 <?php
 
+use jbboehr\Yumemi\Units;
+
 use function jbboehr\Yumemi\unit;
 use function jbboehr\Yumemi\unit_factor;
 use function jbboehr\Yumemi\unit_to;
@@ -8,16 +10,41 @@ use function PHPStan\Testing\assertType;
 // --- unit() ---
 
 assertType("unit_float<'meter'>", unit(1.5, 'meter'));
-assertType("unit_int<'second'>", unit(3, 'second'));
-assertType("unit_int<'kilogram * meter / second'>", unit(1, 'meter / second kilogram'));
+assertType("3&unit_int<'second'>", unit(3, 'second'));
+assertType("1&unit_int<'kilogram * meter / second'>", unit(1, 'meter / second kilogram'));
 assertType("unit_float<'kilogram * meter / second ^ 2'>", unit(1500.0, 'kilogram') * unit(3.0, 'meter / second^2'));
 assertType('*ERROR*', unit(1.0, 'not_a_real_unit_xyz'));
+
+/** @param int<0, 100> $value */
+function brandBoundedInteger(int $value): void
+{
+    $length = unit($value, 'meter');
+    assertType("unit_int<'meter'>&int<0, 100>", $length);
+    assertType("unit_int<'meter'>&int<2, 102>", $length + unit(2, 'meter'));
+}
+
+/** @param unit_int<'meter'>&int<0, 100> $value */
+function narrowBoundedUnitInteger(int $value): void
+{
+    assertType("unit_int<'meter'>&int<0, 100>", $value);
+
+    if ($value > unit(50, 'meter')) {
+        assertType("unit_int<'meter'>&int<51, 100>", $value);
+    }
+}
+
+/** @param unit_int<'meter'>&int<0, 100> $value */
+function useBoundedIntegerAtRuntimeBoundaries(int $value): void
+{
+    assertType("unit_float<'international_foot'>", unit_to($value, 'meter', 'foot'));
+    assertType("Quantity<'meter'>", Units::default()->quantity($value, 'meter'));
+}
 
 /** @param unit_int<'meter'>|unit_int<'second'> $value */
 function finiteNativeUnitArithmetic(int $value): void
 {
     assertType(
-        "(unit_float<'meter * second'>|unit_float<'second ^ 2'>|unit_int<'meter * second'>|unit_int<'second ^ 2'>)",
+        "unit_int<'meter * second'>|unit_int<'second ^ 2'>",
         $value * unit(1, 'second'),
     );
     assertType('*ERROR*', $value + unit(1, 'meter'));
@@ -26,20 +53,20 @@ function finiteNativeUnitArithmetic(int $value): void
 /** @param 'meter'|'foot' $unit */
 function finiteUnits(string $unit): void
 {
-    assertType("unit_int<'international_foot'>|unit_int<'meter'>", unit(1, $unit));
+    assertType("1&unit_int<'meter'>|1&unit_int<'international_foot'>", unit(1, $unit));
     assertType("unit_float<'international_foot'>|unit_float<'meter'>", unit(1.0, $unit));
 }
 
 /** @param 'meter / second'|'kilogram' $unit */
 function finiteCompoundUnits(string $unit): void
 {
-    assertType("unit_int<'kilogram'>|unit_int<'meter / second'>", unit(1, $unit));
+    assertType("1&unit_int<'meter / second'>|1&unit_int<'kilogram'>", unit(1, $unit));
 }
 
 /** @param 'foot'|'international_foot' $unit */
 function finiteEquivalentUnits(string $unit): void
 {
-    assertType("unit_int<'international_foot'>", unit(1, $unit));
+    assertType("1&unit_int<'international_foot'>", unit(1, $unit));
 }
 
 /** @param 'meter'|'not_a_real_unit_xyz' $unit */

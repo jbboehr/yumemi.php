@@ -263,11 +263,10 @@ conversion helpers; preserves finite literal-string unions; configures custom re
 diagnostics.
 
 The separate [Yumemi Apocrypha](https://github.com/jbboehr/yumemi-apocrypha.php) package supplies curated third-party
-stubs without expanding core's dependency graph. Overflow-capable branded integer arithmetic conservatively preserves
-`unit_int|unit_float`, with an opt-out for applications that assume integer-safe magnitudes. Retaining PHPStan constant
-and integer-range bounds could narrow those results later, but is precision work rather than missing core soundness.
-Remaining work is selected casts and built-ins, more precise diagnostics, and future advanced unit semantics. Dynamic
-strings intentionally fall back to unbranded types.
+stubs without expanding core's dependency graph. Branded integer constants and PHPStan integer-range intersections now
+propagate through supported arithmetic, allowing exact bounds to distinguish safe integer results, guaranteed float
+overflow, and mixed outcomes. Remaining work is branded float precision, selected casts and built-ins, more precise
+diagnostics, and future advanced unit semantics. Dynamic strings intentionally fall back to unbranded types.
 
 ### 22. Function Boundary Checking
 

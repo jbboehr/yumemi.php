@@ -75,8 +75,9 @@ final class UnitIntegerType extends IntegerType
 
     public function accepts(Type $type, bool $strictTypes): AcceptsResult
     {
-        if ($type instanceof self) {
-            if ($this->unit->equivalent($type->unit)) {
+        $metadata = UnitIntegerTypeHelper::extract($type);
+        if ($metadata !== null) {
+            if ($this->unit->equivalent($metadata['unit'])) {
                 return AcceptsResult::createYes();
             }
 
@@ -103,8 +104,9 @@ final class UnitIntegerType extends IntegerType
 
     public function isSuperTypeOf(Type $type): IsSuperTypeOfResult
     {
-        if ($type instanceof self) {
-            return $this->unit->equivalent($type->unit)
+        $metadata = UnitIntegerTypeHelper::extract($type);
+        if ($metadata !== null) {
+            return $this->unit->equivalent($metadata['unit'])
                 ? IsSuperTypeOfResult::createYes()
                 : IsSuperTypeOfResult::createNo();
         }

@@ -24,6 +24,24 @@ function measuredFeet(): int
 }
 
 /**
+ * @return int<0, 100>
+ * @yumemi-return unit_int<'second'>&int<0, 100>
+ */
+function boundedDuration(): int
+{
+    return 50;
+}
+
+/**
+ * @return 3
+ * @yumemi-return 3&unit_int<'meter'>
+ */
+function constantLength(): int
+{
+    return 3;
+}
+
+/**
  * @return float
  *
  * @yumemi-return unit_float<'meter / second'>

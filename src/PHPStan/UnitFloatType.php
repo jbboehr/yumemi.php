@@ -76,8 +76,10 @@ final class UnitFloatType extends FloatType
     public function accepts(Type $type, bool $strictTypes): AcceptsResult
     {
         // unit_float accepts unit_float or unit_int with definitionally equivalent units.
-        if ($type instanceof self || $type instanceof UnitIntegerType) {
-            if ($this->unit->equivalent($type->getUnitExpression())) {
+        $integer = UnitIntegerTypeHelper::extract($type);
+        if ($type instanceof self || $integer !== null) {
+            $unit = $type instanceof self ? $type->getUnitExpression() : $integer['unit'];
+            if ($this->unit->equivalent($unit)) {
                 return AcceptsResult::createYes();
             }
 
@@ -110,7 +112,7 @@ final class UnitFloatType extends FloatType
                 : IsSuperTypeOfResult::createNo();
         }
 
-        if ($type instanceof UnitIntegerType) {
+        if (UnitIntegerTypeHelper::extract($type) !== null) {
             return IsSuperTypeOfResult::createNo();
         }
 

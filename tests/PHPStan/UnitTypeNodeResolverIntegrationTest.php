@@ -123,6 +123,17 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $this->assertStringContainsString('[OK] No errors', $output, $output);
     }
 
+    public function testBrandedIntegerRangesEnforceBoundsAndUnits(): void
+    {
+        $output = $this->analyse('unit-range-invalid.php');
+
+        $this->assertStringContainsString('[ERROR] Found 4 errors', $output, $output);
+        $this->assertStringContainsString("unit_int<'meter'>&int<0, 100>", $output, $output);
+        $this->assertStringContainsString("101&unit_int<'meter'>", $output, $output);
+        $this->assertStringContainsString("50&unit_int<'second'>", $output, $output);
+        $this->assertStringContainsString('Bare int is not assignable', $output, $output);
+    }
+
     public function testInvalidConfiguredRegistryFactoryFailsAtStartup(): void
     {
         $output = $this->analyse('unit-phpdoc-valid.php', \stdClass::class);

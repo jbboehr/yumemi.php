@@ -36,7 +36,6 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
-use PHPStan\Type\BenevolentUnionType;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\Type;
 use PHPStan\Type\UnaryOperatorTypeSpecifyingExtension;
@@ -67,21 +66,23 @@ final class UnitUnaryOperatorTypeSpecifyingExtension implements UnaryOperatorTyp
             return false;
         }
 
-        return $operand instanceof UnitIntegerType || $operand instanceof UnitFloatType;
+        return $operand instanceof UnitFloatType || UnitIntegerTypeHelper::extract($operand) !== null;
     }
 
     public function specifyType(string $operatorSigil, Type $operand): Type
     {
         try {
-            if (!$operand instanceof UnitIntegerType && !$operand instanceof UnitFloatType) {
+            $integer = UnitIntegerTypeHelper::extract($operand);
+            if ($integer === null && !$operand instanceof UnitFloatType) {
                 return new ErrorType('Unary unit operator requires a unit_int or unit_float operand.');
             }
 
-            if ($operatorSigil === '-' && $operand instanceof UnitIntegerType && $this->integerOverflowToFloat) {
-                return new BenevolentUnionType([
-                    $operand,
-                    new UnitFloatType($operand->getUnitExpression()),
-                ]);
+            if ($operatorSigil === '-' && $integer !== null) {
+                return UnitIntegerRangeMath::negate(
+                    $integer['unit'],
+                    ['min' => $integer['min'], 'max' => $integer['max']],
+                    $this->integerOverflowToFloat,
+                );
             }
 
             // Unary + and float negation preserve unit identity and magnitude kind.

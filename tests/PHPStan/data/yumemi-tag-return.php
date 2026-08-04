@@ -13,6 +13,8 @@ use jbboehr\Yumemi\Tests\PHPStan\Fixtures\TaggedProperties;
 
 use function jbboehr\Yumemi\Tests\PHPStan\Fixtures\appliedForce;
 use function jbboehr\Yumemi\Tests\PHPStan\Fixtures\bogusUnit;
+use function jbboehr\Yumemi\Tests\PHPStan\Fixtures\boundedDuration;
+use function jbboehr\Yumemi\Tests\PHPStan\Fixtures\constantLength;
 use function jbboehr\Yumemi\Tests\PHPStan\Fixtures\currentSpeed;
 use function jbboehr\Yumemi\Tests\PHPStan\Fixtures\durations;
 use function jbboehr\Yumemi\Tests\PHPStan\Fixtures\freezingPoint;
@@ -25,6 +27,8 @@ use function PHPStan\Testing\assertType;
 
 // 'foot' is a catalog alias that normalizes to 'international_foot'.
 assertType("unit_int<'international_foot'>", measuredFeet());
+assertType("unit_int<'second'>&int<0, 100>", boundedDuration());
+assertType("3&unit_int<'meter'>", constantLength());
 assertType("unit_float<'meter / second'>", currentSpeed());
 assertType("Quantity<'newton'>", appliedForce(Units::default()));
 assertType("PointQuantity<'celsius'>", freezingPoint(Units::default()));

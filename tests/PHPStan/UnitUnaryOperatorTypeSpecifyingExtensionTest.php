@@ -39,6 +39,7 @@ namespace jbboehr\Yumemi\Tests\PHPStan;
 use jbboehr\Yumemi\PHPStan\UnitExpressionParser;
 use jbboehr\Yumemi\PHPStan\UnitFloatType;
 use jbboehr\Yumemi\PHPStan\UnitIntegerType;
+use jbboehr\Yumemi\PHPStan\UnitIntegerTypeHelper;
 use jbboehr\Yumemi\PHPStan\UnitUnaryOperatorTypeSpecifyingExtension;
 use PHPStan\Type\BenevolentUnionType;
 use PHPStan\Type\IntegerType;
@@ -70,7 +71,10 @@ final class UnitUnaryOperatorTypeSpecifyingExtensionTest extends TestCase
         $result = $this->extension->specifyType('-', $meters);
 
         $this->assertInstanceOf(BenevolentUnionType::class, $result);
-        $this->assertSame("(unit_float<'meter'>|unit_int<'meter'>)", $result->describe(VerbosityLevel::precise()));
+        $this->assertSame(
+            sprintf("((unit_int<'meter'>&int<%d, max>)|unit_float<'meter'>)", -PHP_INT_MAX),
+            $result->describe(VerbosityLevel::precise()),
+        );
     }
 
     public function testUnaryMinusOverflowPromotionCanBeDisabled(): void
@@ -98,6 +102,35 @@ final class UnitUnaryOperatorTypeSpecifyingExtensionTest extends TestCase
 
         $this->assertInstanceOf(UnitFloatType::class, $result);
         $this->assertSame("unit_float<'meter / second'>", $result->describe(VerbosityLevel::precise()));
+    }
+
+    public function testUnaryMinusNegatesRangeBounds(): void
+    {
+        $meters = UnitIntegerTypeHelper::create($this->unitInt('meter')->getUnitExpression(), -5, 10);
+
+        $result = $this->extension->specifyType('-', $meters);
+
+        $this->assertSame(
+            "unit_int<'meter'>&int<-10, 5>",
+            $result->describe(VerbosityLevel::precise()),
+        );
+    }
+
+    public function testUnaryMinusDistinguishesPartialAndGuaranteedMinimumOverflow(): void
+    {
+        $unit = $this->unitInt('meter')->getUnitExpression();
+        $partial = UnitIntegerTypeHelper::create($unit, PHP_INT_MIN, -1);
+        $minimum = UnitIntegerTypeHelper::create($unit, PHP_INT_MIN, PHP_INT_MIN);
+
+        $partialResult = $this->extension->specifyType('-', $partial);
+        $minimumResult = $this->extension->specifyType('-', $minimum);
+
+        $this->assertInstanceOf(BenevolentUnionType::class, $partialResult);
+        $this->assertSame(
+            "((unit_int<'meter'>&int<1, max>)|unit_float<'meter'>)",
+            $partialResult->describe(VerbosityLevel::precise()),
+        );
+        $this->assertInstanceOf(UnitFloatType::class, $minimumResult);
     }
 
     private function unitInt(string $unit): UnitIntegerType

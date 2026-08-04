@@ -121,15 +121,15 @@ final class InvalidUnitComparisonRule implements Rule
 
             foreach ($leftUnits as $leftUnit) {
                 foreach ($rightUnits as $rightUnit) {
-                    if ($leftUnit->getUnitExpression()->equivalent($rightUnit->getUnitExpression())) {
+                    if ($leftUnit->equivalent($rightUnit)) {
                         continue;
                     }
 
                     return [self::error(sprintf(
                         'Cannot use %s with units %s and %s because they are not definitionally equivalent.',
                         $operator,
-                        $leftUnit->getUnitExpression()->displayString,
-                        $rightUnit->getUnitExpression()->displayString,
+                        $leftUnit->displayString,
+                        $rightUnit->displayString,
                     ))];
                 }
             }
@@ -158,7 +158,7 @@ final class InvalidUnitComparisonRule implements Rule
     }
 
     /**
-     * @return array{list<UnitIntegerType|UnitFloatType>, bool, bool}
+     * @return array{list<UnitExpression>, bool, bool}
      *
      * @logion [OSD 97:79] The joined operand was opened into its several seals,
      *     and every unmarked branch was remembered beside those bearing measure.
@@ -171,9 +171,15 @@ final class InvalidUnitComparisonRule implements Rule
         $hasNonUnitArm = false;
 
         foreach ($types as $innerType) {
-            if ($innerType instanceof UnitIntegerType || $innerType instanceof UnitFloatType) {
-                $units[] = $innerType;
+            if ($innerType instanceof UnitFloatType) {
+                $units[] = $innerType->getUnitExpression();
             } else {
+                $integer = UnitIntegerTypeHelper::extract($innerType);
+                if ($integer !== null) {
+                    $units[] = $integer['unit'];
+                    continue;
+                }
+
                 $hasNonUnitArm = true;
                 $hasBareNumericArm = $hasBareNumericArm
                     || !$innerType->isInteger()->no()
@@ -183,10 +189,7 @@ final class InvalidUnitComparisonRule implements Rule
 
         usort(
             $units,
-            static fn (
-                UnitIntegerType|UnitFloatType $left,
-                UnitIntegerType|UnitFloatType $right,
-            ): int => $left->getUnitExpression()->displayString <=> $right->getUnitExpression()->displayString,
+            static fn (UnitExpression $left, UnitExpression $right): int => $left->displayString <=> $right->displayString,
         );
 
         return [$units, $hasBareNumericArm, $hasNonUnitArm];

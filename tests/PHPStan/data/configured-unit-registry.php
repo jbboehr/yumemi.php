@@ -12,21 +12,21 @@ use function jbboehr\Yumemi\unit_to;
 use function PHPStan\Testing\assertType;
 
 $widget = unit(2, 'widget');
-assertType("unit_int<'widget'>", $widget);
+assertType("2&unit_int<'widget'>", $widget);
 
 $widgets = unit(3, 'widgets');
-assertType("unit_int<'widget'>", $widgets);
+assertType("3&unit_int<'widget'>", $widgets);
 
 /** @param 'widget'|'meter' $unit */
 function configuredFiniteUnits(string $unit): void
 {
-    assertType("unit_int<'meter'>|unit_int<'widget'>", unit(1, $unit));
+    assertType("1&unit_int<'widget'>|1&unit_int<'meter'>", unit(1, $unit));
 }
 
 /** @param 'widget'|'widgets' $unit */
 function configuredEquivalentUnits(string $unit): void
 {
-    assertType("unit_int<'widget'>", unit(1, $unit));
+    assertType("1&unit_int<'widget'>", unit(1, $unit));
 }
 
 $meters = unit_to($widget, 'widget', 'meter');
@@ -40,7 +40,7 @@ assertType("unit_float<'kelvin'>", unit_to(0, 'degree_widget', 'kelvin'));
 assertType('float', unit_to(100, 'kelvin', 'degree_widget'));
 
 $area = $widget * $widgets;
-assertType("(unit_float<'widget ^ 2'>|unit_int<'widget ^ 2'>)", $area);
+assertType("6&unit_int<'widget ^ 2'>", $area);
 
 $quantity = Units::default()->quantity(1, 'widget');
 assertType("Quantity<'widget'>", $quantity);

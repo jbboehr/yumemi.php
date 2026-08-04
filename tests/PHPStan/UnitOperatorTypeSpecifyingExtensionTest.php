@@ -37,8 +37,10 @@
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
 use jbboehr\Yumemi\PHPStan\UnitExpressionParser;
+use jbboehr\Yumemi\PHPStan\UnitConstantIntegerType;
 use jbboehr\Yumemi\PHPStan\UnitFloatType;
 use jbboehr\Yumemi\PHPStan\UnitIntegerType;
+use jbboehr\Yumemi\PHPStan\UnitIntegerTypeHelper;
 use jbboehr\Yumemi\PHPStan\UnitOperatorTypeSpecifyingExtension;
 use PHPStan\Type\BenevolentUnionType;
 use PHPStan\Type\Constant\ConstantIntegerType;
@@ -197,19 +199,28 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
         $this->assertSame("(unit_float<'meter'>|unit_int<'meter'>)", $result->describe(VerbosityLevel::precise()));
     }
 
-    public function testMulByZeroOrOneCannotOverflow(): void
+    public function testMulByZeroProducesBrandedConstant(): void
     {
         $meters = $this->unitInt('meter');
+        $rightResult = $this->extension->specifyType('*', $meters, new ConstantIntegerType(0));
+        $leftResult = $this->extension->specifyType('*', new ConstantIntegerType(0), $meters);
 
-        foreach ([new ConstantIntegerType(0), new ConstantIntegerType(1)] as $identity) {
-            $rightResult = $this->extension->specifyType('*', $meters, $identity);
-            $leftResult = $this->extension->specifyType('*', $identity, $meters);
+        $this->assertInstanceOf(UnitConstantIntegerType::class, $rightResult);
+        $this->assertInstanceOf(UnitConstantIntegerType::class, $leftResult);
+        $this->assertSame("0&unit_int<'meter'>", $rightResult->describe(VerbosityLevel::precise()));
+        $this->assertSame("0&unit_int<'meter'>", $leftResult->describe(VerbosityLevel::precise()));
+    }
 
-            $this->assertInstanceOf(UnitIntegerType::class, $rightResult);
-            $this->assertInstanceOf(UnitIntegerType::class, $leftResult);
-            $this->assertSame("unit_int<'meter'>", $rightResult->describe(VerbosityLevel::precise()));
-            $this->assertSame("unit_int<'meter'>", $leftResult->describe(VerbosityLevel::precise()));
-        }
+    public function testMulByOnePreservesUnboundedBrandedInteger(): void
+    {
+        $meters = $this->unitInt('meter');
+        $rightResult = $this->extension->specifyType('*', $meters, new ConstantIntegerType(1));
+        $leftResult = $this->extension->specifyType('*', new ConstantIntegerType(1), $meters);
+
+        $this->assertInstanceOf(UnitIntegerType::class, $rightResult);
+        $this->assertInstanceOf(UnitIntegerType::class, $leftResult);
+        $this->assertSame("unit_int<'meter'>", $rightResult->describe(VerbosityLevel::precise()));
+        $this->assertSame("unit_int<'meter'>", $leftResult->describe(VerbosityLevel::precise()));
     }
 
     public function testDivByBareScalarKeepsUnitAsFloat(): void
@@ -310,11 +321,11 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
         $two = $this->extension->specifyType('**', $meters, new ConstantIntegerType(2));
 
         $this->assertSame("unit_float<'1 / meter'>", $negative->describe(VerbosityLevel::precise()));
-        $this->assertSame("unit_int<'1'>", $zero->describe(VerbosityLevel::precise()));
+        $this->assertSame("1&unit_int<'1'>", $zero->describe(VerbosityLevel::precise()));
         $this->assertSame("unit_int<'meter'>", $one->describe(VerbosityLevel::precise()));
         $this->assertInstanceOf(BenevolentUnionType::class, $two);
         $this->assertSame(
-            "(unit_float<'meter ^ 2'>|unit_int<'meter ^ 2'>)",
+            "((unit_int<'meter ^ 2'>&int<0, max>)|unit_float<'meter ^ 2'>)",
             $two->describe(VerbosityLevel::precise()),
         );
     }
@@ -334,6 +345,99 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
         ) {
             $this->assertInstanceOf(UnitIntegerType::class, $result);
         }
+    }
+
+    public function testSafeIntegerRangesPropagateThroughAddSubtractAndMultiply(): void
+    {
+        $left = UnitIntegerTypeHelper::create($this->unit('meter'), -2, 3);
+        $right = UnitIntegerTypeHelper::create($this->unit('meter'), 4, 5);
+
+        $this->assertSame(
+            "unit_int<'meter'>&int<2, 8>",
+            $this->extension->specifyType('+', $left, $right)->describe(VerbosityLevel::precise()),
+        );
+        $this->assertSame(
+            "unit_int<'meter'>&int<-7, -1>",
+            $this->extension->specifyType('-', $left, $right)->describe(VerbosityLevel::precise()),
+        );
+        $this->assertSame(
+            "unit_int<'meter ^ 2'>&int<-10, 15>",
+            $this->extension->specifyType('*', $left, $right)->describe(VerbosityLevel::precise()),
+        );
+    }
+
+    public function testIntegerRangesDistinguishPartialAndGuaranteedOverflow(): void
+    {
+        $almostMax = UnitIntegerTypeHelper::create($this->unit('meter'), PHP_INT_MAX - 1, PHP_INT_MAX);
+        $one = UnitIntegerTypeHelper::create($this->unit('meter'), 1, 1);
+        $max = UnitIntegerTypeHelper::create($this->unit('meter'), PHP_INT_MAX, PHP_INT_MAX);
+
+        $partial = $this->extension->specifyType('+', $almostMax, $one);
+        $guaranteed = $this->extension->specifyType('+', $max, $one);
+
+        $this->assertInstanceOf(BenevolentUnionType::class, $partial);
+        $this->assertSame(
+            sprintf("(%d&unit_int<'meter'>|unit_float<'meter'>)", PHP_INT_MAX),
+            $partial->describe(VerbosityLevel::precise()),
+        );
+        $this->assertInstanceOf(UnitFloatType::class, $guaranteed);
+        $this->assertSame("unit_float<'meter'>", $guaranteed->describe(VerbosityLevel::precise()));
+    }
+
+    public function testSubtractionMultiplicationAndPowerCanProveGuaranteedOverflow(): void
+    {
+        $unit = $this->unit('meter');
+        $minimum = UnitIntegerTypeHelper::create($unit, PHP_INT_MIN, PHP_INT_MIN);
+        $maximum = UnitIntegerTypeHelper::create($unit, PHP_INT_MAX, PHP_INT_MAX);
+        $one = UnitIntegerTypeHelper::create($unit, 1, 1);
+
+        $subtraction = $this->extension->specifyType('-', $minimum, $one);
+        $multiplication = $this->extension->specifyType('*', $maximum, new ConstantIntegerType(2));
+        $power = $this->extension->specifyType('**', $maximum, new ConstantIntegerType(2));
+
+        $this->assertSame("unit_float<'meter'>", $subtraction->describe(VerbosityLevel::precise()));
+        $this->assertSame("unit_float<'meter'>", $multiplication->describe(VerbosityLevel::precise()));
+        $this->assertSame("unit_float<'meter ^ 2'>", $power->describe(VerbosityLevel::precise()));
+    }
+
+    public function testDisablingOverflowPromotionWidensUnsafeRangeResults(): void
+    {
+        $extension = new UnitOperatorTypeSpecifyingExtension(false);
+        $unit = $this->unit('meter');
+        $maximum = UnitIntegerTypeHelper::create($unit, PHP_INT_MAX, PHP_INT_MAX);
+        $one = UnitIntegerTypeHelper::create($unit, 1, 1);
+
+        $result = $extension->specifyType('+', $maximum, $one);
+
+        $this->assertInstanceOf(UnitIntegerType::class, $result);
+        $this->assertSame("unit_int<'meter'>", $result->describe(VerbosityLevel::precise()));
+    }
+
+    public function testPositivePowersPreserveSignedRangeBounds(): void
+    {
+        $base = UnitIntegerTypeHelper::create($this->unit('meter'), -2, 3);
+
+        $square = $this->extension->specifyType('**', $base, new ConstantIntegerType(2));
+        $cube = $this->extension->specifyType('**', $base, new ConstantIntegerType(3));
+
+        $this->assertSame(
+            "unit_int<'meter ^ 2'>&int<0, 9>",
+            $square->describe(VerbosityLevel::precise()),
+        );
+        $this->assertSame(
+            "unit_int<'meter ^ 3'>&int<-8, 27>",
+            $cube->describe(VerbosityLevel::precise()),
+        );
+    }
+
+    public function testKnownModuloProducesBrandedConstant(): void
+    {
+        $left = UnitIntegerTypeHelper::create($this->unit('meter'), 17, 17);
+        $right = UnitIntegerTypeHelper::create($this->unit('meter'), 5, 5);
+
+        $result = $this->extension->specifyType('%', $left, $right);
+
+        $this->assertSame("2&unit_int<'meter'>", $result->describe(VerbosityLevel::precise()));
     }
 
     public function testPowEvaluatesFiniteExponentUnionArmByArm(): void
@@ -432,5 +536,13 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
         $this->assertTrue($parsed->isOk(), $parsed->errorMessage() ?? '');
 
         return new UnitFloatType($parsed->expression());
+    }
+
+    private function unit(string $unit): \jbboehr\Yumemi\PHPStan\UnitExpression
+    {
+        $parsed = (new UnitExpressionParser())->parse($unit);
+        $this->assertTrue($parsed->isOk(), $parsed->errorMessage() ?? '');
+
+        return $parsed->expression();
     }
 }

@@ -57,6 +57,9 @@ use PHPStan\Type\VerbosityLevel;
  * - unit op bare numeric: treat bare value as dimensionless (* / only)
  * - int / int → unit_float (PHP division always yields float)
  * - overflow-capable integer operations optionally preserve unit_int|unit_float
+ *
+ * @phpstan-type UnitMagnitudeMetadata array{unit: UnitExpression, integer: bool, min: ?int, max: ?int}
+ *
  * @internal
  */
 final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyingExtension
@@ -114,20 +117,22 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
         $rightUnit = $this->asUnit($rightSide);
 
         return match ($operatorSigil) {
-            '+', '-' => $this->specifyAddSub($operatorSigil, $leftUnit, $rightUnit, $leftSide, $rightSide),
+            '+', '-' => $this->specifyAddSub($operatorSigil, $leftUnit, $rightUnit),
             '*', '/' => $this->specifyMulDiv($operatorSigil, $leftUnit, $rightUnit, $leftSide, $rightSide),
-            '**' => $this->specifyPow($leftUnit, $rightUnit, $leftSide, $rightSide),
+            '**' => $this->specifyPow($leftUnit, $rightUnit, $rightSide),
             '%' => $this->specifyMod($leftUnit, $rightUnit),
             default => new ErrorType('Unsupported unit operator: ' . $operatorSigil),
         };
     }
 
+    /**
+     * @param UnitMagnitudeMetadata|null $leftUnit
+     * @param UnitMagnitudeMetadata|null $rightUnit
+     */
     private function specifyAddSub(
         string $operatorSigil,
-        UnitIntegerType|UnitFloatType|null $leftUnit,
-        UnitIntegerType|UnitFloatType|null $rightUnit,
-        Type $leftSide,
-        Type $rightSide,
+        ?array $leftUnit,
+        ?array $rightUnit,
     ): Type {
         if ($leftUnit === null || $rightUnit === null) {
             return new ErrorType(sprintf(
@@ -138,85 +143,140 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
 
         // + / - require definitionally identical units (normalized equality),
         // not merely the same dimension (meter + foot stays an error).
-        if (!$leftUnit->getUnitExpression()->equivalent($rightUnit->getUnitExpression())) {
+        if (!$leftUnit['unit']->equivalent($rightUnit['unit'])) {
             return new ErrorType(sprintf(
                 'Cannot use %s with units %s and %s because they are not definitionally equivalent.',
                 $operatorSigil,
-                $leftUnit->getUnitExpression()->displayString,
-                $rightUnit->getUnitExpression()->displayString,
+                $leftUnit['unit']->displayString,
+                $rightUnit['unit']->displayString,
             ));
         }
 
-        return $this->makeMagnitudeType(
-            $this->resultIsFloat($operatorSigil, $leftSide, $rightSide),
-            $leftUnit->getUnitExpression(),
-            true,
-        );
+        if (!$leftUnit['integer'] || !$rightUnit['integer']) {
+            return new UnitFloatType($leftUnit['unit']);
+        }
+
+        $leftBounds = ['min' => $leftUnit['min'], 'max' => $leftUnit['max']];
+        $rightBounds = ['min' => $rightUnit['min'], 'max' => $rightUnit['max']];
+
+        return $operatorSigil === '+'
+            ? UnitIntegerRangeMath::add(
+                $leftUnit['unit'],
+                $leftBounds,
+                $rightBounds,
+                $this->integerOverflowToFloat,
+            )
+            : UnitIntegerRangeMath::subtract(
+                $leftUnit['unit'],
+                $leftBounds,
+                $rightBounds,
+                $this->integerOverflowToFloat,
+            );
     }
 
+    /**
+     * @param UnitMagnitudeMetadata|null $leftUnit
+     * @param UnitMagnitudeMetadata|null $rightUnit
+     */
     private function specifyMod(
-        UnitIntegerType|UnitFloatType|null $leftUnit,
-        UnitIntegerType|UnitFloatType|null $rightUnit,
+        ?array $leftUnit,
+        ?array $rightUnit,
     ): Type {
-        if (!$leftUnit instanceof UnitIntegerType || !$rightUnit instanceof UnitIntegerType) {
+        if ($leftUnit === null || $rightUnit === null || !$leftUnit['integer'] || !$rightUnit['integer']) {
             return new ErrorType(
                 'Cannot use % with unit values unless both operands are unit_int values with equivalent units.',
             );
         }
 
-        if (!$leftUnit->getUnitExpression()->equivalent($rightUnit->getUnitExpression())) {
+        if (!$leftUnit['unit']->equivalent($rightUnit['unit'])) {
             return new ErrorType(sprintf(
                 'Cannot use %% with units %s and %s because they are not definitionally equivalent.',
-                $leftUnit->getUnitExpression()->displayString,
-                $rightUnit->getUnitExpression()->displayString,
+                $leftUnit['unit']->displayString,
+                $rightUnit['unit']->displayString,
             ));
         }
 
-        return new UnitIntegerType($leftUnit->getUnitExpression());
+        if (
+            $leftUnit['min'] !== null
+            && $leftUnit['min'] === $leftUnit['max']
+            && $rightUnit['min'] !== null
+            && $rightUnit['min'] === $rightUnit['max']
+            && $rightUnit['min'] !== 0
+        ) {
+            return UnitIntegerTypeHelper::create(
+                $leftUnit['unit'],
+                $leftUnit['min'] % $rightUnit['min'],
+                $leftUnit['min'] % $rightUnit['min'],
+            );
+        }
+
+        return new UnitIntegerType($leftUnit['unit']);
     }
 
+    /**
+     * @param UnitMagnitudeMetadata|null $leftUnit
+     * @param UnitMagnitudeMetadata|null $rightUnit
+     */
     private function specifyMulDiv(
         string $operatorSigil,
-        UnitIntegerType|UnitFloatType|null $leftUnit,
-        UnitIntegerType|UnitFloatType|null $rightUnit,
+        ?array $leftUnit,
+        ?array $rightUnit,
         Type $leftSide,
         Type $rightSide,
     ): Type {
         if ($leftUnit !== null && $rightUnit !== null) {
             $unit = $operatorSigil === '*'
-                ? UnitExpressionAlgebra::multiply($leftUnit->getUnitExpression(), $rightUnit->getUnitExpression())
-                : UnitExpressionAlgebra::divide($leftUnit->getUnitExpression(), $rightUnit->getUnitExpression());
+                ? UnitExpressionAlgebra::multiply($leftUnit['unit'], $rightUnit['unit'])
+                : UnitExpressionAlgebra::divide($leftUnit['unit'], $rightUnit['unit']);
 
-            return $this->makeMagnitudeType(
-                $this->resultIsFloat($operatorSigil, $leftSide, $rightSide),
+            if ($operatorSigil === '/' || !$leftUnit['integer'] || !$rightUnit['integer']) {
+                return new UnitFloatType($unit);
+            }
+
+            return UnitIntegerRangeMath::multiply(
                 $unit,
-                $operatorSigil === '*' && $this->integerMultiplicationMayOverflow($leftSide, $rightSide),
+                ['min' => $leftUnit['min'], 'max' => $leftUnit['max']],
+                ['min' => $rightUnit['min'], 'max' => $rightUnit['max']],
+                $this->integerOverflowToFloat,
             );
         }
 
         if ($leftUnit !== null && $this->isBareNumeric($rightSide)) {
             // unit *| / scalar → same unit
-            return $this->makeMagnitudeType(
-                $this->resultIsFloat($operatorSigil, $leftSide, $rightSide),
-                $leftUnit->getUnitExpression(),
-                $operatorSigil === '*' && $this->integerMultiplicationMayOverflow($leftSide, $rightSide),
-            );
+            if ($operatorSigil === '/' || !$leftUnit['integer'] || $rightSide->isFloat()->yes()) {
+                return new UnitFloatType($leftUnit['unit']);
+            }
+
+            $rightBounds = UnitIntegerTypeHelper::integerBounds($rightSide);
+            if ($rightBounds !== null) {
+                return UnitIntegerRangeMath::multiply(
+                    $leftUnit['unit'],
+                    ['min' => $leftUnit['min'], 'max' => $leftUnit['max']],
+                    $rightBounds,
+                    $this->integerOverflowToFloat,
+                );
+            }
         }
 
         if ($rightUnit !== null && $this->isBareNumeric($leftSide)) {
             if ($operatorSigil === '*') {
-                return $this->makeMagnitudeType(
-                    $this->resultIsFloat($operatorSigil, $leftSide, $rightSide),
-                    $rightUnit->getUnitExpression(),
-                    $this->integerMultiplicationMayOverflow($leftSide, $rightSide),
-                );
+                if (!$rightUnit['integer'] || $leftSide->isFloat()->yes()) {
+                    return new UnitFloatType($rightUnit['unit']);
+                }
+
+                $leftBounds = UnitIntegerTypeHelper::integerBounds($leftSide);
+                if ($leftBounds !== null) {
+                    return UnitIntegerRangeMath::multiply(
+                        $rightUnit['unit'],
+                        $leftBounds,
+                        ['min' => $rightUnit['min'], 'max' => $rightUnit['max']],
+                        $this->integerOverflowToFloat,
+                    );
+                }
             }
 
             // scalar / unit → inverse unit
-            return $this->makeMagnitudeType(
-                true, // division
-                UnitExpressionAlgebra::invert($rightUnit->getUnitExpression()),
-            );
+            return new UnitFloatType(UnitExpressionAlgebra::invert($rightUnit['unit']));
         }
 
         return new ErrorType(sprintf(
@@ -225,10 +285,13 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
         ));
     }
 
+    /**
+     * @param UnitMagnitudeMetadata|null $leftUnit
+     * @param UnitMagnitudeMetadata|null $rightUnit
+     */
     private function specifyPow(
-        UnitIntegerType|UnitFloatType|null $leftUnit,
-        UnitIntegerType|UnitFloatType|null $rightUnit,
-        Type $leftSide,
+        ?array $leftUnit,
+        ?array $rightUnit,
         Type $rightSide,
     ): Type {
         if ($rightUnit !== null) {
@@ -254,42 +317,19 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
             ));
         }
 
-        $unit = UnitExpressionAlgebra::power($leftUnit->getUnitExpression(), $exponent);
+        $unit = UnitExpressionAlgebra::power($leftUnit['unit'], $exponent);
 
         // PHP: negative exponents yield float; also promote when the base is float-like.
-        $float = $exponent < 0 || $this->resultIsFloat('**', $leftSide, $rightSide);
-
-        return $this->makeMagnitudeType($float, $unit, $exponent > 1);
-    }
-
-    private function makeMagnitudeType(bool $float, UnitExpression $unit, bool $mayOverflow = false): Type
-    {
-        if ($float) {
+        if ($exponent < 0 || !$leftUnit['integer']) {
             return new UnitFloatType($unit);
         }
 
-        $integer = new UnitIntegerType($unit);
-        if (!$mayOverflow || !$this->integerOverflowToFloat) {
-            return $integer;
-        }
-
-        return new BenevolentUnionType([$integer, new UnitFloatType($unit)]);
-    }
-
-    /**
-     * @logion [OSD 95:5] The builders laid the first and final stones beneath
-     *     separate blessings; but every stone between them was tried by fire,
-     *     lest hidden weakness ascend with the tower.
-     */
-    private function integerMultiplicationMayOverflow(Type $leftSide, Type $rightSide): bool
-    {
-        foreach ([$leftSide, $rightSide] as $side) {
-            if ($side instanceof ConstantIntegerType && ($side->getValue() === 0 || $side->getValue() === 1)) {
-                return false;
-            }
-        }
-
-        return true;
+        return UnitIntegerRangeMath::power(
+            $unit,
+            ['min' => $leftUnit['min'], 'max' => $leftUnit['max']],
+            $exponent,
+            $this->integerOverflowToFloat,
+        );
     }
 
     /**
@@ -329,22 +369,6 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
             : new BenevolentUnionType($types);
     }
 
-    /**
-     * PHP: / always returns float. Otherwise float if either side is float-like.
-     */
-    private function resultIsFloat(string $operatorSigil, Type $leftSide, Type $rightSide): bool
-    {
-        if ($operatorSigil === '/') {
-            return true;
-        }
-
-        if ($leftSide instanceof UnitFloatType || $rightSide instanceof UnitFloatType) {
-            return true;
-        }
-
-        return $leftSide->isFloat()->yes() || $rightSide->isFloat()->yes();
-    }
-
     private function isBareNumeric(Type $type): bool
     {
         if ($this->asUnit($type) !== null) {
@@ -354,10 +378,21 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
         return $type->isInteger()->yes() || $type->isFloat()->yes();
     }
 
-    private function asUnit(Type $type): UnitIntegerType|UnitFloatType|null
+    /** @return UnitMagnitudeMetadata|null */
+    private function asUnit(Type $type): ?array
     {
-        if ($type instanceof UnitIntegerType || $type instanceof UnitFloatType) {
-            return $type;
+        if ($type instanceof UnitFloatType) {
+            return ['unit' => $type->getUnitExpression(), 'integer' => false, 'min' => null, 'max' => null];
+        }
+
+        $integer = UnitIntegerTypeHelper::extract($type);
+        if ($integer !== null) {
+            return [
+                'unit' => $integer['unit'],
+                'integer' => true,
+                'min' => $integer['min'],
+                'max' => $integer['max'],
+            ];
         }
 
         return null;
