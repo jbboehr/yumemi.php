@@ -41,6 +41,7 @@ use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 
 /**
  * A syntactically valid @yumemi-* tag ready for fallback matching or promotion.
+ * @internal
  */
 final class YumemiDocTagCandidate
 {

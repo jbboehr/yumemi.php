@@ -42,6 +42,9 @@ use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
 
+/**
+ * @internal
+ */
 final class UnitNormalizer
 {
     public function normalize(Expr $expr): Expr

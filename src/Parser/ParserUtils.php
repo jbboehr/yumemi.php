@@ -45,6 +45,9 @@ use jbboehr\Yumemi\Parser\Ast\Mul;
 use jbboehr\Yumemi\Parser\Ast\Pow;
 use jbboehr\Yumemi\Parser\Ast\Sub;
 
+/**
+ * @internal
+ */
 trait ParserUtils
 {
     private const SUPERSCRIPT_TO_ASCII = [

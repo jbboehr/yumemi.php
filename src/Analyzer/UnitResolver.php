@@ -64,6 +64,7 @@ use jbboehr\Yumemi\Registry\UnitRegistry;
  * "mass" or "bus" do not invent units.
  *
  * @phpstan-import-type CatalogRecord from UnitRegistry
+ * @internal
  */
 final class UnitResolver
 {

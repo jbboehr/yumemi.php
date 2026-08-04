@@ -40,6 +40,7 @@ use Doctrine\Common\Lexer\AbstractLexer;
 
 /**
  * @extends AbstractLexer<int, string>
+ * @internal
  */
 class Lexer extends AbstractLexer implements LexerInterface
 {

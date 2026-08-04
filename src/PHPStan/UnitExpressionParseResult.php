@@ -41,6 +41,7 @@ use jbboehr\Yumemi\Parser\SourceSpan;
 
 /**
  * Result of parsing a unit string for static analysis.
+ * @internal
  */
 final class UnitExpressionParseResult
 {

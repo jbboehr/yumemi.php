@@ -44,6 +44,9 @@ use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Util\Exponent;
 
+/**
+ * @internal
+ */
 final class ExprReducer
 {
     public static function reduce(Expr $expr): Expr

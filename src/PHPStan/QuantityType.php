@@ -51,6 +51,7 @@ use PHPStan\Type\VerbosityLevel;
  * object-path analogue of {@see UnitIntegerType} / {@see UnitFloatType}: same normalized-equivalence
  * semantics ({@see UnitExpression::equivalent()} for compatibility, {@see UnitExpression::equals()}
  * for the structural fast path), matching runtime {@see Quantity::add()} / assertSameUnit().
+ * @internal
  */
 final class QuantityType extends ObjectType
 {

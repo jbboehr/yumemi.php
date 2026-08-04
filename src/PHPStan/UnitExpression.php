@@ -51,6 +51,7 @@ use jbboehr\Yumemi\Formatter\ExprRenderer;
  * catalog-normalized forms so definitionally identical units match for assignment,
  * e.g. kilometer ≡ 1000 * meter ≡ 100000 * centimeter, newton ≡ kg·m/s².
  * Same dimension alone is not enough (meter ≉ foot).
+ * @internal
  */
 final class UnitExpression
 {

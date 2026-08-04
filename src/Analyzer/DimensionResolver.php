@@ -45,6 +45,9 @@ use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
 
+/**
+ * @internal
+ */
 final class DimensionResolver
 {
     /** @var array<string, array{int, int, int, int, int, int, int}> */

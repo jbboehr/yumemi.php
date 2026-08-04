@@ -38,6 +38,9 @@ namespace jbboehr\Yumemi\Analyzer;
 
 use jbboehr\Yumemi\Number\Rational;
 
+/**
+ * @internal
+ */
 final class ReductionState
 {
     public Rational $constant;

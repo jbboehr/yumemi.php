@@ -44,6 +44,9 @@ use jbboehr\Yumemi\Exception\UnderflowException;
 use jbboehr\Yumemi\Exception\UnexpectedValueException;
 use jbboehr\Yumemi\Util\Exponent;
 
+/**
+ * @api
+ */
 final class Rational implements \JsonSerializable
 {
     public readonly GMP $numerator;

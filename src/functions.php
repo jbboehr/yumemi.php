@@ -53,6 +53,7 @@ use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
  *
  * @param int|float $value
  * @return ($value is int ? int : float)
+ * @api
  */
 function unit(int|float $value, string $unit): int|float
 {
@@ -75,6 +76,7 @@ function unit(int|float $value, string $unit): int|float
  * Multiplying a source-branded value by this factor lets PHPStan reduce the result to the
  * target unit. This native helper is limited to multiplicative units; use {@see unit_to()}
  * for affine conversions and {@see Units::conversionFactor()} for an exact Rational.
+ * @api
  */
 function unit_factor(string $from, string $to): float
 {
@@ -113,6 +115,7 @@ function unit_factor(string $from, string $to): float
  * when both unit strings are constants and compatible; affine targets remain plain float.
  *
  * @param int|float $value
+ * @api
  */
 function unit_to(int|float $value, string $from, string $to): float
 {

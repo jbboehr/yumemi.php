@@ -40,6 +40,9 @@ use jbboehr\Yumemi\Analyzer\ExprComparer;
 use jbboehr\Yumemi\Analyzer\ExprReducer;
 use jbboehr\Yumemi\Expr;
 
+/**
+ * @internal
+ */
 trait MathTrait
 {
     public function reduce(): Expr

@@ -44,6 +44,7 @@ use jbboehr\Yumemi\Parser\SourceSpan;
  *
  * @logion [OSD 51:82] The examined coordinate returned either beneath a complete
  *     seal or beside the precise fracture that had denied its admission.
+ * @internal
  */
 final class PointUnitExpressionParseResult
 {

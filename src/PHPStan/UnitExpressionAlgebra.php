@@ -46,6 +46,7 @@ use jbboehr\Yumemi\Formatter\ExprRenderer;
  * engine. Shared by {@see UnitOperatorTypeSpecifyingExtension} (native `unit_int` / `unit_float`
  * arithmetic) and the `Quantity` method return-type extensions, so both layers combine units the
  * same way.
+ * @internal
  */
 final class UnitExpressionAlgebra
 {

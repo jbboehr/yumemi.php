@@ -38,6 +38,9 @@ namespace jbboehr\Yumemi\Catalog;
 
 use Brick\VarExporter\VarExporter;
 
+/**
+ * @internal
+ */
 final class PhpCatalogExporter
 {
     /**

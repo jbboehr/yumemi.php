@@ -47,6 +47,7 @@ use PHPStan\Type\VerbosityLevel;
  * PHPStan int-like type carrying a Yumemi unit expression.
  *
  * Runtime value remains a plain int; the unit is static-analysis only.
+ * @internal
  */
 final class UnitIntegerType extends IntegerType
 {

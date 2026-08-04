@@ -51,6 +51,7 @@ use jbboehr\Yumemi\Units;
  *
  * This is the bridge from static analysis to the shared unit engine. Later pieces
  * (custom types, PHPDoc resolvers) should call this instead of reimplementing parsing.
+ * @internal
  */
 final class UnitExpressionParser
 {

@@ -42,6 +42,9 @@ use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Number\Rational;
 
+/**
+ * @internal
+ */
 final class NormalizedExpr
 {
     public static function constant(Expr $expr): Rational

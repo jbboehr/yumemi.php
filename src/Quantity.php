@@ -50,6 +50,9 @@ use jbboehr\Yumemi\Internal\DeserializationContext;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Parser\Parser;
 
+/**
+ * @api
+ */
 final class Quantity implements \JsonSerializable
 {
     public readonly Rational $value;

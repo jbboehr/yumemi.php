@@ -63,6 +63,7 @@ use jbboehr\Yumemi\Util\Exponent;
  *
  * With a {@see UnitResolver}, identifiers are resolved against the catalog (conversion path).
  * Without one, identifiers become bare symbolic {@see Unit} nodes (chosen syntax / display).
+ * @internal
  */
 final class AstConverter
 {

@@ -40,6 +40,9 @@ use jbboehr\Yumemi\Catalog\PhpCatalogExporter;
 use jbboehr\Yumemi\Catalog\Udunits2CatalogImporter;
 use jbboehr\Yumemi\Exception\RuntimeException;
 
+/**
+ * @internal
+ */
 final class GenerateUdunits2CatalogCommand
 {
     private const HEADER = <<<'HEADER'

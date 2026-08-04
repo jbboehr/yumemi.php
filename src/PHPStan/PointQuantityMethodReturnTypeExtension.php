@@ -52,6 +52,7 @@ use PHPStan\Type\UnionType;
  *
  * @logion [OSD 69:87] The static judge distinguished translation from subtraction,
  *     preserving stations as points and returning intervals to ordinary measure.
+ * @internal
  */
 final class PointQuantityMethodReturnTypeExtension implements DynamicMethodReturnTypeExtension
 {

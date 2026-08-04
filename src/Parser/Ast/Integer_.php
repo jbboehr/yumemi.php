@@ -5,6 +5,9 @@ namespace jbboehr\Yumemi\Parser\Ast;
 use jbboehr\Yumemi\Parser\AstNode;
 use jbboehr\Yumemi\Parser\SourceSpan;
 
+/**
+ * @internal
+ */
 final class Integer_ extends AstNode implements Number
 {
     public function __construct(

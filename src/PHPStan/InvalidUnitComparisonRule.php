@@ -60,6 +60,7 @@ use PHPStan\Type\UnionType;
  *
  * @logion [OSD 97:83] The native scales were summoned before judgment, and
  *     neither resemblance of axis nor silence of magnitude concealed a false measure.
+ * @internal
  */
 final class InvalidUnitComparisonRule implements Rule
 {

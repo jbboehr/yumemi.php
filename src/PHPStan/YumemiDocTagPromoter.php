@@ -57,6 +57,7 @@ use PHPStan\Type\TypeTraverser;
 
 /**
  * Promotes valid extension-optional @yumemi-* tags into PHPStan's native PHPDoc surface.
+ * @internal
  */
 final class YumemiDocTagPromoter extends NodeVisitorAbstract
 {

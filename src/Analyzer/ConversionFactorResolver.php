@@ -41,6 +41,9 @@ use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Number\Rational;
 
+/**
+ * @internal
+ */
 final class ConversionFactorResolver
 {
     private readonly DimensionResolver $dimensionResolver;

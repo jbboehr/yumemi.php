@@ -38,6 +38,7 @@ namespace jbboehr\Yumemi\PHPStan;
 
 /**
  * Emits standalone diagnostics for statically incompatible Quantity conversions and extractions.
+ * @internal
  */
 final class InvalidQuantityConversionRule extends AbstractInvalidQuantityMethodRule
 {

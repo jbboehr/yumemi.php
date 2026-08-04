@@ -38,6 +38,7 @@ namespace jbboehr\Yumemi\PHPStan;
 
 /**
  * Emits standalone diagnostics for statically incompatible Quantity comparisons.
+ * @internal
  */
 final class InvalidQuantityComparisonRule extends AbstractInvalidQuantityMethodRule
 {

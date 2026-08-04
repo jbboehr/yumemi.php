@@ -51,6 +51,7 @@ use PHPStan\Type\ErrorType;
  *
  * @logion [OSD 60:77] The herald proclaimed every unlawful translation or comparison,
  *     attaching one stable seal to the judgment of incompatible stations.
+ * @internal
  */
 final class InvalidPointQuantityMethodRule implements Rule
 {

@@ -46,6 +46,7 @@ use PHPStan\Type\TypeCombinator;
 
 /**
  * Infers unit_int / unit_float from unit($value, $unit) when the unit string type is finite.
+ * @internal
  */
 final class UnitFunctionDynamicReturnTypeExtension implements DynamicFunctionReturnTypeExtension
 {

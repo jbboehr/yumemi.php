@@ -42,6 +42,7 @@ use PHPStan\Parser\Parser;
 
 /**
  * Applies Yumemi tag promotion after PHPStan chooses its rich, simple, or stub parser.
+ * @internal
  */
 final class YumemiTagPromotingParser implements Parser
 {

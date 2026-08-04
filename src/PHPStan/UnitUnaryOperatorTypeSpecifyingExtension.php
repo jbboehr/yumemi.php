@@ -45,6 +45,7 @@ use PHPStan\Type\UnaryOperatorTypeSpecifyingExtension;
  * Infers types for unary + / - on unit_int and unit_float.
  *
  * Both keep the same unit; integer negation may overflow to float at runtime.
+ * @internal
  */
 final class UnitUnaryOperatorTypeSpecifyingExtension implements UnaryOperatorTypeSpecifyingExtension
 {

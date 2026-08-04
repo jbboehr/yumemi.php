@@ -40,6 +40,9 @@ use jbboehr\Yumemi\Parser\Ast;
 use jbboehr\Yumemi\Parser\AstNode;
 use jbboehr\Yumemi\Parser\SourceSpan;
 
+/**
+ * @internal
+ */
 final class Pow extends AstNode
 {
     public function __construct(

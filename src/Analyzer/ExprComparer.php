@@ -46,6 +46,7 @@ use jbboehr\Yumemi\Expr\Unit;
  * Structural equality for unit expressions after canonical reduction.
  *
  * Unit identity is by name only; definitions and bound Units context are ignored.
+ * @internal
  */
 final class ExprComparer
 {

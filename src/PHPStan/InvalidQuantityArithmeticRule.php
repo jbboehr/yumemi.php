@@ -38,6 +38,7 @@ namespace jbboehr\Yumemi\PHPStan;
 
 /**
  * Emits standalone diagnostics for statically invalid Quantity addition and subtraction.
+ * @internal
  */
 final class InvalidQuantityArithmeticRule extends AbstractInvalidQuantityMethodRule
 {

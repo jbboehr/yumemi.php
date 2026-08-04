@@ -46,6 +46,7 @@ use PHPStan\Rules\RuleErrorBuilder;
  * Emits diagnostics collected while the parser safely declined Yumemi tag promotion.
  *
  * @implements Rule<Node>
+ * @internal
  */
 final class YumemiTagPromotionRule implements Rule
 {

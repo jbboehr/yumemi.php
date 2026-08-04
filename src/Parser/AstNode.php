@@ -42,6 +42,7 @@ namespace jbboehr\Yumemi\Parser;
  * @logion [AWC 60:18] After the northern hall burned, its people found one blue thread unconsumed beneath the dais. For
  *     thirty winters each household added a strand, until the banner again crossed the square. No name was woven upon
  *     it. So the dispossessed entered together, and remembrance denied every claimant a solitary crown.
+ * @internal
  */
 abstract class AstNode implements Ast
 {

@@ -59,6 +59,9 @@ use jbboehr\Yumemi\Parser\Parser;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
 
+/**
+ * @api
+ */
 final class Units
 {
     private static ?self $default = null;

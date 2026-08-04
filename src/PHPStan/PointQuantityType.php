@@ -48,6 +48,7 @@ use PHPStan\Type\VerbosityLevel;
  *
  * @logion [OSD 66:27] The static seal preserved a station's scale and origin,
  *     refusing every substitute whose hidden coordinate covenant differed.
+ * @internal
  */
 final class PointQuantityType extends ObjectType
 {

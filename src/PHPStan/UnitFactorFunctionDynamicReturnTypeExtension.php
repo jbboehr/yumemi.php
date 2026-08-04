@@ -49,6 +49,7 @@ use PHPStan\Type\TypeCombinator;
 
 /**
  * Validates constant unit_factor() calls and infers unit_float<'to / from'>.
+ * @internal
  */
 final class UnitFactorFunctionDynamicReturnTypeExtension implements DynamicFunctionReturnTypeExtension
 {

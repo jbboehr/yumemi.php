@@ -47,6 +47,7 @@ use PHPStan\PhpDocParser\Ast\Type\UnionTypeNode;
 
 /**
  * Cloned-TypeNode normalization used by exact Yumemi fallback matching.
+ * @internal
  */
 final class YumemiTypeNodeNormalizationVisitor extends AbstractNodeVisitor
 {

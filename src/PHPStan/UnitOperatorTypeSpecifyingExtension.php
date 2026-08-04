@@ -57,6 +57,7 @@ use PHPStan\Type\VerbosityLevel;
  * - unit op bare numeric: treat bare value as dimensionless (* / only)
  * - int / int → unit_float (PHP division always yields float)
  * - overflow-capable integer operations optionally preserve unit_int|unit_float
+ * @internal
  */
 final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyingExtension
 {

@@ -54,6 +54,7 @@ use PHPStan\Type\UnionType;
 /**
  * Validates constant unit_to() calls and infers unit_float<'to'> for multiplicative targets.
  * Affine targets remain plain float because the branded unit model is multiplicative.
+ * @internal
  */
 final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionReturnTypeExtension
 {

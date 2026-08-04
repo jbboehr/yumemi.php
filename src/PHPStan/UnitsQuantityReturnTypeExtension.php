@@ -52,6 +52,7 @@ use PHPStan\Type\TypeCombinator;
  * The PHPStan-configured registry is authoritative: every statically known target must parse, while
  * a genuinely dynamic string falls back to the declared unbranded object return. A branded integer
  * input must already be expressed in every possible target unit because this method does not convert it.
+ * @internal
  */
 final class UnitsQuantityReturnTypeExtension implements DynamicMethodReturnTypeExtension
 {

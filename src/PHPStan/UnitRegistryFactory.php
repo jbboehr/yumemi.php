@@ -40,6 +40,7 @@ use jbboehr\Yumemi\Registry\UnitRegistry;
 
 /**
  * Builds the complete unit registry used by the Yumemi PHPStan extension.
+ * @api
  */
 interface UnitRegistryFactory
 {

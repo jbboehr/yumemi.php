@@ -40,6 +40,9 @@ use jbboehr\Yumemi\Exception\InvalidArgumentException;
 use jbboehr\Yumemi\Exception\UnexpectedValueException;
 use jbboehr\Yumemi\Util\Exponent;
 
+/**
+ * @api
+ */
 final class Dimension implements \JsonSerializable
 {
     public const AXIS_LENGTH = 0;

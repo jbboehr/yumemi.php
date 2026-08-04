@@ -44,6 +44,7 @@ use jbboehr\Yumemi\Number\Rational;
  *
  * @logion [OSD 62:43] The court recorded the visible tongue, the hidden origin,
  *     and the unshifted rod together, lest equal dimensions conceal unequal stations.
+ * @internal
  */
 final class PointUnitExpression
 {

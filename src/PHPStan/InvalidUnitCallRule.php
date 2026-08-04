@@ -53,6 +53,7 @@ use PHPStan\Type\ErrorType;
  * diagnostic so mistakes are caught even when the result is never used in a strict context.
  *
  * @implements Rule<FuncCall>
+ * @internal
  */
 final class InvalidUnitCallRule implements Rule
 {

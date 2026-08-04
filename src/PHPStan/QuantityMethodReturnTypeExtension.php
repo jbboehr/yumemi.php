@@ -66,6 +66,7 @@ use jbboehr\Yumemi\Util\Exponent;
  * brand, only the target can be inferred and source compatibility cannot be checked. The configured
  * registry is authoritative for constant targets. Genuinely dynamic targets and unit-combining
  * operations whose units cannot be determined fall back to the native return.
+ * @internal
  */
 final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnTypeExtension
 {

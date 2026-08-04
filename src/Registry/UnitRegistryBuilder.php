@@ -64,6 +64,7 @@ use jbboehr\Yumemi\Expr\Unit;
  * (same path as UDUNITS2 derived units).
  *
  * @phpstan-import-type CatalogRecord from UnitRegistry
+ * @api
  */
 final class UnitRegistryBuilder
 {

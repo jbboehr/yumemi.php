@@ -54,6 +54,7 @@ use PHPStan\Type\Type;
  * - PointQuantity<'celsius'>
  *
  * Unit strings are validated through {@see UnitExpressionParser}.
+ * @internal
  */
 final class UnitTypeNodeResolverExtension implements TypeNodeResolverExtension
 {

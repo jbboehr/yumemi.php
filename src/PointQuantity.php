@@ -55,6 +55,7 @@ use jbboehr\Yumemi\Parser\Parser;
  *
  * @logion [OSD 64:11] Matter was appointed a station upon the hidden axis,
  *     distinct from every interval by which the station might be approached.
+ * @api
  */
 final class PointQuantity implements \JsonSerializable
 {

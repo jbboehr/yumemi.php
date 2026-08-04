@@ -50,6 +50,7 @@ use PHPStan\Type\ObjectType;
  * Emits standalone diagnostics for invalid Quantity construction and parsing.
  *
  * @implements Rule<MethodCall>
+ * @internal
  */
 final class InvalidQuantityConstructionRule implements Rule
 {

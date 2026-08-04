@@ -36,6 +36,9 @@
 
 namespace jbboehr\Yumemi\Parser;
 
+/**
+ * @internal
+ */
 interface Ast
 {
     public function toString(): string;

@@ -38,6 +38,9 @@ namespace jbboehr\Yumemi\Parser\Ast;
 
 use jbboehr\Yumemi\Parser\Ast;
 
+/**
+ * @internal
+ */
 interface Number extends Ast
 {
 }

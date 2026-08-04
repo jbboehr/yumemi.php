@@ -40,6 +40,9 @@ use PHPStan\PhpDocParser\Ast\NodeTraverser;
 use PHPStan\PhpDocParser\Ast\NodeVisitor\CloningVisitor;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 
+/**
+ * @internal
+ */
 final class YumemiTypeNodeNormalizer
 {
     public function describe(TypeNode $type, bool $eraseUnits): string
