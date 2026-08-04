@@ -262,22 +262,20 @@ quantity, and point operations; validates construction, conversion, extraction, 
 conversion helpers; preserves finite literal-string unions; configures custom registries; and provides stable
 diagnostics.
 
-Package-aware integrations supply exact duration stubs for `illuminate/cache` and second, millisecond, and byte-scale
-stubs for `illuminate/http`, each against Laravel 11 through 13. Overflow-capable branded integer arithmetic
-conservatively preserves `unit_int|unit_float`, with an opt-out for applications that assume integer-safe magnitudes.
-Retaining PHPStan constant and integer-range bounds could narrow those results later, but is precision work rather than
-missing core soundness. Remaining work is integration breadth: selected casts and built-ins, additional evidence-driven
-third-party stubs, more precise diagnostics, and future advanced unit semantics. Dynamic strings intentionally fall back
-to unbranded types.
+The separate [Yumemi Apocrypha](https://github.com/jbboehr/yumemi-apocrypha.php) package supplies curated third-party
+stubs without expanding core's dependency graph. Overflow-capable branded integer arithmetic conservatively preserves
+`unit_int|unit_float`, with an opt-out for applications that assume integer-safe magnitudes. Retaining PHPStan constant
+and integer-range bounds could narrow those results later, but is precision work rather than missing core soundness.
+Remaining work is selected casts and built-ins, more precise diagnostics, and future advanced unit semantics. Dynamic
+strings intentionally fall back to unbranded types.
 
 ### 22. Function Boundary Checking
 
 Status: **Done statically; runtime decorators absent** | Importance: **P1/P2** | Remaining difficulty: **M**
 
 Ordinary PHPDoc parameters and returns enforce branded native and generic quantity types through PHPStan. Optional
-`@yumemi-*` tags support extension-optional libraries. An explicit package-stub loader applies those semantics to
-selected third-party APIs. Illuminate Cache brands cache, lock, and rate-limiter durations; Illuminate HTTP brands
-client timeouts, retry delays, and fake-upload sizes.
+`@yumemi-*` tags support extension-optional libraries. Yumemi Apocrypha applies those semantics to selected third-party
+APIs while owning their stubs and compatibility matrices.
 
 Pint-style runtime decorators or PHP attributes that convert arguments are absent. They should be introduced only if
 static contracts and explicit runtime conversion prove insufficient.
@@ -384,10 +382,10 @@ Composer, Nix, treefmt, pre-commit hooks, PHP-CS-Fixer, PHPStan, PHPUnit, genera
 Infection with enforced mutation-score floors are configured. Catalog and parser regeneration are documented. A
 Nix-backed differential suite compares representative conversions against the `udunits2` executable, and a deterministic
 generative suite exercises bounded expression, quantity, and point identities. An isolated consumer smoke test verifies
-runtime use plus automatic and manual PHPStan registration from a release-style Composer archive. Separate isolated
-matrices install Illuminate Cache and HTTP 11 through 13 and verify bundled stub shapes, accepted calls, and exact-unit
-diagnostics without adding Laravel to the root dependency graph. A PHP 8.2 lowest-dependency job verifies the declared
-lower bounds through `composer update --prefer-lowest --prefer-stable`.
+runtime use plus automatic and manual PHPStan registration from a release-style Composer archive. The separately
+versioned Yumemi Apocrypha project verifies curated upstream integrations without adding their dependencies or
+maintenance surface to core. A PHP 8.2 lowest-dependency job verifies the declared lower bounds through
+`composer update --prefer-lowest --prefer-stable`.
 
 The project still lacks a tagged release and release workflow. A highest-dependency job may be useful after the first
 release establishes a compatibility promise.

@@ -14,7 +14,6 @@ parameters:
     yumemi:
         integerOverflowToFloat: true
         registryFactory: null
-        stubs: []
     # Symfony's conditional classmap stub also contains its pre-enum integer fallback. Scan the
     # native shape explicitly so PHPStan sees enum cases on every PHP version Yumemi supports.
     scanFiles:
@@ -24,7 +23,6 @@ parametersSchema:
     yumemi: structure([
         integerOverflowToFloat: bool(),
         registryFactory: schema(string(), nullable()),
-        stubs: listOf(string()),
     ])
 
 services:

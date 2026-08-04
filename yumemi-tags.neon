@@ -3,12 +3,6 @@
 
 services:
     -
-        class: jbboehr\Yumemi\PHPStan\ConfiguredStubFilesExtension
-        arguments:
-            packages: %yumemi.stubs%
-        tags:
-            - phpstan.stubFilesExtension
-    -
         class: jbboehr\Yumemi\PHPStan\YumemiTypeNodeNormalizer
     -
         class: jbboehr\Yumemi\PHPStan\YumemiDocTagPromoter

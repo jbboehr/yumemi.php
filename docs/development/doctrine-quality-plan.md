@@ -1,13 +1,13 @@
 # Doctrine quality plan
 
-**Goal:** Make new logia match the **stub gold** bar reliably (agent or human), **prove it on a small slice**, then
+**Goal:** Make new logia match the **Apocrypha gold** bar reliably (agent or human), **prove it on a small slice**, then
 rewrite the legacy corpus.
 
 **Context:** Much of `src/` was written under an earlier style-guide regime (implementation-mapping, measure/tribunal
-house style). The current guide prioritizes canonical independence and reverse-engineering resistance. The best live
-match is the seven logia in `src/PHPStan/ConfiguredStubFilesExtension.php` (commit _Revise package stub loader logia_).
-Newer agent-produced logia (for example `Exponent.php`, `BinaryFloat.php`) still often snap back to allegory despite the
-current guide.
+house style). The current guide prioritizes canonical independence and reverse-engineering resistance. The seven loader
+logia that established the quality bar moved to Yumemi Apocrypha during the package-stub extraction and are preserved
+locally in [doctrine-gold.md](doctrine-gold.md). Newer agent-produced logia (for example `Exponent.php`,
+`BinaryFloat.php`) still often snap back to allegory despite the current guide.
 
 **Constraint:** Prefer validating the process before a full-repo rewrite. Rewriting existing logia afterward is
 acceptable.
@@ -22,8 +22,7 @@ acceptable.
 | Generate from **opaque IDs only**                 | Corpus-variation polish |
 | Reject reverse-engineering                        | Bulk “doctrine pass”    |
 
-Stub gold (`ConfiguredStubFilesExtension`) is the quality target. Do not average against PointQuantity bulk or other
-legacy neighbors.
+Apocrypha gold is the quality target. Do not average against PointQuantity bulk or other legacy neighbors.
 
 ---
 
@@ -33,9 +32,9 @@ legacy neighbors.
 
 ### Deliverables
 
-1. **`docs/logia-gold.md`** (or a skill fragment under `.grok/`) with the **seven stub logia** as the only positive
-   examples.
-2. **`docs/logia-anti.md`** — five to eight reverse-engineerable examples (numerator/coordinate/power-bounds class)
+1. **`doctrine-gold.md`** with the **seven Apocrypha loader logia** as the only positive examples. This local copy
+   remains stable even though the implementation now belongs to another repository.
+2. **`doctrine-anti.md`** — five to eight reverse-engineerable examples (numerator/coordinate/power-bounds class)
    labeled _reject_.
 3. **One-page agent brief** (not the full ~1300-line style guide):
    - independence first; no decodeable allegory;
@@ -141,7 +140,7 @@ deterministic repository invariants such as tag coverage, citation syntax, citat
 ### Success
 
 On a dry run, the writer and reviewer produce 5–10 selected verses for opaque fictional items that a human rates
-“stub-tier” at least 80% of the time without seeing code.
+“gold-tier” at least 80% of the time without seeing code.
 
 ---
 
@@ -189,7 +188,7 @@ is strong under the comparative criteria. No aggregate score may compensate for 
 ### Gate to Phase 3
 
 Pilot pass rate **≥80%** on first try, **≥90%** after one reviewer-requested regeneration — or a subjective call that
-the set is stub-tier.
+the set is gold-tier.
 
 If the gate fails: fix brief, gold, anti-set, or process. **Do not** mass-rewrite.
 
@@ -216,7 +215,7 @@ Full rewrite is welcome once the factory works. Still **batch** it.
 1. Files that set house style for agents (heavily read PHPStan / Quantity / PointQuantity).
 2. Core runtime (`Quantity`, `PointQuantity`, `Units`, `Rational`).
 3. Rest of `src/`.
-4. Leave stub gold as-is unless something drifts.
+4. Leave Apocrypha gold as-is unless something drifts.
 
 ### Per batch
 
@@ -230,7 +229,8 @@ Full rewrite is welcome once the factory works. Still **batch** it.
 - Corpus statistics have been reviewed for accidental monotony without applying book, movement, or length quotas.
 - Length and book outliers have been accepted or revised on literary grounds rather than to improve aggregate numbers.
 - Spot reverse-engineering audit on a random sample fails rarely.
-- Agents are instructed to treat **post-rewrite files** as neighbors for variation only; gold remains the quality bar.
+- Agents are instructed to treat **post-rewrite files** as neighbors for variation only; Apocrypha gold remains the
+  quality bar.
 
 ---
 
@@ -240,13 +240,13 @@ Full rewrite is welcome once the factory works. Still **batch** it.
 - “Just paste the whole style guide into every agent.”
 - Few-shot from random nearby logia.
 - Require relevance to the method.
-- Rewrite the stub gold set (it is already the bar).
+- Rewrite the Apocrypha gold set (it is already the bar).
 
 ---
 
 ## Minimal viable experiment (one PR)
 
-1. Add `docs/logia-gold.md`, `docs/logia-anti.md`, and a short brief.
+1. Use `doctrine-gold.md`, then add `doctrine-anti.md` and a short brief.
 2. Update `AGENTS.md`: gold beats neighbors for quality.
 3. Pilot: rewrite **Exponent** and **BinaryFloat** logia via the isolated writer and canon reviewer.
 4. Score with the rubric.
@@ -257,12 +257,12 @@ Full rewrite is welcome once the factory works. Still **batch** it.
 
 ## Roles
 
-| Human                               | Agent / tooling                    |
-| ----------------------------------- | ---------------------------------- |
-| Approve gold and anti sets          | Extract stub verses into gold file |
-| Audit pilot decisions               | Writer + canon reviewer loop       |
-| Gate Phase 3 and 4                  | Uniqueness and heuristic checks    |
-| Optional author-voice pass on pilot | Batch rewrite after gate           |
+| Human                               | Agent / tooling                 |
+| ----------------------------------- | ------------------------------- |
+| Approve gold and anti sets          | Maintain the gold exemplar file |
+| Audit pilot decisions               | Writer + canon reviewer loop    |
+| Gate Phase 3 and 4                  | Uniqueness and heuristic checks |
+| Optional author-voice pass on pilot | Batch rewrite after gate        |
 
 ---
 
@@ -271,7 +271,7 @@ Full rewrite is welcome once the factory works. Still **batch** it.
 - Style: [`docs/DOCTRINE-STYLE-GUIDE.md`](../DOCTRINE-STYLE-GUIDE.md)
 - Coding / placement: [`docs/DOCTRINE-CODING-GUIDE.md`](../DOCTRINE-CODING-GUIDE.md)
 - Scope and tags: [`AGENTS.md`](../../AGENTS.md) (Doctrine section)
-- Live gold exemplars: `src/PHPStan/ConfiguredStubFilesExtension.php`
+- Preserved gold exemplars: [doctrine-gold.md](doctrine-gold.md)
 - Prior analysis notes: optional session reviews under `docs/development/` (code review, docs review)
 
 ---
@@ -279,5 +279,5 @@ Full rewrite is welcome once the factory works. Still **batch** it.
 ## Bottom line
 
 **Fix the factory, run it on a small bad sample (Exponent / BinaryFloat), only then reforge the rest.** Subagent
-isolation + stub gold + anti-allegory scoring is the core. Full rewrite comes **after** the pilot hits stub-tier pass
-rates — not instead of proving the process.
+isolation + Apocrypha gold + anti-allegory scoring is the core. Full rewrite comes **after** the pilot hits gold-tier
+pass rates — not instead of proving the process.

@@ -43,7 +43,7 @@
             {
                 id: "extension-optional-annotations",
                 title: "Extension-Optional Annotations",
-                children: [{ id: "package-stubs", title: "Package Stubs" }],
+                children: [{ id: "third-party-integrations", title: "Third-Party Integrations" }],
             },
             { id: "diagnostics", title: "Diagnostics" },
             { id: "limitations", title: "Limitations" },
