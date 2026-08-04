@@ -98,13 +98,19 @@ final class Quantity implements \JsonSerializable
      */
     public function __unserialize(array $data): void
     {
+        $version = $data['version'] ?? null;
+        $expectedKeys = $version === 1
+            ? ['version', 'context', 'value', 'unit', 'normalizedUnit']
+            : ['version', 'context', 'value', 'unit', 'normalizedUnit', 'dimension'];
+
         if (
-            array_keys($data) !== ['version', 'context', 'value', 'unit', 'normalizedUnit']
-            || $data['version'] !== 1
+            !in_array($version, [1, 2], true)
+            || array_keys($data) !== $expectedKeys
             || !is_string($data['context'])
             || !$data['value'] instanceof Rational
             || !is_string($data['unit'])
             || !is_string($data['normalizedUnit'])
+            || ($version === 2 && !$data['dimension'] instanceof Dimension)
         ) {
             throw new UnexpectedValueException('Invalid serialized Quantity payload.');
         }
@@ -125,7 +131,10 @@ final class Quantity implements \JsonSerializable
 
         $quantity = new self($data['value'], $data['unit'], $units);
 
-        if ($quantity->normalizedUnit()->toString() !== $data['normalizedUnit']) {
+        if (
+            $quantity->normalizedUnit()->toString() !== $data['normalizedUnit']
+            || ($version === 2 && !$quantity->dimension()->equals($data['dimension']))
+        ) {
             throw new UnexpectedValueException(
                 'Serialized Quantity unit semantics do not match the selected Units context.',
             );
@@ -141,16 +150,24 @@ final class Quantity implements \JsonSerializable
      * @logion [OSD 26:52] The measure entered the vessel with its chosen sign and
      *     a hidden canonical witness against every future corruption.
      *
-     * @return array{version: 1, context: 'default'|'custom', value: Rational, unit: string, normalizedUnit: string}
+     * @return array{
+     *     version: 2,
+     *     context: 'default'|'custom',
+     *     value: Rational,
+     *     unit: string,
+     *     normalizedUnit: string,
+     *     dimension: Dimension
+     * }
      */
     public function __serialize(): array
     {
         return [
-            'version' => 1,
+            'version' => 2,
             'context' => $this->units === Units::default() ? 'default' : 'custom',
             'value' => $this->value,
             'unit' => $this->unit->toString(),
             'normalizedUnit' => $this->normalizedUnit()->toString(),
+            'dimension' => $this->dimension(),
         ];
     }
 

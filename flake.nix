@@ -79,7 +79,7 @@
           inherit src;
 
           composerNoDev = false;
-          vendorHash = "sha256-tOSjSEmJaP2nabvNv/l1XanKta2SXyqmESp7wS7PaTU=";
+          vendorHash = "sha256-r1WU8U9LSsuthEjScaUTyhddQpBo+YSnJzRZMpI3Vg4=";
 
           nativeCheckInputs = [ pkgs.udunits ];
           checkPhase = ''

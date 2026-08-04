@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\Registry;
 
 use jbboehr\Yumemi\Catalog\PrefixDescriptor;
+use jbboehr\Yumemi\Exception\InvalidArgumentException;
 use jbboehr\Yumemi\Expr\Unit;
 
 /**
@@ -59,6 +60,25 @@ final class CompositeUnitRegistry extends UnitRegistry
         private readonly UnitRegistry $overlay,
     ) {
         parent::__construct();
+
+        $primitiveBaseUnits = [];
+        foreach ($this->names() as $name) {
+            $dimension = $this->findPrimitiveDimension($name);
+            if ($dimension === null) {
+                continue;
+            }
+
+            if (isset($primitiveBaseUnits[$dimension])) {
+                throw new InvalidArgumentException(sprintf(
+                    'Primitive dimension "%s" has multiple base units: "%s" and "%s".',
+                    $dimension,
+                    $primitiveBaseUnits[$dimension],
+                    $name,
+                ));
+            }
+
+            $primitiveBaseUnits[$dimension] = $name;
+        }
     }
 
     public function findPrebuiltUnit(string $name): ?Unit

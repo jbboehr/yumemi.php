@@ -206,7 +206,7 @@ final class UnitConversionResolver
         }
 
         $normalized = $this->unitNormalizer->normalize($expr);
-        $dimension = DimensionResolver::resolveNormalized($normalized);
+        $dimension = DimensionResolver::resolveNormalized($normalized, $this->unitRegistry);
         $conversion = new ExactConversion(NormalizedExpr::constant($normalized), new Rational(0));
         $cache[$expr] = [$dimension, $conversion];
 

@@ -53,6 +53,21 @@ use PHPUnit\Framework\TestCase;
  */
 final class CompositeUnitRegistryTest extends TestCase
 {
+    public function testRejectsMultipleEffectiveBaseUnitsForOnePrimitiveDimension(): void
+    {
+        $base = new UnitRegistry([], [
+            'USD' => ['type' => 'base', 'name' => 'USD', 'dimension' => 'currency'],
+        ]);
+        $overlay = new UnitRegistry([], [
+            'EUR' => ['type' => 'base', 'name' => 'EUR', 'dimension' => 'currency'],
+        ]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('multiple base units');
+
+        new CompositeUnitRegistry($base, $overlay);
+    }
+
     public function testOverlayWinsForLookupAndRecordWithBaseFallback(): void
     {
         $baseShared = new Unit('shared');
@@ -356,6 +371,7 @@ final class CompositeUnitRegistryTest extends TestCase
              *     documentation?: string,
              *     comment?: string,
              *     plural?: string,
+             *     dimension?: string,
              *     semantics?: 'affine'|'logarithmic'
              * }> $records
              * @param array<string, string> $prefixes

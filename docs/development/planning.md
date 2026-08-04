@@ -61,7 +61,7 @@ registration.
 The implemented foundation now includes:
 
 - exact `Rational` arithmetic with explicit integer, decimal, and binary64 output policies;
-- a reduced symbolic expression model, Bison parser, seven-axis SI `Dimension`, and derived-unit normalization;
+- a reduced symbolic expression model, Bison parser, hybrid SI/extension `Dimension`, and derived-unit normalization;
 - a generated UDUNITS2 catalog with exact aliases, plurals, prefixes, introspection, and deterministic regeneration;
 - mutable custom-registry construction producing immutable snapshots;
 - exact multiplicative and affine scale-and-offset conversion, synthesized affine-difference units, and point
@@ -318,35 +318,35 @@ suggestion; equivalent immutable registry snapshots produce the same ordered sug
 
 ## Extensible Base Dimensions And Currency
 
-The seven SI dimensions remain the built-in physical axes and should retain their current named accessors and compact
-fixed vector. User-defined primitive dimensions should extend that model rather than replacing it with a string-keyed
-map for every ordinary physical expression.
+The seven SI dimensions remain the built-in physical axes with their established named accessors and compact fixed
+vector. User-defined primitive dimensions extend that model rather than replacing it with a string-keyed map for every
+ordinary physical expression.
 
-The preferred representation is a hybrid `Dimension` containing:
+The implemented representation is a hybrid `Dimension` containing:
 
 - the existing seven-element SI vector;
-- a nullable sparse map of additional named integer powers, canonicalized by raw name.
+- a nullable sparse map of lower-snake-case named integer powers.
 
-Dimension equality, multiplication, division, powers, formatting, JSON, debugging, and serialization must include the
-additional map. SI axes should retain their established display order; extension axes should use deterministic bytewise
-ordering. Existing version-1 serialized SI-only dimensions should remain readable if the serialized shape changes.
+Dimension equality, multiplication, division, powers, formatting, JSON, debugging, and serialization include the
+additional map. SI axes retain their established display order; extension axes use deterministic bytewise ordering.
+Version-1 serialized SI-only dimensions remain readable through the version-2 representation.
 
-Custom primitive-unit declarations belong to immutable registry metadata. A future builder API should associate a base
-unit with a named dimension, after which ordinary definitions can derive other units from it. `DimensionResolver` must
-consult the effective registry's primitive-dimension metadata rather than relying solely on its current hard-coded SI
-base-unit table. Registry fingerprints must include those declarations so runtime serialization and PHPStan result-cache
-invalidation detect semantic changes.
+Custom primitive-unit declarations belong to immutable registry metadata. `UnitRegistryBuilder::baseUnit()` associates
+one canonical base unit with a named dimension, after which ordinary definitions derive other units from it.
+`DimensionResolver` consults effective registry metadata before its hard-coded SI fast path. Registry fingerprints and
+new quantity/point serialization seals include the dimension semantics, so PHPStan cache invalidation and restoration
+detect changed declarations.
 
-Currency is a useful motivating application but should not become an eighth built-in axis, and Yumemi should not ship or
-fetch exchange rates. An application may create one custom `currency` dimension, choose one primitive currency for an
-immutable registry snapshot, and define other currencies through exact declared rates. The application remains
+Currency is the acceptance case but does not become an eighth built-in axis, and Yumemi does not ship or fetch exchange
+rates. `Dimension::CURRENCY` provides a conventional extension name. An application may choose one primitive currency
+for an immutable registry snapshot and define other currencies through exact declared rates. The application remains
 responsible for the rates' source, effective time, bid/ask policy, fees, and monetary rounding. Such a snapshot supports
 dimensional checking and exact conversion; it is not a complete accounting or money model.
 
 [GNU Units](https://www.gnu.org/software/units/manual/units.html#Currency-Exchange-Rates) demonstrates the snapshot
 pattern by selecting one primitive currency and generating the remaining definitions from periodically updated rates.
-Yumemi may support the same dimensional structure through custom registries without adopting GNU Units' updater or
-treating mutable rates as catalog constants.
+Yumemi supports the same dimensional structure through custom registries without adopting GNU Units' updater or treating
+mutable rates as catalog constants.
 
 This preserves the current arithmetic policy: compatible currencies may be converted explicitly or through exact
 `Quantity` operations, while branded native addition still cannot combine different currency units without an explicit
@@ -355,8 +355,7 @@ conversion. Cross-registry operations continue to reject values from different r
 ## Remaining Issues And Deferred Work
 
 The multiplicative and affine-point runtimes and the PHPStan native/object paths are usable. Remaining work is mostly
-developer-experience improvement, selected API and formatting polish, extensible registry semantics, and explicitly
-deferred advanced features.
+developer-experience improvement, selected API and formatting polish, and explicitly deferred advanced features.
 
 ### Pre-Release Checklist
 
@@ -396,8 +395,6 @@ repeat the implementation's assumptions:
 
 ### Near-Term Work
 
-- Extend `Dimension` and registry metadata with user-defined primitive dimensions while preserving the seven-axis SI
-  fast path; use currency as a custom-registry acceptance case without bundling exchange-rate data.
 - Split broad PHPStan diagnostic identifiers only where users need more precise suppression.
 
 ### Known Limitations And Risks

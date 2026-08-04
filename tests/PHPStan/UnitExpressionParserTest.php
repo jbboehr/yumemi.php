@@ -345,6 +345,27 @@ final class UnitExpressionParserTest extends TestCase
         $this->assertSame('widget / second', $quantityResult->expression()->displayString);
     }
 
+    public function testUsesCustomPrimitiveDimensionsFromUnits(): void
+    {
+        $registry = UnitRegistryBuilder::default()
+            ->baseUnit('USD', 'currency')
+            ->define('EUR = 100 / 107 * USD')
+            ->build();
+        $parser = new UnitExpressionParser(new Units($registry));
+
+        $dollars = $parser->parse('USD / second');
+        $euros = $parser->parse('EUR / second');
+        $meters = $parser->parse('meter / second');
+
+        $this->assertTrue($dollars->isOk());
+        $this->assertTrue($euros->isOk());
+        $this->assertTrue($meters->isOk());
+        $this->assertSame('currency / time', $dollars->expression()->dimension->toString());
+        $this->assertTrue($dollars->expression()->sameDimension($euros->expression()));
+        $this->assertFalse($dollars->expression()->sameDimension($meters->expression()));
+        $this->assertFalse($dollars->expression()->equals($euros->expression()));
+    }
+
     /**
      * @return list<array{0: string, 1: string}>
      */

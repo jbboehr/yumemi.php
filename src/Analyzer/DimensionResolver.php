@@ -44,6 +44,7 @@ use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
+use jbboehr\Yumemi\Registry\UnitRegistry;
 
 /**
  * @internal
@@ -63,26 +64,27 @@ final class DimensionResolver
 
     public function __construct(
         private readonly UnitNormalizer $unitNormalizer,
+        private readonly ?UnitRegistry $unitRegistry = null,
     ) {
     }
 
     public function resolve(Expr $expr): Dimension
     {
-        return self::resolveNormalized($this->unitNormalizer->normalize($expr));
+        return self::resolveNormalized($this->unitNormalizer->normalize($expr), $this->unitRegistry);
     }
 
-    public static function resolveNormalized(Expr $expr): Dimension
+    public static function resolveNormalized(Expr $expr, ?UnitRegistry $unitRegistry = null): Dimension
     {
-        return self::collect(ExprReducer::reduce($expr));
+        return self::collect(ExprReducer::reduce($expr), $unitRegistry);
     }
 
-    private static function collect(Expr $expr): Dimension
+    private static function collect(Expr $expr, ?UnitRegistry $unitRegistry): Dimension
     {
         if ($expr instanceof Product) {
             $dimension = Dimension::dimensionless();
 
             foreach ($expr->factors as $subexpr) {
-                $dimension = $dimension->mul(self::collect($subexpr));
+                $dimension = $dimension->mul(self::collect($subexpr, $unitRegistry));
             }
 
             return $dimension;
@@ -93,18 +95,23 @@ final class DimensionResolver
         }
 
         if ($expr instanceof Power) {
-            return self::collect($expr->base)->pow($expr->exponent);
+            return self::collect($expr->base, $unitRegistry)->pow($expr->exponent);
         }
 
         if ($expr instanceof Unit) {
-            return self::unitDimension($expr);
+            return self::unitDimension($expr, $unitRegistry);
         }
 
         throw new LogicException('Cannot resolve dimension for expression of type ' . $expr::class);
     }
 
-    private static function unitDimension(Unit $unit): Dimension
+    private static function unitDimension(Unit $unit, ?UnitRegistry $unitRegistry): Dimension
     {
+        $primitiveDimension = $unitRegistry?->findPrimitiveDimension($unit->name);
+        if ($primitiveDimension !== null) {
+            return Dimension::fromNamedPowers([$primitiveDimension => 1]);
+        }
+
         $powers = self::BASE_DIMENSIONS[$unit->name] ?? null;
 
         if ($powers === null) {

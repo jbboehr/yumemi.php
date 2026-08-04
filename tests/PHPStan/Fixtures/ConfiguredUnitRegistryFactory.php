@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\Tests\PHPStan\Fixtures;
 
+use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\PHPStan\UnitRegistryFactory;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
@@ -45,6 +46,8 @@ final class ConfiguredUnitRegistryFactory implements UnitRegistryFactory
     public static function create(): UnitRegistry
     {
         return UnitRegistryBuilder::default()
+            ->baseUnit('USD', Dimension::CURRENCY)
+            ->define('EUR = 100 / 107 * USD')
             ->define('widget = 12 * meter')
             ->define('degree_widget = kelvin @ 100')
             ->alias('widgets', 'widget')

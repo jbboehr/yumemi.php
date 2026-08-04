@@ -118,6 +118,31 @@ final class UnitRegistryTest extends TestCase
         new UnitRegistry([], ['' => ['type' => 'base', 'name' => 'anonymous']]);
     }
 
+    public function testPrimitiveDimensionMetadataRequiresOneBaseUnit(): void
+    {
+        try {
+            new UnitRegistry([], [
+                'derived' => [
+                    'type' => 'unit',
+                    'name' => 'derived',
+                    'def' => '1',
+                    'dimension' => 'currency',
+                ],
+            ]);
+            self::fail('Expected primitive metadata on a derived record to be rejected.');
+        } catch (\InvalidArgumentException $exception) {
+            $this->assertStringContainsString('Only base unit records', $exception->getMessage());
+        }
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('multiple base units');
+
+        new UnitRegistry([], [
+            'USD' => ['type' => 'base', 'name' => 'USD', 'dimension' => 'currency'],
+            'EUR' => ['type' => 'base', 'name' => 'EUR', 'dimension' => 'currency'],
+        ]);
+    }
+
     public function testDescribesPrebuiltUnits(): void
     {
         $descriptor = UnitRegistry::defaults()->describe('kilometer');

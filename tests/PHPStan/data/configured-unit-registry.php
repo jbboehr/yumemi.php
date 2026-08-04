@@ -39,6 +39,16 @@ assertType("unit_float<'meter'>", $widget * $widgetToMeter);
 assertType("unit_float<'kelvin'>", unit_to(0, 'degree_widget', 'kelvin'));
 assertType('float', unit_to(100, 'kelvin', 'degree_widget'));
 
+$euros = unit(107, 'EUR');
+assertType("107&unit_int<'EUR'>", $euros);
+assertType("unit_float<'USD'>", unit_to($euros, 'EUR', 'USD'));
+assertType("unit_float<'USD / EUR'>", unit_factor('EUR', 'USD'));
+
+$dollars = Units::default()->quantity(100, 'USD');
+$euroQuantity = Units::default()->quantity(107, 'EUR');
+assertType("Quantity<'USD'>", $dollars->add($euroQuantity));
+assertType("Quantity<'USD'>", $euroQuantity->to('USD'));
+
 $area = $widget * $widgets;
 assertType("6&unit_int<'widget ^ 2'>", $area);
 

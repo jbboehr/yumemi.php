@@ -39,6 +39,7 @@ namespace jbboehr\Yumemi\Tests\Registry;
 use jbboehr\Yumemi\Analyzer\UnitResolver;
 use jbboehr\Yumemi\Catalog\UnitDescriptor;
 use jbboehr\Yumemi\Catalog\UnitSemantics;
+use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Exception\UnresolvableUnitDimensionException;
 use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
@@ -84,6 +85,101 @@ final class UnitRegistryBuilderTest extends TestCase
 
         $this->assertInstanceOf(Udunits2UnitRegistry::class, $registry);
         $this->assertNotNull($registry->findCatalogRecord('meter'));
+    }
+
+    public function testBuilderDeclaresPrimitiveDimensionAndDerivedUnits(): void
+    {
+        $registry = UnitRegistryBuilder::default()
+            ->baseUnit('USD', Dimension::CURRENCY)
+            ->define('EUR = 100 / 107 * USD')
+            ->alias('dollars', 'USD')
+            ->build();
+        $units = new Units($registry);
+
+        $this->assertSame(Dimension::CURRENCY, $registry->findPrimitiveDimension('USD'));
+        $this->assertNull($registry->findPrimitiveDimension('EUR'));
+        $this->assertSame([
+            'type' => 'base',
+            'name' => 'USD',
+            'dimension' => Dimension::CURRENCY,
+        ], $registry->findCatalogRecord('USD'));
+        $this->assertSame('currency', $units->dimension('USD')->toString());
+        $this->assertSame('currency', $units->unit('USD')->dimension()->toString());
+        $this->assertSame('currency / time', $units->dimension('EUR / second')->toString());
+        $this->assertSame('100', $units->convert(107, 'EUR', 'USD')->toString());
+        $this->assertSame('107', $units->convert(100, 'dollars', 'EUR')->toString());
+
+        $sum = $units->quantity(100, 'USD')->add($units->quantity(107, 'EUR'));
+        $this->assertSame('200', $sum->valueToString());
+        $this->assertSame('USD', $sum->unitToString());
+    }
+
+    public function testBuilderRejectsInvalidPrimitiveDimensionDeclarations(): void
+    {
+        try {
+            UnitRegistryBuilder::empty()->baseUnit('USD / second', Dimension::CURRENCY);
+            self::fail('Expected invalid base-unit name failure.');
+        } catch (\InvalidArgumentException $exception) {
+            $this->assertStringContainsString('one unit identifier', $exception->getMessage());
+        }
+
+        try {
+            UnitRegistryBuilder::empty()->baseUnit('USD', 'Not Valid');
+            self::fail('Expected invalid primitive-dimension name failure.');
+        } catch (\InvalidArgumentException $exception) {
+            $this->assertStringContainsString('lower_snake_case', $exception->getMessage());
+        }
+
+        $builder = UnitRegistryBuilder::empty()->baseUnit('USD', Dimension::CURRENCY);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Duplicate unit');
+        $builder->define('USD = 1');
+    }
+
+    public function testBuilderRejectsMultipleBaseUnitsForOnePrimitiveDimension(): void
+    {
+        $builder = UnitRegistryBuilder::empty()->baseUnit('USD', Dimension::CURRENCY);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('already has base unit "USD"');
+        $builder->baseUnit('EUR', Dimension::CURRENCY);
+    }
+
+    public function testBuilderRejectsFixedSiAxesAsPrimitiveDimensions(): void
+    {
+        foreach (
+            [
+                'length',
+                'mass',
+                'time',
+                'electric_current',
+                'temperature',
+                'amount_of_substance',
+                'luminous_intensity',
+            ] as $dimension
+        ) {
+            try {
+                UnitRegistryBuilder::default()->baseUnit('custom_' . $dimension, $dimension);
+                self::fail('Expected fixed SI dimension rejection for ' . $dimension . '.');
+            } catch (\InvalidArgumentException $exception) {
+                $this->assertSame(
+                    sprintf(
+                        'Primitive dimension "%s" is one of the seven fixed SI dimensions; define the unit relative to its SI base instead.',
+                        $dimension,
+                    ),
+                    $exception->getMessage(),
+                );
+            }
+        }
+    }
+
+    public function testBuilderCannotCreateAnIdentityConversionForASecondLengthBase(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Primitive dimension "length" is one of the seven fixed SI dimensions');
+
+        UnitRegistryBuilder::default()->baseUnit('rod', 'length');
     }
 
     public function testBuilderUsesExplicitUdunits2CatalogPath(): void
@@ -510,11 +606,13 @@ final class UnitRegistryBuilderTest extends TestCase
         $builder = UnitRegistryBuilder::empty();
 
         $this->assertSame($builder, $builder->add(new Unit('meter')));
+        $this->assertSame($builder, $builder->baseUnit('USD', Dimension::CURRENCY));
         $this->assertSame($builder, $builder->define('widget = 1'));
         $this->assertSame($builder, $builder->alias('thing', 'widget'));
 
         $registry = $builder->build();
         $this->assertNotNull($registry->findPrebuiltUnit('meter'));
+        $this->assertSame(Dimension::CURRENCY, $registry->findPrimitiveDimension('USD'));
         $this->assertNotNull($registry->findCatalogRecord('widget'));
         $this->assertNotNull($registry->findCatalogRecord('thing'));
     }
@@ -527,10 +625,15 @@ final class UnitRegistryBuilderTest extends TestCase
         $builder->add(new Unit('second'))->define('widget = meter');
         $second = $builder->build();
 
+        $builder->baseUnit('USD', Dimension::CURRENCY);
+        $third = $builder->build();
+
         $this->assertSame(['meter'], $first->names());
         $this->assertNull($first->findCatalogRecord('widget'));
         $this->assertSame(['meter', 'second', 'widget'], $second->names());
         $this->assertNotNull($second->findCatalogRecord('widget'));
+        $this->assertNull($second->findPrimitiveDimension('USD'));
+        $this->assertSame(Dimension::CURRENCY, $third->findPrimitiveDimension('USD'));
     }
 
     public function testAddAllIsTransactional(): void

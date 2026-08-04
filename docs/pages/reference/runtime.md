@@ -368,16 +368,26 @@ use `convert()`, `convertFloat()`, or `unit_to()` for affine conversion.
 
 ## Dimensions
 
-`Units::dimension()`, `Quantity::dimension()`, and resolved expressions expose a `Dimension` containing seven integer
-powers in this order:
+`Units::dimension()`, `Quantity::dimension()`, and resolved expressions expose a `Dimension`. Its ordinary fast path is
+the seven fixed SI powers in this order:
 
 ```text
 length, mass, time, electric current, temperature, amount of substance, luminous intensity
 ```
 
-Dimensions support multiplication, division, integer powers, equality, axis accessors, `powers()`, and
-`isDimensionless()`. Dimensional equality cannot distinguish semantically different quantities with the same physical
-dimension, such as gray and sievert.
+Application registries may add sparse named axes through `UnitRegistryBuilder::baseUnit()`. Physical and nonphysical
+axes use the same dimension algebra; for example, an application-defined `currency / time` dimension combines one
+extension axis with the fixed SI time axis. `Dimension::CURRENCY` provides the conventional `currency` extension name
+without adding a bundled unit or exchange-rate policy.
+
+Dimensions support multiplication, division, integer powers, equality, `isDimensionless()`, and the existing SI axis
+accessors. `powers()` retains its seven-element SI view. `namedPowers()` returns every nonzero SI and extension power,
+`powerOf()` reads either kind by name, and `fromNamedPowers()` constructs a mixed dimension directly. Extension names
+use lower snake case and format after SI axes in deterministic bytewise order.
+
+All axes participate equally in compatibility. Dimensional equality still cannot distinguish semantically different
+quantities with the same dimension, such as gray and sievert; that distinction would require a separate quantity-kind
+model rather than another dimension subclass.
 
 ## Formatting
 
@@ -460,15 +470,17 @@ assert($restored->unitToString() === 'meter / second');
 ```
 
 `Rational` JSON contains `numerator` and `denominator` strings. Quantity JSON contains that exact `value` and a
-formatted `unit` string. Dimension JSON names all seven axes. Descriptor JSON follows its public constructor state,
-renders backed enums as strings, and nests dynamic prefix decomposition.
+formatted `unit` string. Dimension JSON names all seven SI axes and adds `additionalPowers` when extension axes are
+present. Descriptor JSON follows its public constructor state, renders backed enums as strings, and nests dynamic prefix
+decomposition.
 
 Compact `__debugInfo()` output follows the same representation. Quantities add only a short context identity; dumping a
 quantity does not recursively print its `Units` registry and catalog.
 
-Native serialization is versioned and verifies unit semantics when restoring a quantity. Values created through
-`Units::default()` may use PHP's ordinary `serialize()` and `unserialize()` and always return to the shared default
-context. A quantity from a custom registry must be restored through that context:
+Native serialization is versioned and verifies normalized unit semantics and resolved dimensions when restoring a
+quantity or point. This detects a custom base-unit name being reassigned to another extension axis. Values created
+through `Units::default()` may use PHP's ordinary `serialize()` and `unserialize()` and always return to the shared
+default context. A quantity from a custom registry must be restored through that context:
 
 ```php
 <?php
@@ -491,10 +503,11 @@ assert($restored->valueIn('meter')->toString() === '8509/2500');
 Raw `unserialize()` rejects a custom-context quantity with an exception directing the caller to `Units::deserialize()`.
 The scoped method restores its previous context in `finally`, including across nested calls, and forwards PHP's native
 `unserialize()` options. Pass `allowed_classes` to restrict which classes a known graph may instantiate and `max_depth`
-to bound nesting. The allow-list must include every serialized object class in the graph; `allowed_classes: false`
-produces `__PHP_Incomplete_Class` objects and cannot restore a quantity. Yumemi does not choose a default allow-list
-because `deserialize()` may return any caller-defined graph. Serialized unit semantics are checked against the selected
-registry, so a changed or incorrect registry is rejected rather than silently reinterpreting the value.
+to bound nesting. The allow-list must include every serialized object class in the graph, including `Dimension` for new
+quantity and point payloads; `allowed_classes: false` produces `__PHP_Incomplete_Class` objects and cannot restore a
+quantity. Yumemi does not choose a default allow-list because `deserialize()` may return any caller-defined graph.
+Serialized unit semantics are checked against the selected registry, so a changed or incorrect registry is rejected
+rather than silently reinterpreting the value.
 
 One serialized graph may contain default values and values from one custom context. Graphs containing values from
 several distinct custom contexts require a future registry-identifier resolver. Never pass untrusted data to PHP

@@ -126,6 +126,10 @@ parameters:
         registryFactory: App\Units\ApplicationUnitRegistryFactory
 ```
 
+When an application unit is not derived from the seven SI axes, declare one canonical base with `baseUnit()` and derive
+the remaining units through exact definitions. The [custom-registry reference](reference/catalog.md#custom-registries)
+shows this pattern for an application-owned currency-rate snapshot.
+
 Instance methods use the registry attached to their `Units` context. Native helpers use the process-wide default
 instead; an application may install that context once during bootstrap, while tests and scoped workers should restore
 the previous context in `finally`. See [Registry Configuration](reference/phpstan.md#registry-configuration),

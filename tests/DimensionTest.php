@@ -67,6 +67,80 @@ final class DimensionTest extends TestCase
         $this->assertSame(4, $dimension->power(Dimension::AXIS_ELECTRIC_CURRENT));
     }
 
+    public function testConstructsAndExposesNamedExtensionAxes(): void
+    {
+        $dimension = Dimension::fromNamedPowers([
+            'zeta' => 2,
+            Dimension::CURRENCY => 1,
+            'time' => -1,
+            'luminous_intensity' => 4,
+            'alpha' => 0,
+        ]);
+
+        $this->assertSame([0, 0, -1, 0, 0, 0, 4], $dimension->powers());
+        $this->assertSame([
+            'time' => -1,
+            'luminous_intensity' => 4,
+            'currency' => 1,
+            'zeta' => 2,
+        ], $dimension->namedPowers());
+        $this->assertSame(-1, $dimension->powerOf('time'));
+        $this->assertSame(1, $dimension->powerOf(Dimension::CURRENCY));
+        $this->assertSame(0, $dimension->powerOf('absent_axis'));
+        $this->assertSame('luminous_intensity ^ 4 * currency * zeta ^ 2 / time', $dimension->toString());
+    }
+
+    public function testPreservesNegativeNamedExtensionPowers(): void
+    {
+        $dimension = Dimension::fromNamedPowers(['currency' => -1]);
+
+        $this->assertSame(['currency' => -1], $dimension->namedPowers());
+        $this->assertSame('1 / currency', $dimension->toString());
+    }
+
+    public function testRejectsInvalidNamedAxes(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('lower_snake_case');
+
+        Dimension::fromNamedPowers(['Not Valid' => 1]);
+    }
+
+    public function testRejectsDimensionlessAsANamedAxis(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        Dimension::fromNamedPowers(['dimensionless' => 1]);
+    }
+
+    public function testRejectsMalformedAdditionalAxisPayloads(): void
+    {
+        foreach (["currency\n", 'currency!'] as $name) {
+            try {
+                new Dimension(additionalPowers: [$name => 1]);
+                self::fail('Expected malformed dimension axis to be rejected: ' . $name);
+            } catch (\InvalidArgumentException $exception) {
+                $this->assertStringContainsString('lower_snake_case', $exception->getMessage());
+            }
+
+            try {
+                Dimension::dimensionless()->powerOf($name);
+                self::fail('Expected malformed dimension lookup to be rejected: ' . $name);
+            } catch (\InvalidArgumentException $exception) {
+                $this->assertStringContainsString('lower_snake_case', $exception->getMessage());
+            }
+        }
+
+        foreach ([[1], ['currency' => '1']] as $powers) {
+            try {
+                new Dimension(additionalPowers: $powers);
+                self::fail('Expected malformed dimension powers to be rejected.');
+            } catch (\InvalidArgumentException $exception) {
+                $this->assertNotSame('', $exception->getMessage());
+            }
+        }
+    }
+
     public function testRejectsUnknownAxis(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -98,12 +172,43 @@ final class DimensionTest extends TestCase
         $this->assertSame([2, 1, 5, 1, 9, 1, 13], $left->div($right)->powers());
     }
 
+    public function testCombinesAndCancelsExtensionAxes(): void
+    {
+        $currency = Dimension::fromNamedPowers(['currency' => 1]);
+        $events = Dimension::fromNamedPowers(['event_count' => 1]);
+
+        $rate = $currency->div($events);
+
+        $this->assertSame(['currency' => 1, 'event_count' => -1], $rate->namedPowers());
+        $this->assertSame('currency / event_count', $rate->toString());
+        $this->assertTrue($rate->mul($events)->equals($currency));
+        $this->assertTrue($currency->div($currency)->isDimensionless());
+    }
+
+    public function testCombiningExtensionAxesRestoresCanonicalOrder(): void
+    {
+        $combined = Dimension::fromNamedPowers(['zeta' => 1])
+            ->mul(Dimension::fromNamedPowers(['alpha' => 1]));
+
+        $this->assertSame(['alpha' => 1, 'zeta' => 1], $combined->namedPowers());
+        $this->assertSame('alpha * zeta', $combined->toString());
+    }
+
     public function testRaisesDimensionToPower(): void
     {
         $velocity = new Dimension(length: 1, time: -1);
 
         $this->assertSame([2, 0, -2, 0, 0, 0, 0], $velocity->pow(2)->powers());
         $this->assertSame('length ^ 2 / time ^ 2', $velocity->pow(2)->toString());
+    }
+
+    public function testRaisesExtensionDimensionToPower(): void
+    {
+        $dimension = Dimension::fromNamedPowers(['currency' => 1, 'time' => -1])->pow(2);
+
+        $this->assertSame(['time' => -2, 'currency' => 2], $dimension->namedPowers());
+        $this->assertSame('currency ^ 2 / time ^ 2', $dimension->toString());
+        $this->assertTrue($dimension->pow(0)->isDimensionless());
     }
 
     public function testZeroPowerIsDimensionless(): void
@@ -121,6 +226,14 @@ final class DimensionTest extends TestCase
     public function testRejectsDimensionArithmeticBeyondSupportedRange(): void
     {
         $dimension = new Dimension(length: 100);
+
+        $this->expectException(OverflowException::class);
+        $dimension->pow(101);
+    }
+
+    public function testRejectsExtensionDimensionArithmeticBeyondSupportedRange(): void
+    {
+        $dimension = Dimension::fromNamedPowers(['currency' => 100]);
 
         $this->expectException(OverflowException::class);
         $dimension->pow(101);
@@ -151,5 +264,9 @@ final class DimensionTest extends TestCase
 
         $this->assertTrue($left->equals($right));
         $this->assertFalse($left->equals(new Dimension(length: 1)));
+        $this->assertFalse(
+            Dimension::fromNamedPowers(['currency' => 1])
+                ->equals(Dimension::fromNamedPowers(['information' => 1])),
+        );
     }
 }

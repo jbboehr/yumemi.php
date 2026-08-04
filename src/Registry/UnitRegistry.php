@@ -44,6 +44,7 @@ use jbboehr\Yumemi\Catalog\PrefixDecomposition;
 use jbboehr\Yumemi\Catalog\PrefixDescriptor;
 use jbboehr\Yumemi\Catalog\UnitDescriptor;
 use jbboehr\Yumemi\Catalog\UnitKind;
+use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\Exception\InvalidArgumentException;
 use jbboehr\Yumemi\Exception\UnexpectedValueException;
 use jbboehr\Yumemi\Expr\Product;
@@ -69,6 +70,7 @@ use jbboehr\Yumemi\Expr\Unit;
  *     documentation?: string,
  *     comment?: string,
  *     plural?: string,
+ *     dimension?: string,
  *     semantics?: 'affine'|'logarithmic'
  * }
  */
@@ -113,6 +115,8 @@ class UnitRegistry
             $this->units[$name] = $unit;
         }
 
+        $primitiveBaseUnits = [];
+
         foreach ($records as $name => $record) {
             if ($name === '') {
                 throw new InvalidArgumentException('Catalog record name must be a non-empty string.');
@@ -126,6 +130,27 @@ class UnitRegistry
 
             if (isset($this->records[$name])) {
                 throw new InvalidArgumentException('Duplicate catalog record name: ' . $name);
+            }
+
+            if (array_key_exists('dimension', $record)) {
+                if ($record['type'] !== 'base') {
+                    throw new InvalidArgumentException(
+                        'Only base unit records may declare a primitive dimension: ' . $name,
+                    );
+                }
+
+                Dimension::fromNamedPowers([$record['dimension'] => 1]);
+
+                if (isset($primitiveBaseUnits[$record['dimension']])) {
+                    throw new InvalidArgumentException(sprintf(
+                        'Primitive dimension "%s" has multiple base units: "%s" and "%s".',
+                        $record['dimension'],
+                        $primitiveBaseUnits[$record['dimension']],
+                        $name,
+                    ));
+                }
+
+                $primitiveBaseUnits[$record['dimension']] = $name;
             }
 
             $this->records[$name] = $record;
@@ -206,6 +231,21 @@ class UnitRegistry
     public function findCatalogRecord(string $name): ?array
     {
         return $this->records[$name] ?? null;
+    }
+
+    /**
+     * Find the primitive dimension explicitly assigned to a base unit.
+     *
+     * @logion [SFA 74:36] The keeper sought the first order beneath the unit's inscription,
+     *     and returned in silence when no founding tablet had been appointed.
+     */
+    public function findPrimitiveDimension(string $name): ?string
+    {
+        $record = $this->findCatalogRecord($name);
+
+        return $record !== null && $record['type'] === 'base'
+            ? ($record['dimension'] ?? null)
+            : null;
     }
 
     /**

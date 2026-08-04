@@ -80,16 +80,16 @@ Future work is primarily indexing and performance optimization for bulk introspe
 
 ### 4. Custom Unit Definitions
 
-Status: **Partial** | Importance: **P1** | Remaining difficulty: **M/L**
+Status: **Done for programmatic registries** | Importance: **P1** | Remaining difficulty: **M**
 
 `UnitRegistryBuilder` supports mutable programmatic definitions and aliases over either the default catalog or an empty
 registry. Each build creates an immutable snapshot, overlays correctly mask base records, and PHPStan can consume the
 same registry through a configured factory.
 
-Definition files and user-defined base dimensions outside the fixed seven SI axes are absent. The planned dimension
-model retains the fixed SI vector and adds canonical sparse powers for registry-defined primitive dimensions. Currency
-is a useful acceptance case, but exchange-rate acquisition and money policy remain outside core. Programmatic custom
-units already cover ordinary project-specific scales derived from the SI axes.
+Definition files remain absent. `baseUnit()` adds user-defined primitive dimensions while retaining the fixed SI vector
+and canonical sparse extension powers, and ordinary definitions derive related units from the declared base. Currency is
+the acceptance case, but exchange-rate acquisition and money policy remain outside core. Programmatic registries now
+cover both project-specific SI scales and independent application dimensions.
 
 ### 5. Quantity Creation
 
@@ -135,14 +135,14 @@ system-specific base-unit operation unless unit systems are designed first.
 
 ### 9. Dimensionality API
 
-Status: **Done for SI dimensions** | Importance: **P0** | Remaining difficulty: **M/L**
+Status: **Done** | Importance: **P0** | Remaining difficulty: **S**
 
-`Dimension` exposes the seven SI axes, integer powers, arithmetic, equality, accessors, and deterministic strings.
-`Units`, `Quantity`, and resolved expressions expose dimensions publicly.
+`Dimension` exposes the seven SI axes, sparse named extension axes, integer powers, arithmetic, equality, accessors, and
+deterministic strings. `Units`, `Quantity`, and resolved expressions expose dimensions publicly, while registry metadata
+associates one canonical base unit with each custom primitive dimension.
 
-The fixed vector cannot yet represent user-defined base dimensions and deliberately cannot distinguish semantic meanings
-that share physical axes, such as gray and sievert. Planned extensions preserve the seven built-in axes and add a
-deterministically ordered sparse map for custom primitive dimensions declared by a registry.
+Dimensions deliberately cannot distinguish semantic meanings that share the same axes, such as gray and sievert. That
+would require a separate quantity-kind model rather than another dimension representation.
 
 ### 10. Numeric Types And Output Policy
 
@@ -317,13 +317,14 @@ develops a scientific-computing audience.
 
 ### 27. Currency
 
-Status: **Bundled data deliberately absent** | Importance: **P3** | Remaining difficulty: **L**
+Status: **Supported through custom registries; bundled data deliberately absent** | Importance: **P3** | Remaining
+difficulty: **M**
 
-Bundled rates remain inappropriate because exchange rates are time-varying and application-specific. Once registries can
-declare custom primitive dimensions, an application may model a `currency` dimension by choosing one primitive currency
-and defining the others through exact rates in an immutable registry snapshot. Rate sources, effective times, bid/ask
-spreads, fees, and monetary rounding remain outside Yumemi; this facility would provide dimensional checking and exact
-declared conversion, not a complete money model.
+Bundled rates remain inappropriate because exchange rates are time-varying and application-specific. An application may
+model the conventional `currency` extension dimension by choosing one primitive currency and defining the others through
+exact rates in an immutable registry snapshot. Rate sources, effective times, bid/ask spreads, fees, and monetary
+rounding remain outside Yumemi; this facility provides dimensional checking and exact declared conversion, not a
+complete money model.
 
 ### 28. Localization
 
@@ -396,12 +397,12 @@ release establishes a compatibility promise.
 | Expression model and reduction   | Done                               | P0         | S                    |
 | Parser                           | Done for documented grammar        | P0         | M                    |
 | Default catalog                  | Done                               | P0         | S/M                  |
-| Custom unit definitions          | Partial                            | P1         | M/L                  |
+| Custom unit definitions          | Done for programmatic registries   | P1         | M                    |
 | Quantity creation                | Done for exact inputs              | P0         | S                    |
 | Quantity arithmetic              | Done for multiplicative quantities | P0         | M                    |
 | Explicit conversion              | Done                               | P0         | S/M                  |
 | Normalization and simplification | Done                               | P1         | M                    |
-| Dimensionality API               | Done for SI; extensions planned    | P0         | M/L                  |
+| Dimensionality API               | Done                               | P0         | S                    |
 | Numeric output                   | Done for exact core                | P1         | M                    |
 | Formatting                       | Partial                            | P1         | M/L                  |
 | Names, prefixes, and plurals     | Done                               | P1         | S/M                  |
@@ -432,9 +433,8 @@ Yumemi should continue to optimize for shared runtime and static semantics rathe
 strongest choices remain string unit expressions, generated catalog data, exact rational conversion, explicit registry
 contexts, and native PHPStan brands alongside exact quantity objects.
 
-The highest-value Pint gaps are those that improve ordinary PHP workflows: extensible primitive dimensions, better
-formatting, broader registry resolution for serialized graphs, and integrations proven by actual applications. Contexts,
-nonlinear units, uncertainty, and scientific-array features should remain independent decisions rather than a presumed
-route to parity.
+The highest-value Pint gaps are those that improve ordinary PHP workflows: better formatting, broader registry
+resolution for serialized graphs, and integrations proven by actual applications. Contexts, nonlinear units,
+uncertainty, and scientific-array features should remain independent decisions rather than a presumed route to parity.
 
 See [planning.md](planning.md) for the current ordering of work.

@@ -65,10 +65,46 @@ assert($units->point(0, 'degree_widget')->valueIn('kelvin')->toString() === '100
 assert($units->deltaQuantity(2, 'degree_widget')->valueIn('kelvin')->toString() === '2');
 ```
 
+Use `baseUnit()` when an application needs a genuinely independent primitive dimension rather than another unit derived
+from the seven SI axes. The call declares the canonical base unit and its lower-snake-case dimension name atomically;
+ordinary `define()` calls then establish exact relationships to that base:
+
+```php
+<?php
+
+use jbboehr\Yumemi\Dimension;
+use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
+use jbboehr\Yumemi\Units;
+
+$currencyRegistry = UnitRegistryBuilder::default()
+    ->baseUnit('USD', Dimension::CURRENCY)
+    ->define('EUR = 100 / 107 * USD')
+    ->build();
+$currencyUnits = new Units($currencyRegistry);
+$currencyTotal = $currencyUnits->quantity(100, 'USD')
+    ->add($currencyUnits->quantity(107, 'EUR'));
+
+assert($currencyUnits->dimension('EUR')->toString() === 'currency');
+assert($currencyUnits->convert(107, 'EUR', 'USD')->toString() === '100');
+assert($currencyTotal->valueToString() === '200');
+assert($currencyTotal->unitToString() === 'USD');
+```
+
+`Dimension::CURRENCY` is a conventional extension name, not an eighth fixed dimension. Yumemi neither ships nor fetches
+exchange rates. The application owns the snapshot's source, effective time, bid/ask and fee policy, and monetary
+rounding. Choose one primitive currency per immutable registry snapshot and express every other currency through an
+exact declared rate. Quantities from different snapshots retain different `Units` contexts and cannot be combined.
+
+`baseUnit()` rejects the seven fixed SI dimension names. Define another length, mass, time, current, temperature,
+substance, or luminous-intensity unit relative to its corresponding SI base with `define()` so its scale remains
+explicit.
+
 An overlay definition wins over a base UDUNITS2 record with the same name. Aliases resolve through the composed
 registry, so an overlay alias may target either another custom definition or a base catalog unit. Affine delta synthesis
 runs when `build()` creates the immutable snapshot, after all overlay definitions and aliases are known. An explicit
 overlay name that conflicts with one of its generated `delta_*` or `Δ` names is rejected rather than silently replaced.
+Reusing a bundled unit name as a custom base deliberately re-roots that name and catalog definitions that depend upon
+it. Avoid doing so unless replacing that part of the effective catalog is intentional.
 
 For PHPStan, configure one `UnitRegistryFactory` that returns the complete registry. Runtime code should construct its
 `Units` context from the same registry. PHPStan assumes one authoritative registry for an analysis run and does not

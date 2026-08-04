@@ -278,6 +278,7 @@ Yumemi extension path:
 
 namespace App\PHPStan;
 
+use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\PHPStan\UnitRegistryFactory;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
@@ -287,6 +288,8 @@ final class DocumentationRegistryFactory implements UnitRegistryFactory
     public static function create(): UnitRegistry
     {
         return UnitRegistryBuilder::default()
+            ->baseUnit('USD', Dimension::CURRENCY)
+            ->define('EUR = 100 / 107 * USD')
             ->define('widget = 12 * meter')
             ->alias('widgets', 'widget')
             ->build();
@@ -303,7 +306,9 @@ parameters:
 ```
 
 Use `UnitRegistryBuilder::default()` to extend or override UDUNITS2, or `UnitRegistryBuilder::empty()` for an isolated
-catalog. Registry contents contribute to PHPStan's result-cache fingerprint.
+catalog. `baseUnit()` introduces a named primitive dimension; subsequent `define()` calls derive related units through
+ordinary expressions. Unit definitions and primitive-dimension metadata both contribute to PHPStan's result-cache
+fingerprint.
 
 The configured registry controls static analysis only. Applications using custom units in both layers should construct
 their runtime `Units` context from the same factory. Instance APIs use that context directly; applications using

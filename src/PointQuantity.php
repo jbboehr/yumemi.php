@@ -124,8 +124,9 @@ final class PointQuantity implements \JsonSerializable
      */
     public function __unserialize(array $data): void
     {
-        if (
-            array_keys($data) !== [
+        $version = $data['version'] ?? null;
+        $expectedKeys = $version === 1
+            ? [
                 'version',
                 'context',
                 'value',
@@ -134,13 +135,27 @@ final class PointQuantity implements \JsonSerializable
                 'zeroInNormalizedDeltaUnit',
                 'oneInNormalizedDeltaUnit',
             ]
-            || $data['version'] !== 1
+            : [
+                'version',
+                'context',
+                'value',
+                'unit',
+                'normalizedDeltaUnit',
+                'zeroInNormalizedDeltaUnit',
+                'oneInNormalizedDeltaUnit',
+                'dimension',
+            ];
+
+        if (
+            !in_array($version, [1, 2], true)
+            || array_keys($data) !== $expectedKeys
             || !is_string($data['context'])
             || !$data['value'] instanceof Rational
             || !is_string($data['unit'])
             || !is_string($data['normalizedDeltaUnit'])
             || !$data['zeroInNormalizedDeltaUnit'] instanceof Rational
             || !$data['oneInNormalizedDeltaUnit'] instanceof Rational
+            || ($version === 2 && !$data['dimension'] instanceof Dimension)
         ) {
             throw new UnexpectedValueException('Invalid serialized PointQuantity payload.');
         }
@@ -168,6 +183,7 @@ final class PointQuantity implements \JsonSerializable
                 ->equals($data['zeroInNormalizedDeltaUnit'])
             || !$units->convert(1, $point->unit, $normalizedDeltaUnit)
                 ->equals($data['oneInNormalizedDeltaUnit'])
+            || ($version === 2 && !$point->dimension()->equals($data['dimension']))
         ) {
             throw new UnexpectedValueException(
                 'Serialized PointQuantity unit semantics do not match the selected Units context.',
@@ -184,13 +200,14 @@ final class PointQuantity implements \JsonSerializable
      *     witnesses, preserving both origin and interval against alteration.
      *
      * @return array{
-     *     version: 1,
+     *     version: 2,
      *     context: 'default'|'custom',
      *     value: Rational,
      *     unit: string,
      *     normalizedDeltaUnit: string,
      *     zeroInNormalizedDeltaUnit: Rational,
-     *     oneInNormalizedDeltaUnit: Rational
+     *     oneInNormalizedDeltaUnit: Rational,
+     *     dimension: Dimension
      * }
      */
     public function __serialize(): array
@@ -198,13 +215,14 @@ final class PointQuantity implements \JsonSerializable
         $normalizedDeltaUnit = $this->units->normalize($this->units->deltaUnit($this->unit));
 
         return [
-            'version' => 1,
+            'version' => 2,
             'context' => $this->units === Units::default() ? 'default' : 'custom',
             'value' => $this->value,
             'unit' => $this->unit,
             'normalizedDeltaUnit' => $normalizedDeltaUnit->toString(),
             'zeroInNormalizedDeltaUnit' => $this->units->convert(0, $this->unit, $normalizedDeltaUnit),
             'oneInNormalizedDeltaUnit' => $this->units->convert(1, $this->unit, $normalizedDeltaUnit),
+            'dimension' => $this->dimension(),
         ];
     }
 

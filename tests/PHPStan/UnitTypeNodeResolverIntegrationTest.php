@@ -116,6 +116,19 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $this->assertStringContainsString('[OK] No errors', $output, $output);
     }
 
+    public function testConfiguredPrimitiveDimensionsDoNotPermitImplicitNativeConversion(): void
+    {
+        $output = $this->analyse(
+            'configured-custom-dimension-invalid.php',
+            ConfiguredUnitRegistryFactory::class,
+        );
+
+        $this->assertStringContainsString('[ERROR] Found 2 errors', $output, $output);
+        $this->assertStringContainsString("unit_float<'USD'>", $output, $output);
+        $this->assertStringContainsString("unit_int<'EUR'>", $output, $output);
+        $this->assertStringContainsString('normalized forms differ', $output, $output);
+    }
+
     public function testIntegerOverflowPromotionCanBeDisabledThroughConfiguration(): void
     {
         $output = $this->analyse('unit-overflow-config.php', integerOverflowToFloat: false);

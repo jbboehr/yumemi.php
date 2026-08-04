@@ -87,6 +87,18 @@ final class UnitRegistryResultCacheMetaExtensionTest extends TestCase
         $this->assertNotSame($this->hash($first), $this->hash($second));
     }
 
+    public function testHashChangesWithPrimitiveDimensionMetadata(): void
+    {
+        $currency = new UnitRegistry([], [
+            'credit' => ['type' => 'base', 'name' => 'credit', 'dimension' => 'currency'],
+        ]);
+        $information = new UnitRegistry([], [
+            'credit' => ['type' => 'base', 'name' => 'credit', 'dimension' => 'information'],
+        ]);
+
+        $this->assertNotSame($this->hash($currency), $this->hash($information));
+    }
+
     public function testHashChangesWithPrefix(): void
     {
         $first = new PrefixUnitRegistry(['kilo' => '1000']);

@@ -39,8 +39,12 @@ namespace jbboehr\Yumemi\Registry;
 use jbboehr\Yumemi\Catalog\AffineDeltaUnitSynthesizer;
 use jbboehr\Yumemi\Catalog\UnitDefinitionClassifier;
 use jbboehr\Yumemi\Catalog\UnitSemantics;
+use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\Exception\InvalidArgumentException;
 use jbboehr\Yumemi\Expr\Unit;
+use jbboehr\Yumemi\Parser\Ast\Identifier;
+use jbboehr\Yumemi\Parser\ParseException;
+use jbboehr\Yumemi\Parser\Parser;
 
 /**
  * Mutable construction of an immutable {@see UnitRegistry}.
@@ -117,6 +121,57 @@ final class UnitRegistryBuilder
     {
         $this->includeUdunits2 = true;
         $this->udunits2DataFile = $dataFile ?? Udunits2UnitRegistry::DATA_FILE;
+
+        return $this;
+    }
+
+    /**
+     * Declare a canonical base unit for a named primitive extension dimension.
+     *
+     * Other units of the same dimension should be declared through {@see self::define()} so their exact relationship
+     * to this base unit remains explicit.
+     *
+     * @logion [OSD 71:26] The first measure of the new order was set beneath its name,
+     *     and every lesser vessel received proportion from that foundation.
+     */
+    public function baseUnit(string $name, string $dimension): self
+    {
+        try {
+            $parsedName = Parser::parseString($name);
+        } catch (ParseException $exception) {
+            throw new InvalidArgumentException('Base unit name must be one unit identifier: ' . $name, 0, $exception);
+        }
+
+        if (!$parsedName instanceof Identifier || $parsedName->identifier !== $name) {
+            throw new InvalidArgumentException('Base unit name must be one unit identifier: ' . $name);
+        }
+
+        // Validate and canonicalize the dimension name through the public value object.
+        $declaredDimension = Dimension::fromNamedPowers([$dimension => 1]);
+        if ($declaredDimension->powers() !== Dimension::dimensionless()->powers()) {
+            throw new InvalidArgumentException(sprintf(
+                'Primitive dimension "%s" is one of the seven fixed SI dimensions; define the unit relative to its SI base instead.',
+                $dimension,
+            ));
+        }
+
+        $this->assertNameAvailable($name);
+
+        foreach ($this->records as $record) {
+            if (($record['dimension'] ?? null) === $dimension) {
+                throw new InvalidArgumentException(sprintf(
+                    'Primitive dimension "%s" already has base unit "%s".',
+                    $dimension,
+                    $record['name'],
+                ));
+            }
+        }
+
+        $this->records[$name] = [
+            'type' => 'base',
+            'name' => $name,
+            'dimension' => $dimension,
+        ];
 
         return $this;
     }

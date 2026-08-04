@@ -38,6 +38,7 @@ namespace jbboehr\Yumemi\Tests\Generative;
 
 use jbboehr\Yumemi\Analyzer\AstConverter;
 use jbboehr\Yumemi\Analyzer\ExprReducer;
+use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\Formatter\DivisionStyle;
 use jbboehr\Yumemi\Formatter\FormatOptions;
 use jbboehr\Yumemi\Formatter\Typography;
@@ -84,6 +85,32 @@ final class BoundedAlgebraTest extends TestCase
 
     /** @var list<string> */
     private const DELTA_UNITS = ['kelvin', 'delta_celsius', 'delta_fahrenheit'];
+
+    public function testNamedDimensionAlgebraPreservesVectorIdentities(): void
+    {
+        $dimensions = [
+            Dimension::dimensionless(),
+            Dimension::fromNamedPowers(['length' => 1, 'currency' => -1]),
+            Dimension::fromNamedPowers(['time' => -2, 'information' => 3]),
+            Dimension::fromNamedPowers(['currency' => 2, 'information' => -1]),
+        ];
+
+        foreach ($dimensions as $left) {
+            self::assertTrue($left->mul(Dimension::dimensionless())->equals($left));
+            self::assertTrue($left->div($left)->isDimensionless());
+
+            foreach ($dimensions as $right) {
+                self::assertTrue($left->mul($right)->equals($right->mul($left)));
+                self::assertTrue($left->mul($right)->div($right)->equals($left));
+
+                foreach ($dimensions as $third) {
+                    self::assertTrue(
+                        $left->mul($right)->mul($third)->equals($left->mul($right->mul($third))),
+                    );
+                }
+            }
+        }
+    }
 
     #[DataProvider('rationalProvider')]
     public function testRationalFieldIdentities(Rational $left, Rational $right, Rational $third): void

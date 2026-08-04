@@ -228,7 +228,7 @@ final class SerializationTest extends TestCase
 
         $restored = Units::default()->deserialize(
             serialize($quantity),
-            ['allowed_classes' => [Quantity::class, Rational::class, \GMP::class]],
+            ['allowed_classes' => [Quantity::class, Rational::class, Dimension::class, \GMP::class]],
         );
 
         $this->assertInstanceOf(Quantity::class, $restored);
@@ -278,6 +278,60 @@ final class SerializationTest extends TestCase
         $point->__unserialize($pointData);
     }
 
+    public function testCustomDimensionSealsRejectARegistryWithDifferentAxisMetadata(): void
+    {
+        $source = new Units(
+            UnitRegistryBuilder::empty()
+                ->baseUnit($this->customDimensionUnitName(), 'currency')
+                ->define($this->customDimensionPointName() . ' = ' . $this->customDimensionUnitName() . ' @ 10')
+                ->build(),
+        );
+        $wrong = new Units(
+            UnitRegistryBuilder::empty()
+                ->baseUnit($this->customDimensionUnitName(), 'information')
+                ->define($this->customDimensionPointName() . ' = ' . $this->customDimensionUnitName() . ' @ 10')
+                ->build(),
+        );
+        $values = [
+            $source->quantity(1, $this->customDimensionUnitName()),
+            $source->point(1, $this->customDimensionPointName()),
+        ];
+
+        foreach ($values as $value) {
+            try {
+                $wrong->deserialize(serialize($value));
+                self::fail('A registry with different primitive-dimension metadata should be rejected.');
+            } catch (UnexpectedValueException $exception) {
+                $this->assertStringContainsString('semantics do not match', $exception->getMessage());
+            }
+        }
+
+        $restored = $source->deserialize(serialize($values));
+        $this->assertIsArray($restored);
+        $this->assertInstanceOf(Quantity::class, $restored[0]);
+        $this->assertInstanceOf(PointQuantity::class, $restored[1]);
+        $this->assertSame('currency', $restored[0]->dimension()->toString());
+        $this->assertSame('currency', $restored[1]->dimension()->toString());
+    }
+
+    public function testLegacyQuantityAndPointPayloadsRemainReadable(): void
+    {
+        $quantityPayload = Units::default()->quantity(1, 'meter')->__serialize();
+        $quantityPayload['version'] = 1;
+        unset($quantityPayload['dimension']);
+        $quantity = (new \ReflectionClass(Quantity::class))->newInstanceWithoutConstructor();
+        $quantity->__unserialize($quantityPayload);
+
+        $pointPayload = Units::default()->point(0, 'celsius')->__serialize();
+        $pointPayload['version'] = 1;
+        unset($pointPayload['dimension']);
+        $point = (new \ReflectionClass(PointQuantity::class))->newInstanceWithoutConstructor();
+        $point->__unserialize($pointPayload);
+
+        $this->assertSame('length', $quantity->dimension()->toString());
+        $this->assertSame('temperature', $point->dimension()->toString());
+    }
+
     public function testMalformedAndUnknownPayloadVersionsAreRejected(): void
     {
         $rational = (new \ReflectionClass(Rational::class))->newInstanceWithoutConstructor();
@@ -313,11 +367,12 @@ final class SerializationTest extends TestCase
         $this->assertInvalidPayloadVariants(
             $quantity->__serialize(),
             [
-                'version' => [2, '1'],
+                'version' => [1, 3, '2'],
                 'context' => [1, 'unknown'],
                 'value' => [1, '1'],
                 'unit' => [1, []],
                 'normalizedUnit' => [1, []],
+                'dimension' => [1, 'length'],
             ],
             static function (array $payload): void {
                 $value = (new \ReflectionClass(Quantity::class))->newInstanceWithoutConstructor();
@@ -330,13 +385,14 @@ final class SerializationTest extends TestCase
         $this->assertInvalidPayloadVariants(
             $point->__serialize(),
             [
-                'version' => [2, '1'],
+                'version' => [1, 3, '2'],
                 'context' => [1, 'unknown'],
                 'value' => [0, '0'],
                 'unit' => [0, []],
                 'normalizedDeltaUnit' => [0, []],
                 'zeroInNormalizedDeltaUnit' => [0, '0'],
                 'oneInNormalizedDeltaUnit' => [1, '1'],
+                'dimension' => [1, 'temperature'],
             ],
             static function (array $payload): void {
                 $value = (new \ReflectionClass(PointQuantity::class))->newInstanceWithoutConstructor();
@@ -349,12 +405,21 @@ final class SerializationTest extends TestCase
         $this->assertInvalidPayloadVariants(
             $dimension->__serialize(),
             [
-                'version' => [2, '1'],
+                'version' => [1, 3, '2'],
                 'powers' => [
                     'not an array',
                     ['length' => 1],
                     [1, 2, 3, 4, 5, 6],
                     [1, 2, 3, 4, 5, 6, '7'],
+                ],
+                'additionalPowers' => [
+                    'not an array',
+                    [1],
+                    ['Not Valid' => 1],
+                    ['dimensionless' => 1],
+                    ['currency' => '1'],
+                    ['currency' => 10_001],
+                    ['length' => 1],
                 ],
             ],
             static function (array $payload): void {
@@ -453,6 +518,59 @@ final class SerializationTest extends TestCase
         $this->assertTrue($restored->equals($dimension));
     }
 
+    public function testExtensionDimensionProvidesJsonAndVersionedRoundTrips(): void
+    {
+        $dimension = Dimension::fromNamedPowers([
+            'length' => 1,
+            'currency' => -2,
+            'information' => 3,
+        ]);
+        $expected = [
+            'length' => 1,
+            'mass' => 0,
+            'time' => 0,
+            'electricCurrent' => 0,
+            'temperature' => 0,
+            'amountOfSubstance' => 0,
+            'luminousIntensity' => 0,
+            'additionalPowers' => [
+                'currency' => -2,
+                'information' => 3,
+            ],
+        ];
+
+        $this->assertSame($expected, $dimension->__debugInfo());
+        $this->assertSame(
+            $expected,
+            json_decode(json_encode($dimension, JSON_THROW_ON_ERROR), true, flags: JSON_THROW_ON_ERROR),
+        );
+
+        $restored = unserialize(serialize($dimension));
+        $this->assertInstanceOf(Dimension::class, $restored);
+        $this->assertTrue($restored->equals($dimension));
+
+        $legacy = (new \ReflectionClass(Dimension::class))->newInstanceWithoutConstructor();
+        $legacy->__unserialize([
+            'version' => 1,
+            'powers' => [1, 0, -1, 0, 0, 0, 0],
+        ]);
+
+        $this->assertSame(['length' => 1, 'time' => -1], $legacy->namedPowers());
+        $this->assertSame('length / time', $legacy->toString());
+    }
+
+    public function testSerializedDimensionAcceptsExactExponentLimits(): void
+    {
+        $dimension = (new \ReflectionClass(Dimension::class))->newInstanceWithoutConstructor();
+        $dimension->__unserialize([
+            'version' => 1,
+            'powers' => [-10_000, 10_000, 0, 0, 0, 0, 0],
+        ]);
+
+        $this->assertSame(-10_000, $dimension->length());
+        $this->assertSame(10_000, $dimension->mass());
+    }
+
     public function testCatalogDescriptorsProvideJsonDebugAndNativeRoundTrips(): void
     {
         $unit = Units::default()->describe('millifoot');
@@ -539,6 +657,16 @@ final class SerializationTest extends TestCase
     private function customPointName(): string
     {
         return 'widget_point';
+    }
+
+    private function customDimensionUnitName(): string
+    {
+        return 'credit';
+    }
+
+    private function customDimensionPointName(): string
+    {
+        return 'credit_point';
     }
 
     /**
