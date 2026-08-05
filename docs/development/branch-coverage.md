@@ -52,5 +52,12 @@ These are point-in-time diagnostics, not enforced floors:
   `Units::deserialize()`. Focused mutation testing killed all 137 generated mutants. Xdebug reports 37 of 4,132 paths
   because the serialized-payload validator has many compound boolean combinations; its field-by-field malformed-payload
   tests already exercise the observable validation policy, so exhaustive path enumeration would not add useful evidence.
+- The 2026-08-05 catalog semantic-core audit covered 98.75% of branches and 99.03% of lines across
+  `AffineDeltaUnitSynthesizer` and `UnitDefinitionClassifier`. The synthesizer reached 100% of its 59 branches and 79
+  lines after adding direct contracts for compatibility-symbol continuation, same-batch generated lookup, and generated
+  entries masking base records. The classifier covered 20 of 21 branches; the remaining fallback requires a nameless
+  record excluded by the catalog-record shape. Of 100 focused mutants, 98 were killed, removal of cycle termination
+  errored through recursion, and changing a seen-map value from `true` to `false` was equivalent because only key
+  presence is observed.
 
-The next useful focused targets are `src/Catalog`, formatting, and parser diagnostics.
+The next useful focused targets are `Udunits2CatalogImporter`, `PhpCatalogExporter`, formatting, and parser diagnostics.
