@@ -59,5 +59,11 @@ These are point-in-time diagnostics, not enforced floors:
   record excluded by the catalog-record shape. Of 100 focused mutants, 98 were killed, removal of cycle termination
   errored through recursion, and changing a seen-map value from `true` to `false` was equivalent because only key
   presence is observed.
+- The 2026-08-05 catalog importer/exporter audit covered 100% of 214 branches and 233 executable lines. It added clean
+  domain-error contracts for unreadable files and malformed XML, plus an XML-comment case for ignored non-element name
+  children. The Nix-backed `udunits2` test group now regenerates the complete five-file catalog and compares it
+  byte-for-byte with `data/udunits2.php`. Of 303 focused mutants, 298 were killed and three were syntax errors; the two
+  survivors are equivalent because plural generation receives only names of at least three characters and a nameless,
+  symbolless prefix cannot mutate the catalog after its early return is removed.
 
-The next useful focused targets are `Udunits2CatalogImporter`, `PhpCatalogExporter`, formatting, and parser diagnostics.
+The next useful focused targets are formatting and parser diagnostics.

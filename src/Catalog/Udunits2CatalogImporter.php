@@ -98,13 +98,13 @@ final class Udunits2CatalogImporter
      */
     private function importFile(array &$catalog, string $file, array &$implicitPluralTargets): void
     {
-        $contents = file_get_contents($file);
+        $contents = @file_get_contents($file);
         if ($contents === false) {
             throw new RuntimeException('Could not read UDUNITS2 XML file: ' . $file);
         }
 
         $document = new DOMDocument();
-        if (!$document->loadXML($contents)) {
+        if (!@$document->loadXML($contents)) {
             throw new RuntimeException('Could not parse UDUNITS2 XML file: ' . $file);
         }
 

@@ -719,6 +719,43 @@ final class Udunits2CatalogImporterTest extends TestCase
         (new Udunits2CatalogImporter())->importFiles([]);
     }
 
+    public function testUnreadableFileIsRejectedWithoutLeakingANativeWarning(): void
+    {
+        $file = $this->tempFile();
+        unlink($file);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Could not read UDUNITS2 XML file: ' . $file);
+
+        (new Udunits2CatalogImporter())->importFiles([$file]);
+    }
+
+    public function testMalformedXmlIsRejectedWithoutLeakingANativeWarning(): void
+    {
+        $file = $this->tempFile();
+        file_put_contents($file, '<unit-system><unit></unit-system>');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Could not parse UDUNITS2 XML file: ' . $file);
+
+        (new Udunits2CatalogImporter())->importFiles([$file]);
+    }
+
+    public function testIgnoresCommentsAroundNameElements(): void
+    {
+        $xml = <<<'XML'
+            <?xml version="1.0" encoding="UTF-8"?>
+            <unit-system>
+              <unit>
+                <name><!-- before --><singular>widget</singular><!-- after --></name>
+                <def>1</def>
+              </unit>
+            </unit-system>
+            XML;
+
+        $this->assertSame('1', $this->import($xml)['units']['widget']['def'] ?? null);
+    }
+
     public function testDuplicateUnitNameIsRejected(): void
     {
         $duplicate = <<<'XML'

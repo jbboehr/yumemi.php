@@ -394,10 +394,12 @@ repeat the implementation's assumptions:
   normal PHP array construction. The `PointQuantity` audit reached 100% of its 83 branches and 132 executable lines,
   with all 137 focused mutants killed. The catalog semantic-core audit reached 98.75% branch and 99.03% line coverage;
   `AffineDeltaUnitSynthesizer` is fully covered, while `UnitDefinitionClassifier` leaves only a nameless record excluded
-  by the catalog-record contract. Audit `Udunits2CatalogImporter`, `PhpCatalogExporter`, formatting, and parser
-  diagnostics next. Add tests only when an uncovered outcome is reachable and observably meaningful. Path coverage
-  remains informational because combinations grow rapidly; `PointQuantity::__unserialize()` alone exposes 4,096 paths
-  through compound payload validation.
+  by the catalog-record contract. The importer/exporter audit reached 100% of 214 branches and 233 executable lines,
+  added clean domain failures for unreadable and malformed XML, and verifies byte-identical regeneration from the real
+  split UDUNITS2 database in the Nix-backed test group. Audit formatting and parser diagnostics next. Add tests only
+  when an uncovered outcome is reachable and observably meaningful. Path coverage remains informational because
+  combinations grow rapidly; `PointQuantity::__unserialize()` alone exposes 4,096 paths through compound payload
+  validation.
 - Triage Infection's escaped and timed-out mutants periodically before raising the MSI floor. Add contract-level
   assertions for observable survivors, record or ignore behaviorally equivalent mutations, distinguish deliberately
   unreachable defensive branches, and confirm that timeouts are explained by removed termination guards rather than

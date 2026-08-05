@@ -175,6 +175,13 @@ becoming theatrical. Avoid marketing filler, repeated introductions, unexplained
 quotations, excessive callouts, duplicated explanations, and implementation details that do not help users make a
 decision. Prefer one clear example and one precise explanation over several paragraphs of abstract prose.
 
+## Composer and Nix
+
+After running a Composer command that changes `composer.lock` or could otherwise change the resolved development
+dependency closure, update the `vendorHash` used by the `udunits2-differential` `buildComposerProject2` check in
+`flake.nix`. Run `nix flake check`; when Nix reports a fixed-output hash mismatch, replace the stale hash with the
+reported `got` value and rerun the complete check.
+
 ## Changelog
 
 This project keeps a [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) file at [`CHANGELOG.md`](CHANGELOG.md).

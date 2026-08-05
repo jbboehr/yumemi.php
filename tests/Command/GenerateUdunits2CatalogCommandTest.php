@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\Tests\Command;
 
 use jbboehr\Yumemi\Command\GenerateUdunits2CatalogCommand;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
 final class GenerateUdunits2CatalogCommandTest extends TestCase
@@ -110,6 +111,55 @@ final class GenerateUdunits2CatalogCommandTest extends TestCase
         rewind($stderr);
         $this->assertStringContainsString('Usage: bin/generate-udunits2-catalog', (string) stream_get_contents($stderr));
         fclose($stderr);
+    }
+
+    #[Group('udunits2')]
+    public function testRegeneratesTheCheckedInCatalogFromTheReferenceDatabase(): void
+    {
+        $xmlDirectory = getenv('UDUNITS_XML_DIR');
+        if ($xmlDirectory === false || $xmlDirectory === '') {
+            $rootXml = getenv('UDUNITS2_XML');
+            if ($rootXml === false || $rootXml === '') {
+                self::markTestSkipped('The UDUNITS2 XML database is not available.');
+            }
+
+            $xmlDirectory = dirname($rootXml);
+        }
+
+        $xmlFiles = array_map(
+            static fn (string $name): string => $xmlDirectory . '/' . $name,
+            [
+                'udunits2-prefixes.xml',
+                'udunits2-base.xml',
+                'udunits2-derived.xml',
+                'udunits2-accepted.xml',
+                'udunits2-common.xml',
+            ],
+        );
+
+        foreach ($xmlFiles as $xmlFile) {
+            if (!is_file($xmlFile)) {
+                self::markTestSkipped('The split UDUNITS2 XML database is not available.');
+            }
+        }
+
+        $output = $this->tempFile();
+        $status = (new GenerateUdunits2CatalogCommand())->run([
+            'bin/generate-udunits2-catalog',
+            $output,
+            ...$xmlFiles,
+        ]);
+
+        $this->assertSame(0, $status);
+        $expected = file_get_contents(__DIR__ . '/../../data/udunits2.php');
+        $actual = file_get_contents($output);
+        $this->assertIsString($expected);
+        $this->assertIsString($actual);
+        $this->assertSame(
+            0,
+            strcmp($expected, $actual),
+            'The checked-in catalog must match deterministic regeneration from the reference XML database.',
+        );
     }
 
     private function tempFile(): string
