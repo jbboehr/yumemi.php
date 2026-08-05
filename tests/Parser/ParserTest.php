@@ -237,6 +237,32 @@ final class ParserTest extends TestCase
         );
     }
 
+    public function testNegativeNumericBaseOfPowerIsParenthesizedForRoundTrip(): void
+    {
+        // A negative numeric literal base must survive the canonical round trip.
+        // Exponentiation binds more tightly than the leading sign, so an unparenthesized
+        // "-5 ^ 2" reparses as "-(5 ^ 2)" and silently changes meaning.
+        $integerBase = Parser::parseString('(-5)^2');
+        $this->assertInstanceOf(Ast\Pow::class, $integerBase);
+        $this->assertInstanceOf(Ast\Integer_::class, $integerBase->left);
+        $this->assertSame('((-5) ^ 2)', $integerBase->toString());
+        $this->assertSame(
+            $integerBase->toString(),
+            Parser::parseString($integerBase->toString())->toString(),
+        );
+
+        // The same rule applies to a negative floating-point base, independently of a
+        // negative exponent, which never needs added parentheses.
+        $floatBase = Parser::parseString('(-5.5)^(-2)');
+        $this->assertInstanceOf(Ast\Pow::class, $floatBase);
+        $this->assertInstanceOf(Ast\Float_::class, $floatBase->left);
+        $this->assertSame('((-5.5) ^ -2)', $floatBase->toString());
+        $this->assertSame(
+            $floatBase->toString(),
+            Parser::parseString($floatBase->toString())->toString(),
+        );
+    }
+
     public function testParserNodesRetainHalfOpenByteSpans(): void
     {
         $ast = Parser::parseString('  meter / μs^2');

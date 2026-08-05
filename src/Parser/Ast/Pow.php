@@ -55,6 +55,15 @@ final class Pow extends AstNode
 
     public function toString(): string
     {
-        return '(' . $this->left->toString() . ' ^ ' . $this->right->toString() . ')';
+        $left = $this->left->toString();
+
+        // A negative numeric literal base must be parenthesized: exponentiation binds
+        // more tightly than the leading sign, so "-5 ^ 2" would otherwise reparse as
+        // "-(5 ^ 2)" rather than the intended "(-5) ^ 2".
+        if ($this->left instanceof Number && str_starts_with($left, '-')) {
+            $left = '(' . $left . ')';
+        }
+
+        return '(' . $left . ' ^ ' . $this->right->toString() . ')';
     }
 }
