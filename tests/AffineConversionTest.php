@@ -114,6 +114,11 @@ final class AffineConversionTest extends TestCase
         );
     }
 
+    public function testDirectAtExpressionTreatsLeadingZeroOffsetsAsDecimal(): void
+    {
+        $this->assertSame('9', Units::default()->convert(0, 'kelvin @ 09', 'kelvin')->toString());
+    }
+
     public function testAffineUnitsExposeTheirReferenceDimension(): void
     {
         $units = Units::default();

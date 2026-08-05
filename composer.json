@@ -100,6 +100,7 @@
         "infection/infection": "^0.32.6",
         "jbboehr/phpbench-perfidious": "dev-master",
         "mrsuh/php-bison-skeleton": "^1.2",
+        "nikic/php-fuzzer": "^0.0.11",
         "phpbench/phpbench": "^1.7",
         "phpstan/phpstan": "^2.2.5",
         "phpstan/phpstan-phpunit": "^2.0.13",
@@ -122,6 +123,7 @@
         "docs": "make docs",
         "docs:check": "make docs-check",
         "docs:serve": "make docs-serve",
+        "probator:unit-parser": "make probator-unit-parser",
         "generate-catalog": "make generate-catalog",
         "generate-parser": [
             "bison -S vendor/mrsuh/php-bison-skeleton/src/php-skel.m4 -o src/Parser/Parser.php src/Parser/grammar.y",

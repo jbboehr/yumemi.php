@@ -1,11 +1,13 @@
 .DEFAULT: all
-.PHONY: all clean coverage-branch docs docs-check docs-serve generate-catalog test-consumer test-consumer-archive \
-	test-udunits2
+.PHONY: all clean coverage-branch docs docs-check docs-serve generate-catalog probator-unit-parser test-consumer \
+	test-consumer-archive test-udunits2
 
 BRANCH_COVERAGE_OUTPUT ?= coverage/branch
 BRANCH_COVERAGE_SOURCE ?= src/Number
 BRANCH_COVERAGE_TESTS ?=
 BRANCH_COVERAGE_XDEBUG_ERROR := Xdebug is not loaded; enter nix develop .\#xdebug.
+PROBATOR_OPTIONS ?=
+PROBATOR_UNIT_PARSER_WORKDIR ?= tmp/probator/unit-expression
 UDUNITS2_BIN ?= udunits2
 UDUNITS2_XML ?= $(UDUNITS_XML_DIR)/udunits2.xml
 
@@ -40,6 +42,13 @@ docs-check: docs
 
 docs-serve:
 	mdbook serve docs --hostname 127.0.0.1
+
+probator-unit-parser:
+	@mkdir -p "$(PROBATOR_UNIT_PARSER_WORKDIR)/corpus"
+	@cp -n probator/corpus/unit-expression/*.txt "$(PROBATOR_UNIT_PARSER_WORKDIR)/corpus/"
+	@cd "$(PROBATOR_UNIT_PARSER_WORKDIR)" && \
+		"$(CURDIR)/vendor/bin/php-fuzzer" fuzz $(PROBATOR_OPTIONS) \
+		"$(CURDIR)/probator/unit-expression.php" corpus
 
 test-consumer:
 	tests/Consumer/run source

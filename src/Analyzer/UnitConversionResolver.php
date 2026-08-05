@@ -415,7 +415,7 @@ final class UnitConversionResolver
     private static function number(Number $number): Rational
     {
         if ($number instanceof Integer_) {
-            return new Rational(gmp_init($number->value));
+            return new Rational(gmp_init($number->value, 10));
         }
 
         if ($number instanceof Float_) {

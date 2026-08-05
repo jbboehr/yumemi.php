@@ -96,7 +96,7 @@ final class AstConverter
                 $includeConstants ? Rational::fromDecimalString($ast->value) : new Rational(1),
             ),
             Identifier::class => $this->convertIdentifier($ast, $span),
-            Integer_::class => new Constant($includeConstants ? gmp_init($ast->value) : 1),
+            Integer_::class => new Constant($includeConstants ? gmp_init($ast->value, 10) : 1),
             Mul::class => new Product([
                 $this->convert($ast->left, $contextSpan, $includeConstants),
                 $this->convert($ast->right, $contextSpan, $includeConstants),

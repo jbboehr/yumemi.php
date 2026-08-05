@@ -183,6 +183,10 @@ dependency closure, update the `vendorHash` used by the `udunits2-differential` 
 fixed-output store path can otherwise hide a stale hash. Replace the fake hash with Nix's reported `got` value and rerun
 the complete check.
 
+Refer to coverage-guided randomized-input testing as the “probator” throughout first-party code, scripts, documentation,
+and conversation. Required upstream package, executable, and PHP namespace identifiers may retain their published names;
+do not repeat those names otherwise.
+
 ## Changelog
 
 This project keeps a [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) file at [`CHANGELOG.md`](CHANGELOG.md).

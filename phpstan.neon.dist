@@ -10,6 +10,7 @@ parameters:
         registryFactory: jbboehr\Yumemi\Tests\PHPStan\Fixtures\ConfiguredUnitRegistryFactory
     paths:
         - benchmarks
+        - probator
         - src
         - tests
     excludePaths:

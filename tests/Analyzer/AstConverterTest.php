@@ -63,6 +63,14 @@ final class AstConverterTest extends TestCase
         $this->assertSame('5/4 * meter', $expr->reduce()->toString());
     }
 
+    public function testConvertsLeadingZeroIntegerConstantsAsDecimal(): void
+    {
+        $converter = new AstConverter(new UnitResolver(UnitRegistry::defaults()));
+        $expr = $converter->convert(Parser::parseString('09 meter'));
+
+        $this->assertSame('9 * meter', $expr->reduce()->toString());
+    }
+
     public function testConvertsRepeatedlyNegatedExponentWithoutLosingTheUnit(): void
     {
         $converter = new AstConverter(new UnitResolver(UnitRegistry::defaults()));

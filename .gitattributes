@@ -28,6 +28,7 @@ phpbench.json export-ignore
 phpstan.neon.dist export-ignore
 phpunit.branch.xml.dist export-ignore
 phpunit.xml.dist export-ignore
+probator export-ignore
 src/Catalog/PhpCatalogExporter.php export-ignore
 src/Catalog/Udunits2CatalogImporter.php export-ignore
 src/Command export-ignore

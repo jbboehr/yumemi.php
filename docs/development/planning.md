@@ -390,6 +390,10 @@ repeat the implementation's assumptions:
   intervals range more widely than the exhaustive small-domain suite while retaining bounded widths so every concrete
   result can be enumerated as an independent hull oracle. Keep property testing supplementary: preserve deterministic
   examples for named boundaries and promote every discovered counterexample into a focused regression test.
+- Maintain the manual coverage-guided “probator” target for unit expressions. It combines parser robustness checks with
+  AST and runtime parser/formatter round-trip oracles, starts from the committed corpus under `probator/corpus/`, and
+  writes its evolving corpus and crash artifacts beneath ignored `tmp/probator/` storage. Keep “probator” runs outside
+  mandatory CI and promote every genuine finding into a focused deterministic regression test.
 - Maintain the PHP 8.2 lowest-dependency CI job, which uses `composer update --prefer-lowest --prefer-stable` followed
   by PHPStan and PHPUnit. Ordinary lock-file jobs verify only one dependency snapshot and do not prove the lower bounds
   declared in `composer.json`.
