@@ -164,6 +164,16 @@ final class SerializationTest extends TestCase
         $this->assertSame('14', $restoredPoint->valueIn('meter')->toString());
     }
 
+    public function testCustomPointRequiresAnExplicitDeserializationContext(): void
+    {
+        $point = $this->customUnits(2, 10)->point(4, $this->customPointName());
+
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionMessage('A custom-context PointQuantity must be restored with Units::deserialize().');
+
+        unserialize(serialize($point));
+    }
+
     public function testWrongCustomContextIsRejectedAndTheScopeIsRestoredAfterFailure(): void
     {
         $source = $this->customUnits(2, 10);

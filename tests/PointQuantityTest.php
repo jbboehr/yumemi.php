@@ -87,6 +87,7 @@ final class PointQuantityTest extends TestCase
         $this->assertSame('32', $freezing->valueIn('fahrenheit')->toString());
         $this->assertSame('temperature', $freezing->dimension()->toString());
         $this->assertSame('0 * celsius', $freezing->toString());
+        $this->assertSame('0 * celsius', (string) $freezing);
         $this->assertSame('celsius', $freezing->unit());
         $symbolOptions = FormatOptions::create()
             ->withUnitNameStyle(UnitNameStyle::Symbol)

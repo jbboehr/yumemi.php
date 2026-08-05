@@ -47,5 +47,10 @@ These are point-in-time diagnostics, not enforced floors:
   introspection in the presence of unrelated broken aliases. The remaining reported outcomes depend on duplicate PHP
   array keys, mirrored constructor states already rejected earlier, or post-match empty values excluded by the matching
   expression; tests should not synthesize impossible states merely to reach 100%.
+- The 2026-08-05 focused `PointQuantity` audit covered 100% of its 83 branches and 132 executable lines. It added
+  explicit contracts for string casting and for rejecting a custom-context point restored outside
+  `Units::deserialize()`. Focused mutation testing killed all 137 generated mutants. Xdebug reports 37 of 4,132 paths
+  because the serialized-payload validator has many compound boolean combinations; its field-by-field malformed-payload
+  tests already exercise the observable validation policy, so exhaustive path enumeration would not add useful evidence.
 
-The next useful focused targets are `src/Catalog`, `PointQuantity`, formatting, and parser diagnostics.
+The next useful focused targets are `src/Catalog`, formatting, and parser diagnostics.

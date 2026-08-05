@@ -391,9 +391,10 @@ repeat the implementation's assumptions:
 - Continue focused Xdebug branch audits rather than enforcing a global path-coverage floor. The focused `src/Registry`
   audit reached 98.95% branch and 98.65% line coverage after adding contract tests for malformed catalog shapes,
   transactional builder batches, and resilient introspection; the remaining outcomes are structurally unreachable under
-  normal PHP array construction. Audit `src/Catalog`, `PointQuantity`, formatting, and parser diagnostics next. Add
-  tests only when an uncovered outcome is reachable and observably meaningful. Path coverage remains informational
-  because combinations grow rapidly.
+  normal PHP array construction. The `PointQuantity` audit reached 100% of its 83 branches and 132 executable lines,
+  with all 137 focused mutants killed. Audit `src/Catalog`, formatting, and parser diagnostics next. Add tests only when
+  an uncovered outcome is reachable and observably meaningful. Path coverage remains informational because combinations
+  grow rapidly; `PointQuantity::__unserialize()` alone exposes 4,096 paths through compound payload validation.
 - Triage Infection's escaped and timed-out mutants periodically before raising the MSI floor. Add contract-level
   assertions for observable survivors, record or ignore behaviorally equivalent mutations, distinguish deliberately
   unreachable defensive branches, and confirm that timeouts are explained by removed termination guards rather than
