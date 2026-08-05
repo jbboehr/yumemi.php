@@ -20,7 +20,8 @@ assertType("3&unit_int<'widget'>", $widgets);
 /** @param 'widget'|'meter' $unit */
 function configuredFiniteUnits(string $unit): void
 {
-    assertType("1&unit_int<'widget'>|1&unit_int<'meter'>", unit(1, $unit));
+    // @phpstan-ignore yumemi.ambiguousUnitExpression (exercise configured-registry union inference)
+    assertType("1&unit_int<'meter'>|1&unit_int<'widget'>", unit(1, $unit));
 }
 
 /** @param 'widget'|'widgets' $unit */

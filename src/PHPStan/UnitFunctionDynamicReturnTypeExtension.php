@@ -45,7 +45,7 @@ use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
 
 /**
- * Infers unit_int / unit_float from unit($value, $unit) when the unit string type is finite.
+ * Infers unit_int / unit_float from unit($value, $unit) when the complete unit string type is finite.
  * @internal
  */
 final class UnitFunctionDynamicReturnTypeExtension implements DynamicFunctionReturnTypeExtension
@@ -77,45 +77,103 @@ final class UnitFunctionDynamicReturnTypeExtension implements DynamicFunctionRet
     /**
      * Shared inference used by both the return-type extension and {@see InvalidUnitCallRule}.
      *
-     * Returns null when the call is not statically analysable (non-finite unit string,
-     * too few arguments), an {@see ErrorType} carrying a reason for an invalid unit string,
-     * or a union of branded unit types otherwise.
+     * Returns only the type component of {@see self::analyseCall()}: null for dynamic or incomplete
+     * calls, an {@see ErrorType} for invalid expressions, or the inferred branded type for accepted
+     * and ambiguous alternatives. The rule surfaces the accompanying issue and message as diagnostics.
      */
     public function inferType(FuncCall $functionCall, Scope $scope): ?Type
     {
-        $args = $functionCall->getArgs();
-        if (count($args) < 2) {
-            return null;
+        return $this->analyseCall($functionCall, $scope)['type'];
+    }
+
+    /**
+     * Analyze one unit() call for inference and standalone diagnostics.
+     *
+     * @logion [AWC 26:91] The witnesses brought every possible inscription before the western court,
+     *     and those which named one order were sealed together, while divided judgments remained accused.
+     *
+     * @return array{
+     *     type: Type|null,
+     *     issue: 'invalid'|'dynamic'|'ambiguous'|null,
+     *     message: string|null,
+     * }
+     */
+    public function analyseCall(FuncCall $functionCall, Scope $scope): array
+    {
+        $valueArgument = NativeUnitArgumentResolver::argument($functionCall, 0, 'value');
+        $unitArgument = NativeUnitArgumentResolver::argument($functionCall, 1, 'unit');
+        if ($valueArgument === null || $unitArgument === null) {
+            return ['type' => null, 'issue' => null, 'message' => null];
         }
 
-        $constantStrings = $scope->getType($args[1]->value)->getConstantStrings();
-        if ($constantStrings === []) {
-            return null;
+        $unitType = $scope->getType($unitArgument->value);
+        if (!$unitType->isString()->yes()) {
+            return ['type' => null, 'issue' => null, 'message' => null];
+        }
+
+        $constantStrings = NativeUnitArgumentResolver::constantStrings($unitType);
+        if ($constantStrings === null) {
+            return [
+                'type' => null,
+                'issue' => 'dynamic',
+                'message' => 'unit() requires a statically known unit expression; the unit argument does not resolve to a finite set of constant strings.',
+            ];
         }
 
         $units = [];
         foreach ($constantStrings as $constantString) {
-            $parsed = $this->parser->parse($constantString->getValue());
+            $parsed = $this->parser->parse($constantString);
             if (!$parsed->isOk()) {
-                return new ErrorType($parsed->errorMessage() ?? 'Invalid unit expression.');
+                $message = $parsed->errorMessage() ?? 'Invalid unit expression.';
+
+                return [
+                    'type' => new ErrorType($message),
+                    'issue' => 'invalid',
+                    'message' => $message,
+                ];
             }
 
-            $units[] = $parsed->expression();
+            $unit = $parsed->expression();
+            foreach ($units as $existing) {
+                if ($existing->equivalent($unit)) {
+                    continue 2;
+                }
+            }
+
+            $units[] = $unit;
         }
 
-        $valueType = $scope->getType($args[0]->value);
+        $valueType = $scope->getType($valueArgument->value);
 
         // Prefer int branding when the magnitude is definitely an integer (not a float).
         if ($valueType->isInteger()->yes() && !$valueType->isFloat()->yes()) {
-            return TypeCombinator::union(...array_map(
+            $type = TypeCombinator::union(...array_map(
                 static fn (UnitExpression $unit): Type => UnitIntegerTypeHelper::brand($valueType, $unit),
+                $units,
+            ));
+        } else {
+            $type = TypeCombinator::union(...array_map(
+                static fn (UnitExpression $unit): UnitFloatType => new UnitFloatType($unit),
                 $units,
             ));
         }
 
-        return TypeCombinator::union(...array_map(
-            static fn (UnitExpression $unit): UnitFloatType => new UnitFloatType($unit),
+        if (count($units) === 1) {
+            return ['type' => $type, 'issue' => null, 'message' => null];
+        }
+
+        $displayStrings = array_map(
+            static fn (UnitExpression $unit): string => $unit->displayString,
             $units,
-        ));
+        );
+        sort($displayStrings, SORT_STRING);
+
+        return [
+            'type' => $type,
+            'issue' => 'ambiguous',
+            'message' => 'unit() unit expression resolves to multiple units after normalization: '
+                . implode(', ', $displayStrings)
+                . '.',
+        ];
     }
 }

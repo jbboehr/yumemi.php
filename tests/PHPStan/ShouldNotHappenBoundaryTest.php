@@ -122,6 +122,7 @@ final class ShouldNotHappenBoundaryTest extends TestCase
             new UnitFunctionDynamicReturnTypeExtension($parser),
             new UnitFactorFunctionDynamicReturnTypeExtension($parser, $units),
             new UnitToFunctionDynamicReturnTypeExtension($parser, $units),
+            true,
         );
         $processNode = new \ReflectionMethod($rule, 'processNode');
 

@@ -29,6 +29,39 @@ setRideHeight(unit_to($measuredHeight, 'foot', 'meter'));
 See [Branded Native Types](reference/phpstan.md#branded-native-types) and
 [Boundary Helpers](reference/phpstan.md#boundary-helpers).
 
+## Keep Unit Setup Outside Hot Loops
+
+When an external invariant already guarantees the input unit, declare that contract once and let repeated work remain
+ordinary native arithmetic. Compute a conversion factor before the loop so the loop itself performs only float
+multiplication:
+
+```php
+<?php
+
+use function jbboehr\Yumemi\unit_factor;
+
+/** @var list<unit_float<'international_foot'>> $surveyLengths */
+$surveyLengths = [1.0, 5.0, 10.0];
+
+$footToMeter = unit_factor('international_foot', 'meter');
+$metricLengths = [];
+
+foreach ($surveyLengths as $surveyLength) {
+    $metricLengths[] = $surveyLength * $footToMeter;
+}
+
+/** @param list<unit_float<'meter'>> $lengths */
+function saveMetricSurveyLengths(array $lengths): void {}
+
+saveMetricSurveyLengths($metricLengths);
+assert(abs($metricLengths[2] - 3.048) < 1e-12);
+```
+
+The `@var` declaration asserts that the source data is measured in feet; it does not validate its provenance. Use
+`unit()` instead when parsing the unit expression against the runtime catalog is valuable. See
+[Native Values At Trusted Boundaries](core-concepts.md#native-values-at-trusted-boundaries) and
+[Constant Unit Expressions](reference/phpstan.md#constant-unit-expressions).
+
 ## Preserve Exact Conversion
 
 Use `Quantity` when conversion must retain an exact decimal or fraction rather than immediately becoming a float:

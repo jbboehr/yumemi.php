@@ -86,25 +86,59 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
     /**
      * Shared inference used by both the return-type extension and {@see InvalidUnitCallRule}.
      *
-     * Returns null when the call is not statically analysable, an {@see ErrorType} carrying a
-     * reason for an invalid from/to unit, a value/from mismatch, or a dimensional mismatch, or
-     * a branded multiplicative target or plain float for an affine target otherwise.
+     * Returns only the type component of {@see self::analyseCall()}: null for dynamic or incomplete
+     * calls, an {@see ErrorType} for invalid conversions, or the inferred multiplicative brand or
+     * native float for accepted and ambiguous targets. The rule surfaces the accompanying issue and
+     * message as diagnostics.
      */
     public function inferType(FuncCall $functionCall, Scope $scope): ?Type
     {
-        $args = $functionCall->getArgs();
-        if (count($args) < 3) {
-            return null;
+        return $this->analyseCall($functionCall, $scope)['type'];
+    }
+
+    /**
+     * Analyze one unit_to() call for inference and standalone diagnostics.
+     *
+     * @logion [RAS 44:62] I beheld many roads descend from the measures into one radiant city,
+     *     yet where the gates opened upon divided destinations the native vessel received no single name.
+     *
+     * @return array{
+     *     type: Type|null,
+     *     issue: 'invalid'|'dynamic'|'ambiguous'|null,
+     *     message: string|null,
+     * }
+     */
+    public function analyseCall(FuncCall $functionCall, Scope $scope): array
+    {
+        $valueArgument = NativeUnitArgumentResolver::argument($functionCall, 0, 'value');
+        $fromArgument = NativeUnitArgumentResolver::argument($functionCall, 1, 'from');
+        $toArgument = NativeUnitArgumentResolver::argument($functionCall, 2, 'to');
+        if ($valueArgument === null || $fromArgument === null || $toArgument === null) {
+            return ['type' => null, 'issue' => null, 'message' => null];
         }
 
-        $fromStrings = $this->constantStrings($scope->getType($args[1]->value));
+        $fromType = $scope->getType($fromArgument->value);
+        $toType = $scope->getType($toArgument->value);
+        if (!$fromType->isString()->yes() || !$toType->isString()->yes()) {
+            return ['type' => null, 'issue' => null, 'message' => null];
+        }
+
+        $fromStrings = NativeUnitArgumentResolver::constantStrings($fromType);
         if ($fromStrings === null) {
-            return null;
+            return [
+                'type' => null,
+                'issue' => 'dynamic',
+                'message' => 'unit_to() requires a statically known source unit expression; the source argument does not resolve to a finite set of constant strings.',
+            ];
         }
 
-        $toStrings = $this->constantStrings($scope->getType($args[2]->value));
+        $toStrings = NativeUnitArgumentResolver::constantStrings($toType);
         if ($toStrings === null) {
-            return null;
+            return [
+                'type' => null,
+                'issue' => 'dynamic',
+                'message' => 'unit_to() requires a statically known target unit expression; the target argument does not resolve to a finite set of constant strings.',
+            ];
         }
 
         $fromUnits = [];
@@ -114,9 +148,14 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
         }
 
         $toUnits = [];
+        $toPoints = [];
         foreach ($toStrings as $toString) {
             $toResult = $this->parser->parse($toString);
             $toUnits[$toString] = $toResult->isOk() ? $toResult->expression() : null;
+            if (!$toResult->isOk()) {
+                $pointResult = $this->parser->parsePoint($toString);
+                $toPoints[$toString] = $pointResult->isOk() ? $pointResult->expression() : null;
+            }
         }
 
         foreach ($fromStrings as $fromString) {
@@ -130,35 +169,59 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
                     | ParseException
                     | \InvalidArgumentException $exception
                 ) {
-                    return new ErrorType($exception->getMessage());
+                    $message = $exception->getMessage();
+
+                    return [
+                        'type' => new ErrorType($message),
+                        'issue' => 'invalid',
+                        'message' => $message,
+                    ];
                 }
 
                 if (!$compatible) {
-                    return new ErrorType(sprintf(
+                    $message = sprintf(
                         'Cannot convert with unit_to(): units %s and %s are not dimensionally compatible.',
                         isset($fromUnits[$fromString]) ? $fromUnits[$fromString]->displayString : $fromString,
                         isset($toUnits[$toString]) ? $toUnits[$toString]->displayString : $toString,
-                    ));
+                    );
+
+                    return [
+                        'type' => new ErrorType($message),
+                        'issue' => 'invalid',
+                        'message' => $message,
+                    ];
                 }
             }
         }
 
-        foreach ($this->unitTypes($scope->getType($args[0]->value)) as $valueUnit) {
+        foreach ($this->unitTypes($scope->getType($valueArgument->value)) as $valueUnit) {
             foreach ($fromStrings as $fromString) {
                 $fromUnit = $fromUnits[$fromString];
                 if ($fromUnit === null) {
-                    return new ErrorType(sprintf(
+                    $message = sprintf(
                         'unit_to() cannot use a unit-branded value with affine from unit %s.',
                         $fromString,
-                    ));
+                    );
+
+                    return [
+                        'type' => new ErrorType($message),
+                        'issue' => 'invalid',
+                        'message' => $message,
+                    ];
                 }
 
                 if (!$valueUnit->equivalent($fromUnit)) {
-                    return new ErrorType(sprintf(
+                    $message = sprintf(
                         "unit_to() value unit %s does not match from unit %s (normalized forms differ).",
                         $valueUnit->displayString,
                         $fromUnit->displayString,
-                    ));
+                    );
+
+                    return [
+                        'type' => new ErrorType($message),
+                        'issue' => 'invalid',
+                        'message' => $message,
+                    ];
                 }
             }
         }
@@ -169,21 +232,66 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
             $resultTypes[] = $toUnit === null ? new FloatType() : new UnitFloatType($toUnit);
         }
 
-        return TypeCombinator::union(...$resultTypes);
-    }
+        $type = TypeCombinator::union(...$resultTypes);
+        $multiplicativeTargets = [];
+        $pointTargets = [];
+        foreach ($toStrings as $toString) {
+            $toUnit = $toUnits[$toString];
+            if ($toUnit !== null) {
+                foreach ($multiplicativeTargets as $existing) {
+                    if ($existing->equivalent($toUnit)) {
+                        continue 2;
+                    }
+                }
 
-    /** @return list<string>|null */
-    private function constantStrings(Type $type): ?array
-    {
-        $constantStrings = $type->getConstantStrings();
-        if ($constantStrings === []) {
-            return null;
+                $multiplicativeTargets[] = $toUnit;
+                continue;
+            }
+
+            $toPoint = $toPoints[$toString] ?? null;
+            if ($toPoint === null) {
+                // Successful conversion validation above should make this unreachable.
+                $message = 'Cannot determine the semantic target of unit_to(): ' . $toString . '.';
+
+                return [
+                    'type' => new ErrorType($message),
+                    'issue' => 'invalid',
+                    'message' => $message,
+                ];
+            }
+
+            foreach ($pointTargets as $existing) {
+                if ($existing->equivalent($toPoint)) {
+                    continue 2;
+                }
+            }
+
+            $pointTargets[] = $toPoint;
         }
 
-        $values = array_map(static fn ($constantString): string => $constantString->getValue(), $constantStrings);
-        sort($values, SORT_STRING);
+        if (count($multiplicativeTargets) + count($pointTargets) === 1) {
+            return ['type' => $type, 'issue' => null, 'message' => null];
+        }
 
-        return $values;
+        $displayStrings = [
+            ...array_map(
+                static fn (UnitExpression $unit): string => $unit->displayString,
+                $multiplicativeTargets,
+            ),
+            ...array_map(
+                static fn (PointUnitExpression $unit): string => $unit->displayString,
+                $pointTargets,
+            ),
+        ];
+        sort($displayStrings, SORT_STRING);
+
+        return [
+            'type' => $type,
+            'issue' => 'ambiguous',
+            'message' => 'unit_to() target unit expression resolves to multiple units after normalization: '
+                . implode(', ', $displayStrings)
+                . '.',
+        ];
     }
 
     /**

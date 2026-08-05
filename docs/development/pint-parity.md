@@ -259,14 +259,15 @@ Status: **Done for the current core** | Importance: **P0** | Remaining difficult
 
 Yumemi resolves `unit_int<'...'>`, `unit_float<'...'>`, `Quantity<'...'>`, and `PointQuantity<'...'>`; infers native,
 quantity, and point operations; validates construction, conversion, extraction, and comparisons; supports native
-conversion helpers; preserves finite literal-string unions; configures custom registries; and provides stable
-diagnostics.
+conversion helpers with strict, semantically unambiguous expressions; preserves finite unions at runtime-object
+boundaries; configures custom registries; and provides stable diagnostics.
 
 The separate [Yumemi Apocrypha](https://github.com/jbboehr/yumemi-apocrypha.php) package supplies curated third-party
 stubs without expanding core's dependency graph. Branded integer constants and PHPStan integer-range intersections now
 propagate through supported arithmetic, allowing exact bounds to distinguish safe integer results, guaranteed float
 overflow, and mixed outcomes. Remaining work is branded float precision, selected casts and built-ins, more precise
-diagnostics, and future advanced unit semantics. Dynamic strings intentionally fall back to unbranded types.
+diagnostics, and future advanced unit semantics. Dynamic native-helper expressions are diagnosed by default while
+explicit runtime parsing APIs remain dynamic and fall back to unbranded object types.
 
 ### 22. Function Boundary Checking
 
@@ -342,7 +343,9 @@ after construction. PHPBench now covers representative cold and warm runtime wor
 performs repeated grouping and sorting, and expression operations still reduce eagerly.
 
 Use repeated local benchmarks and real PHPStan or runtime profiles to identify hot paths before optimizing.
-Catalog-build indexing remains a reasonable deferred optimization even without changing expression semantics.
+Catalog-build indexing remains a reasonable deferred optimization even without changing expression semantics. Bounded
+per-context parsing and unified multiplicative/affine conversion-plan caches are also deferred until helper-heavy
+benchmarks justify their allocation and eviction policies.
 
 ### 30. Error Messages And Developer Experience
 

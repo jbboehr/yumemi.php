@@ -42,15 +42,12 @@ use PhpParser\Node\Name;
 use PHPStan\Analyser\Scope;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
-use PHPStan\Type\ErrorType;
 
 /**
  * Emits standalone diagnostics for invalid unit() / unit_factor() / unit_to() calls.
  *
- * The dynamic return type extensions infer an {@see ErrorType} for invalid unit strings,
- * dimensional mismatches, and value/from mismatches, but PHPStan does not report a call
- * just because its return type is an error. This rule surfaces the same reason as an actual
- * diagnostic so mistakes are caught even when the result is never used in a strict context.
+ * The dynamic return type extensions analyze invalid, dynamic, and ambiguous unit strings together with return
+ * inference. This rule surfaces those findings even when the result is never used in a strict context.
  *
  * @implements Rule<FuncCall>
  * @internal
@@ -61,11 +58,19 @@ final class InvalidUnitCallRule implements Rule
     private const UNIT_FACTOR = 'jbboehr\\Yumemi\\unit_factor';
     private const UNIT_TO = 'jbboehr\\Yumemi\\unit_to';
 
+    /**
+     * @logion [OSD 18:57] The native vessel received no unwritten measure unless the keeper
+     *     had suspended that ordinance, though divided known seals remained subject to judgment.
+     */
+    private readonly bool $requireConstantNativeUnitExpressions;
+
     public function __construct(
         private readonly UnitFunctionDynamicReturnTypeExtension $unitExtension,
         private readonly UnitFactorFunctionDynamicReturnTypeExtension $unitFactorExtension,
         private readonly UnitToFunctionDynamicReturnTypeExtension $unitToExtension,
+        bool $requireConstantNativeUnitExpressions,
     ) {
+        $this->requireConstantNativeUnitExpressions = $requireConstantNativeUnitExpressions;
     }
 
     public function getNodeType(): string
@@ -83,25 +88,30 @@ final class InvalidUnitCallRule implements Rule
                 return [];
             }
 
-            $type = match ($scope->resolveName($node->name)) {
-                self::UNIT => $this->unitExtension->inferType($node, $scope),
-                self::UNIT_FACTOR => $this->unitFactorExtension->inferType($node, $scope),
-                self::UNIT_TO => $this->unitToExtension->inferType($node, $scope),
+            $analysis = match ($scope->resolveName($node->name)) {
+                self::UNIT => $this->unitExtension->analyseCall($node, $scope),
+                self::UNIT_FACTOR => $this->unitFactorExtension->analyseCall($node, $scope),
+                self::UNIT_TO => $this->unitToExtension->analyseCall($node, $scope),
                 default => null,
             };
 
-            if (!$type instanceof ErrorType) {
+            if ($analysis === null || $analysis['issue'] === null || $analysis['message'] === null) {
                 return [];
             }
 
-            $reason = $type->getReason();
-            if ($reason === null) {
+            if ($analysis['issue'] === 'dynamic' && !$this->requireConstantNativeUnitExpressions) {
                 return [];
             }
+
+            $identifier = match ($analysis['issue']) {
+                'invalid' => 'yumemi.invalidUnitCall',
+                'dynamic' => 'yumemi.dynamicUnitExpression',
+                'ambiguous' => 'yumemi.ambiguousUnitExpression',
+            };
 
             return [
-                RuleErrorBuilder::message($reason)
-                    ->identifier('yumemi.invalidUnitCall')
+                RuleErrorBuilder::message($analysis['message'])
+                    ->identifier($identifier)
                     ->build(),
             ];
         } catch (\Throwable $exception) {

@@ -185,6 +185,74 @@ final class InvalidUnitCallRuleTest extends RuleTestCase
                 'unit_to() value unit international_foot does not match from unit meter (normalized forms differ).',
                 99,
             ],
+            [
+                'unit() requires a statically known unit expression; the unit argument does not resolve to a finite set of constant strings.',
+                60,
+            ],
+            [
+                'unit() requires a statically known unit expression; the unit argument does not resolve to a finite set of constant strings.',
+                105,
+            ],
+            [
+                'unit_factor() requires a statically known source unit expression; the source argument does not resolve to a finite set of constant strings.',
+                110,
+            ],
+            [
+                'unit_factor() requires a statically known target unit expression; the target argument does not resolve to a finite set of constant strings.',
+                111,
+            ],
+            [
+                'unit_to() requires a statically known source unit expression; the source argument does not resolve to a finite set of constant strings.',
+                116,
+            ],
+            [
+                'unit_to() requires a statically known target unit expression; the target argument does not resolve to a finite set of constant strings.',
+                117,
+            ],
+            [
+                'unit() unit expression resolves to multiple units after normalization: international_foot, meter.',
+                123,
+            ],
+            [
+                'unit_factor() resolves to multiple conversion-factor units after normalization: 1, meter / international_foot.',
+                135,
+            ],
+            [
+                'unit_to() target unit expression resolves to multiple units after normalization: international_foot, meter.',
+                147,
+            ],
+            [
+                'unit_to() target unit expression resolves to multiple units after normalization: celsius, fahrenheit.',
+                153,
+            ],
+            [
+                'unit() requires a statically known unit expression; the unit argument does not resolve to a finite set of constant strings.',
+                158,
+            ],
+            [
+                'unit_to() value unit meter does not match from unit international_foot (normalized forms differ).',
+                185,
+            ],
+            [
+                'unit() unit expression resolves to multiple units after normalization: IT_Btu, becquerel.',
+                191,
+            ],
+            [
+                'unit_factor() resolves to multiple conversion-factor units after normalization: 1, meter / international_foot.',
+                197,
+            ],
+            [
+                'unit_to() target unit expression resolves to multiple units after normalization: international_mile, meter.',
+                203,
+            ],
+            [
+                'Cannot convert with unit_to(): units second and meter are not dimensionally compatible.',
+                206,
+            ],
+            [
+                'unit_to() target unit expression resolves to multiple units after normalization: celsius, kelvin.',
+                247,
+            ],
         ]);
     }
 }

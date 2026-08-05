@@ -21,8 +21,9 @@ libraries.
 | Add project-specific units              | [Registry Configuration](#registry-configuration)   |
 | Suppress or baseline an error           | [Diagnostics](#diagnostics)                         |
 
-> **Current boundaries:** Genuinely dynamic unit strings cannot be validated, casts and unsupported built-ins may erase
-> a brand, and dimensional analysis cannot distinguish concepts with identical physical dimensions. See
+> **Current boundaries:** Genuinely dynamic unit strings cannot receive a precise static unit; native helpers diagnose
+> them by default while runtime object APIs may parse them dynamically. Casts and unsupported built-ins may erase a
+> brand, and dimensional analysis cannot distinguish concepts with identical physical dimensions. See
 > [Limitations](#limitations) for the complete list.
 
 ## Branded Native Types
@@ -200,12 +201,80 @@ such as `celsius` is plain `float` because the current native type model cannot 
 delta temperatures.
 
 If a branded value is passed to `unit_to()`, its brand must match the declared source unit. `unit()` and known helper
-arguments are also validated against the configured catalog. Unknown constant strings fail analysis; genuinely dynamic
-strings cannot be proven and fall back to the functions' native return types.
+arguments are also validated against the configured catalog. Unknown expressions and incompatible conversions fail
+analysis before the result type is used.
 
-Finite literal-string unions passed to `unit()`, `unit_factor()`, and `unit_to()` preserve the corresponding union of
-unit brands. The conversion helpers validate every source/target combination and reject the call if any pairing is
-invalid. Conversion targets on the `Quantity` boundaries described below likewise preserve finite unions.
+### Constant Unit Expressions
+
+By default, every unit argument to `unit()`, `unit_factor()`, and `unit_to()` must resolve during analysis to one exact
+constant string or a finite set of exact alternatives. Class constants and expressions that PHPStan constant-folds are
+accepted. A broad `string` or `literal-string` is not enough because Yumemi cannot recover the expression text to parse
+and validate it.
+
+Finite alternatives are accepted only when every valid path gives the operation one semantic result. Aliases such as
+`'meter'|'metre'` are therefore valid for `unit()`. Several source units are valid for `unit_to()` when one target is
+fixed, because the target determines the returned brand. Alternatives such as `'meter'|'foot'` passed to `unit()`, or as
+the target of `unit_to()`, are ambiguous even though PHP can represent a union of their brands.
+
+```php
+<?php
+
+use function jbboehr\Yumemi\unit;
+
+/** @return unit_float<'meter'> */
+function brandKnownDistanceAlias(float $value, bool $useAlias): float
+{
+    return unit($value, $useAlias ? 'meter' : 'metre');
+}
+```
+
+```text
+function brandDynamicDistance(float $value, string $unitExpression): float
+{
+    // yumemi.dynamicUnitExpression
+    return unit($value, $unitExpression);
+}
+
+function brandAmbiguousDistance(float $value, bool $useMetric): float
+{
+    $unitExpression = $useMetric ? 'meter' : 'foot';
+
+    // yumemi.ambiguousUnitExpression
+    return unit($value, $unitExpression);
+}
+```
+
+The first rejected call does not expose its expression text. The second exposes two valid units, but they do not
+normalize to one semantic result.
+
+The two diagnostics preserve the functions' ordinary native fallback types, so an intentional dynamic boundary can use
+an identifier-specific local suppression:
+
+```php
+<?php
+
+use function jbboehr\Yumemi\unit_to;
+
+function convertUncheckedUnitExpression(float $value, string $sourceUnit, string $targetUnit): float
+{
+    // @phpstan-ignore yumemi.dynamicUnitExpression
+    return unit_to($value, $sourceUnit, $targetUnit);
+}
+```
+
+Projects whose native-helper calls fundamentally depend on runtime strings may disable only the dynamic-expression
+diagnostic:
+
+```neon
+parameters:
+    yumemi:
+        requireConstantNativeUnitExpressions: false
+```
+
+Ambiguous finite alternatives remain errors because no one output unit applies; suppress
+`yumemi.ambiguousUnitExpression` locally when that loss of precision is deliberate. Runtime parsing APIs such as
+`Units::parse()` and the `Quantity` methods remain the intentional dynamic path and are not affected by this option.
+Their constant and finite-union inference remains described below.
 
 ## Quantity Types
 
@@ -380,6 +449,8 @@ scope:
 
 | Identifier                             | Reported condition                                                                                           |
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `yumemi.dynamicUnitExpression`         | A native helper argument does not reveal its complete unit expression during analysis                        |
+| `yumemi.ambiguousUnitExpression`       | Native helper alternatives produce more than one semantic result unit                                        |
 | `yumemi.invalidUnitCall`               | An invalid constant `unit()`, `unit_factor()`, or `unit_to()` call                                           |
 | `yumemi.invalidUnitComparison`         | A native equality, identity, ordering, or spaceship comparison whose units are not definitionally equivalent |
 | `yumemi.invalidQuantityConstruction`   | Invalid `Units::quantity()`, `parseQuantity()`, `deltaQuantity()`, or `point()` construction                 |
@@ -395,14 +466,17 @@ scope:
 | `yumemi.docTagTransform`               | Erasing the units does not reproduce the fallback PHPDoc structure                                           |
 | `binaryOp.invalid`                     | Invalid native unit arithmetic; this is PHPStan's standard binary-operation identifier, not Yumemi's         |
 
-The first six identifiers apply even when an invalid call's result is unused. Syntax diagnostics preserve the runtime
-parser's bounded caret excerpt while PHPStan anchors the error to the containing PHP or PHPDoc line.
+Call and operation diagnostics apply even when an invalid call's result is unused. Syntax diagnostics preserve the
+runtime parser's bounded caret excerpt while PHPStan anchors the error to the containing PHP or PHPDoc line.
 
 Use the identifier to choose the first corrective step:
 
 - For `binaryOp.invalid` or `yumemi.invalidUnitComparison`, remember that native PHP does not convert either operand.
   Convert explicitly with `unit_to()` or `unit_factor()`, or use `Quantity` when the operation should convert compatible
   units. See [Definitional Equivalence And Compatibility](#definitional-equivalence-and-compatibility).
+- For `yumemi.dynamicUnitExpression` or `yumemi.ambiguousUnitExpression`, provide one statically recoverable semantic
+  result, use an identifier-specific local suppression for an intentional dynamic boundary, or choose an explicit
+  runtime object API. See [Constant Unit Expressions](#constant-unit-expressions).
 - For `yumemi.invalidUnitCall`, `yumemi.invalidQuantityConstruction`, or `yumemi.invalidQuantityConversion`, check the
   constant unit spelling, the [configured registry](#registry-configuration), dimensional compatibility, and whether an
   affine coordinate was used where multiplicative algebra requires a `delta_*` unit.
@@ -416,14 +490,15 @@ Use the identifier to choose the first corrective step:
 
 Important limits of the current static model are:
 
-- Dynamic unit strings cannot be validated and intentionally fall back to native or unbranded return types.
+- Native `unit()`, `unit_factor()`, and `unit_to()` calls require statically recoverable unit expressions by default.
+  Dynamic object parsing and conversion remain supported, but cannot retain a specific generic unit type.
 - PHPStan supports one configured registry and does not track runtime registry identity per value.
 - Casts and unsupported PHP built-ins can erase native unit brands.
 - Native `+` and `-` cannot convert dimensionally compatible magnitudes; use an explicit conversion or `Quantity`.
 - Native affine targets remain unbranded because native scalars do not retain point-versus-difference identity. Use
   `PointQuantity<'...'>` when that identity must remain statically visible.
-- `unit_to()` and `unit_factor()` do not preserve correlation across independent source and target unions. They validate
-  the Cartesian product and therefore reject a correlated union call if any cross-pairing would be invalid.
+- `unit_to()` and `unit_factor()` validate the Cartesian product of independent source and target alternatives and
+  reject the call if any pairing is invalid. Valid alternatives must also collapse to one semantic result unit.
 - Unit exponentiation supports constant integers only.
 - PHPStan has no corresponding native float-range syntax, so branded floats do not retain continuous bounds.
 - Dimensional analysis cannot distinguish different physical meanings with the same dimension, such as gray and sievert.

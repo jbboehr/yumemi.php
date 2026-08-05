@@ -109,7 +109,11 @@ final class UnitFunctionTest extends TestCase
     #[DataProvider('unitFactorProvider')]
     public function testUnitFactorReturnsNativeConversionRatio(string $from, string $to, float $expected): void
     {
-        $this->assertEqualsWithDelta($expected, unit_factor($from, $to), 1e-12);
+        $this->assertEqualsWithDelta(
+            $expected,
+            unit_factor($from, $to), // @phpstan-ignore yumemi.dynamicUnitExpression (runtime data-provider coverage)
+            1e-12,
+        );
     }
 
     public function testUnitFactorAlwaysReturnsFloat(): void
@@ -193,7 +197,7 @@ final class UnitFunctionTest extends TestCase
         string $cause,
     ): void {
         try {
-            unit_factor($from, $to);
+            unit_factor($from, $to); // @phpstan-ignore yumemi.dynamicUnitExpression (runtime rejection coverage)
             self::fail('Expected an invalid unit factor to be rejected.');
         } catch (\InvalidArgumentException $exception) {
             $this->assertStringStartsWith($message, $exception->getMessage());
@@ -206,6 +210,7 @@ final class UnitFunctionTest extends TestCase
         $powerOfTen = '1' . str_repeat('0', 400);
 
         try {
+            // @phpstan-ignore yumemi.dynamicUnitExpression (runtime overflow coverage)
             unit_factor('meter', '1 / ' . $powerOfTen . ' * meter');
             self::fail('Expected an overflowing conversion factor to be rejected.');
         } catch (\OverflowException $exception) {
@@ -215,6 +220,7 @@ final class UnitFunctionTest extends TestCase
         $this->expectException(\UnderflowException::class);
         $this->expectExceptionMessage('rounds to zero as a float');
 
+        // @phpstan-ignore yumemi.dynamicUnitExpression (runtime underflow coverage)
         unit_factor('meter', $powerOfTen . ' * meter');
     }
 
@@ -301,7 +307,7 @@ final class UnitFunctionTest extends TestCase
     public function testUnitToMatchesCatalogFactor(int|float $value, string $from, string $to): void
     {
         $expected = $this->expectedConvertedFloat($value, $from, $to);
-        $actual = unit_to($value, $from, $to);
+        $actual = unit_to($value, $from, $to); // @phpstan-ignore yumemi.dynamicUnitExpression (runtime provider coverage)
 
         $this->assertEqualsWithDelta(
             $expected,
@@ -326,7 +332,9 @@ final class UnitFunctionTest extends TestCase
     #[DataProvider('unitToRoundTripProvider')]
     public function testUnitToRoundTrip(int|float $value, string $from, string $to): void
     {
+        // @phpstan-ignore yumemi.dynamicUnitExpression (runtime round-trip coverage)
         $converted = unit_to($value, $from, $to);
+        // @phpstan-ignore yumemi.dynamicUnitExpression (runtime round-trip coverage)
         $back = unit_to($converted, $to, $from);
 
         $this->assertEqualsWithDelta((float) $value, $back, 1e-9);
@@ -351,7 +359,7 @@ final class UnitFunctionTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
 
-        unit_to(1.0, $from, $to);
+        unit_to(1.0, $from, $to); // @phpstan-ignore yumemi.dynamicUnitExpression (runtime rejection coverage)
     }
 
     public function testUnitToWithBrandedUnitValue(): void
@@ -367,6 +375,7 @@ final class UnitFunctionTest extends TestCase
         $powerOfTen = '1' . str_repeat('0', 400);
         $slightlyLarger = gmp_strval(gmp_add(gmp_init($powerOfTen), 1));
 
+        // @phpstan-ignore yumemi.dynamicUnitExpression (runtime large-factor coverage)
         $this->assertSame(1.0, unit_to(1, $slightlyLarger . ' * meter', $powerOfTen . ' * meter'));
     }
 
@@ -404,7 +413,7 @@ final class UnitFunctionTest extends TestCase
 
     private static function callUnitTo(int|float $value, string $from, string $to): float
     {
-        return unit_to($value, $from, $to);
+        return unit_to($value, $from, $to); // @phpstan-ignore yumemi.dynamicUnitExpression (runtime helper coverage)
     }
 
     private function rationalToFloat(Rational $rational): float

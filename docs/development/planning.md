@@ -72,8 +72,8 @@ The implemented foundation now includes:
   deserialization for runtime value objects;
 - configurable ASCII and Unicode formatting with catalog-aware names and fraction or negative-power division;
 - native `unit_int` / `unit_float` and object `Quantity<'...'>` / `PointQuantity<'...'>` PHPStan types with arithmetic
-  inference, branded integer constants and ranges, overflow-aware bounds, diagnostics, custom registries, finite
-  literal-string unions, and optional `@yumemi-*` promotion;
+  inference, branded integer constants and ranges, overflow-aware bounds, diagnostics, custom registries, strict native
+  helper expressions, finite object-boundary unions, and optional `@yumemi-*` promotion;
 - a separately versioned [Yumemi Apocrypha](https://github.com/jbboehr/yumemi-apocrypha.php) package for curated
   third-party stubs, leaving the generic `@yumemi-*` mechanism in core;
 - focused public documentation whose executable PHP and PHPStan examples are verified in process.
@@ -395,11 +395,14 @@ repeat the implementation's assumptions:
 
 ### Near-Term Work
 
-- Split broad PHPStan diagnostic identifiers only where users need more precise suppression.
+- Split remaining broad PHPStan diagnostic identifiers only where users need more precise suppression. Native helpers
+  now distinguish dynamic and ambiguous unit expressions from invalid constant calls.
 
 ### Known Limitations And Risks
 
-- Dynamic unit strings cannot be validated statically and intentionally fall back to native PHPStan return types.
+- Native `unit()`, `unit_factor()`, and `unit_to()` calls require complete constant unit expressions by default. Dynamic
+  calls can retain native fallback types through local suppression or configuration; runtime object APIs remain the
+  intentional dynamic path.
 - Direct `Units::conversionFactor()` calls retain their declared `Rational` type. Use `unit_factor()` when native
   target/source branding is needed for PHPStan arithmetic.
 - Affine points and multiplicative differences are supported through `PointQuantity` and synthesized delta units. Direct
@@ -414,8 +417,9 @@ repeat the implementation's assumptions:
   parser-replacing extension.
 - Casts and unsupported PHP built-ins can erase native unit brands. Add targeted extensions only for demonstrated
   workflows rather than trying to model every built-in preemptively.
-- Finite source and target unions are supported by native helpers and Quantity boundaries. Independent source and target
-  unions lose value correlation, so helper calls validate the Cartesian product and fail closed if any pair is invalid.
+- Native helpers accept finite alternatives only when every valid path produces one semantic result unit. Independent
+  source and target alternatives lose value correlation, so conversion helpers validate the Cartesian product and fail
+  closed if any pair is invalid. Quantity boundaries continue to preserve finite target unions.
 - Lookup is case-sensitive. Short but valid prefix/symbol compositions such as `pa` (pico-are) and `PA` (peta-ampere)
   remain accepted while `Pa` is pascal; Yumemi does not special-case these catalog-valid ambiguities.
 - Unit, dimension, and scientific-decimal exponents are bounded to `-10000` through `10000`; checked composition rejects
@@ -441,6 +445,13 @@ repeat the implementation's assumptions:
 - GNU Units import
 - Formula interpolation
 - Preferred/compact unit selection and broader formatting presets
+- A separate strict-expression option for dynamic `Units`, `Quantity`, and `PointQuantity` boundaries if applications
+  demonstrate a need beyond the native-helper policy. Their explicit runtime parsing role remains dynamic by default.
+- A bounded parse cache scoped to each immutable `Units` context, and a unified multiplicative/affine conversion-plan
+  cache keyed by that context. Benchmark helper-heavy workloads before fixing cache sizes or eviction policy.
+- An application-specific generator for a small requested set of native conversion-factor constants, with deterministic
+  regeneration tests against the exact runtime engine. Do not generate every possible catalog pair; ordinary code should
+  normally hoist `unit_factor()` outside repeated arithmetic.
 - Optimize bulk catalog introspection by pre-grouping canonical aliases, symbols, and plurals during generation, then
   lazily caching an effective index per immutable registry. Composite registries must build a composition-aware index so
   base aliases continue to follow overlay replacements. The same index should serve canonical/symbol formatter lookups

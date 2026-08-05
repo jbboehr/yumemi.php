@@ -66,6 +66,34 @@ requires both `'meter / second'` and `'kilometer / hour'` explicitly.
 See the [PHPStan reference](reference/phpstan.md) for branded-native behavior and the
 [runtime reference](reference/runtime.md) for exact quantities.
 
+## Native Values At Trusted Boundaries
+
+Once a native value has a unit brand, PHP still executes ordinary `int` or `float` arithmetic. The brand adds no runtime
+wrapper, method dispatch, `Rational` allocation, or unit metadata to those calculations. This makes branded values the
+natural path when a unit contract can be established at an application boundary and the remaining work should use normal
+scalar operations.
+
+Use `unit($value, 'meter')` when runtime validation of the unit expression against the active catalog is useful. The
+function returns `$value` unchanged after parsing the expression; it does not prove that the incoming magnitude was
+physically measured in meters. A trusted parameter, property, return type, third-party stub, or local `@var` declaration
+can establish the same static brand without runtime parsing:
+
+```php
+<?php
+
+/** @var unit_float<'meter'> $warehouseAisleLength */
+$warehouseAisleLength = (float) 18;
+
+/** @param unit_float<'meter'> $length */
+function storeWarehouseAisleLength(float $length): void {}
+
+storeWarehouseAisleLength($warehouseAisleLength);
+```
+
+Use declarations or stubs where the unit is already guaranteed, use `unit()` when catalog validation is desired, and
+keep repeated arithmetic on branded native values. When exact fractions or runtime unit identity matter more, use
+`Quantity` instead.
+
 ## Choose An Operation
 
 | Goal                                                     | Operation                                            |

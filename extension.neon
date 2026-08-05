@@ -13,6 +13,7 @@
 parameters:
     yumemi:
         integerOverflowToFloat: true
+        requireConstantNativeUnitExpressions: true
         registryFactory: null
     # Symfony's conditional classmap stub also contains its pre-enum integer fallback. Scan the
     # native shape explicitly so PHPStan sees enum cases on every PHP version Yumemi supports.
@@ -22,6 +23,7 @@ parameters:
 parametersSchema:
     yumemi: structure([
         integerOverflowToFloat: bool(),
+        requireConstantNativeUnitExpressions: bool(),
         registryFactory: schema(string(), nullable()),
     ])
 
@@ -86,6 +88,8 @@ services:
             - phpstan.broker.dynamicFunctionReturnTypeExtension
     -
         class: jbboehr\Yumemi\PHPStan\InvalidUnitCallRule
+        arguments:
+            requireConstantNativeUnitExpressions: %yumemi.requireConstantNativeUnitExpressions%
         tags:
             - phpstan.rules.rule
     -

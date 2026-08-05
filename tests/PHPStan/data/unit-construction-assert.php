@@ -1,15 +1,21 @@
 <?php
 
 use jbboehr\Yumemi\Units;
+use jbboehr\Yumemi\Tests\PHPStan\Fixtures\NativeUnitExpressionConstants;
 
 use function jbboehr\Yumemi\unit;
 use function jbboehr\Yumemi\unit_factor;
 use function jbboehr\Yumemi\unit_to;
 use function PHPStan\Testing\assertType;
 
+const YUMEMI_TEST_UNIT_PREFIX = 'me';
+
 // --- unit() ---
 
 assertType("unit_float<'meter'>", unit(1.5, 'meter'));
+assertType("unit_float<'meter'>", unit(1.5, NativeUnitExpressionConstants::DISTANCE));
+assertType("unit_float<'meter'>", unit(1.5, YUMEMI_TEST_UNIT_PREFIX . 'ter'));
+assertType("unit_float<'meter'>", unit(unit: 'meter', value: 1.5));
 assertType("3&unit_int<'second'>", unit(3, 'second'));
 assertType("1&unit_int<'kilogram * meter / second'>", unit(1, 'meter / second kilogram'));
 assertType("unit_float<'kilogram * meter / second ^ 2'>", unit(1500.0, 'kilogram') * unit(3.0, 'meter / second^2'));
@@ -53,20 +59,26 @@ function finiteNativeUnitArithmetic(int $value): void
 /** @param 'meter'|'foot' $unit */
 function finiteUnits(string $unit): void
 {
-    assertType("1&unit_int<'meter'>|1&unit_int<'international_foot'>", unit(1, $unit));
+    assertType("1&unit_int<'international_foot'>|1&unit_int<'meter'>", unit(1, $unit));
     assertType("unit_float<'international_foot'>|unit_float<'meter'>", unit(1.0, $unit));
 }
 
 /** @param 'meter / second'|'kilogram' $unit */
 function finiteCompoundUnits(string $unit): void
 {
-    assertType("1&unit_int<'meter / second'>|1&unit_int<'kilogram'>", unit(1, $unit));
+    assertType("1&unit_int<'kilogram'>|1&unit_int<'meter / second'>", unit(1, $unit));
 }
 
 /** @param 'foot'|'international_foot' $unit */
 function finiteEquivalentUnits(string $unit): void
 {
     assertType("1&unit_int<'international_foot'>", unit(1, $unit));
+}
+
+/** @param '100 * centimeter'|'meter' $unit */
+function finiteDefinitionallyEquivalentUnits(string $unit): void
+{
+    assertType("1&unit_int<'meter'>", unit(1, $unit));
 }
 
 /** @param 'meter'|'not_a_real_unit_xyz' $unit */
@@ -85,6 +97,11 @@ function dynamicUnits(string $unit): void
 {
     assertType('int', unit(1, $unit));
     assertType('float', unit(1.0, $unit));
+}
+
+function mixedNativeMagnitude(int|float $value): void
+{
+    assertType("unit_float<'meter'>", unit($value, 'meter'));
 }
 
 // --- unit_factor(): quotient brand and cancellation through ordinary unit algebra ---
@@ -112,6 +129,18 @@ function finiteFactorSource(string $from): void
 function finiteFactorTarget(string $to): void
 {
     assertType("unit_float<'1'>|unit_float<'international_foot / meter'>", unit_factor('meter', $to));
+}
+
+/** @param 'foot'|'international_foot' $from */
+function equivalentFactorSource(string $from): void
+{
+    assertType("unit_float<'meter / international_foot'>", unit_factor($from, 'meter'));
+}
+
+/** @param '100 * centimeter'|'meter' $from */
+function definitionallyEquivalentFactorSource(string $from): void
+{
+    assertType("unit_float<'1'>", unit_factor($from, 'meter'));
 }
 
 /** @param 'meter'|'second' $from */
@@ -185,6 +214,42 @@ function finiteUnitToSource(string $from): void
 function finiteUnitToTarget(string $to): void
 {
     assertType("unit_float<'international_foot'>|unit_float<'meter'>", unit_to(1.0, 'inch', $to));
+}
+
+/** @param 'foot'|'international_foot' $to */
+function equivalentUnitToTarget(string $to): void
+{
+    assertType("unit_float<'international_foot'>", unit_to(1.0, 'inch', $to));
+}
+
+/** @param '100 * centimeter'|'meter' $to */
+function definitionallyEquivalentUnitToTarget(string $to): void
+{
+    assertType("unit_float<'meter'>", unit_to(1.0, 'foot', $to));
+}
+
+/** @param 'celsius'|'degree_Celsius' $to */
+function equivalentAffineUnitToTarget(string $to): void
+{
+    assertType('float', unit_to(273.15, 'kelvin', $to));
+}
+
+/** @param 'celsius'|'fahrenheit' $to */
+function ambiguousAffineUnitToTarget(string $to): void
+{
+    assertType('float', unit_to(273.15, 'kelvin', $to));
+}
+
+/** @param 'celsius'|'fahrenheit' $from */
+function finiteAffineUnitToSource(string $from): void
+{
+    assertType("unit_float<'kelvin'>", unit_to(1.0, $from, 'kelvin'));
+}
+
+/** @param 'celsius'|'kelvin' $to */
+function mixedAffineAndMultiplicativeUnitToTarget(string $to): void
+{
+    assertType('float', unit_to(273.15, 'kelvin', $to));
 }
 
 /** @param 'meter'|'second' $from */

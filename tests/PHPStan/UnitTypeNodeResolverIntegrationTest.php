@@ -172,16 +172,41 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $this->assertStringContainsString('Found 6 errors', $output, $output);
     }
 
+    public function testNativeUnitExpressionDiagnosticsHaveStableIdentifiersAndLocalIgnores(): void
+    {
+        $output = $this->analyse('native-unit-expression-diagnostics.php');
+
+        $this->assertStringContainsString('yumemi.dynamicUnitExpression', $output, $output);
+        $this->assertStringContainsString('yumemi.ambiguousUnitExpression', $output, $output);
+        $this->assertStringContainsString('Found 4 errors', $output, $output);
+    }
+
+    public function testNativeDynamicUnitExpressionDiagnosticCanBeDisabled(): void
+    {
+        $output = $this->analyse(
+            'native-unit-expression-diagnostics.php',
+            requireConstantNativeUnitExpressions: false,
+        );
+
+        $this->assertStringNotContainsString('yumemi.dynamicUnitExpression', $output, $output);
+        $this->assertStringContainsString('yumemi.ambiguousUnitExpression', $output, $output);
+        $this->assertStringContainsString('Found 1 error', $output, $output);
+    }
+
     private function analyse(
         string $fixture,
         ?string $registryFactory = null,
         ?bool $integerOverflowToFloat = null,
+        ?bool $requireConstantNativeUnitExpressions = null,
     ): string {
         $fixturePath = __DIR__ . '/data/' . $fixture;
         $this->assertFileExists($fixturePath);
 
         $config = sys_get_temp_dir() . '/yumemi-phpstan-' . md5(
-            $fixture . ($registryFactory ?? '') . var_export($integerOverflowToFloat, true),
+            $fixture
+                . ($registryFactory ?? '')
+                . var_export($integerOverflowToFloat, true)
+                . var_export($requireConstantNativeUnitExpressions, true),
         ) . '.neon';
         $extension = realpath(__DIR__ . '/../../extension.neon');
         $this->assertNotFalse($extension);
@@ -193,6 +218,10 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         if ($integerOverflowToFloat !== null) {
             $yumemiOptions[] = '        integerOverflowToFloat: '
                 . ($integerOverflowToFloat ? 'true' : 'false');
+        }
+        if ($requireConstantNativeUnitExpressions !== null) {
+            $yumemiOptions[] = '        requireConstantNativeUnitExpressions: '
+                . ($requireConstantNativeUnitExpressions ? 'true' : 'false');
         }
 
         $yumemi = $yumemiOptions === []

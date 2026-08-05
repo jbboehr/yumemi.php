@@ -363,6 +363,10 @@ $feet = $meters * unit_factor('meter', 'foot');
 assert(abs($feet - 9.84251968503937) < 1e-12);
 ```
 
+When applying the same conversion repeatedly, calculate `unit_factor()` once outside the loop. The resulting branded
+float can be reused with ordinary native multiplication; see
+[Keep Unit Setup Outside Hot Loops](../recipes.md#keep-unit-setup-outside-hot-loops).
+
 Use `conversionFactor()` when the exact `Rational` is required. Both factor APIs reject conversions involving an offset;
 use `convert()`, `convertFloat()`, or `unit_to()` for affine conversion.
 

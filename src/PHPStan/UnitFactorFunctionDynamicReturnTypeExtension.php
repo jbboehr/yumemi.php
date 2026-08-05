@@ -81,31 +81,70 @@ final class UnitFactorFunctionDynamicReturnTypeExtension implements DynamicFunct
     /**
      * Shared inference used by both the return-type extension and {@see InvalidUnitCallRule}.
      *
-     * Returns null when the call is not statically analysable, an {@see ErrorType} for an
-     * invalid factor, or a float brand carrying the structural target/source quotient.
+     * Returns only the type component of {@see self::analyseCall()}: null for dynamic or incomplete
+     * calls, an {@see ErrorType} for invalid conversions, or the inferred factor brand for accepted
+     * and ambiguous alternatives. The rule surfaces the accompanying issue and message as diagnostics.
      */
     public function inferType(FuncCall $functionCall, Scope $scope): ?Type
     {
-        $args = $functionCall->getArgs();
-        if (count($args) < 2) {
-            return null;
+        return $this->analyseCall($functionCall, $scope)['type'];
+    }
+
+    /**
+     * Analyze one unit_factor() call for inference and standalone diagnostics.
+     *
+     * @logion [OSD 59:34] Every road between the measures was tried before the appointed quotient,
+     *     and only one proportion was permitted to pass beneath the native seal.
+     *
+     * @return array{
+     *     type: Type|null,
+     *     issue: 'invalid'|'dynamic'|'ambiguous'|null,
+     *     message: string|null,
+     * }
+     */
+    public function analyseCall(FuncCall $functionCall, Scope $scope): array
+    {
+        $fromArgument = NativeUnitArgumentResolver::argument($functionCall, 0, 'from');
+        $toArgument = NativeUnitArgumentResolver::argument($functionCall, 1, 'to');
+        if ($fromArgument === null || $toArgument === null) {
+            return ['type' => null, 'issue' => null, 'message' => null];
         }
 
-        $fromStrings = $this->constantStrings($scope->getType($args[0]->value));
+        $fromType = $scope->getType($fromArgument->value);
+        $toType = $scope->getType($toArgument->value);
+        if (!$fromType->isString()->yes() || !$toType->isString()->yes()) {
+            return ['type' => null, 'issue' => null, 'message' => null];
+        }
+
+        $fromStrings = NativeUnitArgumentResolver::constantStrings($fromType);
         if ($fromStrings === null) {
-            return null;
+            return [
+                'type' => null,
+                'issue' => 'dynamic',
+                'message' => 'unit_factor() requires a statically known source unit expression; the source argument does not resolve to a finite set of constant strings.',
+            ];
         }
 
-        $toStrings = $this->constantStrings($scope->getType($args[1]->value));
+        $toStrings = NativeUnitArgumentResolver::constantStrings($toType);
         if ($toStrings === null) {
-            return null;
+            return [
+                'type' => null,
+                'issue' => 'dynamic',
+                'message' => 'unit_factor() requires a statically known target unit expression; the target argument does not resolve to a finite set of constant strings.',
+            ];
         }
 
         $fromUnits = [];
         foreach ($fromStrings as $fromString) {
             $fromResult = $this->parser->parse($fromString);
             if (!$fromResult->isOk()) {
-                return new ErrorType($fromResult->errorMessage() ?? 'Invalid source unit expression.');
+                $message = $fromResult->errorMessage() ?? 'Invalid source unit expression.';
+
+                return [
+                    'type' => new ErrorType($message),
+                    'issue' => 'invalid',
+                    'message' => $message,
+                ];
             }
 
             $fromUnits[] = $fromResult->expression();
@@ -115,39 +154,65 @@ final class UnitFactorFunctionDynamicReturnTypeExtension implements DynamicFunct
         foreach ($toStrings as $toString) {
             $toResult = $this->parser->parse($toString);
             if (!$toResult->isOk()) {
-                return new ErrorType($toResult->errorMessage() ?? 'Invalid target unit expression.');
+                $message = $toResult->errorMessage() ?? 'Invalid target unit expression.';
+
+                return [
+                    'type' => new ErrorType($message),
+                    'issue' => 'invalid',
+                    'message' => $message,
+                ];
             }
 
             $toUnits[] = $toResult->expression();
         }
 
-        $resultTypes = [];
+        $resultUnits = [];
         foreach ($fromUnits as $fromUnit) {
             foreach ($toUnits as $toUnit) {
                 try {
                     $this->units->conversionFactor($fromUnit->expr, $toUnit->expr);
                 } catch (IncompatibleUnitException|NonMultiplicativeConversionException $exception) {
-                    return new ErrorType('Cannot calculate unit_factor(): ' . $exception->getMessage());
+                    $message = 'Cannot calculate unit_factor(): ' . $exception->getMessage();
+
+                    return [
+                        'type' => new ErrorType($message),
+                        'issue' => 'invalid',
+                        'message' => $message,
+                    ];
                 }
 
-                $resultTypes[] = new UnitFloatType(UnitExpressionAlgebra::divide($toUnit, $fromUnit));
+                $resultUnit = UnitExpressionAlgebra::divide($toUnit, $fromUnit);
+                foreach ($resultUnits as $existing) {
+                    if ($existing->equivalent($resultUnit)) {
+                        continue 2;
+                    }
+                }
+
+                $resultUnits[] = $resultUnit;
             }
         }
 
-        return TypeCombinator::union(...$resultTypes);
-    }
+        $type = TypeCombinator::union(...array_map(
+            static fn (UnitExpression $unit): UnitFloatType => new UnitFloatType($unit),
+            $resultUnits,
+        ));
 
-    /** @return list<string>|null */
-    private function constantStrings(Type $type): ?array
-    {
-        $constantStrings = $type->getConstantStrings();
-        if ($constantStrings === []) {
-            return null;
+        if (count($resultUnits) === 1) {
+            return ['type' => $type, 'issue' => null, 'message' => null];
         }
 
-        $values = array_map(static fn ($constantString): string => $constantString->getValue(), $constantStrings);
-        sort($values, SORT_STRING);
+        $displayStrings = array_map(
+            static fn (UnitExpression $unit): string => $unit->displayString,
+            $resultUnits,
+        );
+        sort($displayStrings, SORT_STRING);
 
-        return $values;
+        return [
+            'type' => $type,
+            'issue' => 'ambiguous',
+            'message' => 'unit_factor() resolves to multiple conversion-factor units after normalization: '
+                . implode(', ', $displayStrings)
+                . '.',
+        ];
     }
 }

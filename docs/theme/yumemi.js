@@ -16,10 +16,12 @@
         ],
         "core-concepts.html": [
             { id: "choose-an-api", title: "Choose An API" },
+            { id: "native-values-at-trusted-boundaries", title: "Native Values At Trusted Boundaries" },
             { id: "choose-an-operation", title: "Choose An Operation" },
         ],
         "recipes.html": [
             { id: "protect-an-existing-api", title: "Protect An Existing API" },
+            { id: "keep-unit-setup-outside-hot-loops", title: "Keep Unit Setup Outside Hot Loops" },
             { id: "preserve-exact-conversion", title: "Preserve Exact Conversion" },
             { id: "convert-temperatures", title: "Convert Temperatures" },
             { id: "define-application-units", title: "Define Application Units" },
@@ -41,7 +43,11 @@
                 ],
             },
             { id: "native-operators", title: "Native Operators" },
-            { id: "boundary-helpers", title: "Boundary Helpers" },
+            {
+                id: "boundary-helpers",
+                title: "Boundary Helpers",
+                children: [{ id: "constant-unit-expressions", title: "Constant Unit Expressions" }],
+            },
             { id: "quantity-types", title: "Quantity Types" },
             { id: "registry-configuration", title: "Registry Configuration" },
             {
