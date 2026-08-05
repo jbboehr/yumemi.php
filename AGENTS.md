@@ -179,8 +179,9 @@ decision. Prefer one clear example and one precise explanation over several para
 
 After running a Composer command that changes `composer.lock` or could otherwise change the resolved development
 dependency closure, update the `vendorHash` used by the `udunits2-differential` `buildComposerProject2` check in
-`flake.nix`. Run `nix flake check`; when Nix reports a fixed-output hash mismatch, replace the stale hash with the
-reported `got` value and rerun the complete check.
+`flake.nix`. Temporarily set it to `pkgs.lib.fakeHash` before running `nix flake check`, because an existing
+fixed-output store path can otherwise hide a stale hash. Replace the fake hash with Nix's reported `got` value and rerun
+the complete check.
 
 ## Changelog
 

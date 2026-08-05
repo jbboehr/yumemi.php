@@ -385,6 +385,11 @@ repeat the implementation's assumptions:
   normalization idempotence, parser/formatter round trips, conversion composition and reversal, rational and quantity
   arithmetic identities, and point difference/translation identities. Expression depth and exponents are bounded, and
   named data sets report the complete replayable input for every failure.
+- Maintain the Eris property-test experiment for branded integer interval arithmetic. Normal PHPUnit runs use the fixed
+  default `ERIS_SEED` from `phpunit.xml.dist`; an explicit environment value explores or replays another seed. Generated
+  intervals range more widely than the exhaustive small-domain suite while retaining bounded widths so every concrete
+  result can be enumerated as an independent hull oracle. Keep property testing supplementary: preserve deterministic
+  examples for named boundaries and promote every discovered counterexample into a focused regression test.
 - Maintain the PHP 8.2 lowest-dependency CI job, which uses `composer update --prefer-lowest --prefer-stable` followed
   by PHPStan and PHPUnit. Ordinary lock-file jobs verify only one dependency snapshot and do not prove the lower bounds
   declared in `composer.json`.
