@@ -1,6 +1,6 @@
 # Pint Feature Comparison
 
-Snapshot date: 2026-08-04
+Snapshot date: 2026-08-05
 
 This document compares Yumemi with Python's Pint library to identify useful capabilities and deliberate differences. It
 is a feature comparison, not the project roadmap. Current priorities, architectural risks, and deferred work belong in
@@ -439,8 +439,11 @@ Yumemi should continue to optimize for shared runtime and static semantics rathe
 strongest choices remain string unit expressions, generated catalog data, exact rational conversion, explicit registry
 contexts, and native PHPStan brands alongside exact quantity objects.
 
-The highest-value Pint gaps are those that improve ordinary PHP workflows: better formatting, broader registry
-resolution for serialized graphs, and integrations proven by actual applications. Contexts, nonlinear units,
-uncertainty, and scientific-array features should remain independent decisions rather than a presumed route to parity.
+The highest-value remaining work is that which improves ordinary PHP workflows without displacing Yumemi's static
+analysis focus: preserving unit brands through selected native scalar transformations, maintaining strong diagnostics,
+and supporting integrations proven by actual applications through Yumemi Apocrypha. Broader formatting and registry
+resolution for serialized graphs remain useful only when concrete output or multi-context persistence requirements
+justify them. Contexts, nonlinear units, uncertainty, and scientific-array features should remain independent decisions
+rather than a presumed route to parity.
 
 See [planning.md](planning.md) for the current ordering of work.

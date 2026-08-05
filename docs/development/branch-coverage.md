@@ -66,4 +66,5 @@ These are point-in-time diagnostics, not enforced floors:
   survivors are equivalent because plural generation receives only names of at least three characters and a nameless,
   symbolless prefix cannot mutate the catalog after its early return is removed.
 
-The next useful focused targets are formatting and parser diagnostics.
+The next useful focused target is formatting. Reassess parser diagnostics after reviewing findings from the manual
+“probator” campaign so a branch audit adds independent evidence rather than duplicating the same investigation.

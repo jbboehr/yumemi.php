@@ -109,7 +109,7 @@ Yumemi intentionally has native and exact-object presentation layers over the sa
 
 | Layer                   | Magnitude model                           | Primary audience                               |
 | ----------------------- | ----------------------------------------- | ---------------------------------------------- |
-| Runtime `Quantity`      | Exact `Rational` interval or magnitude    | Exact multiplicative conversion and arithmetic |
+| Runtime `Quantity`      | Exact `Rational` magnitude                | Exact multiplicative conversion and arithmetic |
 | Runtime `PointQuantity` | Exact `Rational` coordinate               | Affine points, translation, and differences    |
 | PHPStan branded values  | Native PHP `int` / `float` plus an `Expr` | Existing application code using native data    |
 
@@ -393,7 +393,9 @@ repeat the implementation's assumptions:
 - Maintain the manual coverage-guided “probator” target for unit expressions. It combines parser robustness checks with
   AST and runtime parser/formatter round-trip oracles, starts from the committed corpus under `probator/corpus/`, and
   writes its evolving corpus and crash artifacts beneath ignored `tmp/probator/` storage. Keep “probator” runs outside
-  mandatory CI and promote every genuine finding into a focused deterministic regression test.
+  mandatory CI and promote every genuine finding into a focused deterministic regression test. The first campaign
+  exposed canonical rendering that changed the precedence of negative numeric power bases; `Pow::toString()` now
+  parenthesizes those bases, with integer and decimal regressions in `ParserTest`.
 - Maintain the PHP 8.2 lowest-dependency CI job, which uses `composer update --prefer-lowest --prefer-stable` followed
   by PHPStan and PHPUnit. Ordinary lock-file jobs verify only one dependency snapshot and do not prove the lower bounds
   declared in `composer.json`.
@@ -405,7 +407,8 @@ repeat the implementation's assumptions:
   `AffineDeltaUnitSynthesizer` is fully covered, while `UnitDefinitionClassifier` leaves only a nameless record excluded
   by the catalog-record contract. The importer/exporter audit reached 100% of 214 branches and 233 executable lines,
   added clean domain failures for unreadable and malformed XML, and verifies byte-identical regeneration from the real
-  split UDUNITS2 database in the Nix-backed test group. Audit formatting and parser diagnostics next. Add tests only
+  split UDUNITS2 database in the Nix-backed test group. Audit formatting next. Reassess parser-diagnostic branch
+  coverage after reviewing “probator” findings rather than duplicating the current parser investigation. Add tests only
   when an uncovered outcome is reachable and observably meaningful. Path coverage remains informational because
   combinations grow rapidly; `PointQuantity::__unserialize()` alone exposes 4,096 paths through compound payload
   validation.
@@ -419,6 +422,12 @@ repeat the implementation's assumptions:
 
 ### Near-Term Work
 
+- Preserve native unit brands through a conservative first set of scalar transformations. Establish PHPStan's current
+  behavior and extension points, then cover explicit integer/float casts and clearly unit-preserving functions such as
+  `abs()`, `ceil()`, `floor()`, and `round()`. Preserve semantic units while allowing numeric literals or bounds to
+  generalize when exact refinement is not sound. Define `abs(PHP_INT_MIN)` against the existing integer-overflow policy,
+  and defer `min()`, `max()`, `intdiv()`, roots, and trigonometric functions because they require separate unit,
+  correlation, or exponent semantics. This work must not depend on future constant-valued or range-bearing float types.
 - Split remaining broad PHPStan diagnostic identifiers only where users need more precise suppression. Native helpers
   now distinguish dynamic and ambiguous unit expressions from invalid constant calls.
 
@@ -439,6 +448,10 @@ repeat the implementation's assumptions:
   instance APIs remain preferable when an application uses several registries concurrently.
 - The opt-in `@yumemi-*` parser integration depends on internal PHPStan parser services and may conflict with another
   parser-replacing extension.
+- Yumemi intentionally does not declare a Composer conflict with PHPStan versions older than 2.2.5 because runtime-only
+  consumers may legitimately have an older analyzer installed. Extension users require PHPStan 2.2.5 or later; automatic
+  registration in a project with an older version remains an unsupported integration and should produce clear setup
+  guidance rather than making the runtime package uninstallable.
 - Casts and unsupported PHP built-ins can erase native unit brands. Add targeted extensions only for demonstrated
   workflows rather than trying to model every built-in preemptively.
 - Native helpers accept finite alternatives only when every valid path produces one semantic result unit. Independent
@@ -448,6 +461,10 @@ repeat the implementation's assumptions:
   remain accepted while `Pa` is pascal; Yumemi does not special-case these catalog-valid ambiguities.
 - Unit, dimension, and scientific-decimal exponents are bounded to `-10000` through `10000`; checked composition rejects
   larger effective powers before native integer overflow or unbounded GMP exponentiation.
+- Dynamic runtime parsing currently has no library-level expression-length, token-count, nesting-depth, or numeric-size
+  budget beyond exponent bounds and ordinary process limits. Use replayable “probator” findings and focused stress cases
+  to determine whether explicit limits are necessary before selecting arbitrary thresholds; applications accepting
+  untrusted expressions should impose appropriate input limits in the meantime.
 - The UDUNITS2 importer still special-cases `cm2` syntax, and generated `prefixRegex` metadata is currently unused by
   resolution.
 - Expression arithmetic reduces eagerly. The benchmark suite measures representative reduction and normalization, but no
