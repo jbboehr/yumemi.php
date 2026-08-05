@@ -137,6 +137,17 @@ final class UnitRegistryBuilderTest extends TestCase
         $builder->define('USD = 1');
     }
 
+    public function testBuilderReportsMalformedBaseUnitExpressionsAsInvalidNames(): void
+    {
+        try {
+            UnitRegistryBuilder::empty()->baseUnit('USD /', Dimension::CURRENCY);
+            self::fail('Expected malformed base-unit name failure.');
+        } catch (\InvalidArgumentException $exception) {
+            $this->assertStringContainsString('one unit identifier', $exception->getMessage());
+            $this->assertInstanceOf(ParseException::class, $exception->getPrevious());
+        }
+    }
+
     public function testBuilderRejectsMultipleBaseUnitsForOnePrimitiveDimension(): void
     {
         $builder = UnitRegistryBuilder::empty()->baseUnit('USD', Dimension::CURRENCY);
@@ -650,6 +661,20 @@ final class UnitRegistryBuilderTest extends TestCase
         $this->assertSame(['meter'], $builder->build()->names());
     }
 
+    public function testAddAllRejectsDuplicatesWithinOneBatchTransactionally(): void
+    {
+        $builder = UnitRegistryBuilder::empty();
+
+        try {
+            $builder->addAll([new Unit('meter'), new Unit('meter')]);
+            self::fail('Expected duplicate unit failure.');
+        } catch (\InvalidArgumentException $exception) {
+            $this->assertStringContainsString('Duplicate unit name', $exception->getMessage());
+        }
+
+        $this->assertSame([], $builder->build()->names());
+    }
+
     public function testOverlayAliasCollectionContinuesPastOtherRecords(): void
     {
         $widget = new Unit('widget');
@@ -683,6 +708,14 @@ final class UnitRegistryBuilderTest extends TestCase
         $this->expectExceptionMessage('name = expression');
 
         UnitRegistryBuilder::empty()->define('garbage widget = 1');
+    }
+
+    public function testDefinitionAssignmentRejectsEmptyInput(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unit definition must not be empty.');
+
+        UnitRegistryBuilder::empty()->define(" \n\t ");
     }
 
     public function testUnitRegistryBuilderDelegatesToEmpty(): void

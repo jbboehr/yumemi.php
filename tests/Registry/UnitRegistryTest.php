@@ -325,6 +325,21 @@ final class UnitRegistryTest extends TestCase
         $registry->describe('left');
     }
 
+    public function testDescriptionSkipsUnrelatedBrokenAliases(): void
+    {
+        $registry = new UnitRegistry([], [
+            'widget' => ['type' => 'base', 'name' => 'widget'],
+            'left' => ['type' => 'alias', 'name' => 'left', 'def' => 'right'],
+            'right' => ['type' => 'alias', 'name' => 'right', 'def' => 'left'],
+        ]);
+
+        $descriptor = $registry->describe('widget');
+
+        $this->assertNotNull($descriptor);
+        $this->assertSame('widget', $descriptor->canonicalName);
+        $this->assertSame([], $descriptor->aliases);
+    }
+
     public function testDescriptionRejectsAliasWithoutTarget(): void
     {
         $registry = new UnitRegistry([], [

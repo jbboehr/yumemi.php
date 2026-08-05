@@ -397,6 +397,18 @@ final class Udunits2UnitRegistryTest extends TestCase
             ['units' => [], 'base' => [], 'prefixes' => [], 'other' => []],
             'contains unexpected key: other',
         ];
+        yield 'units collection is not an array' => [
+            ['units' => 'widget', 'base' => [], 'prefixes' => []],
+            'units must be an array',
+        ];
+        yield 'unit key is not a non-empty string' => [
+            ['units' => [0 => ['type' => 'base', 'name' => 'widget']], 'base' => [], 'prefixes' => []],
+            'unit keys must be non-empty strings',
+        ];
+        yield 'unit record is not an array' => [
+            ['units' => ['widget' => 'not a record'], 'base' => [], 'prefixes' => []],
+            'unit record must be an array: widget',
+        ];
         yield 'record name differs from lookup key' => [
             [
                 'units' => ['widget' => ['type' => 'base', 'name' => 'gadget']],
@@ -421,6 +433,18 @@ final class Udunits2UnitRegistryTest extends TestCase
             ],
             'base list does not match its base unit records',
         ];
+        yield 'base collection is not a list' => [
+            ['units' => [], 'base' => ['widget' => 'widget'], 'prefixes' => []],
+            'base must be a list of unit names',
+        ];
+        yield 'base name is empty' => [
+            ['units' => [], 'base' => [''], 'prefixes' => []],
+            'base names must be non-empty strings',
+        ];
+        yield 'prefix collection is not an array' => [
+            ['units' => [], 'base' => [], 'prefixes' => 'kilo'],
+            'prefixes must be an array',
+        ];
         yield 'invalid prefix value' => [
             ['units' => [], 'base' => [], 'prefixes' => ['kilo' => 1000]],
             'prefixes must map non-empty string names to non-empty string values',
@@ -435,6 +459,10 @@ final class Udunits2UnitRegistryTest extends TestCase
                 ],
             ],
             'Invalid UDUNITS2 prefix metadata for: k',
+        ];
+        yield 'prefix metadata is not an array' => [
+            ['units' => [], 'base' => [], 'prefixes' => [], 'prefixMetadata' => 'invalid'],
+            'prefixMetadata must be an array',
         ];
         yield 'null optional value' => [
             ['units' => [], 'base' => [], 'prefixes' => [], 'prefixRegex' => null],
@@ -454,6 +482,36 @@ final class Udunits2UnitRegistryTest extends TestCase
                 'prefixes' => [],
             ],
             'unit record contains an unexpected key: thing',
+        ];
+        yield 'unit metadata field is not a string' => [
+            [
+                'units' => [
+                    'widget' => ['type' => 'base', 'name' => 'widget', 'definition' => 42],
+                ],
+                'base' => ['widget'],
+                'prefixes' => [],
+            ],
+            'Invalid UDUNITS2 catalog unit field definition: widget',
+        ];
+        yield 'invalid alias kind' => [
+            [
+                'units' => [
+                    'thing' => ['type' => 'alias', 'name' => 'thing', 'def' => 'widget', 'aliasKind' => 'nickname'],
+                ],
+                'base' => [],
+                'prefixes' => [],
+            ],
+            'Invalid UDUNITS2 catalog alias kind: thing',
+        ];
+        yield 'invalid unit semantics' => [
+            [
+                'units' => [
+                    'widget' => ['type' => 'unit', 'name' => 'widget', 'def' => '1', 'semantics' => 'multiplicative'],
+                ],
+                'base' => [],
+                'prefixes' => [],
+            ],
+            'Invalid UDUNITS2 catalog unit semantics: widget',
         ];
     }
 
