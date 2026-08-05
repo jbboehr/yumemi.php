@@ -272,7 +272,7 @@ final class UnitRegistryBuilder
         $records = $this->materializeSemantics($base);
         $records += AffineDeltaUnitSynthesizer::synthesize(
             $records,
-            static fn (string $name): ?array => $base?->findCatalogRecord($name),
+            static fn (string $name): ?array => $base?->findEntry($name)?->catalogRecord,
         );
         $overlay = $this->buildOverlayRegistry($records);
 
@@ -350,7 +350,7 @@ final class UnitRegistryBuilder
             return null;
         }
 
-        return $records[$name] ?? $base?->findCatalogRecord($name);
+        return $records[$name] ?? $base?->findEntry($name)?->catalogRecord;
     }
 
     private function assertNameAvailable(string $name): void

@@ -63,7 +63,9 @@ The implemented foundation now includes:
 - exact `Rational` arithmetic with explicit integer, decimal, and binary64 output policies;
 - a reduced symbolic expression model, Bison parser, hybrid SI/extension `Dimension`, and derived-unit normalization;
 - a generated UDUNITS2 catalog with exact aliases, plurals, prefixes, introspection, and deterministic regeneration;
-- mutable custom-registry construction producing immutable snapshots;
+- mutable custom-registry construction producing immutable snapshots, with one typed effective entry per exact lookup so
+  composite overlays select a whole layer before exposing prebuilt expressions or catalog metadata while legacy lookup
+  overrides remain compatible;
 - exact multiplicative and affine scale-and-offset conversion, synthesized affine-difference units, and point
   coordinates;
 - exact `Quantity` construction, parsing, arithmetic, comparison, conversion, normalization, simplification, and output;
@@ -402,9 +404,6 @@ repeat the implementation's assumptions:
 
 ### Near-Term Work
 
-- Replace the registry's split prebuilt-unit and catalog-record lookup channels with a typed effective-entry model
-  before implementing catalog-build indexing or broader registry caches. The current masking rules are covered, but
-  every new composition-aware optimization otherwise has to reproduce the same cross-channel precedence manually.
 - Split remaining broad PHPStan diagnostic identifiers only where users need more precise suppression. Native helpers
   now distinguish dynamic and ambiguous unit expressions from invalid constant calls.
 
@@ -463,9 +462,12 @@ repeat the implementation's assumptions:
   regeneration tests against the exact runtime engine. Do not generate every possible catalog pair; ordinary code should
   normally hoist `unit_factor()` outside repeated arithmetic.
 - Optimize bulk catalog introspection by pre-grouping canonical aliases, symbols, and plurals during generation, then
-  lazily caching an effective index per immutable registry. Composite registries must build a composition-aware index so
-  base aliases continue to follow overlay replacements. The same index should serve canonical/symbol formatter lookups
-  so newly constructed formatters do not repeat catalog scans; expression resolution remains in `UnitResolver`.
+  lazily caching an index per immutable registry. Build that index from the typed effective-entry lookup so composite
+  registries preserve whole-layer precedence and base aliases continue to follow overlay replacements. The same index
+  should serve canonical/symbol formatter lookups so newly constructed formatters do not repeat catalog scans;
+  expression resolution remains in `UnitResolver`. The index may also retain stable entries to avoid repeated wrapper
+  allocation. Avoid a separate unbounded per-name entry cache: unknown-name suggestion ranking inspects the complete
+  catalog and could populate that cache with every entry after one failed lookup.
 - Stable registry identifiers and an application resolver for serialized graphs containing values from several custom
   `Units` contexts. Native serialization currently supports the default context plus one dynamically scoped custom
   context through `Units::deserialize()` and rejects semantic drift. Broader ecosystem integrations remain deferred.
@@ -497,7 +499,7 @@ The broader feature comparison and intentionally deferred Pint-style capabilitie
 ```text
 UDUNITS2 XML -> Udunits2CatalogImporter -> PhpCatalogExporter -> data/udunits2.php
 data/udunits2.php -> Udunits2UnitRegistry (catalog records only)
-UnitResolver -> findCatalogRecord()/findPrebuiltUnit() -> AstConverter (defs/prefixes) -> Expr
+UnitResolver -> UnitRegistry::findEntry() -> prebuilt Expr or AstConverter (catalog defs/prefixes) -> Expr
 Parser string -> Parser\Ast -> AstConverter (resolving or symbolic) -> Expr
 Expr -> ExprReducer -> reduced Expr
 Expr -> UnitNormalizer -> normalized Expr

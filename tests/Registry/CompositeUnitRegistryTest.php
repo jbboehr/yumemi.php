@@ -93,6 +93,8 @@ final class CompositeUnitRegistryTest extends TestCase
         $this->assertSame($baseOnly, $composite->findPrebuiltUnit('base_only'));
         $this->assertSame($overlayOnly, $composite->findPrebuiltUnit('overlay_only'));
         $this->assertNull($composite->findPrebuiltUnit('missing'));
+        $this->assertNull($composite->findCatalogRecord('missing'));
+        $this->assertNull($composite->findEntry('missing'));
 
         $this->assertSame('OVERLAY', $composite->findCatalogRecord('rec_shared')['def'] ?? null);
     }
@@ -108,6 +110,8 @@ final class CompositeUnitRegistryTest extends TestCase
 
         $this->assertNull($composite->findPrebuiltUnit('shared'));
         $this->assertSame('3', $composite->findCatalogRecord('shared')['def'] ?? null);
+        $this->assertNull($composite->findEntry('shared')?->prebuiltUnit);
+        $this->assertSame('3', $composite->findEntry('shared')?->catalogRecord['def'] ?? null);
         $this->assertSame('3', $composite->describe('shared')?->definitionExpression);
 
         $resolved = (new UnitResolver($composite))->resolveOrFail('shared');
@@ -126,11 +130,65 @@ final class CompositeUnitRegistryTest extends TestCase
             $this->registry(['shared' => $overlayUnit], [], []),
         );
 
+        $entry = $composite->findEntry('shared');
+
+        $this->assertNotNull($entry);
         $this->assertSame($overlayUnit, $composite->findPrebuiltUnit('shared'));
         $this->assertNull($composite->findCatalogRecord('shared'));
+        $this->assertSame($overlayUnit, $entry->prebuiltUnit);
+        $this->assertNull($entry->catalogRecord);
         $this->assertSame('3', $composite->describe('shared')?->definitionExpression);
         $this->assertSame($overlayUnit, (new UnitResolver($composite))->resolveOrFail('shared'));
         $this->assertSame('3', (new Units($composite))->conversionFactor('shared', '1')->toString());
+    }
+
+    public function testOverlaySelectionPreservesBothRepresentationsFromTheWinningLayer(): void
+    {
+        $overlayUnit = new Unit('canonical');
+        $composite = new CompositeUnitRegistry(
+            $this->registry(
+                ['shared' => new Unit('shared')],
+                ['shared' => ['type' => 'alias', 'name' => 'shared', 'def' => 'base']],
+                [],
+            ),
+            $this->registry(
+                ['shared' => $overlayUnit],
+                ['shared' => ['type' => 'alias', 'name' => 'shared', 'def' => 'canonical']],
+                [],
+            ),
+        );
+
+        $entry = $composite->findEntry('shared');
+
+        $this->assertNotNull($entry);
+        $this->assertSame($overlayUnit, $entry->prebuiltUnit);
+        $this->assertSame('canonical', $entry->catalogRecord['def'] ?? null);
+    }
+
+    public function testNestedCompositePreservesTheInnerEffectiveSelection(): void
+    {
+        $inner = new CompositeUnitRegistry(
+            $this->registry(['shared' => new Unit('shared', new Constant(2))], [], []),
+            $this->registry([], [
+                'shared' => ['type' => 'unit', 'name' => 'shared', 'def' => '3'],
+            ], []),
+        );
+        $outer = new CompositeUnitRegistry(
+            $inner,
+            $this->registry(['outer_only' => new Unit('outer_only')], [], []),
+        );
+
+        $entry = $outer->findEntry('shared');
+
+        $this->assertNotNull($entry);
+        $this->assertNull($entry->prebuiltUnit);
+        $this->assertSame('3', $entry->catalogRecord['def'] ?? null);
+        $this->assertNull($outer->findPrebuiltUnit('shared'));
+        $this->assertSame('3', $outer->findCatalogRecord('shared')['def'] ?? null);
+        $resolved = (new UnitResolver($outer))->resolveOrFail('shared');
+        $this->assertInstanceOf(Unit::class, $resolved);
+        $this->assertSame('3', $resolved->definition?->toString());
+        $this->assertSame('3', (new Units($outer))->conversionFactor('shared', '1')->toString());
     }
 
     public function testNamesAreTheDeduplicatedUnion(): void
@@ -145,6 +203,7 @@ final class CompositeUnitRegistryTest extends TestCase
         $this->assertContains('shared', $names);
         $this->assertContains('base_only', $names);
         $this->assertContains('overlay_only', $names);
+        $this->assertSame([0, 1, 2], array_keys($names));
         // "shared" appears in both layers but only once in the union.
         $this->assertCount(1, array_keys($names, 'shared', true));
     }

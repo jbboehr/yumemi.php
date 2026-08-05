@@ -148,9 +148,10 @@ final class UnitResolver
                 continue;
             }
 
-            $record = $this->unitRegistry->findCatalogRecord($candidate);
+            $entry = $this->unitRegistry->findEntry($candidate);
+            $record = $entry?->catalogRecord;
             if ($record === null) {
-                $unit = $this->unitRegistry->findPrebuiltUnit($candidate);
+                $unit = $entry?->prebuiltUnit;
                 $nameKind = $unit?->name === $candidate
                     ? CatalogNameKind::Canonical
                     : CatalogNameKind::Alias;
@@ -216,18 +217,18 @@ final class UnitResolver
     /**
      * Exact catalog/prebuilt hit only — no prefix decomposition.
      *
-     * Prebuilt {@see UnitRegistry::findPrebuiltUnit()} entries win over catalog
-     * {@see UnitRegistry::findCatalogRecord()}
-     * rows so builder overlays can override UDUNITS2 names.
+     * Prebuilt representations within the effective {@see UnitRegistry::findEntry()} win over catalog records for
+     * algebra, while the registry has already selected the winning composition layer.
      */
     private function resolveExact(string $name, ?SourceSpan $sourceSpan): ?Expr
     {
-        $prebuilt = $this->unitRegistry->findPrebuiltUnit($name);
+        $entry = $this->unitRegistry->findEntry($name);
+        $prebuilt = $entry?->prebuiltUnit;
         if ($prebuilt !== null) {
             return $prebuilt;
         }
 
-        $record = $this->unitRegistry->findCatalogRecord($name);
+        $record = $entry?->catalogRecord;
         if ($record !== null) {
             return $this->exprFromRecord($record, $sourceSpan);
         }

@@ -83,11 +83,21 @@ final class CompositeUnitRegistry extends UnitRegistry
 
     public function findPrebuiltUnit(string $name): ?Unit
     {
-        if ($this->overlayContains($name)) {
-            return $this->overlay->findPrebuiltUnit($name);
-        }
+        return $this->findEntry($name)?->prebuiltUnit;
+    }
 
-        return $this->base->findPrebuiltUnit($name);
+    /**
+     * Select one complete overlay or base entry before exposing either representation.
+     *
+     * @logion [AWC 78:4] When ivy closed the northern gate, the governors praised the peace of unused hinges. Yet
+     *     shepherds beyond the wall buried their dead without witness. A mason's daughter cut the vines with a kitchen
+     *     knife, and rust cried from the stones. Since then, every true peace has kept one gate awake.
+     *
+     * @internal
+     */
+    public function findEntry(string $name): ?UnitRegistryEntry
+    {
+        return $this->overlay->findEntry($name) ?? $this->base->findEntry($name);
     }
 
     /**
@@ -106,11 +116,7 @@ final class CompositeUnitRegistry extends UnitRegistry
      */
     public function findCatalogRecord(string $name): ?array
     {
-        if ($this->overlayContains($name)) {
-            return $this->overlay->findCatalogRecord($name);
-        }
-
-        return $this->base->findCatalogRecord($name);
+        return $this->findEntry($name)?->catalogRecord;
     }
 
     /**
@@ -132,10 +138,5 @@ final class CompositeUnitRegistry extends UnitRegistry
         }
 
         return $this->base->describePrefix($name);
-    }
-
-    private function overlayContains(string $name): bool
-    {
-        return $this->overlay->findPrebuiltUnit($name) !== null || $this->overlay->findCatalogRecord($name) !== null;
     }
 }

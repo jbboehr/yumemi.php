@@ -44,6 +44,7 @@ use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
+use jbboehr\Yumemi\Registry\UnitRegistryEntry;
 use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\TestCase;
 
@@ -80,6 +81,60 @@ final class UnitRegistryTest extends TestCase
         );
 
         $this->assertSame(['meter', 'metre', 'second'], $registry->names());
+    }
+
+    public function testEffectiveEntryPreservesBothRepresentationsFromOneLayer(): void
+    {
+        $meter = new Unit('meter');
+        $registry = new UnitRegistry(
+            ['metre' => $meter],
+            ['metre' => ['type' => 'alias', 'name' => 'metre', 'def' => 'meter']],
+        );
+
+        $entry = $registry->findEntry('metre');
+
+        $this->assertNotNull($entry);
+        $this->assertSame($meter, $entry->prebuiltUnit);
+        $this->assertSame('meter', $entry->catalogRecord['def'] ?? null);
+        $this->assertNull($registry->findEntry('missing'));
+    }
+
+    public function testEffectiveEntryBridgesLegacyLookupOverrides(): void
+    {
+        $meter = new Unit('meter');
+        $registry = new class ($meter) extends UnitRegistry {
+            public function __construct(
+                private readonly Unit $meter,
+            ) {
+                parent::__construct();
+            }
+
+            public function findPrebuiltUnit(string $name): ?Unit
+            {
+                return $name === 'metre' ? $this->meter : null;
+            }
+
+            public function findCatalogRecord(string $name): ?array
+            {
+                return $name === 'metre'
+                    ? ['type' => 'alias', 'name' => 'metre', 'def' => 'meter']
+                    : null;
+            }
+        };
+
+        $entry = $registry->findEntry('metre');
+
+        $this->assertNotNull($entry);
+        $this->assertSame($meter, $entry->prebuiltUnit);
+        $this->assertSame('meter', $entry->catalogRecord['def'] ?? null);
+    }
+
+    public function testEffectiveEntryRequiresOneRepresentation(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('must contain at least one representation');
+
+        new UnitRegistryEntry(null, null);
     }
 
     public function testEmptyUnitNameIsRejected(): void

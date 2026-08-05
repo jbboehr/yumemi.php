@@ -94,7 +94,7 @@ final class UnitNameResolver
 
     private function existsExactly(string $name): bool
     {
-        return $this->unitRegistry->findPrebuiltUnit($name) !== null || $this->unitRegistry->findCatalogRecord($name) !== null;
+        return $this->unitRegistry->findEntry($name) !== null;
     }
 
     /**

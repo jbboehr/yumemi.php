@@ -65,10 +65,11 @@ final class UnitRegistryResultCacheMetaExtension implements ResultCacheMetaExten
             $entries = [];
 
             foreach ($names as $name) {
-                $unit = $this->registry->findPrebuiltUnit($name);
+                $entry = $this->registry->findEntry($name);
+                $unit = $entry?->prebuiltUnit;
 
                 $entries[$name] = [
-                    'record' => $this->normalize($this->registry->findCatalogRecord($name)),
+                    'record' => $this->normalize($entry?->catalogRecord),
                     'unit' => $unit === null ? null : [
                         'name' => $unit->name,
                         'definition' => $unit->definition?->toString(),

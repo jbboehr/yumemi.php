@@ -172,7 +172,8 @@ Status: **Done for the declared catalog** | Importance: **P1** | Remaining diffi
 
 Generated aliases, explicit and generated plurals, symbols, and longest-prefix-first decomposition use exact catalog
 metadata. Exact names win before prefix decomposition, lookup remains case-sensitive, and introspection exposes
-canonical identity and spelling provenance.
+canonical identity and spelling provenance. A typed effective entry centralizes composite-layer precedence while
+retaining both a materialized prebuilt alias and its catalog metadata when one layer intentionally supplies both.
 
 The main remaining work is performance-oriented indexing, not unresolved lookup policy.
 

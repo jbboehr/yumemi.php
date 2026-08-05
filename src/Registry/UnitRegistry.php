@@ -57,9 +57,10 @@ use jbboehr\Yumemi\Expr\Unit;
  * Construct via {@see self::builder()}, {@see self::defaults()}, or a concrete catalog
  * subclass. There is no public mutation API after construction.
  *
- * Hand-built registries expose precomposed {@see Unit} values via {@see findPrebuiltUnit()}.
- * Definition/alias rows are exposed via {@see findCatalogRecord()}; {@see Analyzer\UnitResolver}
- * parses definition strings and is the only resolving brain.
+ * {@see findEntry()} selects the complete effective entry for one exact name. Hand-built registries may expose a
+ * precomposed {@see Unit}, catalog metadata, or both; {@see Analyzer\UnitResolver} remains the only resolving brain for
+ * catalog definition strings. The narrower {@see findPrebuiltUnit()} and {@see findCatalogRecord()} methods remain as
+ * compatibility views over their respective storage channels.
  *
  * @phpstan-type CatalogRecord array{
  *     type: 'base'|'dimensionless'|'unit'|'alias',
@@ -211,6 +212,30 @@ class UnitRegistry
     }
 
     /**
+     * Find the complete entry contributed by the effective registry layer for an exact name.
+     *
+     * Calling the two compatibility lookups here preserves custom subclasses that override either legacy channel.
+     * Layered registries override this method to choose one layer before exposing either representation.
+     * Subclasses overriding this method must not implement either compatibility lookup by delegating back to it, which
+     * would recurse; ordinary custom registries should continue overriding the compatibility lookups directly.
+     *
+     * @logion [SFA 61:8] Beneath the lake, a candle burns inside a bell of ice; the fisherman sees it only when he
+     *     ceases striking the frozen surface. Not every hidden mercy demands excavation. Some lights are preserved by
+     *     the very cold that denies approach. Lay down the iron, and warm thy hands beside patience.
+     *
+     * @internal
+     */
+    public function findEntry(string $name): ?UnitRegistryEntry
+    {
+        $prebuiltUnit = $this->findPrebuiltUnit($name);
+        $catalogRecord = $this->findCatalogRecord($name);
+
+        return $prebuiltUnit === null && $catalogRecord === null
+            ? null
+            : new UnitRegistryEntry($prebuiltUnit, $catalogRecord);
+    }
+
+    /**
      * Known unit names in this registry (for error suggestions and introspection).
      *
      * @return list<string>
@@ -241,7 +266,7 @@ class UnitRegistry
      */
     public function findPrimitiveDimension(string $name): ?string
     {
-        $record = $this->findCatalogRecord($name);
+        $record = $this->findEntry($name)?->catalogRecord;
 
         return $record !== null && $record['type'] === 'base'
             ? ($record['dimension'] ?? null)
@@ -396,7 +421,8 @@ class UnitRegistry
             throw new UnexpectedValueException('Circular catalog alias while describing unit: ' . $name);
         }
 
-        $record = $this->findCatalogRecord($name);
+        $entry = $this->findEntry($name);
+        $record = $entry?->catalogRecord;
         if ($record !== null) {
             if ($record['type'] !== 'alias') {
                 return [$record['name'], $record, null];
@@ -412,7 +438,7 @@ class UnitRegistry
             );
         }
 
-        $unit = $this->findPrebuiltUnit($name);
+        $unit = $entry?->prebuiltUnit;
         if ($unit === null) {
             return null;
         }
@@ -430,7 +456,7 @@ class UnitRegistry
 
     private function nameKind(string $name): CatalogNameKind
     {
-        $record = $this->findCatalogRecord($name);
+        $record = $this->findEntry($name)?->catalogRecord;
         if ($record === null || $record['type'] !== 'alias') {
             return CatalogNameKind::Alias;
         }

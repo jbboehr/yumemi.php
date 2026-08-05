@@ -171,7 +171,7 @@ final class UnitConversionResolver
 
         return AffineDeltaUnitSynthesizer::linearizeExpression(
             $unit,
-            fn (string $name): ?array => $this->unitRegistry->findCatalogRecord($name),
+            fn (string $name): ?array => $this->unitRegistry->findEntry($name)?->catalogRecord,
         );
     }
 
@@ -348,12 +348,14 @@ final class UnitConversionResolver
 
     private function resolveExact(string $name, ?SourceSpan $sourceSpan): ResolvedConversionUnit
     {
-        $prebuilt = $this->unitRegistry->findPrebuiltUnit($name);
+        $entry = $this->unitRegistry->findEntry($name)
+            ?? throw UnitNotFoundException::create($name, span: $sourceSpan);
+        $prebuilt = $entry->prebuiltUnit;
         if ($prebuilt !== null) {
             return $this->resolveExpr($prebuilt)->withSource(new Unit($name));
         }
 
-        $record = $this->unitRegistry->findCatalogRecord($name)
+        $record = $entry->catalogRecord
             ?? throw UnitNotFoundException::create($name, span: $sourceSpan);
 
         if (($record['semantics'] ?? null) === UnitSemantics::Logarithmic->value) {

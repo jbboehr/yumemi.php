@@ -45,8 +45,8 @@ use jbboehr\Yumemi\Expr\Unit;
  * UDUNITS2 catalog data source.
  *
  * This class does not parse definition strings or own a UnitResolver/AstConverter.
- * {@see \jbboehr\Yumemi\Analyzer\UnitResolver} reads {@see findCatalogRecord()}
- * rows and builds expression trees.
+ * {@see \jbboehr\Yumemi\Analyzer\UnitResolver} reads {@see findEntry()} and builds expression trees from its catalog
+ * records.
  *
  * @phpstan-type Udunits2BaseUnit array{type: 'base', name: string, definition?: string, plural?: string, comment?: string}
  * @phpstan-type Udunits2DimensionlessUnit array{
