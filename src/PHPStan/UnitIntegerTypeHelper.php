@@ -78,7 +78,28 @@ final class UnitIntegerTypeHelper
             return ['unit' => $type->getUnitExpression(), 'min' => null, 'max' => null];
         }
 
-        if ($type instanceof UnionType) {
+        if ($type instanceof UnionType || !$type->isInteger()->yes()) {
+            return null;
+        }
+
+        $topLevelTypes = [];
+        $atRoot = true;
+        TypeTraverser::map($type, static function (Type $innerType, callable $traverse) use (
+            &$topLevelTypes,
+            &$atRoot,
+        ): Type {
+            if ($atRoot) {
+                $atRoot = false;
+
+                return $traverse($innerType);
+            }
+
+            $topLevelTypes[] = $innerType;
+
+            return $innerType;
+        });
+
+        if ($topLevelTypes === []) {
             return null;
         }
 
@@ -86,58 +107,51 @@ final class UnitIntegerTypeHelper
         $min = null;
         $max = null;
         $invalidUnit = false;
-        TypeTraverser::map($type, static function (Type $innerType, callable $traverse) use (
-            &$unit,
-            &$min,
-            &$max,
-            &$invalidUnit,
-        ): Type {
-            if ($innerType instanceof UnionType) {
-                return $innerType;
-            }
-
+        foreach ($topLevelTypes as $innerType) {
             if ($innerType instanceof UnitConstantIntegerType) {
                 if ($unit !== null && !$unit->equivalent($innerType->getUnitExpression())) {
                     $invalidUnit = true;
 
-                    return $innerType;
+                    continue;
                 }
 
                 $unit = $innerType->getUnitExpression();
                 $min = self::greaterMinimum($min, $innerType->getValue());
                 $max = self::lesserMaximum($max, $innerType->getValue());
 
-                return $innerType;
+                continue;
             }
 
             if ($innerType instanceof UnitIntegerType) {
                 if ($unit !== null && !$unit->equivalent($innerType->getUnitExpression())) {
                     $invalidUnit = true;
 
-                    return $innerType;
+                    continue;
                 }
 
                 $unit = $innerType->getUnitExpression();
 
-                return $innerType;
+                continue;
             }
 
             if ($innerType instanceof ConstantIntegerType) {
                 $min = self::greaterMinimum($min, $innerType->getValue());
                 $max = self::lesserMaximum($max, $innerType->getValue());
 
-                return $innerType;
+                continue;
             }
 
             if ($innerType instanceof IntegerRangeType) {
                 $min = self::greaterMinimum($min, $innerType->getMin());
                 $max = self::lesserMaximum($max, $innerType->getMax());
 
-                return $innerType;
+                continue;
             }
 
-            return $traverse($innerType);
-        });
+            if (!$innerType->isInteger()->yes()) {
+                return null;
+            }
+        }
 
         if ($invalidUnit || $unit === null || ($min !== null && $max !== null && $min > $max)) {
             return null;

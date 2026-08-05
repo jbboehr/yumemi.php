@@ -42,6 +42,8 @@ use jbboehr\Yumemi\PHPStan\UnitExpressionParser;
 use jbboehr\Yumemi\PHPStan\UnitFloatType;
 use jbboehr\Yumemi\PHPStan\UnitIntegerType;
 use jbboehr\Yumemi\PHPStan\UnitIntegerTypeHelper;
+use PHPStan\Type\ArrayType;
+use PHPStan\Type\ClosureType;
 use PHPStan\Type\Constant\ConstantIntegerType;
 use PHPStan\Type\IntersectionType;
 use PHPStan\Type\IntegerRangeType;
@@ -94,6 +96,8 @@ final class UnitIntegerTypeHelperTest extends TestCase
     {
         $brand = new UnitIntegerType($this->meters);
         $range = TypeCombinator::intersect($brand, IntegerRangeType::fromInterval(0, 100));
+        $positive = TypeCombinator::intersect($brand, IntegerRangeType::fromInterval(1, null));
+        $nonNegative = TypeCombinator::intersect($brand, IntegerRangeType::fromInterval(0, null));
         $literal = TypeCombinator::intersect($brand, new ConstantIntegerType(7));
 
         self::assertSame(
@@ -101,9 +105,45 @@ final class UnitIntegerTypeHelperTest extends TestCase
             UnitIntegerTypeHelper::extract($range),
         );
         self::assertSame(
+            ['unit' => $this->meters, 'min' => 1, 'max' => null],
+            UnitIntegerTypeHelper::extract($positive),
+        );
+        self::assertSame(
+            ['unit' => $this->meters, 'min' => 0, 'max' => null],
+            UnitIntegerTypeHelper::extract($nonNegative),
+        );
+        self::assertSame(
             ['unit' => $this->meters, 'min' => 7, 'max' => 7],
             UnitIntegerTypeHelper::extract($literal),
         );
+    }
+
+    public function testExtractDoesNotTraverseCallableOrContainerComponents(): void
+    {
+        $brand = new UnitIntegerType($this->meters);
+        $closure = new ClosureType([], $brand, false);
+        $array = new ArrayType(new IntegerType(), $brand);
+
+        self::assertNull(UnitIntegerTypeHelper::extract($closure));
+        self::assertNull(UnitIntegerTypeHelper::extract($array));
+    }
+
+    public function testTypeCombinationRetainsCallableAndBrandedIntegerAlternatives(): void
+    {
+        $brand = new UnitIntegerType($this->meters);
+        $closure = new ClosureType([], $brand, false);
+        $union = TypeCombinator::union($closure, $brand);
+
+        self::assertInstanceOf(UnionType::class, $union);
+        self::assertCount(2, $union->getTypes());
+        self::assertCount(1, array_filter(
+            $union->getTypes(),
+            static fn (object $type): bool => $type instanceof ClosureType,
+        ));
+        self::assertCount(1, array_filter(
+            $union->getTypes(),
+            static fn (object $type): bool => $type instanceof UnitIntegerType,
+        ));
     }
 
     public function testUnboundedBrandAcceptsSameUnitRangesAndConstantsOnly(): void

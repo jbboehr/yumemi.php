@@ -88,6 +88,16 @@ final class YumemiReturnTagExtensionTest extends TypeInferenceTestCase
         $this->assertStringContainsString("unit_int<'international_foot'>", $output, $output);
     }
 
+    public function testPromotedCallableUnionPreservesItsBrandedReturnContract(): void
+    {
+        $output = $this->analyse('yumemi-tag-callable-enforcement.php');
+
+        $this->assertStringContainsString('[ERROR] Found 1 error', $output, $output);
+        $this->assertStringContainsString('argument.type', $output, $output);
+        $this->assertStringContainsString("unit_int<'1/1000 * second'>", $output, $output);
+        $this->assertStringContainsString('Closure(int, mixed): 250 given.', $output, $output);
+    }
+
     public function testTagsRemainIgnoredWithoutTheOptInConfig(): void
     {
         $output = $this->analyse('yumemi-tag-no-extension.php', false);
