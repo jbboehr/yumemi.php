@@ -90,6 +90,7 @@ Current verification:
 - PHP-CS-Fixer passes
 - Composer validation passes
 - Nix flake checks pass
+- GitHub Actions tests PHP 8.2 through PHP 8.5, plus a PHP 8.2 lowest-dependency installation
 - PHPBench covers representative cold and warm runtime workflows; CI smoke-tests benchmark discovery without timing
   floors, while an optional Linux Perfidious profile captures local `perf_events` counters
 - Infection runs separate CI campaigns against all handwritten runtime source and the in-process PHPStan adapter tests,
@@ -116,6 +117,10 @@ a reduced Yumemi `Expr`; point identity additionally retains a named coordinate 
 
 The current type behavior, helper inference, diagnostic identifiers, and limitations are maintained in the
 [PHPStan reference](../pages/reference/phpstan.md).
+
+Branded integer metadata extraction is deliberately limited to direct branded integers and immediate integer
+intersection constraints. A `unit_int` nested inside a callable return, array value, generic, or other compound type
+remains metadata of that component and cannot cause the containing type to be classified as an integer.
 
 ### Annotation Surfaces
 
@@ -381,10 +386,12 @@ repeat the implementation's assumptions:
 - Maintain the PHP 8.2 lowest-dependency CI job, which uses `composer update --prefer-lowest --prefer-stable` followed
   by PHPStan and PHPUnit. Ordinary lock-file jobs verify only one dependency snapshot and do not prove the lower bounds
   declared in `composer.json`.
-- Continue focused Xdebug branch audits rather than enforcing a global path-coverage floor. Audit `src/Registry`,
-  `src/Catalog`, `PointQuantity`, formatting, and parser diagnostics next; add tests for uncovered decisions only when
-  an outcome is reachable and observably meaningful. Path coverage remains informational because combinations grow
-  rapidly.
+- Continue focused Xdebug branch audits rather than enforcing a global path-coverage floor. The focused `src/Registry`
+  audit reached 98.95% branch and 98.65% line coverage after adding contract tests for malformed catalog shapes,
+  transactional builder batches, and resilient introspection; the remaining outcomes are structurally unreachable under
+  normal PHP array construction. Audit `src/Catalog`, `PointQuantity`, formatting, and parser diagnostics next. Add
+  tests only when an uncovered outcome is reachable and observably meaningful. Path coverage remains informational
+  because combinations grow rapidly.
 - Triage Infection's escaped and timed-out mutants periodically before raising the MSI floor. Add contract-level
   assertions for observable survivors, record or ignore behaviorally equivalent mutations, distinguish deliberately
   unreachable defensive branches, and confirm that timeouts are explained by removed termination guards rather than
@@ -395,6 +402,9 @@ repeat the implementation's assumptions:
 
 ### Near-Term Work
 
+- Replace the registry's split prebuilt-unit and catalog-record lookup channels with a typed effective-entry model
+  before implementing catalog-build indexing or broader registry caches. The current masking rules are covered, but
+  every new composition-aware optimization otherwise has to reproduce the same cross-channel precedence manually.
 - Split remaining broad PHPStan diagnostic identifiers only where users need more precise suppression. Native helpers
   now distinguish dynamic and ambiguous unit expressions from invalid constant calls.
 
@@ -456,8 +466,6 @@ repeat the implementation's assumptions:
   lazily caching an effective index per immutable registry. Composite registries must build a composition-aware index so
   base aliases continue to follow overlay replacements. The same index should serve canonical/symbol formatter lookups
   so newly constructed formatters do not repeat catalog scans; expression resolution remains in `UnitResolver`.
-- Replace the registry's split prebuilt-unit and catalog-record lookup channels with a typed effective-entry model.
-  Until then, composite registries must mask both base channels whenever an overlay contains either representation.
 - Stable registry identifiers and an application resolver for serialized graphs containing values from several custom
   `Units` contexts. Native serialization currently supports the default context plus one dynamically scoped custom
   context through `Units::deserialize()` and rejects semantic drift. Broader ecosystem integrations remain deferred.

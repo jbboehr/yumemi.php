@@ -14,6 +14,19 @@ acceptable.
 
 ---
 
+## Current Status
+
+The repository now contains the stable gold exemplar set, explicit canonical-independence rules in `AGENTS.md`, and
+read-only Codex writer and reviewer agents under `.codex/agents/`. The writer receives opaque IDs and produces three
+unranked candidates; the reviewer remains code-blind and may select one or reject the complete set.
+
+The process is not yet validated. A repository-local anti-example set has not been written, and the adapters and
+`AGENTS.md` do not yet encode the proposed preference for the gold/anti sets over nearby source logia. The recommended
+`Exponent` / `BinaryFloat` pilot has not been run or scored against the acceptance gate. The next doctrine work should
+complete those inputs and that small evaluation rather than adding more agent roles or beginning a corpus rewrite.
+
+---
+
 ## Principle
 
 | Do first                                          | Do later                |
@@ -58,8 +71,10 @@ A human can score a candidate in under 30 seconds: gold-like versus allegory.
 
 **Estimate:** 1–2 days
 
-Implement an isolated **writer subagent** with an optional code-blind **canon reviewer**. Generation remains separate
-from implementation context; review receives the same separation when its added cost is justified.
+The isolated **writer subagent** and optional code-blind **canon reviewer** are implemented as Codex adapters.
+Generation remains separate from implementation context; review receives the same separation when its added cost is
+justified. The adapters implement the isolation and output contracts, but the gold/anti input package and empirical
+pilot remain incomplete; no additional agent roles are needed.
 
 ### Workflow for any new declaration
 
@@ -246,12 +261,14 @@ Full rewrite is welcome once the factory works. Still **batch** it.
 
 ## Minimal viable experiment (one PR)
 
-1. Use `doctrine-gold.md`, then add `doctrine-anti.md` and a short brief.
-2. Update `AGENTS.md`: gold beats neighbors for quality.
+1. Keep `doctrine-gold.md` stable and add `doctrine-anti.md`; the compact working brief already lives in the writer and
+   reviewer adapters.
+2. Add the remaining concise gold/anti precedence rule to `AGENTS.md` and the adapters while preserving the existing
+   canonical-independence and opaque-ID rules.
 3. Pilot: rewrite **Exponent** and **BinaryFloat** logia via the isolated writer and canon reviewer.
 4. Score with the rubric.
-5. If pass → document the skill or workflow → schedule rewrite waves.
-6. If fail → iterate brief and few-shot only.
+5. If pass → document the validated workflow and schedule rewrite waves.
+6. If fail → iterate the anti-set, brief, and few-shot material only.
 
 ---
 

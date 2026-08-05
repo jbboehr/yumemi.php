@@ -1,6 +1,6 @@
 # Pint Feature Comparison
 
-Snapshot date: 2026-07-31
+Snapshot date: 2026-08-04
 
 This document compares Yumemi with Python's Pint library to identify useful capabilities and deliberate differences. It
 is a feature comparison, not the project roadmap. Current priorities, architectural risks, and deferred work belong in
@@ -49,8 +49,8 @@ coverage of scientific-array and uncertainty ecosystems.
 Status: **Done** | Importance: **P0** | Remaining difficulty: **S**
 
 Yumemi represents constants, units, products, and integer powers explicitly. Reduction flattens products, combines
-constants and powers, cancels inverse units, and orders factors deterministically. Structural equality and the public
-seven-axis SI `Dimension` model no longer depend on formatted-string comparisons.
+constants and powers, cancels inverse units, and orders factors deterministically. Structural equality and the hybrid
+SI-plus-extension `Dimension` model no longer depend on formatted-string comparisons.
 
 The remaining concern is performance under repeated analysis, not missing algebra for the supported multiplicative
 model. Rational powers are a separate advanced feature.
@@ -265,9 +265,11 @@ boundaries; configures custom registries; and provides stable diagnostics.
 The separate [Yumemi Apocrypha](https://github.com/jbboehr/yumemi-apocrypha.php) package supplies curated third-party
 stubs without expanding core's dependency graph. Branded integer constants and PHPStan integer-range intersections now
 propagate through supported arithmetic, allowing exact bounds to distinguish safe integer results, guaranteed float
-overflow, and mixed outcomes. Remaining work is branded float precision, selected casts and built-ins, more precise
-diagnostics, and future advanced unit semantics. Dynamic native-helper expressions are diagnosed by default while
-explicit runtime parsing APIs remain dynamic and fall back to unbranded object types.
+overflow, and mixed outcomes. Integer-brand extraction inspects only direct values and immediate intersection
+constraints, so callables, arrays, and other compound types retain nested brands without collapsing into integers.
+Remaining work is branded float precision, selected casts and built-ins, more precise diagnostics, and future advanced
+unit semantics. Dynamic native-helper expressions are diagnosed by default; explicit runtime parsing APIs remain
+dynamic, while deliberately suppressed or configured native-helper calls retain their declared unbranded fallback type.
 
 ### 22. Function Boundary Checking
 
@@ -387,8 +389,8 @@ Nix-backed differential suite compares representative conversions against the `u
 generative suite exercises bounded expression, quantity, and point identities. An isolated consumer smoke test verifies
 runtime use plus automatic and manual PHPStan registration from a release-style Composer archive. The separately
 versioned Yumemi Apocrypha project verifies curated upstream integrations without adding their dependencies or
-maintenance surface to core. A PHP 8.2 lowest-dependency job verifies the declared lower bounds through
-`composer update --prefer-lowest --prefer-stable`.
+maintenance surface to core. The normal matrix covers PHP 8.2 through PHP 8.5, and a PHP 8.2 lowest-dependency job
+verifies the declared lower bounds through `composer update --prefer-lowest --prefer-stable`.
 
 The project still lacks a tagged release and release workflow. A highest-dependency job may be useful after the first
 release establishes a compatibility promise.
@@ -423,7 +425,7 @@ release establishes a compatibility promise.
 | Collections and ecosystems       | Native-brand interoperability only | P3         | L/XL                 |
 | Measurements and uncertainty     | Absent                             | P3         | M/L                  |
 | Buckingham Pi theorem            | Absent                             | P3         | M/L                  |
-| Currency                         | Bundled data deliberately absent   | P3         | L                    |
+| Currency                         | Custom registries; rates unbundled | P3         | M                    |
 | Localization                     | Absent                             | P3         | M/L                  |
 | Performance and caching          | Partial                            | P1         | M                    |
 | Errors and developer UX          | Partial but strong                 | P1         | M                    |

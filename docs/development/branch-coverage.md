@@ -37,3 +37,15 @@ percentage or exercise impossible combinations.
 
 Keep PCOV for normal coverage and Infection. Xdebug path collection is materially slower and should remain focused on
 one subsystem at a time. No branch or path floor is enforced until repeated audits establish a stable, useful baseline.
+
+## Recorded Audits
+
+These are point-in-time diagnostics, not enforced floors:
+
+- The 2026-08-04 focused `src/Registry` audit covered 98.95% of branches and 98.65% of lines. It added contract tests
+  for malformed UDUNITS2 catalog shapes, malformed and empty builder definitions, transactional duplicate batches, and
+  introspection in the presence of unrelated broken aliases. The remaining reported outcomes depend on duplicate PHP
+  array keys, mirrored constructor states already rejected earlier, or post-match empty values excluded by the matching
+  expression; tests should not synthesize impossible states merely to reach 100%.
+
+The next useful focused targets are `src/Catalog`, `PointQuantity`, formatting, and parser diagnostics.
