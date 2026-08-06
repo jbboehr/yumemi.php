@@ -25,12 +25,29 @@ composer install
 composer check
 ```
 
-`composer check` validates Composer metadata and whitespace, formatting, PHPStan, PHPUnit, public documentation,
-benchmark discovery, and the release-style consumer archive. During focused work, `composer test`, `composer analyse`,
-`composer cs`, and `composer docs:check` run the corresponding parts independently. `nix flake check` additionally
-verifies the reproducible Nix environment and the UDUNITS2 differential suite. Nix is not required for ordinary local
-work; `nix develop` provides the pinned toolchain when reproducibility or generation work requires it, and CI supplies
-the authoritative Nix signal for reviewed changes.
+`composer check` validates Composer metadata and whitespace, formatting, PHPStan, and PHPUnit without requiring mdBook,
+Nix, benchmark discovery, or a network-dependent consumer installation. During focused work, run only the relevant
+underlying command. Use `composer check:full` for release preparation or a change that affects documentation,
+benchmarks, packaging, or extension registration; it adds the documentation build and link check, benchmark discovery,
+and release-style consumer archive.
+
+### Choosing checks
+
+| Change or task                    | Command                                                      | Additional requirements                  |
+| --------------------------------- | ------------------------------------------------------------ | ---------------------------------------- |
+| Ordinary code or test change      | `composer check`                                             | PHP, required extensions, and Composer   |
+| Focused PHPUnit iteration         | `composer test -- tests/Parser`                              | None beyond installed dependencies       |
+| One PHPStan rule test             | `composer test -- tests/PHPStan/InvalidUnitCallRuleTest.php` | None beyond installed dependencies       |
+| Static-analysis-only iteration    | `composer analyse`                                           | None beyond installed dependencies       |
+| Public documentation              | `composer docs:check`                                        | mdBook                                   |
+| Benchmarks                        | `composer benchmark:smoke`                                   | None beyond installed dependencies       |
+| Package or extension registration | `composer test:consumer:archive`                             | Network access for the isolated consumer |
+| Complete non-Nix verification     | `composer check:full`                                        | mdBook and consumer network access       |
+| Nix, dependencies, or generation  | `nix flake check --print-build-logs`                         | Nix                                      |
+
+`nix flake check` additionally verifies the reproducible environment, generated artifacts, and UDUNITS2 differential
+suite. Nix is not required for ordinary local work; `nix develop` provides the pinned toolchain when reproducibility,
+documentation, or generation work requires it, and CI supplies the authoritative Nix signal for reviewed changes.
 
 Mutation testing, Xdebug branch coverage, alternate property-test seeds, and the parser “probator” are intentionally
 separate investigative workflows rather than requirements for every local edit.

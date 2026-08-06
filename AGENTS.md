@@ -24,8 +24,9 @@ it when preparing a release or changing release, package-ownership, or stewardsh
 
 Use `composer test` for the complete PHPUnit suite, `composer analyse` for PHPStan, and `composer check` for the
 ordinary local review gate. Prefer these shared entry points over reproducing their underlying commands in new
-automation. Mutation testing, Xdebug branch coverage, the parser “probator,” and the Nix-backed UDUNITS2 differential
-remain specialist checks documented separately.
+automation. Use `composer check:full` for release preparation and changes affecting documentation, benchmarks,
+packaging, extension registration, or generated artifacts. Mutation testing, Xdebug branch coverage, the parser
+“probator,” and the Nix-backed UDUNITS2 differential remain specialist checks documented separately.
 
 Before changing parser, unit, conversion, registry, serialization, numeric-output, or PHPStan inference semantics, read
 the project-specific [semantic invariants](docs/development/invariants.md). Treat disagreement among those invariants,

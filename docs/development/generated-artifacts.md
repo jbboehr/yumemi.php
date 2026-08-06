@@ -149,7 +149,7 @@ When changing either artifact:
 1. modify the authoritative input or generator rather than generated output;
 2. regenerate in the pinned Nix development shell;
 3. inspect the complete generated diff and distinguish semantic changes from generator-only churn;
-4. run `composer check` and `nix flake check`;
+4. run `composer check:full` and `nix flake check`;
 5. update conformance cases, public documentation, compatibility notes, or licensing material when behavior or
    provenance changes; and
 6. commit authoritative inputs and generated output together.

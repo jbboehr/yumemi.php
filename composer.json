@@ -123,7 +123,10 @@
             "@check:whitespace",
             "@cs",
             "@analyse",
-            "@test",
+            "@test"
+        ],
+        "check:full": [
+            "@check",
             "@docs:check",
             "@benchmark:smoke",
             "@test:consumer:archive"

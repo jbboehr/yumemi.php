@@ -414,10 +414,12 @@ enforce knowledge Yumemi already possesses rather than create documentation or a
    provisional surfaces, and internal or generated details. Review it before each release and whenever a change alters
    the supported boundary; do not infer stability from PHP visibility or freeze human-readable diagnostic prose.
 5. **Established:** use `composer test` for the complete PHPUnit suite without coverage, `composer test:coverage` for
-   the existing PCOV CI run, `composer analyse` for PHPStan, and `composer check` for the ordinary comprehensive local
-   gate. CI invokes the same focused Composer scripts instead of duplicating their tool commands. Mutation, Xdebug
-   branch coverage, the parser “probator,” and the Nix-backed UDUNITS2 differential remain explicit specialist
-   workflows; Nix remains the reproducible environment rather than the only record of how checks run.
+   the existing PCOV CI run, `composer analyse` for PHPStan, and `composer check` for the ordinary PHP/Composer local
+   gate. `composer check:full` adds documentation, benchmark discovery, and release-style consumer verification for
+   relevant changes and release preparation. CI invokes the same focused Composer scripts instead of duplicating their
+   tool commands. Mutation, Xdebug branch coverage, the parser “probator,” and the Nix-backed UDUNITS2 differential
+   remain explicit specialist workflows; Nix remains the reproducible environment rather than the only record of how
+   checks run.
 6. **Established:** maintain the [generated-artifact inventory](generated-artifacts.md) for `src/Parser/Parser.php` and
    `data/udunits2.php`, including editing authorities, known reproducible tool versions, provenance, licensing, consumer
    requirements, and byte-identical plus behavioral verification. Nix checks exact regeneration of both artifacts;
