@@ -226,6 +226,8 @@ subclassability.
 The architecture is supported by several independent forms of evidence:
 
 - focused unit and integration tests for the parser, semantic core, runtime values, and PHPStan adapter;
+- a versioned, language-neutral [runtime conformance corpus](../../tests/Conformance/README.md) exercised through public
+  APIs;
 - executable public documentation examples;
 - bounded generated-expression and algebra tests;
 - Eris property tests for branded integer ranges;
@@ -234,8 +236,9 @@ The architecture is supported by several independent forms of evidence:
 - release-style consumer archives with automatic and manual extension registration; and
 - local Nix, Composer, and Make entry points used by CI.
 
-No one layer is the complete specification. Public behavior, [invariants](invariants.md), conformance evidence, and
-implementation must be reviewed together when they disagree.
+No one layer is the complete specification. Public behavior, [invariants](invariants.md), the
+[conformance corpus](../../tests/Conformance/README.md), and implementation must be reviewed together when they
+disagree.
 
 ## Change Rules
 

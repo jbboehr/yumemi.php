@@ -15,6 +15,10 @@ the project-specific [semantic invariants](docs/development/invariants.md). Trea
 public documentation, tests, and implementation as an issue to investigate rather than silently resolving it in favor of
 the easiest artifact to edit.
 
+For deliberate runtime semantic changes, review the versioned [conformance corpus](tests/Conformance/README.md) and
+update affected cases in the same change. Preserve public inputs and observable outputs rather than encoding incidental
+class structure in the fixtures.
+
 ## Documentation standards
 
 Documentation is part of the public API. Treat inaccurate, untested, stale, or poorly organized documentation as a

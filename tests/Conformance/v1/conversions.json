@@ -1,0 +1,125 @@
+{
+    "schema": "yumemi.conformance/v1",
+    "factors": [
+        {
+            "id": "inch-to-foot",
+            "from": "inch",
+            "to": "foot",
+            "expected": { "numerator": "1", "denominator": "12" }
+        },
+        {
+            "id": "foot-to-meter",
+            "from": "foot",
+            "to": "meter",
+            "expected": { "numerator": "381", "denominator": "1250" }
+        },
+        {
+            "id": "meter-to-centimeter",
+            "from": "meter",
+            "to": "centimeter",
+            "expected": { "numerator": "100", "denominator": "1" }
+        },
+        {
+            "id": "area-scale",
+            "from": "meter^2",
+            "to": "centimeter^2",
+            "expected": { "numerator": "10000", "denominator": "1" }
+        },
+        {
+            "id": "derived-identity",
+            "from": "newton",
+            "to": "kilogram * meter / second^2",
+            "expected": { "numerator": "1", "denominator": "1" }
+        },
+        {
+            "id": "compound-speed",
+            "from": "meter / second",
+            "to": "kilometer / hour",
+            "expected": { "numerator": "18", "denominator": "5" }
+        },
+        {
+            "id": "liter-to-cubic-meter",
+            "from": "liter",
+            "to": "meter^3",
+            "expected": { "numerator": "1", "denominator": "1000" }
+        },
+        {
+            "id": "delta-fahrenheit-to-kelvin",
+            "from": "delta_fahrenheit",
+            "to": "kelvin",
+            "expected": { "numerator": "5", "denominator": "9" }
+        }
+    ],
+    "conversions": [
+        {
+            "id": "inches-to-feet",
+            "value": { "numerator": "1488", "denominator": "1" },
+            "from": "inch",
+            "to": "foot",
+            "expected": { "numerator": "124", "denominator": "1" }
+        },
+        {
+            "id": "fractional-meter-to-centimeter",
+            "value": { "numerator": "3", "denominator": "2" },
+            "from": "meter",
+            "to": "centimeter",
+            "expected": { "numerator": "150", "denominator": "1" }
+        },
+        {
+            "id": "compound-speed-value",
+            "value": { "numerator": "1", "denominator": "1" },
+            "from": "meter / second",
+            "to": "kilometer / minute",
+            "expected": { "numerator": "3", "denominator": "50" }
+        },
+        {
+            "id": "liter-value",
+            "value": { "numerator": "2", "denominator": "1" },
+            "from": "liter",
+            "to": "meter^3",
+            "expected": { "numerator": "1", "denominator": "500" }
+        },
+        {
+            "id": "celsius-freezing-to-kelvin",
+            "value": { "numerator": "0", "denominator": "1" },
+            "from": "celsius",
+            "to": "kelvin",
+            "expected": { "numerator": "5463", "denominator": "20" }
+        },
+        {
+            "id": "celsius-boiling-to-fahrenheit",
+            "value": { "numerator": "100", "denominator": "1" },
+            "from": "celsius",
+            "to": "fahrenheit",
+            "expected": { "numerator": "212", "denominator": "1" }
+        },
+        {
+            "id": "fahrenheit-freezing-to-celsius",
+            "value": { "numerator": "32", "denominator": "1" },
+            "from": "fahrenheit",
+            "to": "celsius",
+            "expected": { "numerator": "0", "denominator": "1" }
+        },
+        {
+            "id": "negative-forty-crossover",
+            "value": { "numerator": "-40", "denominator": "1" },
+            "from": "celsius",
+            "to": "fahrenheit",
+            "expected": { "numerator": "-40", "denominator": "1" }
+        },
+        {
+            "id": "rankine-to-kelvin",
+            "value": { "numerator": "180", "denominator": "1" },
+            "from": "degree_rankine",
+            "to": "kelvin",
+            "expected": { "numerator": "100", "denominator": "1" }
+        },
+        {
+            "id": "delta-celsius-to-delta-fahrenheit",
+            "value": { "numerator": "10", "denominator": "1" },
+            "from": "delta_celsius",
+            "to": "delta_fahrenheit",
+            "expected": { "numerator": "18", "denominator": "1" }
+        }
+    ]
+}

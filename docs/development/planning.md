@@ -395,11 +395,13 @@ enforce knowledge Yumemi already possesses rather than create documentation or a
 2. **Established:** maintain [`architecture.md`](architecture.md) as the durable component and replacement-boundary map.
    [`RuntimeDependencyDirectionTest`](../../tests/Architecture/RuntimeDependencyDirectionTest.php) enforces that runtime
    source cannot depend on PHPStan or Yumemi's PHPStan adapter without introducing a general-purpose layering framework.
-3. Add a small public black-box conformance corpus under an appropriate `tests/Conformance/` structure. Use versioned,
-   data-driven fixtures where syntax, canonical forms, reduction, normalization, dimensions, exact conversion, affine
-   plans, and stable error categories can be represented faithfully. Keep PHPStan-specific behavior in PHP tests where
-   its native type system is part of the contract, and do not migrate existing tests merely to satisfy the directory
-   shape.
+3. **Established:** maintain the versioned [runtime conformance corpus](../../tests/Conformance/README.md) as portable,
+   public black-box evidence for syntax, canonical reduction, normalization, dimensions, exact conversion, quantity and
+   affine behavior, source spans, and semantic error categories.
+   [`RuntimeConformanceTest`](../../tests/Conformance/RuntimeConformanceTest.php) validates the fixture schema and
+   executes every case through public runtime APIs without freezing exception prose. Keep PHPStan-specific behavior in
+   PHP tests where its native type system is part of the contract, and add cases only for representative semantic
+   obligations rather than migrating implementation tests to satisfy the directory shape.
 4. Define the compatibility surface before the first release. State which runtime APIs, PHPStan pseudo-types,
    diagnostics, configuration, grammar, serialization formats, and numeric policies users may rely upon, while keeping
    tool-specific adapters and internal classes replaceable. Do not imply stability for every public PHP declaration or

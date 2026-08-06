@@ -31,6 +31,10 @@ that architectural and behavior changes must preserve or deliberately revise.
 [`docs/development/architecture.md`](docs/development/architecture.md) maps the semantic core, adapters, generated
 artifacts, dependency direction, and expected replacement boundaries.
 
+The versioned [`tests/Conformance`](tests/Conformance/README.md) corpus records representative runtime behavior as
+language-neutral public inputs and outputs. Deliberate semantic changes should update affected cases and their
+rationale.
+
 ## Documentation
 
 The public mdBook sources live under [`docs/pages`](docs/pages). Internal engineering documents live under

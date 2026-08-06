@@ -1,0 +1,162 @@
+{
+    "schema": "yumemi.conformance/v1",
+    "quantityAdditions": [
+        {
+            "id": "compatible-units-preserve-left-unit",
+            "left": {
+                "value": { "numerator": "1", "denominator": "1" },
+                "unit": "meter"
+            },
+            "right": {
+                "value": { "numerator": "1", "denominator": "1" },
+                "unit": "foot"
+            },
+            "expected": {
+                "value": { "numerator": "1631", "denominator": "1250" },
+                "unit": "meter"
+            }
+        }
+    ],
+    "quantityOperations": [
+        {
+            "id": "multiplication-cancels-symbolic-unit",
+            "operation": "multiply",
+            "left": {
+                "value": { "numerator": "3", "denominator": "1" },
+                "unit": "meter / second"
+            },
+            "right": {
+                "value": { "numerator": "2", "denominator": "1" },
+                "unit": "second"
+            },
+            "expected": {
+                "value": { "numerator": "6", "denominator": "1" },
+                "unit": "meter"
+            }
+        },
+        {
+            "id": "division-preserves-unsubstituted-units",
+            "operation": "divide",
+            "left": {
+                "value": { "numerator": "3", "denominator": "1" },
+                "unit": "centimeter / second"
+            },
+            "right": {
+                "value": { "numerator": "2", "denominator": "1" },
+                "unit": "foot"
+            },
+            "expected": {
+                "value": { "numerator": "3", "denominator": "2" },
+                "unit": "centimeter / (foot * second)"
+            }
+        }
+    ],
+    "quantityForms": [
+        {
+            "id": "normalize-and-simplify-remain-distinct",
+            "quantity": {
+                "value": { "numerator": "2", "denominator": "1" },
+                "unit": "centimeter / second"
+            },
+            "normalized": {
+                "value": { "numerator": "2", "denominator": "1" },
+                "unit": "1/100 * meter / second"
+            },
+            "simplified": {
+                "value": { "numerator": "1", "denominator": "50" },
+                "unit": "meter / second"
+            }
+        }
+    ],
+    "pointConversions": [
+        {
+            "id": "celsius-point-to-fahrenheit",
+            "point": {
+                "value": { "numerator": "0", "denominator": "1" },
+                "unit": "celsius"
+            },
+            "to": "fahrenheit",
+            "expected": {
+                "value": { "numerator": "32", "denominator": "1" },
+                "unit": "fahrenheit"
+            }
+        }
+    ],
+    "pointDifferences": [
+        {
+            "id": "point-subtraction-produces-delta",
+            "left": {
+                "value": { "numerator": "100", "denominator": "1" },
+                "unit": "celsius"
+            },
+            "right": {
+                "value": { "numerator": "32", "denominator": "1" },
+                "unit": "fahrenheit"
+            },
+            "expected": {
+                "value": { "numerator": "100", "denominator": "1" },
+                "unit": "delta_celsius"
+            },
+            "equivalent": {
+                "value": { "numerator": "180", "denominator": "1" },
+                "unit": "delta_fahrenheit"
+            }
+        }
+    ],
+    "pointTranslations": [
+        {
+            "id": "point-plus-compatible-delta",
+            "operation": "add",
+            "point": {
+                "value": { "numerator": "0", "denominator": "1" },
+                "unit": "celsius"
+            },
+            "delta": {
+                "value": { "numerator": "18", "denominator": "1" },
+                "unit": "delta_fahrenheit"
+            },
+            "expected": {
+                "value": { "numerator": "10", "denominator": "1" },
+                "unit": "celsius"
+            }
+        },
+        {
+            "id": "point-minus-compatible-delta",
+            "operation": "subtract",
+            "point": {
+                "value": { "numerator": "10", "denominator": "1" },
+                "unit": "celsius"
+            },
+            "delta": {
+                "value": { "numerator": "18", "denominator": "1" },
+                "unit": "delta_fahrenheit"
+            },
+            "expected": {
+                "value": { "numerator": "0", "denominator": "1" },
+                "unit": "celsius"
+            }
+        }
+    ],
+    "deltaUnits": [
+        {
+            "id": "celsius-delta-unit",
+            "unit": "celsius",
+            "expected": "delta_degree_Celsius"
+        },
+        {
+            "id": "fahrenheit-delta-unit",
+            "unit": "fahrenheit",
+            "expected": "delta_fahrenheit"
+        },
+        {
+            "id": "multiplicative-unit-is-own-delta",
+            "unit": "kelvin",
+            "expected": "kelvin"
+        },
+        {
+            "id": "compound-multiplicative-unit-is-own-delta",
+            "unit": "meter / second",
+            "expected": "meter * second ^ -1"
+        }
+    ]
+}

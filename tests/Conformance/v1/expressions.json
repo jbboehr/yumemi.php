@@ -1,0 +1,185 @@
+{
+    "schema": "yumemi.conformance/v1",
+    "cases": [
+        {
+            "id": "base-unit",
+            "input": "meter",
+            "parsed": "meter",
+            "normalized": "meter",
+            "dimension": {
+                "length": 1,
+                "mass": 0,
+                "time": 0,
+                "electricCurrent": 0,
+                "temperature": 0,
+                "amountOfSubstance": 0,
+                "luminousIntensity": 0
+            }
+        },
+        {
+            "id": "prefixed-unit",
+            "input": "centimeter",
+            "parsed": "1/100 * meter",
+            "normalized": "1/100 * meter",
+            "dimension": {
+                "length": 1,
+                "mass": 0,
+                "time": 0,
+                "electricCurrent": 0,
+                "temperature": 0,
+                "amountOfSubstance": 0,
+                "luminousIntensity": 0
+            }
+        },
+        {
+            "id": "derived-unit",
+            "input": "newton",
+            "parsed": "newton",
+            "normalized": "kilogram * meter * second ^ -2",
+            "dimension": {
+                "length": 1,
+                "mass": 1,
+                "time": -2,
+                "electricCurrent": 0,
+                "temperature": 0,
+                "amountOfSubstance": 0,
+                "luminousIntensity": 0
+            }
+        },
+        {
+            "id": "symbolic-cancellation",
+            "input": "(meter / second) * second",
+            "parsed": "meter",
+            "normalized": "meter",
+            "dimension": {
+                "length": 1,
+                "mass": 0,
+                "time": 0,
+                "electricCurrent": 0,
+                "temperature": 0,
+                "amountOfSubstance": 0,
+                "luminousIntensity": 0
+            }
+        },
+        {
+            "id": "reduction-without-substitution",
+            "input": "centimeter / foot",
+            "parsed": "1/100 * international_foot ^ -1 * meter",
+            "normalized": "25/762",
+            "dimension": {
+                "length": 0,
+                "mass": 0,
+                "time": 0,
+                "electricCurrent": 0,
+                "temperature": 0,
+                "amountOfSubstance": 0,
+                "luminousIntensity": 0
+            }
+        },
+        {
+            "id": "left-associative-product-tier",
+            "input": "meter / foot second",
+            "parsed": "international_foot ^ -1 * meter * second",
+            "normalized": "1250/381 * second",
+            "dimension": {
+                "length": 0,
+                "mass": 0,
+                "time": 1,
+                "electricCurrent": 0,
+                "temperature": 0,
+                "amountOfSubstance": 0,
+                "luminousIntensity": 0
+            }
+        },
+        {
+            "id": "compound-derived-dimension",
+            "input": "kilogram * meter^2 / second^3",
+            "parsed": "kilogram * meter ^ 2 * second ^ -3",
+            "normalized": "kilogram * meter ^ 2 * second ^ -3",
+            "dimension": {
+                "length": 2,
+                "mass": 1,
+                "time": -3,
+                "electricCurrent": 0,
+                "temperature": 0,
+                "amountOfSubstance": 0,
+                "luminousIntensity": 0
+            }
+        },
+        {
+            "id": "bare-constant",
+            "input": "1000",
+            "parsed": "1000",
+            "normalized": "1000",
+            "dimension": {
+                "length": 0,
+                "mass": 0,
+                "time": 0,
+                "electricCurrent": 0,
+                "temperature": 0,
+                "amountOfSubstance": 0,
+                "luminousIntensity": 0
+            }
+        },
+        {
+            "id": "dimensionless-derived-unit",
+            "input": "percent",
+            "parsed": "percent",
+            "normalized": "1/100",
+            "dimension": {
+                "length": 0,
+                "mass": 0,
+                "time": 0,
+                "electricCurrent": 0,
+                "temperature": 0,
+                "amountOfSubstance": 0,
+                "luminousIntensity": 0
+            }
+        },
+        {
+            "id": "plural-alias",
+            "input": "meters",
+            "parsed": "meter",
+            "normalized": "meter",
+            "dimension": {
+                "length": 1,
+                "mass": 0,
+                "time": 0,
+                "electricCurrent": 0,
+                "temperature": 0,
+                "amountOfSubstance": 0,
+                "luminousIntensity": 0
+            }
+        },
+        {
+            "id": "unicode-product-and-power",
+            "input": "kg·m/s²",
+            "parsed": "kilogram * meter * second ^ -2",
+            "normalized": "kilogram * meter * second ^ -2",
+            "dimension": {
+                "length": 1,
+                "mass": 1,
+                "time": -2,
+                "electricCurrent": 0,
+                "temperature": 0,
+                "amountOfSubstance": 0,
+                "luminousIntensity": 0
+            }
+        },
+        {
+            "id": "reciprocal-unit",
+            "input": "1 / second",
+            "parsed": "second ^ -1",
+            "normalized": "second ^ -1",
+            "dimension": {
+                "length": 0,
+                "mass": 0,
+                "time": -1,
+                "electricCurrent": 0,
+                "temperature": 0,
+                "amountOfSubstance": 0,
+                "luminousIntensity": 0
+            }
+        }
+    ]
+}
