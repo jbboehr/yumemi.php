@@ -10,6 +10,10 @@ The project-specific [architecture](docs/development/architecture.md) defines co
 direction, generated artifacts, and expected replacement boundaries. Consult it before moving responsibilities or adding
 cross-layer dependencies.
 
+The [compatibility policy](docs/development/compatibility.md) classifies supported application and integration APIs,
+provisional surfaces, internal details, persistent formats, and breaking changes. Consult it before changing observable
+behavior or publicly visible declarations.
+
 Before changing parser, unit, conversion, registry, serialization, numeric-output, or PHPStan inference semantics, read
 the project-specific [semantic invariants](docs/development/invariants.md). Treat disagreement among those invariants,
 public documentation, tests, and implementation as an issue to investigate rather than silently resolving it in favor of

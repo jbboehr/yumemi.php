@@ -376,9 +376,8 @@ developer-experience improvement, selected API and formatting polish, and explic
 
 - Before creating the first release tag, remove `:dev-master` from the README installation command; after Packagist
   imports the tag, verify that the unqualified command installs the tagged release.
-- Publish an honest compatibility policy that distinguishes supported runtime and PHPStan APIs, provisionally public
-  extension points, tool-specific integration surfaces, serialized formats, generated implementation details, and
-  explicitly internal code.
+- Review the established [compatibility policy](compatibility.md) against the intended first release, then publish it
+  with the tag without broadening support beyond the documented and tested surface.
 - Record the local release and succession procedure, including artifact verification, signing, publication services,
   required accounts and permissions without secret values, package transfer, compatible forks, and intentional project
   freezing.
@@ -402,10 +401,10 @@ enforce knowledge Yumemi already possesses rather than create documentation or a
    executes every case through public runtime APIs without freezing exception prose. Keep PHPStan-specific behavior in
    PHP tests where its native type system is part of the contract, and add cases only for representative semantic
    obligations rather than migrating implementation tests to satisfy the directory shape.
-4. Define the compatibility surface before the first release. State which runtime APIs, PHPStan pseudo-types,
-   diagnostics, configuration, grammar, serialization formats, and numeric policies users may rely upon, while keeping
-   tool-specific adapters and internal classes replaceable. Do not imply stability for every public PHP declaration or
-   freeze human-readable diagnostic prose.
+4. **Established:** maintain the [compatibility policy](compatibility.md) as the classification of supported runtime
+   APIs, PHPStan pseudo-types, diagnostics, configuration, grammar, persistent formats, integration contracts,
+   provisional surfaces, and internal or generated details. Review it before each release and whenever a change alters
+   the supported boundary; do not infer stability from PHP visibility or freeze human-readable diagnostic prose.
 5. Provide conventional local entry points such as `composer test`, `composer analyse`, and `composer check`, composed
    from the existing focused commands. Audit CI so its authoritative checks invoke the same local workflows instead of
    encoding otherwise unavailable procedure; retain Nix as the reproducible environment rather than the only record of

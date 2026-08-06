@@ -19,7 +19,7 @@ Each invariant identifies the consequence of violating it:
   core, although tests and public documentation may still require updates.
 
 One change may have more than one classification. Before the first release, compatibility classifications describe the
-intended surface; the dedicated compatibility policy remains future work.
+intended surface defined by the [compatibility policy](compatibility.md), which must be reviewed before the first tag.
 
 ## One Runtime Semantic Authority
 

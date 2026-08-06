@@ -2,7 +2,7 @@
 
 This document maps Yumemi's durable components, dependency direction, replacement boundaries, generated artifacts, and
 likely decay points. It describes responsibilities rather than promising compatibility for every public PHP declaration;
-that narrower classification belongs in the planned compatibility policy.
+that narrower classification belongs in the [compatibility policy](compatibility.md).
 
 Read this document with the project-specific [semantic invariants](invariants.md). The architecture explains where
 meaning lives. The invariants explain what that meaning requires.
@@ -97,8 +97,9 @@ The runtime surface presents the semantic core to applications:
   [`CompositeUnitRegistry`](../../src/Registry/CompositeUnitRegistry.php) construct immutable effective registry
   snapshots.
 
-Public language visibility does not by itself settle long-term compatibility. The future compatibility policy must
-distinguish supported application APIs from integration contracts and implementation details.
+Public language visibility does not by itself settle long-term compatibility. The
+[compatibility policy](compatibility.md) distinguishes supported application APIs from integration contracts and
+implementation details.
 
 ### PHPStan Adapter
 
