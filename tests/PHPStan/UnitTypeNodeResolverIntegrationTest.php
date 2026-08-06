@@ -136,6 +136,13 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $this->assertStringContainsString('[OK] No errors', $output, $output);
     }
 
+    public function testUnitPreservingFunctionsDoNotOverrideNamespacedFunctions(): void
+    {
+        $output = $this->analyse('unit-scalar-transformations-namespaced.php');
+
+        $this->assertStringContainsString('[OK] No errors', $output, $output);
+    }
+
     public function testBrandedIntegerRangesEnforceBoundsAndUnits(): void
     {
         $output = $this->analyse('unit-range-invalid.php');

@@ -129,6 +129,16 @@ final class UnitFloatType extends FloatType
     }
 
     /**
+     * @logion [OSD 57:83] When the molten silver is poured into the numbered
+     *     mould, preserve the seal thereof; though its abundance be constrained,
+     *     its appointed lineage shall not be forgotten.
+     */
+    public function toInteger(): Type
+    {
+        return new UnitIntegerType($this->unit);
+    }
+
+    /**
      * @param array{unit: UnitExpression} $properties
      */
     public static function __set_state(array $properties): Type

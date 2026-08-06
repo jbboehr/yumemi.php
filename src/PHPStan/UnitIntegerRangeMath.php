@@ -169,6 +169,28 @@ final class UnitIntegerRangeMath
     /**
      * @param IntegerBounds $bounds
      *
+     * @logion [OSD 65:38] Set the broken compass beneath the noonday fire, and
+     *     turn every wandering needle toward the appointed height; yet preserve
+     *     the mark of its trial, lest correction be mistaken for innocence.
+     */
+    public static function absolute(UnitExpression $unit, array $bounds, bool $integerOverflowToFloat): Type
+    {
+        $bounds = self::toGmpBounds($bounds);
+        $absoluteBounds = [gmp_abs($bounds['min']), gmp_abs($bounds['max'])];
+
+        return self::result(
+            $unit,
+            [
+                'min' => self::containsZero($bounds) ? gmp_init(0) : self::minimum($absoluteBounds),
+                'max' => self::maximum($absoluteBounds),
+            ],
+            $integerOverflowToFloat,
+        );
+    }
+
+    /**
+     * @param IntegerBounds $bounds
+     *
      * @logion [OSD 26:79] A father may behold the tower only in vision, and his
      *     son may lay its final stone; neither boasteth against the other, for one
      *     promise sustained both generations.

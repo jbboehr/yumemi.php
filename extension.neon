@@ -69,6 +69,12 @@ services:
         tags:
             - phpstan.broker.unaryOperatorTypeSpecifyingExtension
     -
+        class: jbboehr\Yumemi\PHPStan\UnitPreservingFunctionTypeResolverExtension
+        arguments:
+            integerOverflowToFloat: %yumemi.integerOverflowToFloat%
+        tags:
+            - phpstan.broker.expressionTypeResolverExtension
+    -
         class: jbboehr\Yumemi\PHPStan\UnitFunctionDynamicReturnTypeExtension
         tags:
             - phpstan.broker.dynamicFunctionReturnTypeExtension

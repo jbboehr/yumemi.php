@@ -120,6 +120,23 @@ final class UnitIntegerRangeMathTest extends TestCase
         }
     }
 
+    public function testBoundedAbsoluteIntervalsContainExactlyTheEnumeratedHull(): void
+    {
+        foreach (self::smallIntervals() as $bounds) {
+            $type = UnitIntegerRangeMath::absolute($this->unit, $bounds, true);
+            $metadata = UnitIntegerTypeHelper::extract($type);
+            self::assertNotNull($metadata);
+
+            $values = [abs($bounds['min'])];
+            for ($value = $bounds['min']; $value <= $bounds['max']; ++$value) {
+                $values[] = abs($value);
+            }
+
+            self::assertSame(min($values), $metadata['min']);
+            self::assertSame(max($values), $metadata['max']);
+        }
+    }
+
     public function testExactNativeIntegerLimitsRemainBrandedConstants(): void
     {
         $maximum = UnitIntegerRangeMath::add(
@@ -295,6 +312,36 @@ final class UnitIntegerRangeMathTest extends TestCase
             self::assertInstanceOf(UnitIntegerType::class, $type);
             self::assertTrue($this->unit->equivalent($type->getUnitExpression()));
         }
+    }
+
+    public function testAbsoluteValueUsesTheConfiguredIntegerOverflowPolicy(): void
+    {
+        $minimum = UnitIntegerRangeMath::absolute(
+            $this->unit,
+            ['min' => PHP_INT_MIN, 'max' => PHP_INT_MIN],
+            true,
+        );
+        $partlyOverflowing = UnitIntegerRangeMath::absolute(
+            $this->unit,
+            ['min' => PHP_INT_MIN, 'max' => -1],
+            true,
+        );
+        $unbounded = UnitIntegerRangeMath::absolute(
+            $this->unit,
+            ['min' => null, 'max' => null],
+            true,
+        );
+        $disabled = UnitIntegerRangeMath::absolute(
+            $this->unit,
+            ['min' => PHP_INT_MIN, 'max' => PHP_INT_MIN],
+            false,
+        );
+
+        self::assertInstanceOf(UnitFloatType::class, $minimum);
+        $this->assertIntegerAndFloat($partlyOverflowing, 1, null);
+        $this->assertIntegerAndFloat($unbounded, 0, null);
+        self::assertInstanceOf(UnitIntegerType::class, $disabled);
+        self::assertTrue($this->unit->equivalent($disabled->getUnitExpression()));
     }
 
     /** @return list<array{min: int, max: int}> */

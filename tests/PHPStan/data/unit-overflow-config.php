@@ -13,3 +13,4 @@ assertType("5&unit_int<'meter'>", $distance + $otherDistance);
 assertType("-2&unit_int<'meter'>", -$distance);
 assertType("8&unit_int<'meter * second'>", $distance * $duration);
 assertType("4&unit_int<'meter ^ 2'>", $distance ** 2);
+assertType("unit_int<'meter'>", abs(unit(-9223372036854775807 - 1, 'meter')));

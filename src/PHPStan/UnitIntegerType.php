@@ -125,6 +125,16 @@ final class UnitIntegerType extends IntegerType
     }
 
     /**
+     * @logion [SFA 43:18] The vessel changeth its visible form, yet the measure
+     *     entrusted unto it remaineth; for no lawful passage dissolveth the
+     *     covenant by which its contents were first received.
+     */
+    public function toFloat(): Type
+    {
+        return new UnitFloatType($this->unit);
+    }
+
+    /**
      * @param array{unit: UnitExpression} $properties
      */
     public static function __set_state(array $properties): Type

@@ -189,6 +189,38 @@ final class UnitMagnitudeTypeTest extends TestCase
         );
     }
 
+    public function testNumericCastsPreserveUnitsWithRepresentablePrecision(): void
+    {
+        $integer = $this->unitInt('meter');
+        $float = $this->unitFloat('second');
+        $constant = UnitIntegerTypeHelper::create($integer->getUnitExpression(), 3, 3);
+        $range = UnitIntegerTypeHelper::create($integer->getUnitExpression(), -5, 10);
+
+        $this->assertSame($integer, $integer->toInteger());
+        $this->assertSame($float, $float->toFloat());
+        $this->assertSame($constant, $constant->toInteger());
+        $this->assertSame(
+            "unit_int<'meter'>&int<-5, 10>",
+            $range->toInteger()->describe(VerbosityLevel::precise()),
+        );
+        $this->assertSame(
+            "unit_float<'meter'>",
+            $integer->toFloat()->describe(VerbosityLevel::precise()),
+        );
+        $this->assertSame(
+            "unit_float<'meter'>",
+            $constant->toFloat()->describe(VerbosityLevel::precise()),
+        );
+        $this->assertSame(
+            "unit_float<'meter'>",
+            $range->toFloat()->describe(VerbosityLevel::precise()),
+        );
+        $this->assertSame(
+            "unit_int<'second'>",
+            $float->toInteger()->describe(VerbosityLevel::precise()),
+        );
+    }
+
     private function unitInt(string $unit): UnitIntegerType
     {
         $parsed = (new UnitExpressionParser())->parse($unit);

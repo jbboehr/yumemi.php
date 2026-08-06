@@ -79,7 +79,7 @@
           inherit src;
 
           composerNoDev = false;
-          vendorHash = "sha256-Oq+DfRRz3UhcKWCxVC4S3HwsHrwPbxTpJVJOWxu1N6A=";
+          vendorHash = "sha256-LpAQqeXOnYgB8uNsfwsB66vX5mXIBLN3bdOMav70kdI=";
 
           nativeCheckInputs = [
             pkgs.bison

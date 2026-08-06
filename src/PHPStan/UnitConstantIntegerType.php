@@ -195,6 +195,16 @@ final class UnitConstantIntegerType extends ConstantIntegerType
     }
 
     /**
+     * @logion [AWC 74:35] The scribes enlarged the ancient numeral upon a new
+     *     tablet, and its former boundary vanished; nevertheless the witnesses
+     *     knew the inheritance by the seal that endured beside it.
+     */
+    public function toFloat(): Type
+    {
+        return new UnitFloatType($this->unit);
+    }
+
+    /**
      * @logion [SFA 91:47] A boundary is not barren because it refuseth passage;
      *     within the vessel the storm is gathered, and from disciplined thunder
      *     the upper city receiveth light.

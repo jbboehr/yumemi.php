@@ -22,9 +22,9 @@ libraries.
 | Suppress or baseline an error           | [Diagnostics](#diagnostics)                         |
 
 > **Current boundaries:** Genuinely dynamic unit strings cannot receive a precise static unit; native helpers diagnose
-> them by default while runtime object APIs may parse them dynamically. Casts and unsupported built-ins may erase a
-> brand, and dimensional analysis cannot distinguish concepts with identical physical dimensions. See
-> [Limitations](#limitations) for the complete list.
+> them by default while runtime object APIs may parse them dynamically. Casts other than explicit integer/float casts
+> and unsupported built-ins may erase a brand, and dimensional analysis cannot distinguish concepts with identical
+> physical dimensions. See [Limitations](#limitations) for the complete list.
 
 ## Branded Native Types
 
@@ -159,6 +159,50 @@ remains invalid because it can participate in the magnitude comparison.
 
 Exponentiation requires a statically known integer exponent. Rational roots and approximate real powers are not part of
 the current expression model.
+
+### Casts And Scalar Functions
+
+Explicit integer and float casts preserve the unit while changing the native numeric kind. Yumemi also preserves brands
+through a small set of built-in scalar functions whose results necessarily retain the input unit:
+
+| Expression                         | Inferred result                                          |
+| ---------------------------------- | -------------------------------------------------------- |
+| `(float) $unitInteger`             | `unit_float<'same unit'>`                                |
+| `(int) $unitFloat`                 | `unit_int<'same unit'>`                                  |
+| `abs($unitFloat)`                  | `unit_float<'same unit'>`                                |
+| `abs($unitInteger)`                | Branded integer bounds, with possible overflow promotion |
+| `ceil()`, `floor()`, and `round()` | `unit_float<'same unit'>`                                |
+
+For example, both transformations remain ordinary native PHP operations at runtime:
+
+```php
+<?php
+
+/**
+ * @param unit_float<'meter'> $offset
+ * @return unit_float<'meter'>
+ */
+function absolutePlatformOffset(float $offset): float
+{
+    return abs($offset);
+}
+
+/** @var unit_int<'meter'> $measuredHeight */
+$measuredHeight = 12;
+/** @var unit_float<'meter'> $displayHeight */
+$displayHeight = round((float) $measuredHeight, 1);
+
+assert($displayHeight === 12.0);
+```
+
+Crossing from an integer brand to a float brand generalizes known integer constants and ranges because PHPStan has no
+corresponding branded float-constant or float-range representation. `ceil()`, `floor()`, and `round()` likewise return a
+general `unit_float` while preserving the semantic unit.
+
+For branded integers, `abs()` retains exact constants and computes the hull of known ranges. The `PHP_INT_MIN` case can
+produce a float at runtime, so unbounded or partially exposed ranges follow the same `integerOverflowToFloat` policy as
+native arithmetic. With promotion enabled, their result may be a benevolent union of a nonnegative branded integer and a
+branded float; disabling promotion widens the result to an unbounded `unit_int`.
 
 ## Boundary Helpers
 
@@ -493,7 +537,8 @@ Important limits of the current static model are:
 - Native `unit()`, `unit_factor()`, and `unit_to()` calls require statically recoverable unit expressions by default.
   Dynamic object parsing and conversion remain supported, but cannot retain a specific generic unit type.
 - PHPStan supports one configured registry and does not track runtime registry identity per value.
-- Casts and unsupported PHP built-ins can erase native unit brands.
+- Explicit integer/float casts and `abs()`, `ceil()`, `floor()`, and `round()` preserve native unit brands. Other casts
+  and unsupported PHP built-ins can erase them.
 - Native `+` and `-` cannot convert dimensionally compatible magnitudes; use an explicit conversion or `Quantity`.
 - Native affine targets remain unbranded because native scalars do not retain point-versus-difference identity. Use
   `PointQuantity<'...'>` when that identity must remain statically visible.

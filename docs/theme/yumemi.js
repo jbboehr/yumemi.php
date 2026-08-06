@@ -42,7 +42,11 @@
                     },
                 ],
             },
-            { id: "native-operators", title: "Native Operators" },
+            {
+                id: "native-operators",
+                title: "Native Operators",
+                children: [{ id: "casts-and-scalar-functions", title: "Casts And Scalar Functions" }],
+            },
             {
                 id: "boundary-helpers",
                 title: "Boundary Helpers",

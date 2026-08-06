@@ -82,7 +82,8 @@ The implemented foundation now includes:
 - configurable ASCII and Unicode formatting with catalog-aware names and fraction or negative-power division;
 - native `unit_int` / `unit_float` and object `Quantity<'...'>` / `PointQuantity<'...'>` PHPStan types with arithmetic
   inference, branded integer constants and ranges, overflow-aware bounds, diagnostics, custom registries, strict native
-  helper expressions, finite object-boundary unions, and optional `@yumemi-*` promotion;
+  helper expressions, finite object-boundary unions, explicit numeric-cast and common scalar-function brand
+  preservation, and optional `@yumemi-*` promotion;
 - a separately versioned [Yumemi Apocrypha](https://github.com/jbboehr/yumemi-apocrypha.php) package for curated
   third-party stubs, leaving the generic `@yumemi-*` mechanism in core;
 - focused public documentation whose executable PHP and PHPStan examples are verified in process.
@@ -481,12 +482,6 @@ repeat the implementation's assumptions:
 
 ### Near-Term Work
 
-- Preserve native unit brands through a conservative first set of scalar transformations. Establish PHPStan's current
-  behavior and extension points, then cover explicit integer/float casts and clearly unit-preserving functions such as
-  `abs()`, `ceil()`, `floor()`, and `round()`. Preserve semantic units while allowing numeric literals or bounds to
-  generalize when exact refinement is not sound. Define `abs(PHP_INT_MIN)` against the existing integer-overflow policy,
-  and defer `min()`, `max()`, `intdiv()`, roots, and trigonometric functions because they require separate unit,
-  correlation, or exponent semantics. This work must not depend on future constant-valued or range-bearing float types.
 - Split remaining broad PHPStan diagnostic identifiers only where users need more precise suppression. Native helpers
   now distinguish dynamic and ambiguous unit expressions from invalid constant calls.
 
@@ -511,8 +506,10 @@ repeat the implementation's assumptions:
   consumers may legitimately have an older analyzer installed. Extension users require PHPStan 2.2.5 or later; automatic
   registration in a project with an older version remains an unsupported integration and should produce clear setup
   guidance rather than making the runtime package uninstallable.
-- Casts and unsupported PHP built-ins can erase native unit brands. Add targeted extensions only for demonstrated
-  workflows rather than trying to model every built-in preemptively.
+- Explicit integer/float casts and `abs()`, `ceil()`, `floor()`, and `round()` preserve native unit brands. Other casts
+  and unsupported PHP built-ins can erase them. Continue adding targeted integrations only for demonstrated workflows;
+  `min()`, `max()`, `intdiv()`, roots, and trigonometric functions remain deferred because they require distinct unit,
+  correlation, or exponent semantics.
 - Native helpers accept finite alternatives only when every valid path produces one semantic result unit. Independent
   source and target alternatives lose value correlation, so conversion helpers validate the Cartesian product and fail
   closed if any pair is invalid. Quantity boundaries continue to preserve finite target unions.
