@@ -32,22 +32,9 @@ Important principle:
 The generic [Ruinenwert](ruinenwert.md) guidance informs long-term decisions about conformance evidence, generated
 artifacts, replacement boundaries, and recoverability without becoming a separate feature roadmap.
 
-### Ruinenwert Profile
-
-- **Durable core:** the grammar, parser AST, expression and dimension models, unit registry and resolution semantics,
-  exact rational arithmetic, normalization, and conversion rules.
-- **Replaceable adapters:** PHPStan extension APIs, command-line presentation, documentation tooling, CI, and catalog
-  acquisition are expected to decay faster than the semantic core.
-- **Preserved generated artifacts:** `src/Parser/Parser.php` and `data/udunits2.php` remain consumable in a checkout;
-  their grammar, importer, source provenance, and deterministic regeneration paths remain available alongside them.
-- **Conformance evidence:** public documentation examples, regression and property tests, the UDUNITS2 differential
-  suite, bounded generated-expression tests, consumer fixtures, and release-style archive checks exercise behavior from
-  several independent directions.
-- **Observable contracts:** public runtime and PHPStan APIs, `yumemi.*` diagnostic identifiers, serialized formats, unit
-  syntax, and documented numeric policies require deliberate compatibility decisions rather than incidental preservation
-  of every internal class.
-- **Local recovery path:** the Nix development shells, Composer and Make targets, and `nix flake check` keep essential
-  generation, analysis, testing, packaging, and documentation work executable from a checkout.
+The durable component map, dependency direction, generated-artifact boundaries, expected decay points, and
+project-specific Ruinenwert profile live in [`architecture.md`](architecture.md). This document retains roadmap,
+rationale, risks, and future work.
 
 ## Old Code Assessment
 
@@ -103,7 +90,8 @@ The implemented foundation now includes:
 The public behavior is documented in [Core Concepts](../pages/core-concepts.md) and the
 [PHPStan](../pages/reference/phpstan.md), [Unit Syntax](../pages/reference/unit-syntax.md),
 [Runtime](../pages/reference/runtime.md), and [Catalog](../pages/reference/catalog.md) references. This document tracks
-architecture, rationale, risks, and future work rather than duplicating those references.
+rationale, risks, and future work rather than duplicating those references or the durable
+[architecture](architecture.md).
 
 Current verification:
 
@@ -404,10 +392,9 @@ enforce knowledge Yumemi already possesses rather than create documentation or a
    representative enforcement, invalid alternatives, consequence classifications, and known enforcement gaps. Update it
    whenever a change deliberately alters one of those rules; do not promote incidental class structure into an
    invariant.
-2. Extract the durable architecture from this planning document into `docs/development/architecture.md`. Identify the
-   semantic core, dependency direction, replaceable adapters, generated inputs and outputs, and likely decay points. Add
-   a focused architecture test that prevents runtime namespaces from acquiring dependencies on `src/PHPStan` without
-   introducing a general-purpose layering framework solely for that assertion.
+2. **Established:** maintain [`architecture.md`](architecture.md) as the durable component and replacement-boundary map.
+   [`RuntimeDependencyDirectionTest`](../../tests/Architecture/RuntimeDependencyDirectionTest.php) enforces that runtime
+   source cannot depend on PHPStan or Yumemi's PHPStan adapter without introducing a general-purpose layering framework.
 3. Add a small public black-box conformance corpus under an appropriate `tests/Conformance/` structure. Use versioned,
    data-driven fixtures where syntax, canonical forms, reduction, normalization, dimensions, exact conversion, affine
    plans, and stable error categories can be represented faithfully. Keep PHPStan-specific behavior in PHP tests where
@@ -592,24 +579,3 @@ repeat the implementation's assumptions:
 
 The broader feature comparison and intentionally deferred Pint-style capabilities remain in
 [pint-parity.md](pint-parity.md).
-
-## Current Architecture Sketch
-
-```text
-UDUNITS2 XML -> Udunits2CatalogImporter -> PhpCatalogExporter -> data/udunits2.php
-data/udunits2.php -> Udunits2UnitRegistry (catalog records only)
-UnitResolver -> UnitRegistry::findEntry() -> prebuilt Expr or AstConverter (catalog defs/prefixes) -> Expr
-Parser string -> Parser\Ast -> AstConverter (resolving or symbolic) -> Expr
-Expr -> ExprReducer -> reduced Expr
-Expr -> UnitNormalizer -> normalized Expr
-conversion string/Expr -> UnitConversionResolver -> exact scale-and-offset transform
-normalized multiplicative Expr -> ConversionFactorResolver -> Rational factor (low-level API)
-Units facade -> Quantity/runtime expression API
-
-PHPDoc/call site -> UnitTypeNodeResolverExtension/dynamic return extensions/rules
-configured UnitRegistryFactory -> shared Units -> UnitExpressionParser -> runtime pipeline above
-UnitExpression -> UnitIntegerType/UnitFloatType/QuantityType -> PHPStan inference and diagnostics
-```
-
-The PHPStan layer is an adapter over the same runtime pipeline; it does not maintain a second catalog or expression
-engine.

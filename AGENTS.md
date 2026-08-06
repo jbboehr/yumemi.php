@@ -6,6 +6,10 @@ For structural, compatibility, generation, and long-term maintenance decisions, 
 and replacement boundaries according to [Ruinenwert](docs/development/ruinenwert.md). Apply that principle in proportion
 to the change; it does not require new abstractions or documents for routine work.
 
+The project-specific [architecture](docs/development/architecture.md) defines component ownership, inward dependency
+direction, generated artifacts, and expected replacement boundaries. Consult it before moving responsibilities or adding
+cross-layer dependencies.
+
 Before changing parser, unit, conversion, registry, serialization, numeric-output, or PHPStan inference semantics, read
 the project-specific [semantic invariants](docs/development/invariants.md). Treat disagreement among those invariants,
 public documentation, tests, and implementation as an issue to investigate rather than silently resolving it in favor of

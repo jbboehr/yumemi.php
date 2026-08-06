@@ -28,6 +28,9 @@ rationale recoverable without requiring speculative abstraction or package split
 The project-specific [`docs/development/invariants.md`](docs/development/invariants.md) identifies the semantic rules
 that architectural and behavior changes must preserve or deliberately revise.
 
+[`docs/development/architecture.md`](docs/development/architecture.md) maps the semantic core, adapters, generated
+artifacts, dependency direction, and expected replacement boundaries.
+
 ## Documentation
 
 The public mdBook sources live under [`docs/pages`](docs/pages). Internal engineering documents live under
