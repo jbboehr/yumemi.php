@@ -25,6 +25,9 @@ For architectural, compatibility, generation, and long-term maintenance decision
 [`docs/development/ruinenwert.md`](docs/development/ruinenwert.md). It describes how to leave the project's behavior and
 rationale recoverable without requiring speculative abstraction or package splitting.
 
+The project-specific [`docs/development/invariants.md`](docs/development/invariants.md) identifies the semantic rules
+that architectural and behavior changes must preserve or deliberately revise.
+
 ## Documentation
 
 The public mdBook sources live under [`docs/pages`](docs/pages). Internal engineering documents live under

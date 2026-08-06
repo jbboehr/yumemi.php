@@ -400,12 +400,10 @@ developer-experience improvement, selected API and formatting polish, and explic
 Apply the [Ruinenwert](ruinenwert.md) principles through the following ordered work. These tasks should consolidate and
 enforce knowledge Yumemi already possesses rather than create documentation or abstractions for their own sake:
 
-1. Create `docs/development/invariants.md`. For each durable semantic rule, record its reason, current enforcement, a
-   tempting invalid alternative, and whether a violation is a correctness defect, compatibility break, or accepted
-   tradeoff. Cover at least the shared runtime authority, analysis-only native brands, definitional equivalence versus
-   compatible conversion, affine points and deltas, exactness boundaries, deterministic parsing and formatting, source
-   spans, strict native helper expressions, immutable registry semantics, generated-data reproducibility, serialization,
-   and stable diagnostic identifiers.
+1. **Established:** maintain [`invariants.md`](invariants.md) as the inventory of durable semantic rules, their reasons,
+   representative enforcement, invalid alternatives, consequence classifications, and known enforcement gaps. Update it
+   whenever a change deliberately alters one of those rules; do not promote incidental class structure into an
+   invariant.
 2. Extract the durable architecture from this planning document into `docs/development/architecture.md`. Identify the
    semantic core, dependency direction, replaceable adapters, generated inputs and outputs, and likely decay points. Add
    a focused architecture test that prevents runtime namespaces from acquiring dependencies on `src/PHPStan` without
