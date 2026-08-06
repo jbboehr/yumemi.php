@@ -14,6 +14,10 @@ The [compatibility policy](docs/development/compatibility.md) classifies support
 provisional surfaces, internal details, persistent formats, and breaking changes. Consult it before changing observable
 behavior or publicly visible declarations.
 
+The [generated-artifact inventory](docs/development/generated-artifacts.md) records editing authorities, pinned tools,
+provenance, licensing, consumer requirements, and exact checks for the parser and UDUNITS2 catalog. Never hand-edit
+those outputs; regenerate and commit them with their authoritative inputs.
+
 Use `composer test` for the complete PHPUnit suite, `composer analyse` for PHPStan, and `composer check` for the
 ordinary local review gate. Prefer these shared entry points over reproducing their underlying commands in new
 automation. Mutation testing, Xdebug branch coverage, the parser “probator,” and the Nix-backed UDUNITS2 differential
@@ -204,7 +208,7 @@ decision. Prefer one clear example and one precise explanation over several para
 ## Composer and Nix
 
 After running a Composer command that changes `composer.lock` or could otherwise change the resolved development
-dependency closure, update the `vendorHash` used by the `udunits2-differential` `buildComposerProject2` check in
+dependency closure, update the `vendorHash` used by the `generated-artifacts` `buildComposerProject2` check in
 `flake.nix`. Temporarily set it to `pkgs.lib.fakeHash` before running `nix flake check`, because an existing
 fixed-output store path can otherwise hide a stale hash. Replace the fake hash with Nix's reported `got` value and rerun
 the complete check.

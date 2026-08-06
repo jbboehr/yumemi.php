@@ -274,9 +274,9 @@ only known regeneration procedure.
 Removing required output or changing catalog semantics is a compatibility break. Updating the external source database
 is an explicit project decision, not routine dependency churn.
 
-**Current gap.** Parser regeneration is available but is not independently checked for byte-identical output in CI. The
-planned generated-artifact inventory must also consolidate exact tool versions and provenance that are currently spread
-across Nix, Composer, legal, and catalog documentation.
+The [generated-artifact inventory](generated-artifacts.md) consolidates the pinned tool versions, provenance, licensing,
+consumer requirements, and exact checks. The Nix `generated-artifacts` check independently verifies byte-identical
+parser and catalog output before running the UDUNITS2 differential cases.
 
 ## Serialization Rejects Semantic Drift
 

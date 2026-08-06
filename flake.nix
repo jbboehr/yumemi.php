@@ -72,18 +72,25 @@
             enabled ++ [ all.xdebug ];
         };
         src = gitignore.lib.gitignoreSource ./.;
-        udunits2-differential = php-unwrapped.buildComposerProject2 (finalAttrs: {
-          pname = "yumemi-udunits2-differential";
+        generated-artifacts = php-unwrapped.buildComposerProject2 (finalAttrs: {
+          pname = "yumemi-generated-artifacts";
           version = "0";
 
           inherit src;
 
           composerNoDev = false;
-          vendorHash = "sha256-KMloVNYu8dEl2EGeQ2KVHH6AC1cul0FqdBeLK25NLRE=";
+          vendorHash = "sha256-Oq+DfRRz3UhcKWCxVC4S3HwsHrwPbxTpJVJOWxu1N6A=";
 
-          nativeCheckInputs = [ pkgs.udunits ];
+          nativeCheckInputs = [
+            pkgs.bison
+            pkgs.udunits
+          ];
           checkPhase = ''
             runHook preCheck
+
+            cp src/Parser/Parser.php "$TMPDIR/Parser.php"
+            make --always-make src/Parser/Parser.php
+            cmp "$TMPDIR/Parser.php" src/Parser/Parser.php
 
             export HOME="$TMPDIR"
             export UDUNITS2_BIN=${pkgs.udunits}/bin/udunits2
@@ -156,7 +163,7 @@
       in
       rec {
         checks = {
-          inherit pre-commit-check udunits2-differential;
+          inherit generated-artifacts pre-commit-check;
           documentation =
             pkgs.runCommand "yumemi-documentation"
               {

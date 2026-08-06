@@ -198,9 +198,9 @@ Two committed outputs allow consumers to use Yumemi without its generation toolc
 | `src/Parser/Parser.php` | `src/Parser/grammar.y`, Bison, and `mrsuh/php-bison-skeleton`     | `Parser`, runtime and PHPStan |
 | `data/udunits2.php`     | UDUNITS2 XML, `Udunits2CatalogImporter`, and `PhpCatalogExporter` | `Udunits2UnitRegistry`        |
 
-The catalog has a Nix-backed byte-identical regeneration check. Parser regeneration is exposed through Composer and Make
-but does not yet have an independent byte-identical CI check. The planned generated-artifact inventory will consolidate
-exact tool versions, provenance, licensing, and verification without changing this component boundary.
+Both artifacts have Nix-backed byte-identical regeneration checks. The
+[generated-artifact inventory](generated-artifacts.md) records exact tool versions, provenance, licensing, consumer
+requirements, and verification without changing this component boundary.
 
 Generated files are committed consumption artifacts. Their grammar, importer, exporter, and upstream data are editing
 authorities.

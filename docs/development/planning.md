@@ -410,9 +410,10 @@ enforce knowledge Yumemi already possesses rather than create documentation or a
    gate. CI invokes the same focused Composer scripts instead of duplicating their tool commands. Mutation, Xdebug
    branch coverage, the parser “probator,” and the Nix-backed UDUNITS2 differential remain explicit specialist
    workflows; Nix remains the reproducible environment rather than the only record of how checks run.
-6. Consolidate a generated-artifact inventory for `src/Parser/Parser.php` and `data/udunits2.php`, recording
-   authoritative inputs, generators, known tool versions, provenance, licensing, consumer requirements, and
-   byte-identical or semantic reproduction checks. Link existing generation documentation instead of repeating it.
+6. **Established:** maintain the [generated-artifact inventory](generated-artifacts.md) for `src/Parser/Parser.php` and
+   `data/udunits2.php`, including editing authorities, known reproducible tool versions, provenance, licensing, consumer
+   requirements, and byte-identical plus behavioral verification. Nix checks exact regeneration of both artifacts;
+   update the inventory whenever their source, generator, provenance, or reproduction policy changes.
 7. Complete the release and succession runbook described by the pre-release checklist. Reuse the existing legal,
    stewardship, packaging, and archive documentation; identify credential storage and transfer procedures without
    storing credentials in the repository.

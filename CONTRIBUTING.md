@@ -50,6 +50,9 @@ artifacts, dependency direction, and expected replacement boundaries.
 [`docs/development/compatibility.md`](docs/development/compatibility.md) distinguishes supported application and
 integration contracts from provisional, internal, and generated details.
 
+[`docs/development/generated-artifacts.md`](docs/development/generated-artifacts.md) records how the committed parser
+and UDUNITS2 catalog are regenerated, licensed, verified, and preserved for consumers.
+
 The versioned [`tests/Conformance`](tests/Conformance/README.md) corpus records representative runtime behavior as
 language-neutral public inputs and outputs. Deliberate semantic changes should update affected cases and their
 rationale.
