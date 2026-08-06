@@ -38,7 +38,6 @@ namespace jbboehr\Yumemi\PHPStan;
 
 use jbboehr\Yumemi\Exception\InvalidArgumentException;
 use jbboehr\Yumemi\Exception\RuntimeException;
-use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 
 /**
@@ -60,7 +59,7 @@ final class ConfiguredUnitRegistryProvider
         }
 
         if ($this->factoryClass === null) {
-            return $this->registry = new Udunits2UnitRegistry();
+            return $this->registry = UnitRegistry::bundled();
         }
 
         if (!class_exists($this->factoryClass)) {

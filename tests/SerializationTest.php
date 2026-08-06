@@ -105,6 +105,19 @@ final class SerializationTest extends TestCase
         $this->assertSame('4/7', $restored->mul(2)->valueToString());
     }
 
+    public function testDefaultRasterQuantityRoundTripPreservesNamedDimension(): void
+    {
+        $quantity = Units::default()->quantity(24, 'pixels');
+
+        $restored = unserialize(serialize($quantity));
+
+        $this->assertInstanceOf(Quantity::class, $restored);
+        $this->assertSame(Units::default(), $restored->units());
+        $this->assertSame('24', $restored->valueToString());
+        $this->assertSame('pixels', $restored->unitToString());
+        $this->assertSame(Dimension::IMAGE_SAMPLE, $restored->dimension()->toString());
+    }
+
     public function testDefaultPointRoundTripPreservesAffineBehaviorAndContext(): void
     {
         $point = Units::default()->point(new Rational(641, 2), 'fahrenheit');

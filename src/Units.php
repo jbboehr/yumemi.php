@@ -57,7 +57,6 @@ use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Number\BinaryFloat;
 use jbboehr\Yumemi\Parser\Parser;
 use jbboehr\Yumemi\Registry\UnitRegistry;
-use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
 
 /**
  * @api
@@ -83,7 +82,7 @@ final class Units
     }
 
     /**
-     * Shared default context backed by the UDUNITS2 catalog.
+     * Shared default context backed by Yumemi's bundled catalog.
      *
      * Repeated calls return the same instance, so quantities from separate
      * Units::default() calls can be combined. For an isolated catalog or tests,
@@ -91,7 +90,7 @@ final class Units
      */
     public static function default(): self
     {
-        return self::$default ??= new self(new Udunits2UnitRegistry());
+        return self::$default ??= new self(UnitRegistry::bundled());
     }
 
     /**
@@ -99,7 +98,7 @@ final class Units
      *
      * Returns the previous context so a temporary replacement can be restored in a finally block.
      * Passing null clears the shared context; the next {@see self::default()} call lazily creates
-     * a fresh context backed by the bundled UDUNITS2 catalog.
+     * a fresh context backed by the bundled catalog.
      *
      * @logion [OSD 96:97] The appointed archive entered beneath the seal of the
      *     former keeper, which was returned when its season of judgment ended.

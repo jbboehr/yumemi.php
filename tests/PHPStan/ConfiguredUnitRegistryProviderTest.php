@@ -39,7 +39,6 @@ namespace jbboehr\Yumemi\Tests\PHPStan;
 use jbboehr\Yumemi\PHPStan\ConfiguredUnitRegistryProvider;
 use jbboehr\Yumemi\PHPStan\UnitExpressionParser;
 use jbboehr\Yumemi\PHPStan\UnitRegistryFactory;
-use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
 use jbboehr\Yumemi\Units;
@@ -52,12 +51,12 @@ final class ConfiguredUnitRegistryProviderTest extends TestCase
         CountingUnitRegistryFactory::$calls = 0;
     }
 
-    public function testNullFactoryUsesUdunits2(): void
+    public function testNullFactoryUsesBundledCatalog(): void
     {
         $registry = (new ConfiguredUnitRegistryProvider(null))->getRegistry();
 
-        $this->assertInstanceOf(Udunits2UnitRegistry::class, $registry);
         $this->assertNotNull($registry->findCatalogRecord('meter'));
+        $this->assertNotNull($registry->findCatalogRecord('pixel'));
     }
 
     public function testConfiguredFactoryIsInvokedOnce(): void

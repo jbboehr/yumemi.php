@@ -32,6 +32,7 @@ if [[ $PACKAGE_MODE == archive ]]; then
     required_paths=(
         composer.json
         data/udunits2.php
+        data/yumemi.php
         docs/LICENSE_EXCEPTION.md
         docs/UDUNITS-COPYRIGHT
         docs/pages/images/yumemi-banner.png

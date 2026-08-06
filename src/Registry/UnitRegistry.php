@@ -167,6 +167,33 @@ class UnitRegistry
     }
 
     /**
+     * Compose Yumemi's authored catalog additions over a generated UDUNITS2 catalog.
+     *
+     * @logion [SFA 85:22] The moth entered the magistrate's robe where gold thread concealed a careless seam. By
+     *     winter the sleeves remained splendid, but the breast fell open before the petitioners. Attend first to the
+     *     hidden joining, for ornament defendeth no neglected bond; mend it while the garment yet remembereth its
+     *     shape.
+     *
+     * @internal
+     */
+    public static function bundled(?string $udunits2DataFile = null): self
+    {
+        $records = require __DIR__ . '/../../data/yumemi.php';
+
+        if (!is_array($records)) {
+            throw new UnexpectedValueException('Bundled Yumemi catalog file must return an array.');
+        }
+
+        /** @var array<string, CatalogRecord> $records */
+        $supplement = new self(records: $records);
+
+        return new CompositeUnitRegistry(
+            new Udunits2UnitRegistry($udunits2DataFile),
+            $supplement,
+        );
+    }
+
+    /**
      * Tiny hand-built registry for tests and examples (not UDUNITS2).
      * Prefer {@see \jbboehr\Yumemi\Units::default()} for application code.
      *

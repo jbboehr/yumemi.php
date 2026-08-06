@@ -19,6 +19,13 @@ assertType("unit_float<'meter'>", unit(unit: 'meter', value: 1.5));
 assertType("3&unit_int<'second'>", unit(3, 'second'));
 assertType("1&unit_int<'kilogram * meter / second'>", unit(1, 'meter / second kilogram'));
 assertType("unit_float<'kilogram * meter / second ^ 2'>", unit(1500.0, 'kilogram') * unit(3.0, 'meter / second^2'));
+assertType("1&unit_int<'pixel'>", unit(1, 'pixels'));
+assertType("unit_float<'pixel ^ 2'>", unit(3.0, 'pixel') * unit(4.0, 'pixel'));
+assertType("unit_float<'pixel / international_inch'>", unit(96.0, 'pixel / inch'));
+assertType("unit_float<'english_metric_unit'>", unit(1.0, 'EMU'));
+assertType("unit_float<'typographic_point'>", unit_to(96.0, 'css_pixel', 'typographic_point'));
+assertType('*ERROR*', unit(1, 'pixel') + unit(1, 'css_pixel'));
+assertType('*ERROR*', unit(1, 'px'));
 assertType('*ERROR*', unit(1.0, 'not_a_real_unit_xyz'));
 
 /** @param int<0, 100> $value */

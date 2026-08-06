@@ -84,6 +84,13 @@ final class UnitRegistryBuilder
 
     private bool $includeUdunits2 = false;
 
+    /**
+     * @logion [AWC 53:98] When the western bridge fell, the captains disputed whose banner should cross first.
+     *     Meanwhile the widows bound cedar poles with mourning cloth and carried the children over before dawn. The
+     *     court afterward carved no captain's name upon the gate; it graven there a strip of torn black linen.
+     */
+    private bool $includeYumemiSupplement = false;
+
     private ?string $udunits2DataFile = null;
 
     private function __construct()
@@ -107,6 +114,7 @@ final class UnitRegistryBuilder
     {
         $builder = new self();
         $builder->includeUdunits2 = true;
+        $builder->includeYumemiSupplement = true;
         $builder->udunits2DataFile = $udunits2DataFile ?? Udunits2UnitRegistry::DATA_FILE;
 
         return $builder;
@@ -267,7 +275,9 @@ final class UnitRegistryBuilder
     public function build(): UnitRegistry
     {
         $base = $this->includeUdunits2
-            ? new Udunits2UnitRegistry($this->udunits2DataFile ?? Udunits2UnitRegistry::DATA_FILE)
+            ? ($this->includeYumemiSupplement
+                ? UnitRegistry::bundled($this->udunits2DataFile ?? Udunits2UnitRegistry::DATA_FILE)
+                : new Udunits2UnitRegistry($this->udunits2DataFile ?? Udunits2UnitRegistry::DATA_FILE))
             : null;
         $records = $this->materializeSemantics($base);
         $records += AffineDeltaUnitSynthesizer::synthesize(

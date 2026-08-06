@@ -332,7 +332,7 @@ same exception message. Exact-order tests cover case variants, name-kind ties, r
 and equivalent composite registries with different layer enumeration. A changed registry may legitimately change a
 suggestion; equivalent immutable registry snapshots produce the same ordered suggestions regardless of construction.
 
-## Extensible Base Dimensions And Currency
+## Extensible Base Dimensions, Currency, And Raster Samples
 
 The seven SI dimensions remain the built-in physical axes with their established named accessors and compact fixed
 vector. User-defined primitive dimensions extend that model rather than replacing it with a string-keyed map for every
@@ -367,6 +367,13 @@ mutable rates as catalog constants.
 This preserves the current arithmetic policy: compatible currencies may be converted explicitly or through exact
 `Quantity` operations, while branded native addition still cannot combine different currency units without an explicit
 conversion. Cross-registry operations continue to reject values from different rate snapshots.
+
+The bundled default registry uses the same extension-axis mechanism for nominal raster samples. `pixel` is the base unit
+of the `image_sample` dimension, so pixel counts and areas remain distinct from physical lengths. `css_pixel` is a
+separate length equal to `inch / 96`; conversion between raster samples and physical lengths requires an explicit
+resolution such as `pixel / inch`. The authored supplement also provides exact `typographic_point`, `twip`, and
+`english_metric_unit` definitions for document integrations while leaving ambiguous `px`, `pt`, `pica`, `dpi`, and `ppi`
+spellings unchanged.
 
 ## Remaining Issues And Deferred Work
 
@@ -542,6 +549,9 @@ repeat the implementation's assumptions:
 - GNU Units import
 - Formula interpolation
 - Preferred/compact unit selection and broader formatting presets
+- Additional convenience units only when a concrete integration establishes their semantics. A modern
+  `typographic_pica`, basis points, frames, audio samples, voxels, and printer dots remain deferred rather than
+  acquiring speculative bundled definitions.
 - A separate strict-expression option for dynamic `Units`, `Quantity`, and `PointQuantity` boundaries if applications
   demonstrate a need beyond the native-helper policy. Their explicit runtime parsing role remains dynamic by default.
 - A bounded parse cache scoped to each immutable `Units` context, and a unified multiplicative/affine conversion-plan

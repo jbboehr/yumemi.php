@@ -79,12 +79,13 @@ final class UnitRegistryBuilderTest extends TestCase
         $this->assertNull($registry->findCatalogRecord('meter'));
     }
 
-    public function testDefaultBuilderIncludesUdunits2(): void
+    public function testDefaultBuilderIncludesBundledCatalog(): void
     {
         $registry = UnitRegistryBuilder::default()->build();
 
-        $this->assertInstanceOf(Udunits2UnitRegistry::class, $registry);
+        $this->assertInstanceOf(CompositeUnitRegistry::class, $registry);
         $this->assertNotNull($registry->findCatalogRecord('meter'));
+        $this->assertNotNull($registry->findCatalogRecord('pixel'));
     }
 
     public function testBuilderDeclaresPrimitiveDimensionAndDerivedUnits(): void
@@ -206,6 +207,9 @@ final class UnitRegistryBuilderTest extends TestCase
             $this->assertSame(['type' => 'base', 'name' => 'widget'], $registry->findCatalogRecord('widget'));
             $this->assertNull($registry->findCatalogRecord('meter'));
         }
+
+        $this->assertNotNull($defaultRegistry->findCatalogRecord('pixel'));
+        $this->assertNull($optInRegistry->findCatalogRecord('pixel'));
 
         $this->assertSame(['widget'], $emptyBuilder->build()->names());
     }

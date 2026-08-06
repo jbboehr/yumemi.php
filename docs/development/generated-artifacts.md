@@ -17,6 +17,10 @@ output, and review the resulting diff. Do not hand-edit either generated file.
 Both files must remain committed and present in release archives. A future generator may replace the current one, but it
 must preserve the supported grammar or catalog semantics and produce the committed consumer artifact.
 
+[`data/yumemi.php`](../../data/yumemi.php) is separate authored catalog data, not a generated artifact. It layers
+project-defined dimensions, units, and aliases over UDUNITS2 without changing the provenance or reproducibility of
+`data/udunits2.php`.
+
 ## Known Reproducible Environment
 
 The authoritative pins are [`flake.lock`](../../flake.lock) and [`composer.lock`](../../composer.lock). At the time of
@@ -134,8 +138,9 @@ definitions, affine metadata, synthesized differences, and compatibility effects
 ### Consumer Requirement
 
 [`Udunits2UnitRegistry::DATA_FILE`](../../src/Registry/Udunits2UnitRegistry.php) names `data/udunits2.php` as the
-bundled default registry. The release-style consumer test verifies both the catalog and its copyright notice in the
-Composer archive. Users do not need the XML database, DOM importer, exporter, or generation command.
+generated upstream catalog. The bundled default registry composes that file with the authored `data/yumemi.php`
+supplement. The release-style consumer test verifies both catalogs and the UDUNITS2 copyright notice in the Composer
+archive. Users do not need the XML database, DOM importer, exporter, or generation command.
 
 ## Change Checklist
 

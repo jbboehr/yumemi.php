@@ -1,7 +1,7 @@
 # Built-In and Custom Units
 
-Yumemi ships a generated unit catalog derived from UDUNITS2. The same catalog drives runtime name resolution,
-conversion, formatting, and PHPStan analysis.
+Yumemi combines a generated unit catalog derived from UDUNITS2 with a small authored supplement. The same composed
+catalog drives runtime name resolution, conversion, formatting, and PHPStan analysis.
 
 The imported UDUNITS2 material is distributed under the terms in
 [UDUNITS-COPYRIGHT](https://github.com/jbboehr/yumemi.php/blob/master/docs/UDUNITS-COPYRIGHT). Yumemi's own code remains
@@ -9,8 +9,8 @@ under the project license described in the root README and license files.
 
 ## Default Catalog
 
-`Units::default()` uses `Udunits2UnitRegistry` and the checked-in `data/udunits2.php` catalog. The generated data
-includes:
+`Units::default()` layers the checked-in `data/yumemi.php` supplement over `Udunits2UnitRegistry` and the generated
+`data/udunits2.php` catalog. The generated UDUNITS2 data includes:
 
 - base, dimensionless, and derived units;
 - canonical names, aliases, symbols, explicit plurals, and unambiguous generated plurals;
@@ -24,18 +24,43 @@ as `m`, `ft`, `s`, `kg`, and `Pa`; and composed expressions such as `kilometer /
 exhaustive. Names and symbols remain case-sensitive, and aliases such as `foot` may resolve to a more specific canonical
 name such as `international_foot`.
 
-`Udunits2UnitRegistry` and `UnitRegistryBuilder::default($dataFile)` may load another generated catalog from a readable
-local PHP file. That file is executable trusted configuration: PHP evaluates it before Yumemi can validate the returned
-catalog shape. Never use an uploaded file, URL, or other untrusted path as a catalog. Prefer builder definitions and
-aliases when an application needs custom units rather than a replacement generated catalog.
+The authored supplement provides exact units needed by image and document APIs:
+
+| Unit                  | Meaning                                                 |
+| --------------------- | ------------------------------------------------------- |
+| `pixel`               | Base unit of the nominal `image_sample` dimension       |
+| `css_pixel`           | CSS reference length equal to exactly `inch / 96`       |
+| `typographic_point`   | Modern publishing point equal to exactly `inch / 72`    |
+| `twip`                | Twentieth of a typographic point, exactly `inch / 1440` |
+| `english_metric_unit` | Office Open XML EMU, equal to exactly `inch / 914400`   |
+
+The corresponding plurals are accepted, and `EMU` is a symbol for `english_metric_unit`. The CSS relationships follow
+the [W3C absolute-length definitions](https://www.w3.org/TR/css-values-4/#absolute-lengths). The EMU relationship
+follows the
+[Microsoft Office Drawing specification](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/f1ca887b-11d5-4cf6-acb1-acc0b4fb5dca).
+
+Raster `pixel` is deliberately not a length. A conversion from pixels to inches requires a resolution, represented by an
+expression such as `pixel / inch`; `pixel` is therefore incompatible with `css_pixel`, `inch`, and `meter`. `css_pixel`
+represents the separate CSS reference length. The ambiguous abbreviation `px` is not defined.
+
+Existing UDUNITS2 spellings retain their meanings: `pt` is the US liquid-pint symbol, and `pica` is the historical
+printer's pica based on `printers_point`. Likewise, `dpi` and `ppi` remain prefix decompositions of `pi`, not density
+units. Use `typographic_point` and explicit density expressions rather than relying on those abbreviations.
+
+`Udunits2UnitRegistry` loads only UDUNITS2 data. `UnitRegistryBuilder::default($dataFile)` may compose the Yumemi
+supplement over another generated catalog from a readable local PHP file; that catalog must provide any upstream names
+used by the supplemental definitions. The file is executable trusted configuration: PHP evaluates it before Yumemi can
+validate the returned catalog shape. Never use an uploaded file, URL, or other untrusted path as a catalog. Prefer
+builder definitions and aliases when an application needs custom units rather than a replacement generated catalog.
 
 Lookup is case-sensitive. Exact names win before dynamic prefix decomposition, and prefixes apply only when the
 remaining suffix is an exact unit name. See the [unit syntax reference](unit-syntax.md#unit-names) for examples.
 
 ## Custom Registries
 
-Use `UnitRegistryBuilder::default()` to layer custom definitions and aliases over UDUNITS2. Use
-`UnitRegistryBuilder::empty()` for an isolated catalog.
+Use `UnitRegistryBuilder::default()` to layer custom definitions and aliases over Yumemi's supplement and UDUNITS2. Use
+`UnitRegistryBuilder::empty()` for an isolated catalog. Calling `includeUdunits2()` on an empty builder adds only the
+upstream catalog, without the Yumemi supplement.
 
 Definitions use the normal unit language and are parsed against the completed registry on first use. Multiplicative
 definitions work throughout the runtime. An affine definition such as `degree_widget = kelvin @ 100` works as a

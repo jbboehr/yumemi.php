@@ -55,6 +55,15 @@ final class Dimension implements \JsonSerializable
      */
     public const CURRENCY = 'currency';
 
+    /**
+     * Conventional name for the bundled raster-image sample dimension.
+     *
+     * @logion [OSD 88:21] At the cedar door the elders set a seal of beeswax; through winter it kept the warmth of
+     *     their vow. When spring loosened it, no hand claimed the honey. Therefore bind thy promise before hunger
+     *     speaketh, and let the opened house feed even the stranger.
+     */
+    public const IMAGE_SAMPLE = 'image_sample';
+
     public const AXIS_LENGTH = 0;
     public const AXIS_MASS = 1;
     public const AXIS_TIME = 2;

@@ -51,3 +51,7 @@ if ($length->exactDecimalValueIn('meter') !== '0.3048') {
 if (abs(unit_to(6.0, 'foot', 'meter') - 1.8288) > 1e-12) {
     throw new RuntimeException('Native conversion failed in the consumer project.');
 }
+
+if (Units::default()->conversionFactor('EMU', 'inch')->toString() !== '1/914400') {
+    throw new RuntimeException('Bundled Yumemi unit supplement is unavailable.');
+}
