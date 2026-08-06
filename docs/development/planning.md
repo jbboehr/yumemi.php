@@ -388,6 +388,55 @@ developer-experience improvement, selected API and formatting polish, and explic
 
 - Before creating the first release tag, remove `:dev-master` from the README installation command; after Packagist
   imports the tag, verify that the unqualified command installs the tagged release.
+- Publish an honest compatibility policy that distinguishes supported runtime and PHPStan APIs, provisionally public
+  extension points, tool-specific integration surfaces, serialized formats, generated implementation details, and
+  explicitly internal code.
+- Record the local release and succession procedure, including artifact verification, signing, publication services,
+  required accounts and permissions without secret values, package transfer, compatible forks, and intentional project
+  freezing.
+
+### Preservation Roadmap
+
+Apply the [Ruinenwert](ruinenwert.md) principles through the following ordered work. These tasks should consolidate and
+enforce knowledge Yumemi already possesses rather than create documentation or abstractions for their own sake:
+
+1. Create `docs/development/invariants.md`. For each durable semantic rule, record its reason, current enforcement, a
+   tempting invalid alternative, and whether a violation is a correctness defect, compatibility break, or accepted
+   tradeoff. Cover at least the shared runtime authority, analysis-only native brands, definitional equivalence versus
+   compatible conversion, affine points and deltas, exactness boundaries, deterministic parsing and formatting, source
+   spans, strict native helper expressions, immutable registry semantics, generated-data reproducibility, serialization,
+   and stable diagnostic identifiers.
+2. Extract the durable architecture from this planning document into `docs/development/architecture.md`. Identify the
+   semantic core, dependency direction, replaceable adapters, generated inputs and outputs, and likely decay points. Add
+   a focused architecture test that prevents runtime namespaces from acquiring dependencies on `src/PHPStan` without
+   introducing a general-purpose layering framework solely for that assertion.
+3. Add a small public black-box conformance corpus under an appropriate `tests/Conformance/` structure. Use versioned,
+   data-driven fixtures where syntax, canonical forms, reduction, normalization, dimensions, exact conversion, affine
+   plans, and stable error categories can be represented faithfully. Keep PHPStan-specific behavior in PHP tests where
+   its native type system is part of the contract, and do not migrate existing tests merely to satisfy the directory
+   shape.
+4. Define the compatibility surface before the first release. State which runtime APIs, PHPStan pseudo-types,
+   diagnostics, configuration, grammar, serialization formats, and numeric policies users may rely upon, while keeping
+   tool-specific adapters and internal classes replaceable. Do not imply stability for every public PHP declaration or
+   freeze human-readable diagnostic prose.
+5. Provide conventional local entry points such as `composer test`, `composer analyse`, and `composer check`, composed
+   from the existing focused commands. Audit CI so its authoritative checks invoke the same local workflows instead of
+   encoding otherwise unavailable procedure; retain Nix as the reproducible environment rather than the only record of
+   how checks run.
+6. Consolidate a generated-artifact inventory for `src/Parser/Parser.php` and `data/udunits2.php`, recording
+   authoritative inputs, generators, known tool versions, provenance, licensing, consumer requirements, and
+   byte-identical or semantic reproduction checks. Link existing generation documentation instead of repeating it.
+7. Complete the release and succession runbook described by the pre-release checklist. Reuse the existing legal,
+   stewardship, packaging, and archive documentation; identify credential storage and transfer procedures without
+   storing credentials in the repository.
+8. Record concise architectural decisions only when their rationale affects future work. Initial candidates are the
+   shared runtime semantic authority, branded scalars versus exact value objects, definitional equivalence versus
+   dimensional compatibility, affine point/delta separation, committed generated catalogs, and the separation of
+   Apocrypha from the core package. Do not reconstruct a project diary.
+
+Do not pursue this roadmap by splitting the semantic core into more packages, adding interfaces without replacement
+scenarios, preserving exact error messages, moving all existing tests, or creating empty policy documents. The durable
+knowledge and executable boundaries are the objective.
 
 ### Verification Roadmap
 
