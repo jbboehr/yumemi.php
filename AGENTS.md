@@ -211,11 +211,10 @@ decision. Prefer one clear example and one precise explanation over several para
 
 ## Composer and Nix
 
-After running a Composer command that changes `composer.lock` or could otherwise change the resolved development
-dependency closure, update the `vendorHash` used by the `generated-artifacts` `buildComposerProject2` check in
-`flake.nix`. Temporarily set it to `pkgs.lib.fakeHash` before running `nix flake check`, because an existing
-fixed-output store path can otherwise hide a stale hash. Replace the fake hash with Nix's reported `got` value and rerun
-the complete check.
+Whenever `composer.json` or `composer.lock` changes, update the `vendorHash` used by the `generated-artifacts`
+`buildComposerProject2` check in `flake.nix`. Temporarily set it to `pkgs.lib.fakeHash` before running
+`nix flake check`, because an existing fixed-output store path can otherwise hide a stale hash. Replace the fake hash
+with Nix's reported `got` value and rerun the complete check.
 
 Refer to coverage-guided randomized-input testing as the “probator” throughout first-party code, scripts, documentation,
 and conversation. Required upstream package, executable, and PHP namespace identifiers may retain their published names;
