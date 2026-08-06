@@ -18,6 +18,22 @@ A pull request should:
 AI-assisted contributions are permitted, but you remain responsible for reviewing the submitted material and ensuring
 that you have the right to license it under these terms.
 
+Enter the Nix development shell, install Composer dependencies, and use the conventional local checks:
+
+```shell
+nix develop
+composer install
+composer check
+```
+
+`composer check` validates Composer metadata and whitespace, formatting, PHPStan, PHPUnit, public documentation,
+benchmark discovery, and the release-style consumer archive. During focused work, `composer test`, `composer analyse`,
+`composer cs`, and `composer docs:check` run the corresponding parts independently. `nix flake check` additionally
+verifies the reproducible Nix environment and the UDUNITS2 differential suite.
+
+Mutation testing, Xdebug branch coverage, alternate property-test seeds, and the parser “probator” are intentionally
+separate investigative workflows rather than requirements for every local edit.
+
 See [`docs/development/mutation-testing.md`](docs/development/mutation-testing.md) for the optional mutation-testing
 workflow and guidance on interpreting escaped mutants.
 

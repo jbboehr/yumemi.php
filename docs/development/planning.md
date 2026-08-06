@@ -405,10 +405,11 @@ enforce knowledge Yumemi already possesses rather than create documentation or a
    APIs, PHPStan pseudo-types, diagnostics, configuration, grammar, persistent formats, integration contracts,
    provisional surfaces, and internal or generated details. Review it before each release and whenever a change alters
    the supported boundary; do not infer stability from PHP visibility or freeze human-readable diagnostic prose.
-5. Provide conventional local entry points such as `composer test`, `composer analyse`, and `composer check`, composed
-   from the existing focused commands. Audit CI so its authoritative checks invoke the same local workflows instead of
-   encoding otherwise unavailable procedure; retain Nix as the reproducible environment rather than the only record of
-   how checks run.
+5. **Established:** use `composer test` for the complete PHPUnit suite without coverage, `composer test:coverage` for
+   the existing PCOV CI run, `composer analyse` for PHPStan, and `composer check` for the ordinary comprehensive local
+   gate. CI invokes the same focused Composer scripts instead of duplicating their tool commands. Mutation, Xdebug
+   branch coverage, the parser “probator,” and the Nix-backed UDUNITS2 differential remain explicit specialist
+   workflows; Nix remains the reproducible environment rather than the only record of how checks run.
 6. Consolidate a generated-artifact inventory for `src/Parser/Parser.php` and `data/udunits2.php`, recording
    authoritative inputs, generators, known tool versions, provenance, licensing, consumer requirements, and
    byte-identical or semantic reproduction checks. Link existing generation documentation instead of repeating it.

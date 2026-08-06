@@ -14,6 +14,11 @@ The [compatibility policy](docs/development/compatibility.md) classifies support
 provisional surfaces, internal details, persistent formats, and breaking changes. Consult it before changing observable
 behavior or publicly visible declarations.
 
+Use `composer test` for the complete PHPUnit suite, `composer analyse` for PHPStan, and `composer check` for the
+ordinary local review gate. Prefer these shared entry points over reproducing their underlying commands in new
+automation. Mutation testing, Xdebug branch coverage, the parser “probator,” and the Nix-backed UDUNITS2 differential
+remain specialist checks documented separately.
+
 Before changing parser, unit, conversion, registry, serialization, numeric-output, or PHPStan inference semantics, read
 the project-specific [semantic invariants](docs/development/invariants.md). Treat disagreement among those invariants,
 public documentation, tests, and implementation as an issue to investigate rather than silently resolving it in favor of
