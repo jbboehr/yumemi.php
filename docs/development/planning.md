@@ -474,11 +474,16 @@ repeat the implementation's assumptions:
   `AffineDeltaUnitSynthesizer` is fully covered, while `UnitDefinitionClassifier` leaves only a nameless record excluded
   by the catalog-record contract. The importer/exporter audit reached 100% of 214 branches and 233 executable lines,
   added clean domain failures for unreadable and malformed XML, and verifies byte-identical regeneration from the real
-  split UDUNITS2 database in the Nix-backed test group. Audit formatting next. Reassess parser-diagnostic branch
-  coverage after reviewing “probator” findings rather than duplicating the current parser investigation. Add tests only
-  when an uncovered outcome is reachable and observably meaningful. Path coverage remains informational because
-  combinations grow rapidly; `PointQuantity::__unserialize()` alone exposes 4,096 paths through compound payload
-  validation.
+  split UDUNITS2 database in the Nix-backed test group. The focused formatting audit reached 86.36% of 110 branches and
+  96.00% of 150 executable lines across 156 relevant tests, added a shortest-codepoint symbol-selection contract, and
+  killed 119 of 125 focused mutants; all six survivors were behaviorally equivalent. Canonical reduction makes the
+  remaining renderer branches unreachable, while the untested name fallbacks require contradictory registry lookup and
+  descriptor APIs. A complete-suite Xdebug run proved impractical once generative round trips took several minutes per
+  data case, so this is explicitly a focused percentage; the complete PHPUnit suite remains the separate behavioral
+  gate. Reassess parser-diagnostic branch coverage next, using “probator” findings rather than duplicating the existing
+  parser robustness suite. Add tests only when an uncovered outcome is reachable and observably meaningful. Path
+  coverage remains informational because combinations grow rapidly; `PointQuantity::__unserialize()` alone exposes 4,096
+  paths through compound payload validation.
 - Triage Infection's escaped and timed-out mutants periodically before raising the MSI floor. Add contract-level
   assertions for observable survivors, record or ignore behaviorally equivalent mutations, distinguish deliberately
   unreachable defensive branches, and confirm that timeouts are explained by removed termination guards rather than

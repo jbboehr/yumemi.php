@@ -41,6 +41,7 @@ use jbboehr\Yumemi\Formatter\DivisionStyle;
 use jbboehr\Yumemi\Formatter\FormatOptions;
 use jbboehr\Yumemi\Formatter\Typography;
 use jbboehr\Yumemi\Formatter\UnitNameStyle;
+use jbboehr\Yumemi\Registry\UnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
 use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -141,6 +142,22 @@ final class FormattingPolicyTest extends TestCase
         )));
         $this->assertSame('L', $units->format('litres', new FormatOptions(
             unitNameStyle: UnitNameStyle::Symbol,
+        )));
+    }
+
+    public function testSymbolSelectionPrefersTheShortestCodepointLength(): void
+    {
+        $units = new Units(new UnitRegistry(records: [
+            'widget' => ['type' => 'base', 'name' => 'widget'],
+            'aa' => ['type' => 'alias', 'name' => 'aa', 'def' => 'widget', 'aliasKind' => 'symbol'],
+            'b' => ['type' => 'alias', 'name' => 'b', 'def' => 'widget', 'aliasKind' => 'symbol'],
+            'c' => ['type' => 'alias', 'name' => 'c', 'def' => 'widget', 'aliasKind' => 'symbol'],
+            "\xff" => ['type' => 'alias', 'name' => "\xff", 'def' => 'widget', 'aliasKind' => 'symbol'],
+        ]));
+
+        $this->assertSame('b', $units->format('widget', new FormatOptions(
+            unitNameStyle: UnitNameStyle::Symbol,
+            typography: Typography::Unicode,
         )));
     }
 

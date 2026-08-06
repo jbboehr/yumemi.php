@@ -28,6 +28,10 @@ PHPUnit's command-line coverage filter accepts directories, not individual files
 understate coverage from callers elsewhere in the suite. Use it to investigate a specific decision, then omit
 `BRANCH_COVERAGE_TESTS` when recording the subsystem's aggregate result.
 
+If path collection makes a complete-suite run impractical because a generative or property test expands dramatically
+under Xdebug, record the exact focused test scope instead of presenting its percentage as an aggregate. Include the
+relevant direct and integration callers, then run the complete suite normally to retain behavioral verification.
+
 ## Interpreting Results
 
 Branch coverage asks whether each decision outcome ran. Path coverage asks which complete combinations of decisions ran
@@ -65,6 +69,15 @@ These are point-in-time diagnostics, not enforced floors:
   byte-for-byte with `data/udunits2.php`. Of 303 focused mutants, 298 were killed and three were syntax errors; the two
   survivors are equivalent because plural generation receives only names of at least three characters and a nameless,
   symbolless prefix cannot mutate the catalog after its early return is removed.
+- The 2026-08-05 focused `src/Formatter` audit covered 86.36% of 110 branches and 96.00% of 150 executable lines across
+  the formatter, parser/formatter round-trip, quantity, point, and `Units` tests. It added a contract proving that
+  symbol selection prefers the shortest codepoint length even when catalog lexical order differs, including
+  deterministic handling of malformed UTF-8 catalog text. Of 125 focused mutants, 119 were killed; the six survivors are
+  equivalent cache, array-reindexing, prefix-contract, regular-expression-flag, dominated-comparison, or scalar-coercion
+  changes. The remaining renderer branches are eliminated by canonical reduction before rendering, while the uncovered
+  unit and prefix fallbacks require a registry whose exact lookup and descriptor APIs contradict each other. A
+  complete-suite Xdebug run was stopped when bounded generative round trips took several minutes per data case; the
+  recorded percentage therefore belongs only to the stated 156-test scope, with the complete suite verified normally.
 
-The next useful focused target is formatting. Reassess parser diagnostics after reviewing findings from the manual
-“probator” campaign so a branch audit adds independent evidence rather than duplicating the same investigation.
+The next useful focused target is parser diagnostics, using findings from the manual “probator” campaign so the audit
+adds independent evidence rather than duplicating the existing parser robustness suite.
