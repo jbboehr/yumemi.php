@@ -563,9 +563,16 @@ repeat the implementation's assumptions:
   lazily caching an index per immutable registry. Build that index from the typed effective-entry lookup so composite
   registries preserve whole-layer precedence and base aliases continue to follow overlay replacements. The same index
   should serve canonical/symbol formatter lookups so newly constructed formatters do not repeat catalog scans;
-  expression resolution remains in `UnitResolver`. The index may also retain stable entries to avoid repeated wrapper
-  allocation. Avoid a separate unbounded per-name entry cache: unknown-name suggestion ranking inspects the complete
-  catalog and could populate that cache with every entry after one failed lookup.
+  expression resolution remains in `UnitResolver`. Cache each composite registry's merged name list as part of this
+  work. Retain a dimension-to-base-unit map in immutable registry metadata and compose it with whole-layer precedence so
+  duplicate primitive dimensions can be rejected without scanning every effective name and allocating entry wrappers.
+  The index may also retain stable entries to avoid repeated wrapper allocation. Avoid a separate unbounded per-name
+  entry cache: unknown-name suggestion ranking inspects the complete catalog and could populate that cache with every
+  entry after one failed lookup.
+- If repeated default-registry construction becomes a measured concern, cache the successfully validated canonical
+  `Udunits2UnitRegistry::DATA_FILE` array per process rather than skipping structural validation. Continue fully loading
+  and validating every caller-supplied catalog path so a custom file can change between snapshots and malformed trusted
+  configuration still fails closed. The small authored Yumemi supplement does not justify an independent cache.
 - Stable registry identifiers and an application resolver for serialized graphs containing values from several custom
   `Units` contexts. Native serialization currently supports the default context plus one dynamically scoped custom
   context through `Units::deserialize()` and rejects semantic drift. Broader ecosystem integrations remain deferred.
