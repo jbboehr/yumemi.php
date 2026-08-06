@@ -382,8 +382,8 @@ developer-experience improvement, selected API and formatting polish, and explic
 
 ### Pre-Release Checklist
 
-- Before creating the first release tag, remove `:dev-master` from the README installation command; after Packagist
-  imports the tag, verify that the unqualified command installs the tagged release.
+- Before creating the first release tag, remove `:dev-master` from the README and public installation instructions;
+  after Packagist imports the tag, verify that the unqualified command installs the tagged release.
 - Review the established [compatibility policy](compatibility.md) against the intended first release, then publish it
   with the tag without broadening support beyond the documented and tested surface.
 - Follow the established [release and succession runbook](release-and-succession.md), including artifact verification,

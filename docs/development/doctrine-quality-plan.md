@@ -49,7 +49,7 @@ Apocrypha gold is the quality target. Do not average against PointQuantity bulk 
    remains stable even though the implementation now belongs to another repository.
 2. **`doctrine-anti.md`** — five to eight reverse-engineerable examples (numerator/coordinate/power-bounds class)
    labeled _reject_.
-3. **One-page agent brief** (not the full ~1300-line style guide):
+3. **One-page agent brief** (not the full style guide):
    - independence first; no decodeable allegory;
    - concrete primary motif;
    - ~40–60 words common for substantial logia, with complete shorter and controlled longer passages permitted;
@@ -289,7 +289,6 @@ Full rewrite is welcome once the factory works. Still **batch** it.
 - Coding / placement: [`docs/DOCTRINE-CODING-GUIDE.md`](../DOCTRINE-CODING-GUIDE.md)
 - Scope and tags: [`AGENTS.md`](../../AGENTS.md) (Doctrine section)
 - Preserved gold exemplars: [doctrine-gold.md](doctrine-gold.md)
-- Prior analysis notes: optional session reviews under `docs/development/` (code review, docs review)
 
 ---
 

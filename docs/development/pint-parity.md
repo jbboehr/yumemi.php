@@ -73,8 +73,9 @@ real powers remain possible extensions rather than gaps in the documented langua
 Status: **Done for the current model** | Importance: **P0** | Remaining difficulty: **S/M**
 
 Yumemi ships deterministic generated UDUNITS2 data with base and derived units, aliases, symbols, prefixes, explicit
-plurals, and safe generated plurals. Lookup is case-sensitive, exact names precede prefix decomposition, and
-introspection preserves spelling provenance and semantic capabilities.
+plurals, and safe generated plurals. A small authored supplement adds nominal raster samples and exact document units
+without changing the generated catalog's provenance. Lookup is case-sensitive, exact names precede prefix decomposition,
+and introspection preserves spelling provenance and semantic capabilities.
 
 Future work is primarily indexing and performance optimization for bulk introspection and formatting.
 
@@ -268,7 +269,8 @@ stubs without expanding core's dependency graph. Branded integer constants and P
 propagate through supported arithmetic, allowing exact bounds to distinguish safe integer results, guaranteed float
 overflow, and mixed outcomes. Integer-brand extraction inspects only direct values and immediate intersection
 constraints, so callables, arrays, and other compound types retain nested brands without collapsing into integers.
-Remaining work is branded float precision, selected casts and built-ins, more precise diagnostics, and future advanced
+Explicit integer/float casts and `abs()`, `ceil()`, `floor()`, and `round()` preserve native brands. Remaining work is
+branded float precision, additional built-ins justified by real workflows, more precise diagnostics, and future advanced
 unit semantics. Dynamic native-helper expressions are diagnosed by default; explicit runtime parsing APIs remain
 dynamic, while deliberately suppressed or configured native-helper calls retain their declared unbranded fallback type.
 
@@ -393,8 +395,9 @@ versioned Yumemi Apocrypha project verifies curated upstream integrations withou
 maintenance surface to core. The normal matrix covers PHP 8.2 through PHP 8.5, and a PHP 8.2 lowest-dependency job
 verifies the declared lower bounds through `composer update --prefer-lowest --prefer-stable`.
 
-The project still lacks a tagged release and release workflow. A highest-dependency job may be useful after the first
-release establishes a compatibility promise.
+The project has a manual release and fork-first succession runbook, but still lacks a tagged release and automated
+publication workflow. A highest-dependency job may be useful after the first release establishes a compatibility
+promise.
 
 ## Parity Matrix
 
@@ -440,10 +443,10 @@ strongest choices remain string unit expressions, generated catalog data, exact 
 contexts, and native PHPStan brands alongside exact quantity objects.
 
 The highest-value remaining work is that which improves ordinary PHP workflows without displacing Yumemi's static
-analysis focus: preserving unit brands through selected native scalar transformations, maintaining strong diagnostics,
-and supporting integrations proven by actual applications through Yumemi Apocrypha. Broader formatting and registry
-resolution for serialized graphs remain useful only when concrete output or multi-context persistence requirements
-justify them. Contexts, nonlinear units, uncertainty, and scientific-array features should remain independent decisions
-rather than a presumed route to parity.
+analysis focus: extending unit-brand preservation only for demonstrated native scalar workflows, maintaining strong
+diagnostics, and supporting integrations proven by actual applications through Yumemi Apocrypha. Broader formatting and
+registry resolution for serialized graphs remain useful only when concrete output or multi-context persistence
+requirements justify them. Contexts, nonlinear units, uncertainty, and scientific-array features should remain
+independent decisions rather than a presumed route to parity.
 
 See [planning.md](planning.md) for the current ordering of work.

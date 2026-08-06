@@ -33,17 +33,17 @@ affine behavior, or canonical forms. Static acceptance would then cease to predi
 **Representative enforcement.** [`Units`](../../src/Units.php) assembles the runtime pipeline.
 [`UnitExpressionParser`](../../src/PHPStan/UnitExpressionParser.php) delegates PHPStan parsing, dimensions, and
 normalization to that facade, while [`UnitExpressionAlgebra`](../../src/PHPStan/UnitExpressionAlgebra.php) combines the
-same expression and dimension objects. [`UnitExpressionAlgebraTest`](../../tests/PHPStan/UnitExpressionAlgebraTest.php)
-and the PHPStan integration fixtures exercise this bridge.
+same expression and dimension objects.
+[`RuntimeDependencyDirectionTest`](../../tests/Architecture/RuntimeDependencyDirectionTest.php) prevents runtime source
+from importing PHPStan or Yumemi's PHPStan adapter.
+[`UnitExpressionAlgebraTest`](../../tests/PHPStan/UnitExpressionAlgebraTest.php) and the PHPStan integration fixtures
+exercise the semantic bridge.
 
 **Invalid shortcut.** Reimplementing a small unit table, parser, conversion table, or dimension algebra inside
 `src/PHPStan` because calling the runtime pipeline appears inconvenient.
 
 **Classification.** Divergent results are a correctness defect. Deliberately replacing the shared semantics is also a
 compatibility break.
-
-**Current gap.** The dependency direction exists in the source tree, but no architecture test currently prevents a
-runtime namespace from importing `jbboehr\Yumemi\PHPStan`.
 
 ## Native Brands Exist Only During Analysis
 
