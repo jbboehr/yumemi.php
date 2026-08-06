@@ -378,9 +378,9 @@ developer-experience improvement, selected API and formatting polish, and explic
   imports the tag, verify that the unqualified command installs the tagged release.
 - Review the established [compatibility policy](compatibility.md) against the intended first release, then publish it
   with the tag without broadening support beyond the documented and tested surface.
-- Record the local release and succession procedure, including artifact verification, signing, publication services,
-  required accounts and permissions without secret values, package transfer, compatible forks, and intentional project
-  freezing.
+- Follow the established [release and succession runbook](release-and-succession.md), including artifact verification,
+  signed-tag publication, service checks, tagged-package installation, and the documented response to partial
+  publication failures.
 
 ### Preservation Roadmap
 
@@ -414,9 +414,11 @@ enforce knowledge Yumemi already possesses rather than create documentation or a
    `data/udunits2.php`, including editing authorities, known reproducible tool versions, provenance, licensing, consumer
    requirements, and byte-identical plus behavioral verification. Nix checks exact regeneration of both artifacts;
    update the inventory whenever their source, generator, provenance, or reproduction policy changes.
-7. Complete the release and succession runbook described by the pre-release checklist. Reuse the existing legal,
-   stewardship, packaging, and archive documentation; identify credential storage and transfer procedures without
-   storing credentials in the repository.
+7. **Established:** maintain the [release and succession runbook](release-and-succession.md) as the manual procedure for
+   release preparation, Composer-first local verification, authoritative CI and Nix checks, signed annotated tags,
+   GitHub and Packagist publication, fork-first succession, exceptional direct transfer, and intentional freezing.
+   Reverify service access and update mechanisms before each release; never store credentials or recovery material in
+   the repository.
 8. Record concise architectural decisions only when their rationale affects future work. Initial candidates are the
    shared runtime semantic authority, branded scalars versus exact value objects, definitional equivalence versus
    dimensional compatibility, affine point/delta separation, committed generated catalogs, and the separation of

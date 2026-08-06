@@ -18,6 +18,10 @@ The [generated-artifact inventory](docs/development/generated-artifacts.md) reco
 provenance, licensing, consumer requirements, and exact checks for the parser and UDUNITS2 catalog. Never hand-edit
 those outputs; regenerate and commit them with their authoritative inputs.
 
+The [release and succession runbook](docs/development/release-and-succession.md) defines manual release verification,
+signed tags, publication services, fork-first succession, exceptional direct transfer, and intentional freezing. Follow
+it when preparing a release or changing release, package-ownership, or stewardship procedures.
+
 Use `composer test` for the complete PHPUnit suite, `composer analyse` for PHPStan, and `composer check` for the
 ordinary local review gate. Prefer these shared entry points over reproducing their underlying commands in new
 automation. Mutation testing, Xdebug branch coverage, the parser “probator,” and the Nix-backed UDUNITS2 differential

@@ -18,10 +18,9 @@ A pull request should:
 AI-assisted contributions are permitted, but you remain responsible for reviewing the submitted material and ensuring
 that you have the right to license it under these terms.
 
-Enter the Nix development shell, install Composer dependencies, and use the conventional local checks:
+Install Composer dependencies and use the conventional local checks:
 
 ```shell
-nix develop
 composer install
 composer check
 ```
@@ -29,7 +28,9 @@ composer check
 `composer check` validates Composer metadata and whitespace, formatting, PHPStan, PHPUnit, public documentation,
 benchmark discovery, and the release-style consumer archive. During focused work, `composer test`, `composer analyse`,
 `composer cs`, and `composer docs:check` run the corresponding parts independently. `nix flake check` additionally
-verifies the reproducible Nix environment and the UDUNITS2 differential suite.
+verifies the reproducible Nix environment and the UDUNITS2 differential suite. Nix is not required for ordinary local
+work; `nix develop` provides the pinned toolchain when reproducibility or generation work requires it, and CI supplies
+the authoritative Nix signal for reviewed changes.
 
 Mutation testing, Xdebug branch coverage, alternate property-test seeds, and the parser “probator” are intentionally
 separate investigative workflows rather than requirements for every local edit.
@@ -53,6 +54,9 @@ integration contracts from provisional, internal, and generated details.
 [`docs/development/generated-artifacts.md`](docs/development/generated-artifacts.md) records how the committed parser
 and UDUNITS2 catalog are regenerated, licensed, verified, and preserved for consumers.
 
+[`docs/development/release-and-succession.md`](docs/development/release-and-succession.md) records the manual release
+procedure, publication-service checks, signed-tag policy, compatible-fork path, and intentional freezing procedure.
+
 The versioned [`tests/Conformance`](tests/Conformance/README.md) corpus records representative runtime behavior as
 language-neutral public inputs and outputs. Deliberate semantic changes should update affected cases and their
 rationale.
@@ -63,7 +67,7 @@ The public mdBook sources live under [`docs/pages`](docs/pages). Internal engine
 [`docs/development`](docs/development). Doctrine, legal, and contributor documents remain directly under [`docs`](docs).
 Internal documents are not included in the generated site.
 
-Enter the Nix development shell, then build or preview the public documentation with:
+With Composer dependencies installed, build or preview the public documentation with:
 
 ```shell
 make docs
