@@ -11,6 +11,11 @@
         cacheDirectory=".phpunit.cache"
         executionOrder="default"
 >
+    <source>
+        <exclude>
+            <file>./src/Parser/Parser.php</file>
+        </exclude>
+    </source>
     <testsuites>
         <testsuite name="Branch Coverage">
             <directory>./tests</directory>

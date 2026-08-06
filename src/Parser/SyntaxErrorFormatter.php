@@ -89,7 +89,7 @@ final class SyntaxErrorFormatter
             return [$line, $caretOffset, max(1, min($markWidth, $length - $caretOffset))];
         }
 
-        if ($caretOffset < 57) {
+        if ($caretOffset <= 57) {
             $start = 0;
             $end = 117;
             $leftMarker = '';

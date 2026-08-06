@@ -162,6 +162,24 @@ final class ParserTest extends TestCase
         );
     }
 
+    public function testAdditionAndSubtractionRemainDistinctAstNodes(): void
+    {
+        $this->assertAstEquals(
+            new Ast\Add(
+                new Ast\Identifier('meter'),
+                new Ast\Identifier('second'),
+            ),
+            Parser::parseString('meter + second'),
+        );
+        $this->assertAstEquals(
+            new Ast\Sub(
+                new Ast\Identifier('meter'),
+                new Ast\Identifier('second'),
+            ),
+            Parser::parseString('meter - second'),
+        );
+    }
+
     public function testPower(): void
     {
         $this->assertAstEquals(
@@ -210,6 +228,17 @@ final class ParserTest extends TestCase
 
         $this->assertAstEquals(new Ast\Integer_('5'), Parser::parseString('--5'));
         $this->assertAstEquals(new Ast\Float_('1.25'), Parser::parseString('--1.25'));
+    }
+
+    public function testNegatesNonnumericExpressionsByMultiplyingByNegativeOne(): void
+    {
+        $this->assertAstEquals(
+            new Ast\Mul(
+                new Ast\Integer_('-1'),
+                new Ast\Identifier('meter'),
+            ),
+            Parser::parseString('-meter'),
+        );
     }
 
     public function testAffineOriginMayBeNegative(): void

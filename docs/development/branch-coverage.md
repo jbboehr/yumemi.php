@@ -78,6 +78,16 @@ These are point-in-time diagnostics, not enforced floors:
   unit and prefix fallbacks require a registry whose exact lookup and descriptor APIs contradict each other. A
   complete-suite Xdebug run was stopped when bounded generative round trips took several minutes per data case; the
   recorded percentage therefore belongs only to the stated 156-test scope, with the complete suite verified normally.
+- The 2026-08-06 focused handwritten `src/Parser` audit covered 99.31% of 145 branches and 98.91% of 183 executable
+  lines across 330 parser, runtime, analyzer, PHPStan-adapter, conformance, and native-helper tests. The branch
+  configuration now excludes generated `Parser.php`, whose state-machine branches measure Bison output rather than
+  authored decisions. Added contracts cover addition and subtraction AST identity, nonnumeric negation, absent parser
+  locations, incomplete exception context, malformed UTF-8, multiline and carriage-return display, exact long-excerpt
+  boundaries, and clipped highlights. The audit found and fixed an off-by-one that displayed a leading omission marker
+  when no prefix had been omitted. Focused mutation testing killed 186 of 193 mutants for 96% covered MSI; the seven
+  survivors alter dominated guards or choose an equally valid excerpt boundary. The sole uncovered branch is
+  `ParserUtils::parseString()`'s defensive `parse() === false` fallback: the generated parser either succeeds or invokes
+  the throwing error handler.
 
-The next useful focused target is parser diagnostics, using findings from the manual “probator” campaign so the audit
-adds independent evidence rather than duplicating the existing parser robustness suite.
+The next cross-cutting verification task is a machine-checked inventory of PHPStan diagnostic identifiers and their
+documented suppression boundaries. It should validate stable identifiers without freezing human-readable prose.

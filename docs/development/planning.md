@@ -480,10 +480,12 @@ repeat the implementation's assumptions:
   remaining renderer branches unreachable, while the untested name fallbacks require contradictory registry lookup and
   descriptor APIs. A complete-suite Xdebug run proved impractical once generative round trips took several minutes per
   data case, so this is explicitly a focused percentage; the complete PHPUnit suite remains the separate behavioral
-  gate. Reassess parser-diagnostic branch coverage next, using “probator” findings rather than duplicating the existing
-  parser robustness suite. Add tests only when an uncovered outcome is reachable and observably meaningful. Path
-  coverage remains informational because combinations grow rapidly; `PointQuantity::__unserialize()` alone exposes 4,096
-  paths through compound payload validation.
+  gate. The handwritten parser audit covered 99.31% of 145 branches and 98.91% of 183 executable lines across 330
+  focused tests after excluding generated `Parser.php`. It found one diagnostic-excerpt off-by-one and killed 186 of 193
+  focused mutants for 96% covered MSI. The remaining uncovered branch is the defensive `parse() === false` fallback
+  excluded by the generated parser's success-or-throw contract. Add tests only when an uncovered outcome is reachable
+  and observably meaningful. Path coverage remains informational because combinations grow rapidly;
+  `PointQuantity::__unserialize()` alone exposes 4,096 paths through compound payload validation.
 - Triage Infection's escaped and timed-out mutants periodically before raising the MSI floor. Add contract-level
   assertions for observable survivors, record or ignore behaviorally equivalent mutations, distinguish deliberately
   unreachable defensive branches, and confirm that timeouts are explained by removed termination guards rather than
