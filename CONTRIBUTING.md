@@ -21,6 +21,10 @@ that you have the right to license it under these terms.
 See [`docs/development/mutation-testing.md`](docs/development/mutation-testing.md) for the optional mutation-testing
 workflow and guidance on interpreting escaped mutants.
 
+For architectural, compatibility, generation, and long-term maintenance decisions, see
+[`docs/development/ruinenwert.md`](docs/development/ruinenwert.md). It describes how to leave the project's behavior and
+rationale recoverable without requiring speculative abstraction or package splitting.
+
 ## Documentation
 
 The public mdBook sources live under [`docs/pages`](docs/pages). Internal engineering documents live under

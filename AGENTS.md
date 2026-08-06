@@ -2,6 +2,10 @@
 
 Guidance for automated agents (and humans) working in this repository.
 
+For structural, compatibility, generation, and long-term maintenance decisions, preserve the project's useful knowledge
+and replacement boundaries according to [Ruinenwert](docs/development/ruinenwert.md). Apply that principle in proportion
+to the change; it does not require new abstractions or documents for routine work.
+
 ## Documentation standards
 
 Documentation is part of the public API. Treat inaccurate, untested, stale, or poorly organized documentation as a

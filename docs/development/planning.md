@@ -29,6 +29,26 @@ Important principle:
 
 > One expression model. One registry. One normalization engine.
 
+The generic [Ruinenwert](ruinenwert.md) guidance informs long-term decisions about conformance evidence, generated
+artifacts, replacement boundaries, and recoverability without becoming a separate feature roadmap.
+
+### Ruinenwert Profile
+
+- **Durable core:** the grammar, parser AST, expression and dimension models, unit registry and resolution semantics,
+  exact rational arithmetic, normalization, and conversion rules.
+- **Replaceable adapters:** PHPStan extension APIs, command-line presentation, documentation tooling, CI, and catalog
+  acquisition are expected to decay faster than the semantic core.
+- **Preserved generated artifacts:** `src/Parser/Parser.php` and `data/udunits2.php` remain consumable in a checkout;
+  their grammar, importer, source provenance, and deterministic regeneration paths remain available alongside them.
+- **Conformance evidence:** public documentation examples, regression and property tests, the UDUNITS2 differential
+  suite, bounded generated-expression tests, consumer fixtures, and release-style archive checks exercise behavior from
+  several independent directions.
+- **Observable contracts:** public runtime and PHPStan APIs, `yumemi.*` diagnostic identifiers, serialized formats, unit
+  syntax, and documented numeric policies require deliberate compatibility decisions rather than incidental preservation
+  of every internal class.
+- **Local recovery path:** the Nix development shells, Composer and Make targets, and `nix flake check` keep essential
+  generation, analysis, testing, packaging, and documentation work executable from a checkout.
+
 ## Old Code Assessment
 
 The old work was split across two repositories:
