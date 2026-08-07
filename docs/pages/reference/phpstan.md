@@ -161,8 +161,8 @@ Native exponentiation requires a statically known integer exponent. For exact ru
 `Quantity::root($degree)` infers the rooted unit when the degree is one statically known positive integer and every
 symbolic unit power is divisible by it. PHPStan cannot prove that the runtime rational magnitude has an exact root, so a
 statically valid call may still throw `NonExactRootException`. A dynamic degree falls back to the nongeneric `Quantity`
-return type. Rational exponents, approximate real powers, and unit-preserving native root functions are not part of the
-current model.
+return type. Native `sqrt()` support is described below. Rational exponents, approximate real powers, and other
+unit-transforming native functions are not part of the current model.
 
 ### Casts And Scalar Functions
 
@@ -176,8 +176,9 @@ through a small set of built-in scalar functions whose results necessarily retai
 | `abs($unitFloat)`                  | `unit_float<'same unit'>`                                |
 | `abs($unitInteger)`                | Branded integer bounds, with possible overflow promotion |
 | `ceil()`, `floor()`, and `round()` | `unit_float<'same unit'>`                                |
+| `sqrt($unitNumber)`                | `unit_float<'exact symbolic square-root unit'>`          |
 
-For example, both transformations remain ordinary native PHP operations at runtime:
+For example, these transformations remain ordinary native PHP operations at runtime:
 
 ```php
 <?php
@@ -196,12 +197,31 @@ $measuredHeight = 12;
 /** @var unit_float<'meter'> $displayHeight */
 $displayHeight = round((float) $measuredHeight, 1);
 
+/** @var unit_float<'meter^2'> $platformArea */
+$platformArea = 144.0;
+$platformWidth = sqrt($platformArea);
+
 assert($displayHeight === 12.0);
+assert($platformWidth === 12.0);
 ```
 
 Crossing from an integer brand to a float brand generalizes known integer constants and ranges because PHPStan has no
 corresponding branded float-constant or float-range representation. `ceil()`, `floor()`, and `round()` likewise return a
 general `unit_float` while preserving the semantic unit.
+
+Unlike those preserving operations, `sqrt()` transforms the unit. It infers `unit_float<'meter'>` from either an integer
+or float branded as `meter^2`, because native `sqrt()` always returns a `float`. Every symbolic unit power must be
+divisible by two. A non-rootable brand such as `meter` produces `yumemi.invalidUnitRoot` instead of silently losing its
+unit.
+
+The check uses the symbolic expression as written; it does not substitute catalog definitions before taking the root.
+For example, `kilometer * millimeter` is dimensionally an area but lacks an exact symbolic square root. Express the
+native brand with square powers, or use `Quantity::simplify()->root(2)` when runtime definition substitution and exact
+magnitude checking are required.
+
+For a union containing only branded numeric alternatives, Yumemi roots every alternative. Any non-rootable branded arm
+produces the diagnostic. If an otherwise valid union also contains an unbranded numeric arm, PHPStan keeps its ordinary
+native `sqrt()` result because one precise unit cannot describe every runtime path.
 
 For branded integers, `abs()` retains exact constants and computes the hull of known ranges. The `PHP_INT_MIN` case can
 produce a float at runtime, so unbounded or partially exposed ranges follow the same `integerOverflowToFloat` policy as
@@ -502,6 +522,7 @@ scope:
 | `yumemi.ambiguousUnitExpression`       | Native helper alternatives produce more than one semantic result unit                                        |
 | `yumemi.invalidUnitCall`               | An invalid constant `unit()`, `unit_factor()`, or `unit_to()` call                                           |
 | `yumemi.invalidUnitComparison`         | A native equality, identity, ordering, or spaceship comparison whose units are not definitionally equivalent |
+| `yumemi.invalidUnitRoot`               | Native `sqrt()` received a branded unit without an exact symbolic square root                                |
 | `yumemi.invalidQuantityConstruction`   | Invalid `Units::quantity()`, `parseQuantity()`, `deltaQuantity()`, or `point()` construction                 |
 | `yumemi.invalidQuantityArithmetic`     | Invalid quantity arithmetic operands, powers, or exact-root degrees and unit expressions                     |
 | `yumemi.invalidQuantityConversion`     | An invalid or incompatible `Quantity` conversion or native-extraction target                                 |
@@ -529,6 +550,8 @@ Use the identifier to choose the first corrective step:
 - For `yumemi.invalidUnitCall`, `yumemi.invalidQuantityConstruction`, or `yumemi.invalidQuantityConversion`, check the
   constant unit spelling, the [configured registry](#registry-configuration), dimensional compatibility, and whether an
   affine coordinate was used where multiplicative algebra requires a `delta_*` unit.
+- For `yumemi.invalidUnitRoot`, express the native brand with unit powers divisible by two. Native `sqrt()` does not
+  substitute catalog definitions; use `Quantity::simplify()->root(2)` when that runtime transformation is intended.
 - For quantity arithmetic, comparison, or point diagnostics, verify the statically known dimensions and distinguish a
   `PointQuantity` coordinate from a multiplicative difference. Static generic types do not establish runtime context
   identity; objects combined at runtime must also belong to the same `Units` context.
@@ -542,8 +565,8 @@ Important limits of the current static model are:
 - Native `unit()`, `unit_factor()`, and `unit_to()` calls require statically recoverable unit expressions by default.
   Dynamic object parsing and conversion remain supported, but cannot retain a specific generic unit type.
 - PHPStan supports one configured registry and does not track runtime registry identity per value.
-- Explicit integer/float casts and `abs()`, `ceil()`, `floor()`, and `round()` preserve native unit brands. Other casts
-  and unsupported PHP built-ins can erase them.
+- Explicit integer/float casts and `abs()`, `ceil()`, `floor()`, and `round()` preserve native unit brands. `sqrt()`
+  transforms brands with exact symbolic square roots. Other casts and unsupported PHP built-ins can erase brands.
 - Native `+` and `-` cannot convert dimensionally compatible magnitudes; use an explicit conversion or `Quantity`.
 - Native affine targets remain unbranded because native scalars do not retain point-versus-difference identity. Use
   `PointQuantity<'...'>` when that identity must remain statically visible.

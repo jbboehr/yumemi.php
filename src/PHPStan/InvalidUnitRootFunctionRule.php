@@ -43,7 +43,7 @@ use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
 /**
- * Emits standalone diagnostics for native root functions with non-rootable units.
+ * Emits standalone diagnostics for native sqrt() calls with non-rootable units.
  *
  * @implements Rule<FuncCall>
  *

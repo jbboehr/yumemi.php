@@ -528,11 +528,12 @@ repeat the implementation's assumptions:
   consumers may legitimately have an older analyzer installed. Extension users require PHPStan 2.2.5 or later; automatic
   registration in a project with an older version remains an unsupported integration and should produce clear setup
   guidance rather than making the runtime package uninstallable.
-- Explicit integer/float casts and `abs()`, `ceil()`, `floor()`, and `round()` preserve native unit brands. Other casts
-  and unsupported PHP built-ins can erase them. Continue adding targeted integrations only for demonstrated workflows;
-  `min()`, `max()`, `intdiv()`, native root functions, and trigonometric functions remain deferred because they require
-  distinct unit, correlation, or exponent semantics. Exact runtime-object roots are supported through
-  `Quantity::root()`.
+- Explicit integer/float casts and `abs()`, `ceil()`, `floor()`, and `round()` preserve native unit brands. Native
+  `sqrt()` transforms exact symbolic square units and diagnoses branded units without an exact symbolic root. Other
+  casts and unsupported PHP built-ins can erase brands. Continue adding targeted integrations only for demonstrated
+  workflows; `min()`, `max()`, `intdiv()`, generalized native powers, and trigonometric functions remain deferred
+  because they require distinct unit, correlation, or exponent semantics. Exact runtime-object roots are supported
+  through `Quantity::root()`.
 - Native helpers accept finite alternatives only when every valid path produces one semantic result unit. Independent
   source and target alternatives lose value correlation, so conversion helpers validate the Cartesian product and fail
   closed if any pair is invalid. Quantity boundaries continue to preserve finite target unions.
