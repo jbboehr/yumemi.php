@@ -181,5 +181,19 @@
                 "luminousIntensity": 0
             }
         }
+    ],
+    "roots": [
+        {
+            "id": "exact-expression-root",
+            "input": "4 * meter^2 / second^4",
+            "degree": 2,
+            "expected": "2 * meter * second ^ -2"
+        },
+        {
+            "id": "negative-expression-power-root",
+            "input": "meter^-4",
+            "degree": 2,
+            "expected": "meter ^ -2"
+        }
     ]
 }

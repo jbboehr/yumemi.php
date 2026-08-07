@@ -49,8 +49,9 @@ coverage of scientific-array and uncertainty ecosystems.
 Status: **Done** | Importance: **P0** | Remaining difficulty: **S**
 
 Yumemi represents constants, units, products, and integer powers explicitly. Reduction flattens products, combines
-constants and powers, cancels inverse units, and orders factors deterministically. Structural equality and the hybrid
-SI-plus-extension `Dimension` model no longer depend on formatted-string comparisons.
+constants and powers, cancels inverse units, and orders factors deterministically. Public expressions support exact
+positive integer-degree roots while retaining integral powers and explicit definition substitution. Structural equality
+and the hybrid SI-plus-extension `Dimension` model no longer depend on formatted-string comparisons.
 
 The remaining concern is performance under repeated analysis, not missing algebra for the supported multiplicative
 model. Rational powers are a separate advanced feature.
@@ -423,7 +424,7 @@ promise.
 | Preferred and compact units      | Absent                             | P2         | M/L                  |
 | Constants                        | Partial                            | P2         | M                    |
 | Comparisons                      | Done for quantities and points     | P1         | S/M                  |
-| Math functions                   | Integer powers only                | P2         | L                    |
+| Math functions                   | Integer powers and exact roots     | P2         | L                    |
 | PHPStan                          | Done for current core              | P0         | M/L                  |
 | Function boundaries              | Static contracts only              | P1/P2      | M                    |
 | Serialization                    | Done for current value objects     | P2         | S/M                  |

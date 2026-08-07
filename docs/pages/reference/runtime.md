@@ -366,6 +366,14 @@ The `Units` facade exposes expression-level operations:
 - `point()` constructs an exact `PointQuantity` on a named coordinate scale.
 - `normalize()` substitutes derived definitions and retains their scale in the expression.
 
+The `Expr` values returned by these APIs expose `mul()`, `div()`, integer `pow()`, exact positive integer-degree
+`root()`, `reduce()`, and structural `equals()` operations. `Expr::root()` reduces the expression's current symbolic
+factors but does not normalize definitions; it throws `NonExactRootException` when the constant or any symbolic power
+has no exact root. Those current factors depend on how the expression was obtained: `parse('kilometer * millimeter')`
+resolves the prefixes while parsing and produces `meter^2`, whose square root is `meter`. By contrast, a quantity's
+`unit()` preserves the names `kilometer * millimeter`, so its expression has no exact symbolic square root unless the
+caller explicitly simplifies or normalizes it first. `Expr::root()` itself performs neither substitution.
+
 Incompatible conversions throw `IncompatibleUnitException`; unknown names throw `UnitNotFoundException`. Native float
 conversion rejects non-finite inputs, results that overflow to infinity, and nonzero exact results that underflow to
 zero. Exact results should use `convert()` instead.

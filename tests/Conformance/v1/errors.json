@@ -71,6 +71,13 @@
             "error": "non-exact-root"
         },
         {
+            "id": "non-exact-expression-root",
+            "operation": "expression-root",
+            "input": "meter",
+            "degree": 2,
+            "error": "non-exact-root"
+        },
+        {
             "id": "non-exact-symbolic-unit-root",
             "operation": "quantity-root",
             "quantity": {

@@ -34,55 +34,73 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\Util;
+namespace jbboehr\Yumemi\Tests;
 
-use jbboehr\Yumemi\Analyzer\ExprComparer;
-use jbboehr\Yumemi\Analyzer\ExprReducer;
-use jbboehr\Yumemi\Expr;
+use jbboehr\Yumemi\Exception\InvalidArgumentException;
+use jbboehr\Yumemi\Exception\NonExactRootException;
+use jbboehr\Yumemi\Exception\OverflowException;
+use jbboehr\Yumemi\Units;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\TestCase;
 
-/**
- * @internal
- */
-trait MathTrait
+final class ExprTest extends TestCase
 {
-    public function reduce(): Expr
+    #[DataProvider('exactRootProvider')]
+    public function testTakesExactExpressionRoots(string $expression, int $degree, string $expected): void
     {
-        return ExprReducer::reduce($this);
+        $this->assertSame($expected, Units::default()->parse($expression)->root($degree)->toString());
     }
 
-    /**
-     * @logion [AWC 14:39] In those days the widows of the western province carried the broken bell unto the mountain
-     *     shrine; and though no smith remained among them, at evening it answered from the heights, and the exiles
-     *     returned bearing the names their fathers had preserved.
-     */
-    public function root(int $degree): Expr
+    /** @return iterable<string, array{string, int, string}> */
+    public static function exactRootProvider(): iterable
     {
-        return ExprReducer::root($this, $degree);
+        yield 'constant and compound powers' => ['4 * meter^2 / second^4', 2, '2 * meter * second ^ -2'];
+        yield 'negative power' => ['meter^-4', 2, 'meter ^ -2'];
+        yield 'degree one' => ['newton', 1, 'newton'];
+        yield 'maximum degree' => ['1', 10_000, '1'];
     }
 
-    public function div(Expr $expr): Expr
+    public function testRejectsNonExactConstantRoot(): void
     {
-        return ExprReducer::reduce(new Expr\Product([
-            $this,
-            new Expr\Power($expr, -1),
-        ]));
+        $this->expectException(NonExactRootException::class);
+
+        Units::default()->parse('2 * meter^2')->root(2);
     }
 
-    public function equals(Expr $expr): bool
+    public function testRootsPrefixCompositionResolvedDuringParsing(): void
     {
-        return ExprComparer::areEqual($this, $expr);
+        $expression = Units::default()->parse('kilometer * millimeter');
+
+        $this->assertSame('meter', $expression->root(2)->toString());
     }
 
-    public function mul(Expr $expr): Expr
+    public function testRejectsNonExactSymbolicRootWithoutSubstitution(): void
     {
-        return ExprReducer::reduce(new Expr\Product([
-            $this,
-            $expr,
-        ]));
+        $expression = Units::default()->quantity(1, 'kilometer * millimeter')->unit();
+
+        $this->expectException(NonExactRootException::class);
+        $expression->root(2);
     }
 
-    public function pow(int $power): Expr
+    #[DataProvider('invalidDegreeProvider')]
+    public function testRejectsNonPositiveRootDegree(int $degree): void
     {
-        return ExprReducer::reduce(new Expr\Power($this, $power));
+        $this->expectException(InvalidArgumentException::class);
+
+        Units::default()->parse('1')->root($degree);
+    }
+
+    /** @return iterable<string, array{int}> */
+    public static function invalidDegreeProvider(): iterable
+    {
+        yield 'zero' => [0];
+        yield 'negative' => [-1];
+    }
+
+    public function testRejectsRootDegreeAboveSupportedLimit(): void
+    {
+        $this->expectException(OverflowException::class);
+
+        Units::default()->parse('1')->root(10_001);
     }
 }

@@ -59,7 +59,7 @@ final class RuntimeConformanceTest extends TestCase
 
     /** @var array<string, list<string>> */
     private const FIXTURE_GROUPS = [
-        'expressions.json' => ['cases'],
+        'expressions.json' => ['cases', 'roots'],
         'conversions.json' => ['factors', 'conversions'],
         'quantities.json' => [
             'quantityAdditions',
@@ -105,6 +105,22 @@ final class RuntimeConformanceTest extends TestCase
             $units->dimension($input)->jsonSerialize(),
             $context,
         );
+    }
+
+    /**
+     * @param array<string, mixed> $case
+     */
+    #[DataProvider('expressionRootProvider')]
+    public function testExpressionRootConformance(array $case): void
+    {
+        $context = self::context('expressions.json', $case);
+        self::assertKeys($case, ['id', 'input', 'degree', 'expected'], $context);
+
+        $actual = Units::default()
+            ->parse(self::string($case, 'input', $context))
+            ->root(self::integer($case, 'degree', $context));
+
+        self::assertSame(self::string($case, 'expected', $context), $actual->toString(), $context);
     }
 
     /**
@@ -295,6 +311,7 @@ final class RuntimeConformanceTest extends TestCase
             'parse' => ['id', 'operation', 'input', 'error'],
             'factor' => ['id', 'operation', 'from', 'to', 'error'],
             'convert' => ['id', 'operation', 'value', 'from', 'to', 'error'],
+            'expression-root' => ['id', 'operation', 'input', 'degree', 'error'],
             'quantity-root' => ['id', 'operation', 'quantity', 'degree', 'error'],
             default => throw new \UnexpectedValueException(sprintf('%s.operation is not supported: %s', $context, $operation)),
         };
@@ -349,6 +366,12 @@ final class RuntimeConformanceTest extends TestCase
     public static function expressionProvider(): iterable
     {
         yield from self::provider('expressions.json', 'cases');
+    }
+
+    /** @return iterable<string, array{array<string, mixed>}> */
+    public static function expressionRootProvider(): iterable
+    {
+        yield from self::provider('expressions.json', 'roots');
     }
 
     /** @return iterable<string, array{array<string, mixed>}> */
@@ -487,6 +510,9 @@ final class RuntimeConformanceTest extends TestCase
                 self::string($case, 'from', $context),
                 self::string($case, 'to', $context),
             ),
+            'expression-root' => $units
+                ->parse(self::string($case, 'input', $context))
+                ->root(self::integer($case, 'degree', $context)),
             'quantity-root' => self::quantity($case['quantity'] ?? null, $context . '.quantity')
                 ->root(self::integer($case, 'degree', $context)),
             default => throw new \UnexpectedValueException(sprintf('%s.operation is not supported: %s', $context, $operation)),

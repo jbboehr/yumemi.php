@@ -65,6 +65,15 @@ interface Expr
     public function reduce(): self;
 
     /**
+     * Return an exact root of the reduced symbolic expression.
+     *
+     * @logion [OSD 99:89] Let the keeper ascend before dawn and open the eastern lattice;
+     *     for the city hath endured many winters beneath borrowed stars, yet the appointed light shall find every
+     *     faithful lamp still burning, and the children shall know the hour thereof.
+     */
+    public function root(int $degree): self;
+
+    /**
      * Structural / debug rendering of the expression tree.
      *
      * Prefer Formatter\ExprFormatter for user-facing display.
