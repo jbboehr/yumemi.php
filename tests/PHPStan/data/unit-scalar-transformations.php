@@ -58,6 +58,80 @@ assertType(
 );
 assertType("unit_float<'second'>", ceil(num: unit(2, 'second')));
 assertType("unit_float<'second'>", floor(num: unit(2, 'second')));
+
+assertType("1&unit_int<'meter'>", min(unit(3, 'meter'), unit(1, 'meter'), unit(2, 'meter')));
+assertType("3&unit_int<'meter'>", max(unit(3, 'meter'), unit(1, 'meter'), unit(2, 'meter')));
+assertType("1&unit_int<'meter'>", min(value: unit(3, 'meter'), values: unit(1, 'meter')));
+assertType("2&unit_int<'meter'>", max(value: unit(1, 'meter'), values: unit(2, 'meter')));
+assertType("1&unit_int<'meter'>", min(unit(1, 'meter'), unit(2, 'm')));
+assertType("2&unit_int<'meter'>", max(unit(1, 'meter'), unit(2, 'm')));
+
+/**
+ * @param int<0, 20> $lower
+ * @param int<10, 30> $upper
+ */
+function assertBrandedIntegerExtrema(int $lower, int $upper): void
+{
+    assertType("unit_int<'meter'>&int<0, 20>", min(unit($lower, 'meter'), unit($upper, 'meter')));
+    assertType("unit_int<'meter'>&int<10, 30>", max(unit($lower, 'meter'), unit($upper, 'meter')));
+}
+
+/** @param non-empty-list<unit_int<'meter'>&int<1, 10>> $values */
+function assertBrandedArrayExtrema(array $values): void
+{
+    assertType("unit_int<'meter'>&int<1, 10>", min($values));
+    assertType("unit_int<'meter'>&int<1, 10>", max($values));
+    assertType("unit_int<'meter'>&int<1, 10>", min(...$values));
+    assertType("unit_int<'meter'>&int<1, 10>", max(...$values));
+}
+
+assertType("1&unit_int<'meter'>", min([unit(3, 'meter'), unit(1, 'meter'), unit(2, 'meter')]));
+assertType("3&unit_int<'meter'>", max([unit(3, 'meter'), unit(1, 'meter'), unit(2, 'meter')]));
+
+/** @param list<unit_int<'meter'>> $values */
+function assertOptionallyUnpackedBrandedExtrema(array $values): void
+{
+    assertType("unit_int<'meter'>", min(unit(5, 'meter'), ...$values));
+    assertType("unit_int<'meter'>", max(unit(5, 'meter'), ...$values));
+}
+
+/** @param non-empty-list<unit_float<'meter'>> $values */
+function assertBrandedFloatArrayExtrema(array $values): void
+{
+    assertType("unit_float<'meter'>", min($values));
+    assertType("unit_float<'meter'>", max($values));
+}
+
+/** @param non-empty-list<unit_int<'meter'>|unit_float<'meter'>> $values */
+function assertMixedCarrierArrayExtrema(array $values): void
+{
+    assertType("unit_float<'meter'>|unit_int<'meter'>", min($values));
+    assertType("unit_float<'meter'>|unit_int<'meter'>", max($values));
+}
+
+/**
+ * @param (unit_int<'meter'>&int<0, 10>)|(unit_int<'meter'>&int<20, 30>) $left
+ * @param unit_int<'meter'>&int<5, 25> $right
+ */
+function assertBrandedUnionExtrema(int $left, int $right): void
+{
+    assertType("unit_int<'meter'>&int<0, 25>", min($left, $right));
+    assertType("unit_int<'meter'>&int<5, 30>", max($left, $right));
+}
+
+/** @param float $floating */
+function assertMixedCarrierExtrema(float $floating): void
+{
+    assertType(
+        "5&unit_int<'meter'>|unit_float<'meter'>",
+        min(unit($floating, 'meter'), unit(5, 'meter')),
+    );
+    assertType(
+        "5&unit_int<'meter'>|unit_float<'meter'>",
+        max(unit($floating, 'meter'), unit(5, 'meter')),
+    );
+}
+
 assertType("unit_float<'meter'>", sqrt(unit(9, 'meter^2')));
 assertType("unit_float<'1/100 * meter'>", sqrt(unit(2.25, 'centimeter^2')));
 assertType("unit_float<'newton'>", sqrt(unit(4.0, 'newton^2')));

@@ -177,6 +177,7 @@ square root is exact:
 | `abs($unitFloat)`                  | `unit_float<'same unit'>`                                |
 | `abs($unitInteger)`                | Branded integer bounds, with possible overflow promotion |
 | `ceil()`, `floor()`, and `round()` | `unit_float<'same unit'>`                                |
+| `min()` and `max()`                | Common brand, with narrowed branded integer bounds       |
 | `sqrt($unitNumber)`                | `unit_float<'exact symbolic square-root unit'>`          |
 
 For example, these transformations remain ordinary native PHP operations at runtime:
@@ -209,6 +210,13 @@ assert($platformWidth === 12.0);
 Crossing from an integer brand to a float brand generalizes known integer constants and ranges because PHPStan has no
 corresponding branded float-constant or float-range representation. `ceil()`, `floor()`, and `round()` likewise return a
 general `unit_float` while preserving the semantic unit.
+
+`min()` and `max()` preserve a unit when every value they can return is branded with one definitionally equivalent unit.
+This works with direct arguments, arrays, and unpacked arrays. Known integer constants and ranges are narrowed when
+every candidate is required; a general array keeps its declared branded range because its runtime members are not known
+individually. If a possible nonempty input contains a bare number or a different unit, Yumemi does not infer one brand
+for the result. A possible empty-array input does not contribute a result because native `min()` and `max()` throw on
+that path.
 
 Unlike those preserving operations, `sqrt()` transforms the unit. It infers `unit_float<'meter'>` from either an integer
 or float branded as `meter^2`, because native `sqrt()` always returns a `float`. Every symbolic unit power must be
@@ -566,8 +574,9 @@ Important limits of the current static model are:
 - Native `unit()`, `unit_factor()`, and `unit_to()` calls require statically recoverable unit expressions by default.
   Dynamic object parsing and conversion remain supported, but cannot retain a specific generic unit type.
 - PHPStan supports one configured registry and does not track runtime registry identity per value.
-- Explicit integer/float casts and `abs()`, `ceil()`, `floor()`, and `round()` preserve native unit brands. `sqrt()`
-  transforms brands with exact symbolic square roots. Other casts and unsupported PHP built-ins can erase brands.
+- Explicit integer/float casts and `abs()`, `ceil()`, `floor()`, `round()`, `min()`, and `max()` preserve native unit
+  brands when their operation has one sound result unit. `sqrt()` transforms brands with exact symbolic square roots.
+  Other casts and unsupported PHP built-ins can erase brands.
 - Native `+` and `-` cannot convert dimensionally compatible magnitudes; use an explicit conversion or `Quantity`.
 - Native affine targets remain unbranded because native scalars do not retain point-versus-difference identity. Use
   `PointQuantity<'...'>` when that identity must remain statically visible.

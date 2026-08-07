@@ -79,6 +79,10 @@ services:
         tags:
             - phpstan.broker.expressionTypeResolverExtension
     -
+        class: jbboehr\Yumemi\PHPStan\UnitMinMaxFunctionTypeResolverExtension
+        tags:
+            - phpstan.broker.expressionTypeResolverExtension
+    -
         class: jbboehr\Yumemi\PHPStan\UnitFunctionDynamicReturnTypeExtension
         tags:
             - phpstan.broker.dynamicFunctionReturnTypeExtension

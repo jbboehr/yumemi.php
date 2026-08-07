@@ -22,12 +22,26 @@ function sqrt(int|float $num): string
     return (string) $num;
 }
 
+function min(int|float ...$values): string
+{
+    return implode(',', $values);
+}
+
+function max(int|float ...$values): string
+{
+    return implode(',', $values);
+}
+
 $value = unit(-3, 'meter');
 $area = unit(4, 'meter^2');
 
 assertType('string', abs($value));
 assertType('string', round($value));
 assertType('string', sqrt($area));
+assertType('string', min($value, $value));
+assertType('string', max($value, $value));
 assertType("3&unit_int<'meter'>", \abs($value));
 assertType("unit_float<'meter'>", ceil($value));
 assertType("unit_float<'meter'>", \sqrt($area));
+assertType("-3&unit_int<'meter'>", \min($value, $value));
+assertType("-3&unit_int<'meter'>", \max($value, $value));
