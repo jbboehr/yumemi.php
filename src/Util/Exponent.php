@@ -90,6 +90,21 @@ final class Exponent
     }
 
     /**
+     * Validate a positive root degree under the common exponent bound.
+     *
+     * @logion [OSD 37:30] Let the western gates remain open through the vigil, for the widows
+     *     of the lower city shall return bearing lamps, and their flames shall renew the forgotten covenant.
+     */
+    public static function checkedRootDegree(int $degree): int
+    {
+        if ($degree <= 0) {
+            throw new InvalidArgumentException('Root degree must be positive.');
+        }
+
+        return self::checked($degree);
+    }
+
+    /**
      * @logion [OSD 97:92] Powers joined their testimony beneath one limit,
      *     and their sum was admitted only while the appointed marks endured.
      */

@@ -34,24 +34,14 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\PHPStan;
+namespace jbboehr\Yumemi\Exception;
 
 /**
- * Emits standalone diagnostics for statically invalid Quantity arithmetic.
- * @internal
+ * Reports a requested root that cannot be represented exactly by Yumemi's rational, integer-power model.
+ *
+ * @logion [SFA 35:13] The last ember beneath the ruined chapel was not divided among the
+ *     petitioners; it remained whole until a worthy hand restored the lamp appointed unto it.
  */
-final class InvalidQuantityArithmeticRule extends AbstractInvalidQuantityMethodRule
+final class NonExactRootException extends RuntimeException
 {
-    /**
-     * @return list<string>
-     */
-    protected function supportedMethods(): array
-    {
-        return ['add', 'sub', 'addWithSameUnit', 'subWithSameUnit', 'pow', 'root'];
-    }
-
-    protected function errorIdentifier(): string
-    {
-        return 'yumemi.invalidQuantityArithmetic';
-    }
 }

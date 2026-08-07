@@ -108,6 +108,7 @@ keep repeated arithmetic on branded native values. When exact fractions or runti
 | Convert a native scalar                                  | `unit_to()` or `Units::convertFloat()`               |
 | Obtain an exact multiplicative factor                    | `Units::conversionFactor()`                          |
 | Obtain a native factor whose static units cancel         | `unit_factor()`                                      |
+| Take an exact root without implicit unit substitution    | `Quantity::root()`                                   |
 | Substitute definitions without changing stored magnitude | `Quantity::normalize()`                              |
 | Substitute definitions and fold scale into magnitude     | `Quantity::simplify()`                               |
 | Request a particular target unit                         | `Quantity::to()`                                     |

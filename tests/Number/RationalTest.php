@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\Tests\Number;
 
+use jbboehr\Yumemi\Exception\NonExactRootException;
 use jbboehr\Yumemi\Number\Rational;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -124,6 +125,68 @@ final class RationalTest extends TestCase
         $this->assertSame('1', (new Rational(2))->pow(0)->toString());
         $this->assertSame('1', (new Rational(-3, 2))->pow(0)->toString());
         $this->assertSame('1', (new Rational(0))->pow(0)->toString());
+    }
+
+    #[DataProvider('exactRootProvider')]
+    public function testTakesExactRoots(Rational $value, int $degree, string $expected): void
+    {
+        $root = $value->root($degree);
+
+        $this->assertSame($expected, $root->toString());
+        $this->assertTrue($root->pow($degree)->equals($value));
+    }
+
+    /**
+     * @return iterable<string, array{Rational, int, string}>
+     */
+    public static function exactRootProvider(): iterable
+    {
+        yield 'integer square' => [new Rational(16), 2, '4'];
+        yield 'fraction square' => [new Rational(16, 81), 2, '4/9'];
+        yield 'negative fraction cube' => [new Rational(-8, 27), 3, '-2/3'];
+        yield 'zero' => [new Rational(0), 7, '0'];
+        yield 'degree one' => [new Rational(-5, 7), 1, '-5/7'];
+        yield 'maximum degree' => [new Rational(1), 10_000, '1'];
+    }
+
+    #[DataProvider('nonExactRootProvider')]
+    public function testRejectsNonExactRoots(Rational $value, int $degree): void
+    {
+        $this->expectException(NonExactRootException::class);
+
+        $value->root($degree);
+    }
+
+    /**
+     * @return iterable<string, array{Rational, int}>
+     */
+    public static function nonExactRootProvider(): iterable
+    {
+        yield 'irrational numerator' => [new Rational(2), 2];
+        yield 'irrational denominator' => [new Rational(1, 2), 2];
+        yield 'negative even root' => [new Rational(-4), 2];
+    }
+
+    #[DataProvider('invalidRootDegreeProvider')]
+    public function testRejectsNonPositiveRootDegrees(int $degree): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        (new Rational(1))->root($degree);
+    }
+
+    /** @return iterable<string, array{int}> */
+    public static function invalidRootDegreeProvider(): iterable
+    {
+        yield 'zero' => [0];
+        yield 'negative' => [-2];
+    }
+
+    public function testRejectsRootDegreeBeyondSupportedRange(): void
+    {
+        $this->expectException(\OverflowException::class);
+
+        (new Rational(1))->root(10_001);
     }
 
     /**

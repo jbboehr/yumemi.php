@@ -107,8 +107,9 @@ can be represented through `Rational::fromDecimalString()` or parsed quantity ex
 Status: **Done for multiplicative quantities** | Importance: **P0** | Remaining difficulty: **M**
 
 Yumemi supports exact compatible-unit addition and subtraction, strict same-unit variants, multiplication, division,
-integer powers, negation, comparisons, symbolic cancellation, and context checks. Addition and subtraction convert the
-right operand into the left unit; multiplication and division preserve caller-selected symbolic units.
+integer powers, exact positive integer-degree roots, negation, comparisons, symbolic cancellation, and context checks.
+Addition and subtraction convert the right operand into the left unit; multiplication, division, and roots preserve
+caller-selected symbolic units unless the caller explicitly normalizes or simplifies first.
 
 Absolute value and convenience predicates remain optional additions. Affine point-versus-difference arithmetic uses the
 separate `PointQuantity` model described below.
@@ -250,10 +251,10 @@ remain low value because comparisons do not produce a unit-bearing result.
 Status: **Partial** | Importance: **P2** | Remaining difficulty: **L**
 
 Exact integer `pow()` exists for rational magnitudes, expressions, dimensions, quantities, and PHPStan inference.
-Rational roots, approximate real powers, trigonometric functions, logarithms, and exponentials are absent.
-
-An exact `root(int)` could succeed only when both the rational magnitude and normalized unit powers have exact roots.
-Approximate functions need a separate precision and rounding contract.
+`Rational::root()`, `Dimension::root()`, and `Quantity::root()` support exact positive integer-degree roots while
+keeping unit powers integral and symbolic substitution explicit. General rational powers, approximate real powers,
+trigonometric functions, logarithms, and exponentials remain absent. Approximate functions need a separate precision and
+rounding contract.
 
 ### 21. Static Analysis With PHPStan
 

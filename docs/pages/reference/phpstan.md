@@ -157,8 +157,12 @@ without converting either operand, so dimensionally compatible but differently s
 identity may still test a nullable or other nonnumeric sentinel arm, as in `$duration !== null`; a bare numeric arm
 remains invalid because it can participate in the magnitude comparison.
 
-Exponentiation requires a statically known integer exponent. Rational roots and approximate real powers are not part of
-the current expression model.
+Native exponentiation requires a statically known integer exponent. For exact runtime quantities,
+`Quantity::root($degree)` infers the rooted unit when the degree is one statically known positive integer and every
+symbolic unit power is divisible by it. PHPStan cannot prove that the runtime rational magnitude has an exact root, so a
+statically valid call may still throw `NonExactRootException`. A dynamic degree falls back to the nongeneric `Quantity`
+return type. Rational exponents, approximate real powers, and unit-preserving native root functions are not part of the
+current model.
 
 ### Casts And Scalar Functions
 
@@ -348,7 +352,8 @@ assert($speed->toString() === '10 * meter / second');
 
 The extension models current unit-sensitive methods, including:
 
-- arithmetic through `add()`, `sub()`, `addWithSameUnit()`, `subWithSameUnit()`, `mul()`, `div()`, `neg()`, and `pow()`;
+- arithmetic through `add()`, `sub()`, `addWithSameUnit()`, `subWithSameUnit()`, `mul()`, `div()`, `neg()`, `pow()`, and
+  exact `root()`;
 - conversion through `to()` and `valueIn()`;
 - native extraction through `intValueIn()`, `exactIntValueIn()`, `decimalValueIn()`, `exactDecimalValueIn()`, and
   `floatValueIn()`;
@@ -498,7 +503,7 @@ scope:
 | `yumemi.invalidUnitCall`               | An invalid constant `unit()`, `unit_factor()`, or `unit_to()` call                                           |
 | `yumemi.invalidUnitComparison`         | A native equality, identity, ordering, or spaceship comparison whose units are not definitionally equivalent |
 | `yumemi.invalidQuantityConstruction`   | Invalid `Units::quantity()`, `parseQuantity()`, `deltaQuantity()`, or `point()` construction                 |
-| `yumemi.invalidQuantityArithmetic`     | Invalid `add()`, `sub()`, `addWithSameUnit()`, or `subWithSameUnit()` operands                               |
+| `yumemi.invalidQuantityArithmetic`     | Invalid quantity arithmetic operands, powers, or exact-root degrees and unit expressions                     |
 | `yumemi.invalidQuantityConversion`     | An invalid or incompatible `Quantity` conversion or native-extraction target                                 |
 | `yumemi.invalidQuantityComparison`     | A `Quantity` comparison whose statically known units are incompatible                                        |
 | `yumemi.invalidPointQuantityOperation` | An invalid point translation, difference, conversion, extraction, or comparison                              |

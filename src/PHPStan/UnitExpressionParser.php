@@ -36,6 +36,8 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
+use jbboehr\Yumemi\Analyzer\AstConverter;
+use jbboehr\Yumemi\Analyzer\ExprReducer;
 use jbboehr\Yumemi\Analyzer\NormalizedExpr;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
@@ -44,6 +46,7 @@ use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
 use jbboehr\Yumemi\Exception\UnresolvableUnitDimensionException;
 use jbboehr\Yumemi\Formatter\ExprRenderer;
 use jbboehr\Yumemi\Parser\ParseException;
+use jbboehr\Yumemi\Parser\Parser;
 use jbboehr\Yumemi\Units;
 
 /**
@@ -72,12 +75,16 @@ final class UnitExpressionParser
             $expr = $this->units->parse($unitString);
             $dimension = $this->units->dimension($expr);
             $normalized = $this->units->normalize($expr);
+            $symbolic = ExprReducer::reduce(
+                AstConverter::symbolic()->convert(Parser::parseString($unitString)),
+            );
 
             return UnitExpressionParseResult::ok(new UnitExpression(
                 $expr,
                 ExprRenderer::format($expr),
                 $dimension,
                 $normalized,
+                $symbolic,
             ));
         }, 'Invalid unit expression syntax.');
     }

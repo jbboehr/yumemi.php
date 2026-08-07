@@ -18,6 +18,15 @@ $meters->sub($seconds);
 $meters->addWithSameUnit($feet);
 $meters->subWithSameUnit($feet);
 
+// Exact roots require a positive bounded degree and a perfect symbolic unit power.
+$meters->root(2);
+$units->quantity(4, 'meter^2')->root(0);
+$units->quantity(4, 'meter^2')->root(10_001);
+
+// Power diagnostics also surface exponent overflow from the same arithmetic rule.
+$meters->pow(10_001);
+$units->quantity(1, 'meter^100')->pow(101);
+
 // Valid: converting methods accept compatible dimensions.
 $meters->add($feet);
 $meters->sub($feet);

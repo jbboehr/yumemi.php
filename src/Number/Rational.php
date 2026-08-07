@@ -39,6 +39,7 @@ namespace jbboehr\Yumemi\Number;
 use GMP;
 use jbboehr\Yumemi\Exception\DivisionByZeroError;
 use jbboehr\Yumemi\Exception\InvalidArgumentException;
+use jbboehr\Yumemi\Exception\NonExactRootException;
 use jbboehr\Yumemi\Exception\OverflowException;
 use jbboehr\Yumemi\Exception\UnderflowException;
 use jbboehr\Yumemi\Exception\UnexpectedValueException;
@@ -225,6 +226,39 @@ final class Rational implements \JsonSerializable
             gmp_pow($this->numerator, $power),
             gmp_pow($this->denominator, $power),
         );
+    }
+
+    /**
+     * Return the exact rational root of this value.
+     *
+     * @logion [AWC 90:4] In the reign of the silent prince, a child carried water to the
+     *     abandoned shrine, and at the seventh offering its bronze doors opened without a keeper.
+     */
+    public function root(int $degree): self
+    {
+        $degree = Exponent::checkedRootDegree($degree);
+        $negative = gmp_sign($this->numerator) < 0;
+
+        if ($negative && $degree % 2 === 0) {
+            throw new NonExactRootException(sprintf(
+                'Rational %s has no exact rational root of degree %d.',
+                $this->toString(),
+                $degree,
+            ));
+        }
+
+        [$numerator, $numeratorRemainder] = gmp_rootrem(gmp_abs($this->numerator), $degree);
+        [$denominator, $denominatorRemainder] = gmp_rootrem($this->denominator, $degree);
+
+        if (gmp_sign($numeratorRemainder) !== 0 || gmp_sign($denominatorRemainder) !== 0) {
+            throw new NonExactRootException(sprintf(
+                'Rational %s has no exact rational root of degree %d.',
+                $this->toString(),
+                $degree,
+            ));
+        }
+
+        return new self($negative ? gmp_neg($numerator) : $numerator, $denominator);
     }
 
     public function sub(self $other): self

@@ -32,9 +32,9 @@ Dimension results use the named seven-axis object returned by `Dimension::jsonSe
 
 ## Errors
 
-Error fixtures use semantic categories such as `unknown-unit` and `incompatible-unit`. The PHP runner maps those keys to
-the current exception hierarchy but deliberately does not compare human-readable messages. Optional spans are half-open
-byte ranges into the fixture input.
+Error fixtures use semantic categories such as `unknown-unit`, `incompatible-unit`, and `non-exact-root`. The PHP runner
+maps those keys to the current exception hierarchy but deliberately does not compare human-readable messages. Optional
+spans are half-open byte ranges into the fixture input.
 
 ## Running The Corpus
 

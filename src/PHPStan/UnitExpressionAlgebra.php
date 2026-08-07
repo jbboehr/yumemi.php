@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
+use jbboehr\Yumemi\Analyzer\ExprReducer;
 use jbboehr\Yumemi\Formatter\ExprRenderer;
 
 /**
@@ -60,6 +61,7 @@ final class UnitExpressionAlgebra
             ExprRenderer::format($expr),
             $left->dimension->mul($right->dimension),
             $normalized,
+            $left->symbolicExpr->mul($right->symbolicExpr),
         );
     }
 
@@ -73,6 +75,7 @@ final class UnitExpressionAlgebra
             ExprRenderer::format($expr),
             $left->dimension->div($right->dimension),
             $normalized,
+            $left->symbolicExpr->div($right->symbolicExpr),
         );
     }
 
@@ -91,6 +94,28 @@ final class UnitExpressionAlgebra
             ExprRenderer::format($expr),
             $unit->dimension->pow($exponent),
             $normalized,
+            $unit->symbolicExpr->pow($exponent),
+        );
+    }
+
+    /**
+     * Return the exact integer-power root of a unit expression and all of its semantic forms.
+     *
+     * @logion [SFA 97:98] The pilgrim who returned from the summit brought no new law,
+     *     but the weathered tablet in his hands revealed a command the valley had never fulfilled.
+     */
+    public static function root(UnitExpression $unit, int $degree): UnitExpression
+    {
+        $symbolic = ExprReducer::root($unit->symbolicExpr, $degree);
+        $expr = ExprReducer::root($unit->expr, $degree);
+        $normalized = ExprReducer::root($unit->normalizedExpr, $degree);
+
+        return new UnitExpression(
+            $expr,
+            ExprRenderer::format($expr),
+            $unit->dimension->root($degree),
+            $normalized,
+            $symbolic,
         );
     }
 }

@@ -51,6 +51,32 @@
             }
         }
     ],
+    "quantityRoots": [
+        {
+            "id": "exact-square-root-preserves-symbolic-unit",
+            "quantity": {
+                "value": { "numerator": "4", "denominator": "9" },
+                "unit": "centimeter^2 / second^4"
+            },
+            "degree": 2,
+            "expected": {
+                "value": { "numerator": "2", "denominator": "3" },
+                "unit": "centimeter / second ^ 2"
+            }
+        },
+        {
+            "id": "negative-exact-cube-root",
+            "quantity": {
+                "value": { "numerator": "-8", "denominator": "27" },
+                "unit": "meter^3"
+            },
+            "degree": 3,
+            "expected": {
+                "value": { "numerator": "-2", "denominator": "3" },
+                "unit": "meter"
+            }
+        }
+    ],
     "quantityForms": [
         {
             "id": "normalize-and-simplify-remain-distinct",

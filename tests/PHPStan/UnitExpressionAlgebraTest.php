@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
+use jbboehr\Yumemi\Exception\NonExactRootException;
 use jbboehr\Yumemi\PHPStan\UnitExpression;
 use jbboehr\Yumemi\PHPStan\UnitExpressionAlgebra;
 use jbboehr\Yumemi\PHPStan\UnitExpressionParser;
@@ -57,6 +58,7 @@ final class UnitExpressionAlgebraTest extends TestCase
 
         $this->assertSame($meter->expr, $normalForm->expr);
         $this->assertSame($meter->expr, $normalForm->normalizedExpr);
+        $this->assertSame($meter->expr, $normalForm->symbolicExpr);
         $this->assertSame('meter', $normalForm->displayString);
         $this->assertSame($meter->dimension, $normalForm->dimension);
     }
@@ -121,6 +123,40 @@ final class UnitExpressionAlgebraTest extends TestCase
 
         $this->assertTrue($result->equivalent($this->unit('meter')));
         $this->assertTrue($result->sameDimension($this->unit('meter')));
+    }
+
+    public function testRootExtractsExactSymbolicPower(): void
+    {
+        $result = UnitExpressionAlgebra::root($this->unit('centimeter ^ 2'), 2);
+
+        $this->assertSame('1/100 * meter', $result->displayString);
+        $this->assertSame('centimeter', $result->symbolicExpr->toString());
+        $this->assertSame('length', $result->dimension->toString());
+        $this->assertTrue($result->equivalent($this->unit('centimeter')));
+    }
+
+    public function testPowerThenRootRetainsSymbolicWitness(): void
+    {
+        $kilometer = $this->unit('kilometer');
+        $result = UnitExpressionAlgebra::root(UnitExpressionAlgebra::power($kilometer, 2), 2);
+
+        $this->assertSame('1000 * meter', $result->displayString);
+        $this->assertSame('kilometer', $result->symbolicExpr->toString());
+    }
+
+    public function testRootRejectsDifferentSymbolsThatNormalizeToAPerfectPower(): void
+    {
+        $this->expectException(NonExactRootException::class);
+
+        UnitExpressionAlgebra::root($this->unit('kilometer * millimeter'), 2);
+    }
+
+    public function testExplicitNormalFormAllowsDefinitionallyExactRoot(): void
+    {
+        $unit = $this->unit('kilometer * millimeter');
+        $normalized = UnitExpression::fromNormalForm($unit->normalizedExpr, $unit->dimension);
+
+        $this->assertSame('meter', UnitExpressionAlgebra::root($normalized, 2)->displayString);
     }
 
     private function unit(string $unit): UnitExpression

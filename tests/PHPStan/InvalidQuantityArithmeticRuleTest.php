@@ -77,12 +77,32 @@ final class InvalidQuantityArithmeticRuleTest extends RuleTestCase
                 19,
             ],
             [
+                'Cannot call Quantity::root(): Unit expression meter has no exact symbolic root of degree 2.',
+                22,
+            ],
+            [
+                'Cannot call Quantity::root(): Root degree must be positive.',
+                23,
+            ],
+            [
+                'Cannot call Quantity::root(): Exponent 10001 exceeds the supported range of -10000 through 10000.',
+                24,
+            ],
+            [
+                'Quantity::pow() supports exponents from -10000 through 10000.',
+                27,
+            ],
+            [
+                'Cannot call Quantity::pow(): Exponent 10100 exceeds the supported range of -10000 through 10000.',
+                28,
+            ],
+            [
                 'Cannot call Quantity::add() with dimensionally incompatible units second (time) and meter (length).',
-                41,
+                50,
             ],
             [
                 'Cannot call Quantity::add() with dimensionally incompatible units meter (length) and second (time).',
-                47,
+                56,
             ],
         ]);
     }

@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\Analyzer;
 
 use jbboehr\Yumemi\Exception\LogicException;
+use jbboehr\Yumemi\Exception\NonExactRootException;
 use jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
@@ -53,6 +54,38 @@ final class ExprReducer
     {
         $state = new ReductionState();
         self::collect($expr, 1, $state);
+
+        return self::build($state);
+    }
+
+    /**
+     * Return an exact root while preserving the expression's reduced symbolic names.
+     *
+     * @logion [OSD 73:11] The keepers divided the harvest according to the ancient lots,
+     *     yet the first sheaf remained before the altar as witness that abundance came by covenant.
+     */
+    public static function root(Expr $expr, int $degree): Expr
+    {
+        $degree = Exponent::checkedRootDegree($degree);
+        $state = new ReductionState();
+        self::collect($expr, 1, $state);
+
+        $reduced = self::build($state);
+        foreach ($state->units as $data) {
+            if ($data['power'] % $degree !== 0) {
+                throw new NonExactRootException(sprintf(
+                    'Unit expression %s has no exact symbolic root of degree %d.',
+                    $reduced->toString(),
+                    $degree,
+                ));
+            }
+        }
+
+        $state->constant = $state->constant->root($degree);
+        foreach ($state->units as &$data) {
+            $data['power'] = intdiv($data['power'], $degree);
+        }
+        unset($data);
 
         return self::build($state);
     }

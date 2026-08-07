@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\Tests;
 
 use jbboehr\Yumemi\Dimension;
+use jbboehr\Yumemi\Exception\NonExactRootException;
 use jbboehr\Yumemi\Exception\OverflowException;
 use PHPUnit\Framework\TestCase;
 
@@ -214,6 +215,51 @@ final class DimensionTest extends TestCase
     public function testZeroPowerIsDimensionless(): void
     {
         $this->assertTrue((new Dimension(length: 1, time: -1))->pow(0)->isDimensionless());
+    }
+
+    public function testTakesExactDimensionRoot(): void
+    {
+        $squaredVelocity = new Dimension(length: 2, time: -2);
+        $velocity = $squaredVelocity->root(2);
+
+        $this->assertSame(['length' => 1, 'time' => -1], $velocity->namedPowers());
+        $this->assertTrue($velocity->pow(2)->equals($squaredVelocity));
+    }
+
+    public function testTakesExactExtensionDimensionRoot(): void
+    {
+        $dimension = Dimension::fromNamedPowers(['currency' => 6, 'event_count' => -3]);
+
+        $this->assertSame(
+            ['currency' => 2, 'event_count' => -1],
+            $dimension->root(3)->namedPowers(),
+        );
+    }
+
+    public function testDimensionlessHasEverySupportedExactRoot(): void
+    {
+        $this->assertTrue(Dimension::dimensionless()->root(10_000)->isDimensionless());
+    }
+
+    public function testRejectsNonExactDimensionRoot(): void
+    {
+        $this->expectException(NonExactRootException::class);
+
+        (new Dimension(length: 2, time: -1))->root(2);
+    }
+
+    public function testRejectsNonPositiveDimensionRootDegree(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        Dimension::dimensionless()->root(0);
+    }
+
+    public function testRejectsDimensionRootDegreeBeyondSupportedRange(): void
+    {
+        $this->expectException(OverflowException::class);
+
+        Dimension::dimensionless()->root(10_001);
     }
 
     public function testRejectsOutOfRangeDimensionConstruction(): void

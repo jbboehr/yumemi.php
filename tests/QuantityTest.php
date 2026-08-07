@@ -38,6 +38,7 @@ namespace jbboehr\Yumemi\Tests;
 
 use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
+use jbboehr\Yumemi\Exception\NonExactRootException;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Quantity;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
@@ -422,6 +423,77 @@ final class QuantityTest extends TestCase
         $this->assertSame('1', $result->valueToString());
         $this->assertSame('1', $result->unitToString());
         $this->assertTrue($result->dimension()->isDimensionless());
+    }
+
+    public function testTakesExactQuantityRootWhilePreservingSymbolicUnit(): void
+    {
+        $quantity = Units::default()->quantity(new Rational(4, 9), 'centimeter^2 / second^4');
+        $root = $quantity->root(2);
+
+        $this->assertSame('2/3', $root->valueToString());
+        $this->assertSame('centimeter / second ^ 2', $root->unitToString());
+        $this->assertTrue($root->pow(2)->value()->equals($quantity->value()));
+        $this->assertSame($quantity->unitToString(), $root->pow(2)->unitToString());
+    }
+
+    public function testQuantityRootPreservesExactConstantInUnit(): void
+    {
+        $root = Units::default()->quantity(9, '4 * meter^2')->root(2);
+
+        $this->assertSame('3', $root->valueToString());
+        $this->assertSame('2 * meter', $root->unitToString());
+        $this->assertSame('6', $root->valueIn('meter')->toString());
+    }
+
+    public function testSimplifyMakesDefinitionallyExactUnitRootExplicit(): void
+    {
+        $quantity = Units::default()->quantity(1, $this->definitionallyExactSymbolicSquare());
+
+        $this->expectException(NonExactRootException::class);
+        $quantity->root(2);
+    }
+
+    private function definitionallyExactSymbolicSquare(): string
+    {
+        return 'kilometer * millimeter';
+    }
+
+    public function testTakesDefinitionallyExactUnitRootAfterExplicitSimplification(): void
+    {
+        $root = Units::default()
+            ->quantity(1, 'kilometer * millimeter')
+            ->simplify()
+            ->root(2);
+
+        $this->assertSame('1', $root->valueToString());
+        $this->assertSame('meter', $root->unitToString());
+    }
+
+    public function testTakesDefinitionallyExactUnitRootAfterExplicitNormalization(): void
+    {
+        $root = Units::default()
+            ->quantity(1, 'hectare')
+            ->normalize()
+            ->root(2);
+
+        $this->assertSame('1', $root->valueToString());
+        $this->assertSame('100 * meter', $root->unitToString());
+        $this->assertSame('100', $root->valueIn('meter')->toString());
+    }
+
+    public function testRejectsQuantityWithNonExactMagnitudeRoot(): void
+    {
+        $this->expectException(NonExactRootException::class);
+
+        Units::default()->quantity(2, 'meter^2')->root(2);
+    }
+
+    public function testTakesNegativeOddQuantityRoot(): void
+    {
+        $root = Units::default()->quantity(-8, 'meter^3')->root(3);
+
+        $this->assertSame('-2', $root->valueToString());
+        $this->assertSame('meter', $root->unitToString());
     }
 
     public function testNegatesQuantityMagnitude(): void

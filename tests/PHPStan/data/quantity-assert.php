@@ -104,6 +104,38 @@ assertType("Quantity<'meter'>", $m->div(2));
 // pow raises by a constant integer
 assertType("Quantity<'meter ^ 2'>", $m->pow(2));
 assertType("Quantity<'1 / meter'>", $m->pow(-1));
+assertType("Quantity<'meter ^ 10000'>", $m->pow(10_000));
+assertType("Quantity<'1 / meter ^ 10000'>", $m->pow(-10_000));
+
+// root extracts exact symbolic powers; runtime magnitude exactness is not part of the generic type
+$squareMeters = $units->quantity(4, 'meter^2');
+$squarePixels = $units->quantity(4, 'pixel^2');
+assertType("Quantity<'meter'>", $squareMeters->root(2));
+assertType("Quantity<'pixel'>", $squarePixels->root(2));
+assertType("Quantity<'meter'>", $units->quantity(2, 'meter^2')->root(2));
+
+// substitution remains explicit when different symbolic names form a perfect normalized power
+$mixedLengthSquare = $units->quantity(1, 'kilometer * millimeter');
+assertType('*ERROR*', $mixedLengthSquare->root(2));
+assertType("Quantity<'meter'>", $mixedLengthSquare->simplify()->root(2));
+
+// invalid constant degrees and unit powers are rejected statically
+assertType('*ERROR*', $squareMeters->root(0));
+assertType('*ERROR*', $m->root(2));
+assertType('*ERROR*', $m->pow(10_001));
+assertType('*ERROR*', $m->pow(-10_001));
+
+/** @param Quantity<'meter ^ 2'> $area */
+function rootWithDynamicDegree(Quantity $area, int $degree): void
+{
+    assertType(Quantity::class, $area->root($degree));
+}
+
+/** @param Quantity<'meter ^ 2'>|Quantity<'second ^ 2'> $quantity */
+function rootReceiverUnion(Quantity $quantity): void
+{
+    assertType("Quantity<'meter'>|Quantity<'second'>", $quantity->root(2));
+}
 
 // neg keeps the unit; add / sub convert compatible operands and keep the left unit
 assertType("Quantity<'meter'>", $m->neg());

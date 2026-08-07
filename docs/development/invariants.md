@@ -96,9 +96,10 @@ relation is also a compatibility break.
 
 ## Exactness Ends Only at Explicit Boundaries
 
-**Invariant.** `Rational`, `Quantity`, `PointQuantity`, and exact `Units` operations preserve rational magnitudes. Any
-rounding, truncation, terminating-decimal requirement, or binary floating-point conversion must occur through an API
-whose name and parameters disclose that policy.
+**Invariant.** `Rational`, `Quantity`, `PointQuantity`, and exact `Units` operations preserve rational magnitudes. An
+exact root either produces another rational value or fails; it never approximates an irrational result. Any rounding,
+truncation, terminating-decimal requirement, or binary floating-point conversion must occur through an API whose name
+and parameters disclose that policy.
 
 **Reason.** Unit conversion often introduces fractions. Silent conversion to `float` would make exact equality,
 round-tripping, and reproducible output depend on binary rounding.
@@ -106,12 +107,14 @@ round-tripping, and reproducible output depend on binary rounding.
 **Representative enforcement.** [`Rational`](../../src/Number/Rational.php) stores normalized GMP numerator and
 denominator values. [`Quantity`](../../src/Quantity.php) and [`PointQuantity`](../../src/PointQuantity.php) retain
 `Rational` state. [`BinaryFloat`](../../src/Number/BinaryFloat.php) decodes finite binary64 inputs exactly, while named
-output methods expose integer, decimal, and float policies. [`RationalTest`](../../tests/Number/RationalTest.php),
-[`BinaryFloatTest`](../../tests/Number/BinaryFloatTest.php), and [`QuantityTest`](../../tests/QuantityTest.php) cover
-rounding, non-terminating decimals, overflow, and underflow.
+output methods expose integer, decimal, and float policies. `Rational::root()` and `Quantity::root()` throw
+`NonExactRootException` when the requested result cannot remain exact.
+[`RationalTest`](../../tests/Number/RationalTest.php), [`BinaryFloatTest`](../../tests/Number/BinaryFloatTest.php), and
+[`QuantityTest`](../../tests/QuantityTest.php) cover roots, rounding, non-terminating decimals, overflow, and underflow.
 
-**Invalid shortcut.** Storing a `Quantity` magnitude as `float`, returning an approximate decimal from an exact method,
-or silently mapping a nonzero exact value to zero or infinity at a native boundary.
+**Invalid shortcut.** Storing a `Quantity` magnitude as `float`, approximating a non-exact root, returning an
+approximate decimal from an exact method, or silently mapping a nonzero exact value to zero or infinity at a native
+boundary.
 
 **Classification.** Silent precision loss is a correctness defect. Changing an explicitly documented output policy is a
 compatibility break. The native `unit_to()`, `unit_factor()`, and `convertFloat()` APIs are accepted approximate
@@ -137,7 +140,8 @@ factors, [`UnitNormalizer`](../../src/Analyzer/UnitNormalizer.php) performs defi
 [`BoundedAlgebraTest`](../../tests/Generative/BoundedAlgebraTest.php) cover ordering, idempotence, and round-trips.
 
 **Invalid shortcut.** Implementing reduction as normalization, moving a unit scale into a quantity during ordinary
-multiplication or division, or producing output whose meaning depends on map insertion order.
+multiplication or division, allowing `root()` to substitute definitions implicitly, or producing output whose meaning
+depends on map insertion order.
 
 **Classification.** A semantic or round-trip change is a correctness defect. An intentional change to exposed canonical
 or default display text may also be a compatibility break even when the represented unit remains equivalent.

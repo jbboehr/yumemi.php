@@ -205,9 +205,9 @@ preserve those spans through the multiplicative, quantity, conversion, point, an
 aliases and stored catalog definitions deliberately attributes an inner failure to the outer identifier written by the
 caller.
 
-## Rational Powers And Exact Roots
+## Rational Powers Beyond Exact Integer-Degree Roots
 
-`Quantity::pow()` intentionally accepts only an integer today. Widening it to `int|float` would be incorrect: binary
+`Quantity::pow()` intentionally accepts only an integer. Widening it to `int|float` would be incorrect: binary
 floating-point exponents cannot provide stable equality, cancellation, formatting, or PHPStan type identity for unit
 expressions.
 
@@ -216,7 +216,7 @@ Yumemi's `Rational` is more general because it also represents values such as `1
 store an irrational result such as `sqrt(2)` exactly, however, so arbitrary-precision decimal arithmetic does not by
 itself make arbitrary real exponentiation exact.
 
-Future exact exponentiation should use a `Rational` exponent, never a `float`. For an exponent `p/q`, the exact
+Future general exact exponentiation should use a `Rational` exponent, never a `float`. For an exponent `p/q`, the exact
 operation can succeed when the required `q`th roots of the magnitude's numerator and denominator are integers. Otherwise
 the exact API should throw. Approximate results should require a separate API with explicit precision and rounding
 rather than silently changing `Quantity` from exact rational arithmetic to decimal approximation.
@@ -225,7 +225,7 @@ Full rational unit powers would be a cross-cutting representation change. `Expr\
 formatting, normalization, comparison, and PHPStan unit identity currently store integer powers. They would all need
 canonical `Rational` powers before expressions such as `meter^(1/10)` could be represented safely.
 
-A smaller future first step is an exact root operation:
+A deliberately narrower exact root operation is now implemented:
 
 ```php
 $units->quantity(4, 'meter^2')->root(2); // 2 meter
@@ -233,9 +233,15 @@ $units->quantity(8, 'meter^3')->root(3); // 2 meter
 $units->quantity(2, 'meter^2')->root(2); // throws: sqrt(2) is not rational
 ```
 
-An initial `root(int $degree)` should require both an exact rational magnitude root and normalized unit powers divisible
-by the degree, keeping the resulting unit powers integral. This is useful but not currently on the near-term roadmap;
-`pow(int)` remains the supported API until the exact-root semantics and symbolic-unit display policy are designed.
+`Rational::root()`, `Dimension::root()`, and `Quantity::root()` accept positive degrees through `10000`. They require an
+exact rational magnitude root and powers divisible by the degree, keeping all resulting powers integral. Negative
+magnitudes accept only odd degrees. `Quantity::root()` reduces but does not substitute the caller's symbolic unit names;
+`kilometer * millimeter` therefore requires an explicit `simplify()` or `normalize()` before its square root can be
+taken. PHPStan infers a rooted `Quantity` unit for a known valid degree and diagnoses invalid symbolic roots, but
+runtime magnitude exactness remains a possible `NonExactRootException`.
+
+General `Rational` exponents still require the cross-cutting representation work above. A future approximate API still
+needs an explicit precision, rounding, unit-power, and PHPStan contract.
 
 ## Numeric Output Policy
 
@@ -524,8 +530,9 @@ repeat the implementation's assumptions:
   guidance rather than making the runtime package uninstallable.
 - Explicit integer/float casts and `abs()`, `ceil()`, `floor()`, and `round()` preserve native unit brands. Other casts
   and unsupported PHP built-ins can erase them. Continue adding targeted integrations only for demonstrated workflows;
-  `min()`, `max()`, `intdiv()`, roots, and trigonometric functions remain deferred because they require distinct unit,
-  correlation, or exponent semantics.
+  `min()`, `max()`, `intdiv()`, native root functions, and trigonometric functions remain deferred because they require
+  distinct unit, correlation, or exponent semantics. Exact runtime-object roots are supported through
+  `Quantity::root()`.
 - Native helpers accept finite alternatives only when every valid path produces one semantic result unit. Independent
   source and target alternatives lose value correlation, so conversion helpers validate the Cartesian product and fail
   closed if any pair is invalid. Quantity boundaries continue to preserve finite target unions.
@@ -551,7 +558,7 @@ repeat the implementation's assumptions:
 ### Deferred Features
 
 - Logarithmic units
-- Exact rational powers and roots; approximate results require explicit precision and rounding
+- Exact rational powers beyond integer-degree roots; approximate results require explicit precision and rounding
 - Significant-digit and scientific-notation numeric formatting
 - Configurable alternatives to the current strict float policy, which rejects non-finite input, overflow to infinity,
   and nonzero exact results that underflow to zero

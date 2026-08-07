@@ -36,6 +36,8 @@
 
 namespace jbboehr\Yumemi\Tests\Analyzer;
 
+use jbboehr\Yumemi\Analyzer\ExprReducer;
+use jbboehr\Yumemi\Exception\NonExactRootException;
 use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Power;
@@ -160,6 +162,36 @@ final class ExprReducerTest extends TestCase
         $expr = (new Constant(new Rational(2, 3)))->pow(-2);
 
         $this->assertSame('9/4', $expr->toString());
+    }
+
+    public function testTakesExactRootOfReducedExpression(): void
+    {
+        $expr = (new Constant(new Rational(4, 9)))
+            ->mul((new Unit('meter'))->pow(2))
+            ->div((new Unit('second'))->pow(4));
+
+        $this->assertSame('2/3 * meter * second ^ -2', ExprReducer::root($expr, 2)->toString());
+    }
+
+    public function testRootCombinesRepeatedSymbolsBeforeCheckingPowers(): void
+    {
+        $meter = new Unit('meter');
+
+        $this->assertSame('meter', ExprReducer::root(new Product([$meter, $meter]), 2)->toString());
+    }
+
+    public function testRejectsSymbolicallyNonExactRoot(): void
+    {
+        $this->expectException(NonExactRootException::class);
+
+        ExprReducer::root((new Unit('kilometer'))->mul(new Unit('millimeter')), 2);
+    }
+
+    public function testRejectsExpressionWithNonExactConstantRoot(): void
+    {
+        $this->expectException(NonExactRootException::class);
+
+        ExprReducer::root((new Constant(2))->mul((new Unit('meter'))->pow(2)), 2);
     }
 
     public function testRejectsNestedPowersWhoseCombinedExponentExceedsTheLimit(): void

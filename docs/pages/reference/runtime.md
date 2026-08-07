@@ -138,12 +138,13 @@ assert($scientific->toString() === '1/1000');
 assert($length->valueToString() === '5/4');
 ```
 
-`Rational` provides exact `add()`, `sub()`, `mul()`, `div()`, and integer `pow()` operations, together with
-`compareTo()` and `equals()`. `toString()` returns a fraction, `toDecimalExact()` requires a terminating decimal, and
-`toDecimal()` uses an explicit scale and `RoundingMode`. Conversion to native values remains explicit through `toInt()`,
-`toIntExact()`, and `toFloat()`. Integer powers and the effective decimal exponent accepted by
-`Rational::fromDecimalString()` are limited to the inclusive range `-10000` through `10000`. Zero powers follow PHP's
-computing convention: every base, including zero, raised to zero returns one.
+`Rational` provides exact `add()`, `sub()`, `mul()`, `div()`, integer `pow()`, and integer-degree `root()` operations,
+together with `compareTo()` and `equals()`. A root succeeds only when the numerator and denominator both have exact
+integer roots; negative values therefore accept only odd degrees. `toString()` returns a fraction, `toDecimalExact()`
+requires a terminating decimal, and `toDecimal()` uses an explicit scale and `RoundingMode`. Conversion to native values
+remains explicit through `toInt()`, `toIntExact()`, and `toFloat()`. Integer powers, positive root degrees, and the
+effective decimal exponent accepted by `Rational::fromDecimalString()` are limited to `10000` in magnitude. Zero powers
+follow PHP's computing convention: every base, including zero, raised to zero returns one.
 
 ## Quantity Arithmetic
 
@@ -166,6 +167,27 @@ assert($ratio->toString() === '3/2 * meter / foot');
 `mul()` and `div()` also accept an `int` or `Rational` scalar. `neg()` changes only the magnitude. `pow()` raises both
 the magnitude and unit expression to an integer power. `pow(0)` returns dimensionless one, including when the original
 magnitude is zero.
+
+`root()` is the exact inverse for a positive integer degree when both the rational magnitude and every reduced symbolic
+unit power have exact roots:
+
+```php
+<?php
+
+use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\Units;
+
+$rootedArea = Units::default()
+    ->quantity(new Rational(4, 9), 'centimeter^2 / second^4')
+    ->root(2);
+
+assert($rootedArea->toString() === '2/3 * centimeter / second ^ 2');
+```
+
+The degree must be between `1` and `10000`. A non-exact magnitude, an even root of a negative magnitude, or a symbolic
+power not divisible by the degree throws `NonExactRootException`. Rooting preserves the units the caller wrote: for
+example, `kilometer * millimeter` is not a symbolic square even though substitution reduces it to `meter^2`. Call
+`simplify()` or `normalize()` first when that substitution is intentional, then call `root()` on the explicit result.
 
 Addition and subtraction require compatible dimensions. The right operand is converted exactly into the left operand's
 unit, and the result preserves the left symbolic unit:
@@ -384,8 +406,9 @@ axes use the same dimension algebra; for example, an application-defined `curren
 extension axis with the fixed SI time axis. `Dimension::CURRENCY` provides the conventional `currency` extension name
 without adding a bundled unit or exchange-rate policy.
 
-Dimensions support multiplication, division, integer powers, equality, `isDimensionless()`, and the existing SI axis
-accessors. `powers()` retains its seven-element SI view. `namedPowers()` returns every nonzero SI and extension power,
+Dimensions support multiplication, division, integer powers, exact positive integer-degree roots, equality,
+`isDimensionless()`, and the existing SI axis accessors. `Dimension::root()` requires every power to be divisible by the
+degree. `powers()` retains its seven-element SI view. `namedPowers()` returns every nonzero SI and extension power,
 `powerOf()` reads either kind by name, and `fromNamedPowers()` constructs a mixed dimension directly. Extension names
 use lower snake case and format after SI axes in deterministic bytewise order.
 

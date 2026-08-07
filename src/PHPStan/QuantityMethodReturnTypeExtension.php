@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\PHPStan;
 
 use jbboehr\Yumemi\Analyzer\NormalizedExpr;
+use jbboehr\Yumemi\Exception\ExceptionInterface;
 use jbboehr\Yumemi\Quantity;
 use PhpParser\Node\Expr\MethodCall;
 use PHPStan\Analyser\Scope;
@@ -55,7 +56,7 @@ use jbboehr\Yumemi\Util\Exponent;
  *
  * When the receiver is a branded {@see QuantityType}, each unit-bearing method returns a new
  * QuantityType whose unit matches the runtime result (see the table in {@see Quantity}):
- * `mul`/`div` combine units via {@see UnitExpressionAlgebra}; `pow` raises by a constant integer;
+ * `mul`/`div` combine units via {@see UnitExpressionAlgebra}; `pow` raises and `root` extracts exact symbolic powers;
  * `neg` keeps the left unit; `add`/`sub` accept dimensionally compatible units and keep the left
  * unit; `addWithSameUnit`/`subWithSameUnit` additionally require normalized-equivalent units; comparison
  * methods require compatible dimensions while retaining their native int/bool return types; `to` rebrands
@@ -83,7 +84,7 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
     public function isMethodSupported(MethodReflection $methodReflection): bool
     {
         return in_array($methodReflection->getName(), [
-            'mul', 'div', 'pow', 'neg', 'add', 'sub', 'addWithSameUnit', 'subWithSameUnit', 'to', 'valueIn',
+            'mul', 'div', 'pow', 'root', 'neg', 'add', 'sub', 'addWithSameUnit', 'subWithSameUnit', 'to', 'valueIn',
             'intValueIn', 'exactIntValueIn', 'decimalValueIn', 'exactDecimalValueIn', 'floatValueIn', 'normalize',
             'simplify', 'compareTo', 'equals', 'lessThan', 'lessThanOrEqualTo', 'greaterThan', 'greaterThanOrEqualTo',
         ], true);
@@ -179,6 +180,7 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
             'mul' => $this->combine($unit, $args, $scope, true),
             'div' => $this->combine($unit, $args, $scope, false),
             'pow' => $this->power($unit, $args, $scope),
+            'root' => $this->root($unit, $args, $scope),
             'normalize' => $this->normalize($unit),
             'simplify' => $this->simplify($unit),
             default => null,
@@ -312,7 +314,10 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
             return null;
         }
 
-        if (abs($argType->getValue()) > Exponent::MAX_ABSOLUTE) {
+        if (
+            $argType->getValue() < -Exponent::MAX_ABSOLUTE
+            || $argType->getValue() > Exponent::MAX_ABSOLUTE
+        ) {
             return new ErrorType(sprintf(
                 'Quantity::pow() supports exponents from -%d through %d.',
                 Exponent::MAX_ABSOLUTE,
@@ -320,7 +325,35 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
             ));
         }
 
-        return new QuantityType(UnitExpressionAlgebra::power($unit, $argType->getValue()));
+        try {
+            return new QuantityType(UnitExpressionAlgebra::power($unit, $argType->getValue()));
+        } catch (ExceptionInterface $exception) {
+            return new ErrorType(sprintf('Cannot call Quantity::pow(): %s', $exception->getMessage()));
+        }
+    }
+
+    /**
+     * @param array<\PhpParser\Node\Arg> $args
+     *
+     * @logion [RAS 55:10] Behold, the bells of the upper city answered one another through
+     *     the storm, until their divided voices became a single warning above the sleeping court.
+     */
+    private function root(UnitExpression $unit, array $args, Scope $scope): ?Type
+    {
+        if (count($args) < 1) {
+            return null;
+        }
+
+        $argType = $scope->getType($args[0]->value);
+        if (!$argType instanceof ConstantIntegerType) {
+            return null;
+        }
+
+        try {
+            return new QuantityType(UnitExpressionAlgebra::root($unit, $argType->getValue()));
+        } catch (ExceptionInterface $exception) {
+            return new ErrorType(sprintf('Cannot call Quantity::root(): %s', $exception->getMessage()));
+        }
     }
 
     /**

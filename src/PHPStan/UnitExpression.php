@@ -55,12 +55,22 @@ use jbboehr\Yumemi\Formatter\ExprRenderer;
  */
 final class UnitExpression
 {
+    /**
+     * Reduced unit names as written by the caller, retained for operations that must not substitute definitions.
+     *
+     * @logion [OSD 81:22] The covenant was copied in the speech of every province,
+     *     yet each tablet retained the seal of the house that had received it first.
+     */
+    public readonly Expr $symbolicExpr;
+
     public function __construct(
         public readonly Expr $expr,
         public readonly string $displayString,
         public readonly Dimension $dimension,
         public readonly Expr $normalizedExpr,
+        ?Expr $symbolicExpr = null,
     ) {
+        $this->symbolicExpr = $symbolicExpr ?? $expr;
     }
 
     public static function fromNormalForm(Expr $expr, Dimension $dimension): self
@@ -69,6 +79,7 @@ final class UnitExpression
             $expr,
             ExprRenderer::format($expr),
             $dimension,
+            $expr,
             $expr,
         );
     }

@@ -38,6 +38,7 @@ namespace jbboehr\Yumemi\Tests\Conformance;
 
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\Exception\NonMultiplicativeConversionException;
+use jbboehr\Yumemi\Exception\NonExactRootException;
 use jbboehr\Yumemi\Exception\RuntimeException;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
@@ -63,6 +64,7 @@ final class RuntimeConformanceTest extends TestCase
         'quantities.json' => [
             'quantityAdditions',
             'quantityOperations',
+            'quantityRoots',
             'quantityForms',
             'pointConversions',
             'pointDifferences',
@@ -81,6 +83,7 @@ final class RuntimeConformanceTest extends TestCase
         'unsupported-unit-algebra' => UnsupportedUnitAlgebraException::class,
         'unsupported-unit-conversion' => UnsupportedUnitConversionException::class,
         'non-multiplicative-conversion' => NonMultiplicativeConversionException::class,
+        'non-exact-root' => NonExactRootException::class,
     ];
 
     /**
@@ -171,6 +174,21 @@ final class RuntimeConformanceTest extends TestCase
             'divide' => $left->div($right),
             default => throw new \UnexpectedValueException(sprintf('%s.operation is not supported: %s', $context, $operation)),
         };
+
+        self::assertQuantity($case['expected'] ?? null, $actual, $context . '.expected');
+    }
+
+    /**
+     * @param array<string, mixed> $case
+     */
+    #[DataProvider('quantityRootProvider')]
+    public function testQuantityRootConformance(array $case): void
+    {
+        $context = self::context('quantities.json', $case);
+        self::assertKeys($case, ['id', 'quantity', 'degree', 'expected'], $context);
+
+        $actual = self::quantity($case['quantity'] ?? null, $context . '.quantity')
+            ->root(self::integer($case, 'degree', $context));
 
         self::assertQuantity($case['expected'] ?? null, $actual, $context . '.expected');
     }
@@ -277,6 +295,7 @@ final class RuntimeConformanceTest extends TestCase
             'parse' => ['id', 'operation', 'input', 'error'],
             'factor' => ['id', 'operation', 'from', 'to', 'error'],
             'convert' => ['id', 'operation', 'value', 'from', 'to', 'error'],
+            'quantity-root' => ['id', 'operation', 'quantity', 'degree', 'error'],
             default => throw new \UnexpectedValueException(sprintf('%s.operation is not supported: %s', $context, $operation)),
         };
         self::assertKeys($case, $expectedKeys, $context, optional: ['span']);
@@ -354,6 +373,12 @@ final class RuntimeConformanceTest extends TestCase
     public static function quantityOperationProvider(): iterable
     {
         yield from self::provider('quantities.json', 'quantityOperations');
+    }
+
+    /** @return iterable<string, array{array<string, mixed>}> */
+    public static function quantityRootProvider(): iterable
+    {
+        yield from self::provider('quantities.json', 'quantityRoots');
     }
 
     /** @return iterable<string, array{array<string, mixed>}> */
@@ -462,6 +487,8 @@ final class RuntimeConformanceTest extends TestCase
                 self::string($case, 'from', $context),
                 self::string($case, 'to', $context),
             ),
+            'quantity-root' => self::quantity($case['quantity'] ?? null, $context . '.quantity')
+                ->root(self::integer($case, 'degree', $context)),
             default => throw new \UnexpectedValueException(sprintf('%s.operation is not supported: %s', $context, $operation)),
         };
     }

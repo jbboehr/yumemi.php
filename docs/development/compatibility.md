@@ -103,7 +103,8 @@ replaceable. Their observable grammar and catalog semantics are governed separat
 The runtime contract is behavioral rather than architectural. A replacement may reorganize the implementation while
 preserving:
 
-- exact rational conversion and arithmetic until an explicitly approximate output boundary;
+- exact rational conversion and arithmetic until an explicitly approximate output boundary, including roots that fail
+  instead of approximating when the magnitude or symbolic unit expression has no exact result;
 - the distinction among symbolic reduction, definition substitution, and display formatting;
 - the distinction among structural equality, definitional equivalence, and dimensional compatibility;
 - affine points, multiplicative differences, and their permitted operations;

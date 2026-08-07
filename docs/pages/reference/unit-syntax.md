@@ -130,9 +130,11 @@ and unsupported expressions.
 
 Synthesized `delta_*` and `Δ` names are ordinary multiplicative catalog entries, not special parser syntax.
 
-`Quantity::pow()` and PHPStan's unit exponent inference likewise accept only integer powers. Exact rational roots and
-explicit approximate powers are deferred features; a `float` exponent will not be silently accepted. Integer exponents
-are limited to the inclusive range `-10000` through `10000`, including powers formed by reducing nested expressions.
+`Quantity::pow()` and PHPStan's unit exponent inference likewise accept only integer powers. `Quantity::root()` is a
+separate exact operation for positive integer degrees; it does not add fractional-power syntax to the parser. Rational
+exponents and explicit approximate powers remain deferred, and a `float` exponent will not be silently accepted. Integer
+exponents are limited to the inclusive range `-10000` through `10000`, including powers formed by reducing nested
+expressions; root degrees are limited to `1` through `10000`.
 
 ## Errors And Source Locations
 

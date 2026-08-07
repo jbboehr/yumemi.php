@@ -57,6 +57,16 @@ final class UnitExpressionParserTest extends TestCase
         $this->assertSame('length / time', $expression->dimension->toString());
     }
 
+    public function testRetainsSymbolicSpellingAlongsideCanonicalStaticExpression(): void
+    {
+        $result = (new UnitExpressionParser())->parse('kilometer * millimeter');
+
+        $this->assertTrue($result->isOk());
+        $expression = $result->expression();
+        $this->assertSame('meter ^ 2', $expression->displayString);
+        $this->assertSame('kilometer * millimeter', $expression->symbolicExpr->toString());
+    }
+
     public function testParsesAffinePointWithExactOriginAndDeltaScale(): void
     {
         $result = (new UnitExpressionParser())->parsePoint(' celsius ');

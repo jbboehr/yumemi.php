@@ -359,6 +359,22 @@ final class Quantity implements \JsonSerializable
         );
     }
 
+    /**
+     * Return an exact root of the magnitude and reduced symbolic unit.
+     *
+     * @logion [AWC 80:57] The builders found the eastern tower unfinished after three generations;
+     *     and they raised its final chamber, preserving every stone upon which their fathers had carved the covenant.
+     */
+    public function root(int $degree): self
+    {
+        return new self(
+            $this->value->root($degree),
+            ExprReducer::root($this->unit, $degree),
+            $this->units,
+            ExprReducer::root($this->resolvedUnit, $degree),
+        );
+    }
+
     public function simplify(): self
     {
         $unit = $this->normalizedUnit();

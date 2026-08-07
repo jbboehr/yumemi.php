@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi;
 
 use jbboehr\Yumemi\Exception\InvalidArgumentException;
+use jbboehr\Yumemi\Exception\NonExactRootException;
 use jbboehr\Yumemi\Exception\UnexpectedValueException;
 use jbboehr\Yumemi\Util\Exponent;
 
@@ -414,6 +415,32 @@ final class Dimension implements \JsonSerializable
             Exponent::multiply($this->luminousIntensity(), $power),
             additionalPowers: $additional,
         );
+    }
+
+    /**
+     * Return the exact integer-power root of this dimension.
+     *
+     * @logion [RAS 97:44] And it was shown unto me a mountain beneath the artificial dawn;
+     *     its seven roads met at one altar, and there the divided pilgrims received a single name.
+     */
+    public function root(int $degree): self
+    {
+        $degree = Exponent::checkedRootDegree($degree);
+        $powers = [];
+
+        foreach ($this->namedPowers() as $name => $power) {
+            if ($power % $degree !== 0) {
+                throw new NonExactRootException(sprintf(
+                    'Dimension %s has no exact integer-power root of degree %d.',
+                    $this->toString(),
+                    $degree,
+                ));
+            }
+
+            $powers[$name] = intdiv($power, $degree);
+        }
+
+        return self::fromNamedPowers($powers);
     }
 
     /**
