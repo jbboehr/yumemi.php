@@ -50,7 +50,7 @@ use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\UnionType;
 
 /**
- * Infers exact unit roots through native scalar root functions.
+ * Infers exact unit roots through native sqrt().
  *
  * @logion [SFA 12:74] The lamp was hidden beneath the pilgrim's cloak, yet its warmth
  *     remained upon every hand that bore the covenant across the sleeping province.
@@ -91,7 +91,7 @@ final class UnitRootFunctionTypeResolverExtension implements ExpressionTypeResol
     }
 
     /**
-     * Analyze one native root call for inference and standalone diagnostics.
+     * Analyze one native sqrt() call for inference and standalone diagnostics.
      *
      * @logion [OSD 57:82] The appointed bell was sounded once above the sleeping
      *     terraces, and every lawful echo returned bearing the name of its own valley.

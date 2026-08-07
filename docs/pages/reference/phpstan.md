@@ -166,8 +166,9 @@ unit-transforming native functions are not part of the current model.
 
 ### Casts And Scalar Functions
 
-Explicit integer and float casts preserve the unit while changing the native numeric kind. Yumemi also preserves brands
-through a small set of built-in scalar functions whose results necessarily retain the input unit:
+Explicit integer and float casts preserve the unit while changing the native numeric kind. Yumemi also tracks brands
+through a small set of built-in scalar functions. Most retain the input unit; `sqrt()` transforms it when the symbolic
+square root is exact:
 
 | Expression                         | Inferred result                                          |
 | ---------------------------------- | -------------------------------------------------------- |
