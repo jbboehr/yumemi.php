@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\PHPStan;
 
 use jbboehr\Yumemi\Exception\NonExactRootException;
+use jbboehr\Yumemi\Formatter\ExprRenderer;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Name;
@@ -79,72 +80,119 @@ final class UnitRootFunctionTypeResolverExtension implements ExpressionTypeResol
     public function getType(Expr $expr, Scope $scope): ?Type
     {
         try {
-            if (
-                !$expr instanceof FuncCall
-                || !$expr->name instanceof Name
-                || $expr->isFirstClassCallable()
-                || !$this->reflectionProvider->hasFunction($expr->name, $scope)
-                || $this->reflectionProvider->getFunction($expr->name, $scope)->getName() !== 'sqrt'
-            ) {
+            if (!$expr instanceof FuncCall) {
                 return null;
             }
 
-            $argument = NativeUnitArgumentResolver::argument($expr, 0, 'num');
-            if ($argument === null) {
-                return null;
-            }
-
-            return $this->transform($scope->getType($argument->value));
+            return $this->analyseCall($expr, $scope)['type'];
         } catch (\Throwable $exception) {
             ShouldNotHappenException::rethrow($exception);
         }
     }
 
     /**
-     * @logion [AWC 52:77] The exiles crossed the western causeway in separate companies,
-     *     and at the final bell their names were gathered beneath one unbroken seal.
+     * Analyze one native root call for inference and standalone diagnostics.
+     *
+     * @logion [OSD 57:82] The appointed bell was sounded once above the sleeping
+     *     terraces, and every lawful echo returned bearing the name of its own valley.
+     *
+     * @return array{type: Type|null, message: string|null}
      */
-    private function transform(Type $type): ?Type
+    public function analyseCall(FuncCall $call, Scope $scope): array
     {
-        if (!$type instanceof UnionType) {
-            return $this->transformArm($type);
+        if (
+            !$call->name instanceof Name
+            || $call->isFirstClassCallable()
+            || !$this->reflectionProvider->hasFunction($call->name, $scope)
+            || $this->reflectionProvider->getFunction($call->name, $scope)->getName() !== 'sqrt'
+        ) {
+            return ['type' => null, 'message' => null];
         }
 
+        $argument = NativeUnitArgumentResolver::argument($call, 0, 'num');
+        if ($argument === null) {
+            return ['type' => null, 'message' => null];
+        }
+
+        return $this->transform($scope->getType($argument->value));
+    }
+
+    /**
+     * @logion [AWC 52:77] The exiles crossed the western causeway in separate companies,
+     *     and at the final bell their names were gathered beneath one unbroken seal.
+     *
+     * @return array{type: Type|null, message: string|null}
+     */
+    private function transform(Type $type): array
+    {
         $results = [];
-        foreach ($type->getTypes() as $innerType) {
-            $result = $this->transformArm($innerType);
-            if ($result === null) {
-                return null;
+        $invalidUnits = [];
+        $hasUnbrandedArm = false;
+        $types = $type instanceof UnionType ? $type->getTypes() : [$type];
+        foreach ($types as $innerType) {
+            $arm = $this->transformArm($innerType);
+            if (!$arm['branded']) {
+                $hasUnbrandedArm = true;
+                continue;
             }
 
-            $results[] = $result;
+            if ($arm['type'] === null) {
+                $invalidUnits[] = $arm['unit'];
+                continue;
+            }
+
+            $results[] = $arm['type'];
+        }
+
+        if ($invalidUnits !== []) {
+            $invalidUnits = array_unique($invalidUnits);
+            sort($invalidUnits, SORT_STRING);
+
+            return [
+                'type' => null,
+                'message' => 'Cannot call sqrt() because at least one possible unit lacks an exact symbolic square root: '
+                    . implode(', ', $invalidUnits)
+                    . '.',
+            ];
+        }
+
+        if ($results === [] || $hasUnbrandedArm) {
+            return ['type' => null, 'message' => null];
         }
 
         $result = TypeCombinator::union(...$results);
         if ($type instanceof BenevolentUnionType && $result instanceof UnionType) {
-            return new BenevolentUnionType($result->getTypes());
+            $result = new BenevolentUnionType($result->getTypes());
         }
 
-        return $result;
+        return ['type' => $result, 'message' => null];
     }
 
     /**
      * @logion [SFA 41:68] The sealed measure answereth only when every mark thereof
      *     is whole; the divided inscription returneth in silence unto the margin.
+     *
+     * @return array{branded: bool, type: UnitFloatType|null, unit: string}
      */
-    private function transformArm(Type $type): ?Type
+    private function transformArm(Type $type): array
     {
         $unit = $type instanceof UnitFloatType
             ? $type->getUnitExpression()
             : UnitIntegerTypeHelper::extract($type)['unit'] ?? null;
         if ($unit === null) {
-            return null;
+            return ['branded' => false, 'type' => null, 'unit' => ''];
         }
 
+        $symbolicUnit = ExprRenderer::format($unit->symbolicExpr);
+
         try {
-            return new UnitFloatType(UnitExpressionAlgebra::root($unit, 2));
+            return [
+                'branded' => true,
+                'type' => new UnitFloatType(UnitExpressionAlgebra::root($unit, 2)),
+                'unit' => $symbolicUnit,
+            ];
         } catch (NonExactRootException) {
-            return null;
+            return ['branded' => true, 'type' => null, 'unit' => $symbolicUnit];
         }
     }
 }

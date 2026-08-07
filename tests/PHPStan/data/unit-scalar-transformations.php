@@ -65,6 +65,7 @@ assertType("unit_float<'meter / second'>", sqrt(unit(4.0, 'meter^2 / second^2'))
 assertType("unit_float<'1 / meter'>", sqrt(unit(4.0, 'meter^-2')));
 assertType("unit_float<'1'>", sqrt(unit(4, '1')));
 assertType("unit_float<'meter'>", sqrt(num: unit(4, 'meter^2')));
+assertType('float', sqrt(unit(1, 'meter')));
 
 /** @param int<0, 100> $value */
 function assertBrandedRangeSquareRoot(int $value): void

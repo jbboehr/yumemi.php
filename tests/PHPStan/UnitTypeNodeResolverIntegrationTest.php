@@ -143,6 +143,14 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $this->assertStringContainsString('[OK] No errors', $output, $output);
     }
 
+    public function testInvalidNativeUnitRootHasStableIdentifierAndLocalIgnore(): void
+    {
+        $output = $this->analyse('unit-root-function-invalid.php');
+
+        $this->assertStringContainsString('yumemi.invalidUnitRoot', $output, $output);
+        $this->assertStringContainsString('[ERROR] Found 1 error', $output, $output);
+    }
+
     public function testBrandedIntegerRangesEnforceBoundsAndUnits(): void
     {
         $output = $this->analyse('unit-range-invalid.php');
