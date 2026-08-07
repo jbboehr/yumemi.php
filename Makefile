@@ -1,6 +1,6 @@
 .DEFAULT: all
-.PHONY: all clean coverage-branch docs docs-check docs-serve generate-catalog probator-unit-parser test-consumer \
-	test-consumer-archive test-udunits2
+.PHONY: all clean coverage-branch coverage-branch-parallel docs docs-check docs-serve generate-catalog \
+	probator-unit-parser test-consumer test-consumer-archive test-udunits2
 
 BRANCH_COVERAGE_OUTPUT ?= coverage/branch
 BRANCH_COVERAGE_SOURCE ?= src/Number
@@ -28,7 +28,18 @@ coverage-branch:
 	@mkdir -p "$(BRANCH_COVERAGE_OUTPUT)"
 	php -d xdebug.mode=coverage vendor/bin/phpunit \
 		--configuration phpunit.branch.xml.dist \
-		--path-coverage \
+		--coverage-filter "$(BRANCH_COVERAGE_SOURCE)" \
+		--coverage-html "$(BRANCH_COVERAGE_OUTPUT)/html" \
+		--coverage-text="$(BRANCH_COVERAGE_OUTPUT)/coverage.txt" \
+		$(BRANCH_COVERAGE_TESTS)
+
+coverage-branch-parallel:
+	@php -r 'if (!extension_loaded("xdebug")) { fwrite(STDERR, "$(BRANCH_COVERAGE_XDEBUG_ERROR)\n"); exit(1); }'
+	@mkdir -p "$(BRANCH_COVERAGE_OUTPUT)"
+	php -d xdebug.mode=coverage vendor/bin/paratest \
+		--functional \
+		--configuration phpunit.branch.xml.dist \
+		--passthru-php="'-d' 'xdebug.mode=coverage'" \
 		--coverage-filter "$(BRANCH_COVERAGE_SOURCE)" \
 		--coverage-html "$(BRANCH_COVERAGE_OUTPUT)/html" \
 		--coverage-text="$(BRANCH_COVERAGE_OUTPUT)/coverage.txt" \

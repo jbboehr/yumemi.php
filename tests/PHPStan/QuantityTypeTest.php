@@ -52,6 +52,12 @@ use PHPStan\Type\VerbosityLevel;
  */
 final class QuantityTypeTest extends PHPStanTestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        self::getContainer();
+    }
+
     public function testDescribesTheUnit(): void
     {
         $this->assertSame("Quantity<'meter / second'>", $this->quantity('meter / second')->describe(VerbosityLevel::precise()));

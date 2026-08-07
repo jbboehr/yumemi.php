@@ -37,6 +37,7 @@ and release-style consumer archive.
 | --------------------------------- | ------------------------------------------------------------ | ---------------------------------------- |
 | Ordinary code or test change      | `composer check`                                             | PHP, required extensions, and Composer   |
 | Focused PHPUnit iteration         | `composer test -- tests/Parser`                              | None beyond installed dependencies       |
+| Parallel local test suite         | `composer test:parallel`                                     | None beyond installed dependencies       |
 | One PHPStan rule test             | `composer test -- tests/PHPStan/InvalidUnitCallRuleTest.php` | None beyond installed dependencies       |
 | Static-analysis-only iteration    | `composer analyse`                                           | None beyond installed dependencies       |
 | Public documentation              | `composer docs:check`                                        | mdBook                                   |
@@ -50,7 +51,9 @@ suite. Nix is not required for ordinary local work; `nix develop` provides the p
 documentation, or generation work requires it, and CI supplies the authoritative Nix signal for reviewed changes.
 
 Mutation testing, Xdebug branch coverage, alternate property-test seeds, and the parser “probator” are intentionally
-separate investigative workflows rather than requirements for every local edit.
+separate investigative workflows rather than requirements for every local edit. In `nix develop .#xdebug`, use
+`composer coverage:branch` for the serial PHPUnit report or `composer coverage:branch:parallel` for the equivalent
+ParaTest report.
 
 See [`docs/development/mutation-testing.md`](docs/development/mutation-testing.md) for the optional mutation-testing
 workflow and guidance on interpreting escaped mutants.

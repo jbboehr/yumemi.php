@@ -134,26 +134,31 @@ final class YumemiReturnTagExtensionTest extends TypeInferenceTestCase
         $fixturePath = __DIR__ . '/data/' . $fixture;
         $this->assertFileExists($fixturePath);
 
-        $config = sys_get_temp_dir() . '/yumemi-tag-' . md5($fixture) . '.neon';
-        $extension = realpath(__DIR__ . '/../../extension.neon');
-        $this->assertNotFalse($extension);
-        $includes = "includes:\n    - {$extension}\n";
-        if ($withTagPromotion) {
-            $tagExtension = realpath(__DIR__ . '/../../yumemi-tags.neon');
-            $this->assertNotFalse($tagExtension);
-            $includes .= "    - {$tagExtension}\n";
-        }
+        $temporaryFile = tempnam(sys_get_temp_dir(), 'yumemi-tag-');
+        $this->assertNotFalse($temporaryFile);
+        $config = $temporaryFile . '.neon';
 
-        $stubFiles = '';
-        if ($stub !== null) {
-            $stubPath = realpath(__DIR__ . '/data/' . $stub);
-            $this->assertNotFalse($stubPath);
-            $bootstrapPath = realpath(__DIR__ . '/Fixtures/YumemiTagStubFunctions.php');
-            $this->assertNotFalse($bootstrapPath);
-            $stubFiles = "    bootstrapFiles:\n        - {$bootstrapPath}\n    stubFiles:\n        - {$stubPath}\n";
-        }
+        try {
+            $this->assertTrue(rename($temporaryFile, $config));
+            $extension = realpath(__DIR__ . '/../../extension.neon');
+            $this->assertNotFalse($extension);
+            $includes = "includes:\n    - {$extension}\n";
+            if ($withTagPromotion) {
+                $tagExtension = realpath(__DIR__ . '/../../yumemi-tags.neon');
+                $this->assertNotFalse($tagExtension);
+                $includes .= "    - {$tagExtension}\n";
+            }
 
-        $neon = <<<NEON
+            $stubFiles = '';
+            if ($stub !== null) {
+                $stubPath = realpath(__DIR__ . '/data/' . $stub);
+                $this->assertNotFalse($stubPath);
+                $bootstrapPath = realpath(__DIR__ . '/Fixtures/YumemiTagStubFunctions.php');
+                $this->assertNotFalse($bootstrapPath);
+                $stubFiles = "    bootstrapFiles:\n        - {$bootstrapPath}\n    stubFiles:\n        - {$stubPath}\n";
+            }
+
+            $neon = <<<NEON
 {$includes}parameters:
     level: max
     paths:
@@ -161,19 +166,22 @@ final class YumemiReturnTagExtensionTest extends TypeInferenceTestCase
 {$stubFiles}    treatPhpDocTypesAsCertain: true
     reportUnmatchedIgnoredErrors: false
 NEON;
-        file_put_contents($config, $neon);
+            $this->assertNotFalse(file_put_contents($config, $neon));
 
-        $phpstan = realpath(__DIR__ . '/../../vendor/bin/phpstan');
-        $this->assertNotFalse($phpstan);
+            $phpstan = realpath(__DIR__ . '/../../vendor/bin/phpstan');
+            $this->assertNotFalse($phpstan);
 
-        $command = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($phpstan)
-            . ' analyse --no-progress --memory-limit=512M --error-format=table '
-            . escapeshellarg('-c') . ' ' . escapeshellarg($config)
-            . ' 2>&1';
+            $command = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($phpstan)
+                . ' analyse --no-progress --memory-limit=512M --error-format=table '
+                . escapeshellarg('-c') . ' ' . escapeshellarg($config)
+                . ' 2>&1';
 
-        $output = shell_exec($command);
-        @unlink($config);
+            $output = shell_exec($command);
 
-        return is_string($output) ? $output : '';
+            return is_string($output) ? $output : '';
+        } finally {
+            @unlink($config);
+            @unlink($temporaryFile);
+        }
     }
 }

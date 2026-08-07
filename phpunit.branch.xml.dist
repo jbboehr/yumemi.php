@@ -16,6 +16,7 @@
             <file>./src/Parser/Parser.php</file>
         </exclude>
     </source>
+    <coverage pathCoverage="true"/>
     <testsuites>
         <testsuite name="Branch Coverage">
             <directory>./tests</directory>

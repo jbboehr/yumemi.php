@@ -217,33 +217,33 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $fixturePath = __DIR__ . '/data/' . $fixture;
         $this->assertFileExists($fixturePath);
 
-        $config = sys_get_temp_dir() . '/yumemi-phpstan-' . md5(
-            $fixture
-                . ($registryFactory ?? '')
-                . var_export($integerOverflowToFloat, true)
-                . var_export($requireConstantNativeUnitExpressions, true),
-        ) . '.neon';
-        $extension = realpath(__DIR__ . '/../../extension.neon');
-        $this->assertNotFalse($extension);
+        $temporaryFile = tempnam(sys_get_temp_dir(), 'yumemi-phpstan-');
+        $this->assertNotFalse($temporaryFile);
+        $config = $temporaryFile . '.neon';
 
-        $yumemiOptions = [];
-        if ($registryFactory !== null) {
-            $yumemiOptions[] = '        registryFactory: ' . $registryFactory;
-        }
-        if ($integerOverflowToFloat !== null) {
-            $yumemiOptions[] = '        integerOverflowToFloat: '
-                . ($integerOverflowToFloat ? 'true' : 'false');
-        }
-        if ($requireConstantNativeUnitExpressions !== null) {
-            $yumemiOptions[] = '        requireConstantNativeUnitExpressions: '
-                . ($requireConstantNativeUnitExpressions ? 'true' : 'false');
-        }
+        try {
+            $this->assertTrue(rename($temporaryFile, $config));
+            $extension = realpath(__DIR__ . '/../../extension.neon');
+            $this->assertNotFalse($extension);
 
-        $yumemi = $yumemiOptions === []
-            ? ''
-            : "    yumemi:\n" . implode("\n", $yumemiOptions);
+            $yumemiOptions = [];
+            if ($registryFactory !== null) {
+                $yumemiOptions[] = '        registryFactory: ' . $registryFactory;
+            }
+            if ($integerOverflowToFloat !== null) {
+                $yumemiOptions[] = '        integerOverflowToFloat: '
+                    . ($integerOverflowToFloat ? 'true' : 'false');
+            }
+            if ($requireConstantNativeUnitExpressions !== null) {
+                $yumemiOptions[] = '        requireConstantNativeUnitExpressions: '
+                    . ($requireConstantNativeUnitExpressions ? 'true' : 'false');
+            }
 
-        $neon = <<<NEON
+            $yumemi = $yumemiOptions === []
+                ? ''
+                : "    yumemi:\n" . implode("\n", $yumemiOptions);
+
+            $neon = <<<NEON
 includes:
     - {$extension}
 parameters:
@@ -253,19 +253,22 @@ parameters:
     reportUnmatchedIgnoredErrors: false
 {$yumemi}
 NEON;
-        file_put_contents($config, $neon);
+            $this->assertNotFalse(file_put_contents($config, $neon));
 
-        $phpstan = realpath(__DIR__ . '/../../vendor/bin/phpstan');
-        $this->assertNotFalse($phpstan);
+            $phpstan = realpath(__DIR__ . '/../../vendor/bin/phpstan');
+            $this->assertNotFalse($phpstan);
 
-        $command = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($phpstan)
-            . ' analyse --no-progress --memory-limit=512M --error-format=table '
-            . escapeshellarg('-c') . ' ' . escapeshellarg($config)
-            . ' 2>&1';
+            $command = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($phpstan)
+                . ' analyse --no-progress --memory-limit=512M --error-format=table '
+                . escapeshellarg('-c') . ' ' . escapeshellarg($config)
+                . ' 2>&1';
 
-        $output = shell_exec($command);
-        @unlink($config);
+            $output = shell_exec($command);
 
-        return is_string($output) ? $output : '';
+            return is_string($output) ? $output : '';
+        } finally {
+            @unlink($config);
+            @unlink($temporaryFile);
+        }
     }
 }
