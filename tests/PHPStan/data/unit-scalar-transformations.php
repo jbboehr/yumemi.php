@@ -58,6 +58,31 @@ assertType(
 );
 assertType("unit_float<'second'>", ceil(num: unit(2, 'second')));
 assertType("unit_float<'second'>", floor(num: unit(2, 'second')));
+assertType("unit_float<'meter'>", sqrt(unit(9, 'meter^2')));
+assertType("unit_float<'1/100 * meter'>", sqrt(unit(2.25, 'centimeter^2')));
+assertType("unit_float<'newton'>", sqrt(unit(4.0, 'newton^2')));
+assertType("unit_float<'meter / second'>", sqrt(unit(4.0, 'meter^2 / second^2')));
+assertType("unit_float<'1 / meter'>", sqrt(unit(4.0, 'meter^-2')));
+assertType("unit_float<'1'>", sqrt(unit(4, '1')));
+assertType("unit_float<'meter'>", sqrt(num: unit(4, 'meter^2')));
+
+/** @param int<0, 100> $value */
+function assertBrandedRangeSquareRoot(int $value): void
+{
+    assertType("unit_float<'meter'>", sqrt(unit($value, 'meter^2')));
+}
+
+/** @param unit_int<'meter^2'>|unit_float<'second^2'> $value */
+function assertBrandedUnionSquareRoots(int|float $value): void
+{
+    assertType("unit_float<'meter'>|unit_float<'second'>", sqrt($value));
+}
+
+/** @param unit_int<'meter^2'>|float $value */
+function assertMixedSquareRootFallsBackToFloat(int|float $value): void
+{
+    assertType('float', sqrt($value));
+}
 
 /**
  * @param (unit_int<'meter'>&int<-5, 5>)|(unit_int<'second'>&int<-2, 2>) $value
@@ -85,9 +110,13 @@ assertType('3', abs(-3));
 assertType('float', ceil(1.25));
 assertType('float', floor(1.75));
 assertType('float', round(1.25));
+assertType('float', sqrt(4.0));
 
 $dynamicFunction = static fn (int $value): int => $value;
 assertType('int', $dynamicFunction(-3));
 
 $absoluteFunction = abs(...);
 assertType('int<0, max>', $absoluteFunction(-3));
+
+$squareRootFunction = sqrt(...);
+assertType('float', $squareRootFunction(4.0));

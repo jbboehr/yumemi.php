@@ -17,9 +17,17 @@ function round(int|float $num): string
     return (string) $num;
 }
 
+function sqrt(int|float $num): string
+{
+    return (string) $num;
+}
+
 $value = unit(-3, 'meter');
+$area = unit(4, 'meter^2');
 
 assertType('string', abs($value));
 assertType('string', round($value));
+assertType('string', sqrt($area));
 assertType("3&unit_int<'meter'>", \abs($value));
 assertType("unit_float<'meter'>", ceil($value));
+assertType("unit_float<'meter'>", \sqrt($area));
