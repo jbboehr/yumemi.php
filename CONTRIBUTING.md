@@ -91,8 +91,8 @@ make docs
 make docs-serve
 ```
 
-The generated site is written to `build/docs`. PHP examples in the public reference documents are also executed and
-analyzed by the PHPUnit documentation test suite.
+The generated site is written to `build/docs`. [Akashi](https://github.com/jbboehr/akashi.php) discovers PHP examples in
+the public documentation, executes them through PHPUnit, and verifies PHPStan-relevant examples and `//!` diagnostics.
 
 ## Definitions
 

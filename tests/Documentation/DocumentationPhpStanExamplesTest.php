@@ -36,40 +36,27 @@
 
 namespace jbboehr\Yumemi\Tests\Documentation;
 
+use jbboehr\Akashi\ExampleCorpus;
+use jbboehr\Akashi\Integration\PHPStan\PhpStanExampleConfiguration;
+use jbboehr\Akashi\Integration\PHPStan\VerifiesPhpStanExamples;
+use jbboehr\Akashi\Source\MarkdownSource;
 use PHPStan\Rules\Functions\CallToFunctionParametersRule;
 use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;
 
 /**
- * Checks that documented static diagnostics actually fire, in-process.
- *
- * Companion to {@see DocumentationExamplesTest}, which executes every block at runtime. Here each
- * PHPStan-relevant block (one that mentions a unit type or a `//!` marker) is analysed with the
- * core extension and opt-in tag promotion loaded, and the convention read straight from the block body:
- *
- *   //! <substring>
- *   <the offending statement>
- *
- * asserts the analyser reports an error whose message (or tip) contains `<substring>` — so the
- * "…is rejected" comments are verified, not just decorative. A block with no `//!`
- * marker must analyse clean, which pins down the documented *good* code too.
- *
- * No subprocess: the diagnostics come from PHPStan's real {@see CallToFunctionParametersRule},
- * pulled out of the container after Yumemi's parser has promoted any custom tags. Each block is
- * `require`d into the process first so file-local
- * functions resolve in reflection (same reason {@see \jbboehr\Yumemi\Tests\PHPStan\YumemiReturnTagExtensionTest}
- * requires its fixtures); the blocks are already runtime-safe because DocumentationExamplesTest runs them.
+ * Verifies documented static diagnostics through Akashi and PHPStan's real call rule.
  *
  * @extends RuleTestCase<CallToFunctionParametersRule>
  */
 final class DocumentationPhpStanExamplesTest extends RuleTestCase
 {
-    private const MARKER = '//!';
+    use VerifiesPhpStanExamples;
 
     /**
-     * Tokens that mark a documentation block as PHPStan-relevant (vs. a pure runtime example).
+     * Tokens that mark a documentation block as PHPStan-relevant rather than a pure runtime example.
      */
-    private const UNIT_TOKENS = ['unit_int<', 'unit_float<', "Quantity<'", '@yumemi-', self::MARKER];
+    private const UNIT_TOKENS = ['//!', 'unit_int<', 'unit_float<', "Quantity<'", '@yumemi-'];
 
     protected function getRule(): Rule
     {
@@ -79,178 +66,30 @@ final class DocumentationPhpStanExamplesTest extends RuleTestCase
     public static function getAdditionalConfigFiles(): array
     {
         return [
-            MarkdownExamples::projectRoot() . '/extension.neon',
-            MarkdownExamples::projectRoot() . '/yumemi-tags.neon',
+            self::projectRoot() . '/extension.neon',
+            self::projectRoot() . '/yumemi-tags.neon',
         ];
     }
 
     public function testPhpStanRelevantDocumentationExamplesMatchDocumentedDiagnostics(): void
     {
-        $blocks = self::phpStanBlocks();
-        self::assertNotEmpty($blocks, 'Expected at least one PHPStan-relevant documentation code block.');
-
-        $dir = self::analysisDir();
-        $previousCwd = getcwd();
-
-        try {
-            // Blocks resolve `require 'vendor/autoload.php'` relative to the working directory.
-            chdir(MarkdownExamples::projectRoot());
-
-            $files = [];
-            foreach ($blocks as $name => $block) {
-                $file = $dir . '/' . $name . '.php';
-                file_put_contents($file, $block['code']);
-                // Declare the block's file-local functions so reflection can resolve calls to them.
-                require_once $file;
-                $files[$name] = $file;
-            }
-
-            foreach ($blocks as $name => $block) {
-                $expected = self::markers($block['code']);
-                $actual = self::errorsFor($this->gatherAnalyserErrors([$files[$name]]));
-
-                $report = self::report($block['label'], $expected, $actual);
-
-                self::assertCount(count($expected), $actual, $report);
-
-                foreach ($expected as $substring) {
-                    self::assertTrue(
-                        self::anyErrorContains($actual, $substring),
-                        "No PHPStan error containing:\n  {$substring}\n\n{$report}",
-                    );
-                }
-            }
-        } finally {
-            if (is_string($previousCwd)) {
-                chdir($previousCwd);
-            }
-            self::removeDir($dir);
-        }
+        $this->assertPhpStanExamples(
+            self::documentationCorpus(),
+            PhpStanExampleConfiguration::forTokens(self::projectRoot(), ...self::UNIT_TOKENS),
+        );
     }
 
-    /**
-     * Extract PHPStan-relevant ```php blocks, keyed by stable file-safe document/block identities.
-     *
-     * @return array<string, array{label: string, code: string}>
-     */
-    private static function phpStanBlocks(): array
+    private static function documentationCorpus(): ExampleCorpus
     {
-        $blocks = [];
-
-        foreach (MarkdownExamples::phpBlocks() as $block) {
-            foreach (self::UNIT_TOKENS as $token) {
-                if (str_contains($block['code'], $token)) {
-                    $blocks[$block['id']] = ['label' => $block['label'], 'code' => $block['code']];
-                    break;
-                }
-            }
-        }
-
-        return $blocks;
+        return MarkdownSource::forProject(self::projectRoot())
+            ->includeFile('README.md')
+            ->includeDirectory('docs/pages')
+            ->exclude('docs/pages/SUMMARY.md')
+            ->load();
     }
 
-    /**
-     * Pull the `//!` expectations out of a block body, in order.
-     *
-     * @return list<string>
-     */
-    private static function markers(string $code): array
+    private static function projectRoot(): string
     {
-        $expected = [];
-
-        $lines = preg_split('/\R/', $code);
-        if ($lines === false) {
-            return $expected;
-        }
-
-        foreach ($lines as $line) {
-            if (preg_match('/^\s*' . preg_quote(self::MARKER, '/') . '\s?(.*\S)\s*$/', $line, $m) === 1) {
-                $expected[] = $m[1];
-            }
-        }
-
-        return $expected;
-    }
-
-    /**
-     * Normalise analyser errors to the (message, tip) shape the assertions work with.
-     *
-     * @param list<\PHPStan\Analyser\Error> $errors
-     *
-     * @return list<array{message: string, tip: string}>
-     */
-    private static function errorsFor(array $errors): array
-    {
-        $out = [];
-
-        foreach ($errors as $error) {
-            $out[] = [
-                'message' => $error->getMessage(),
-                'tip' => $error->getTip() ?? '',
-            ];
-        }
-
-        return $out;
-    }
-
-    /**
-     * @param list<array{message: string, tip: string}> $errors
-     */
-    private static function anyErrorContains(array $errors, string $substring): bool
-    {
-        foreach ($errors as $error) {
-            if (str_contains($error['message'] . "\n" . $error['tip'], $substring)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @param list<string> $expected
-     * @param list<array{message: string, tip: string}> $actual
-     */
-    private static function report(string $name, array $expected, array $actual): string
-    {
-        $lines = ["Block {$name}:", '  expected (//! markers):'];
-
-        foreach ($expected as $substring) {
-            $lines[] = '    - ' . $substring;
-        }
-
-        $lines[] = '  reported by PHPStan:';
-
-        if ($actual === []) {
-            $lines[] = '    (none)';
-        }
-
-        foreach ($actual as $error) {
-            $lines[] = '    - ' . $error['message'] . ($error['tip'] !== '' ? ' [tip: ' . $error['tip'] . ']' : '');
-        }
-
-        return implode("\n", $lines);
-    }
-
-    private static function analysisDir(): string
-    {
-        $dir = sys_get_temp_dir() . '/yumemi-documentation-phpstan-' . bin2hex(random_bytes(6));
-        self::assertTrue(mkdir($dir, 0o777, true) && is_dir($dir), 'Unable to create temp analysis dir.');
-
-        return $dir;
-    }
-
-    private static function removeDir(string $dir): void
-    {
-        $files = glob($dir . '/*');
-        if ($files === false) {
-            $files = [];
-        }
-
-        foreach ($files as $file) {
-            @unlink($file);
-        }
-
-        @rmdir($dir);
+        return dirname(__DIR__, 2);
     }
 }

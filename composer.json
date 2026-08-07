@@ -11,6 +11,10 @@
     "repositories": [
         {
             "type": "vcs",
+            "url": "https://github.com/jbboehr/akashi.php"
+        },
+        {
+            "type": "vcs",
             "url": "https://github.com/jbboehr/phpbench-perfidious"
         }
     ],
@@ -98,6 +102,7 @@
         "friendsofphp/php-cs-fixer": "^3",
         "giorgiosironi/eris": "^1.1",
         "infection/infection": "^0.32.6",
+        "jbboehr/akashi": "dev-master",
         "jbboehr/phpbench-perfidious": "dev-master",
         "mrsuh/php-bison-skeleton": "^1.2",
         "nikic/php-fuzzer": "^0.0.11",

@@ -420,6 +420,8 @@ PHPStan uses the default UDUNITS2 catalog unless `parameters.yumemi.registryFact
 implementing `UnitRegistryFactory`. Its static `create()` method returns the complete immutable registry used by every
 Yumemi extension path:
 
+<!-- akashi: separate-process -->
+
 ```php
 <?php
 

@@ -111,6 +111,8 @@ it as `Δ°C`. See [Affine Conversion](reference/runtime.md#affine-conversion).
 Put project-specific definitions in one factory, then use that factory for both PHPStan and the runtime context. This
 prevents one layer from accepting a unit that the other cannot resolve:
 
+<!-- akashi: separate-process -->
+
 ```php
 <?php
 

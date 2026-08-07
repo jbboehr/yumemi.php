@@ -229,7 +229,7 @@ The architecture is supported by several independent forms of evidence:
 - focused unit and integration tests for the parser, semantic core, runtime values, and PHPStan adapter;
 - a versioned, language-neutral [runtime conformance corpus](../../tests/Conformance/README.md) exercised through public
   APIs;
-- executable public documentation examples;
+- executable public documentation examples discovered, executed, and statically verified through Akashi;
 - bounded generated-expression and algebra tests;
 - Eris property tests for branded integer ranges;
 - differential conversion tests against the independent UDUNITS2 executable;

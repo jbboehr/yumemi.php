@@ -36,124 +36,48 @@
 
 namespace jbboehr\Yumemi\Tests\Documentation;
 
-use PhpParser\Node;
-use PhpParser\NodeTraverser;
-use PhpParser\NodeVisitorAbstract;
-use PhpParser\ParserFactory;
-use PhpParser\PrettyPrinter\Standard;
+use jbboehr\Akashi\Example;
+use jbboehr\Akashi\ExampleCorpus;
+use jbboehr\Akashi\Execution\RuntimeConfiguration;
+use jbboehr\Akashi\Integration\PhpUnit\PhpUnitExampleDataSets;
+use jbboehr\Akashi\Integration\PhpUnit\PhpUnitRuntime;
+use jbboehr\Akashi\Source\MarkdownSource;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Executes every ```php block in the public documentation to prove the documented examples actually run.
- *
- * Runs each block in-process rather than spawning a PHP subprocess. Two transforms make that safe
- * (see {@see transformExample()}):
- *
- *  - `assert(EXPR)` is rewritten to `\PHPUnit\Framework\Assert::assertTrue((bool) EXPR, …)` so the
- *    documented checks run regardless of the ambient `zend.assertions` ini (which is compile-time and
- *    cannot be forced on at runtime the way a spawned `php -d` could), and register real PHPUnit
- *    assertions;
- *  - the block is wrapped in a unique namespace so its function/class declarations can't collide with
- *    other blocks or with the global declarations {@see DocumentationPhpStanExamplesTest} makes in the same
- *    process.
+ * Executes every PHP fence in the public documentation through Akashi.
  */
 final class DocumentationExamplesTest extends TestCase
 {
-    #[DataProvider('documentationPhpExampleProvider')]
-    public function testDocumentationPhpExamplesExecute(string $label, string $code): void
+    #[DataProvider('documentationExampleProvider')]
+    public function testDocumentationPhpExamplesExecute(Example $example): void
     {
-        $namespace = '__DocumentationExec_' . substr(md5($label), 0, 12);
-        $php = self::transformExample($code, $namespace);
+        $configuration = RuntimeConfiguration::forProject(self::projectRoot())
+            ->withBootstrap('vendor/autoload.php');
 
-        // Isolate the block's top-level variables in the closure's scope (not $GLOBALS). The unique
-        // namespace baked into $php keeps its declarations from colliding with other blocks or with
-        // the global declarations DocumentationPhpStanExamplesTest makes in the same process.
-        $run = static function () use ($php): void {
-            eval($php);
-        };
-
-        ob_start();
-
-        try {
-            $run();
-        } catch (\Throwable $exception) {
-            // A failed rewritten assert() (or any other error) fails this block, with its source.
-            self::fail(sprintf('%s: %s: %s', $label, $exception::class, $exception->getMessage()));
-        } finally {
-            $output = ob_get_clean();
-        }
-
-        // Registers an assertion for blocks that contain no assert() of their own (the PHPStan
-        // examples); the rewritten assert()s already register theirs.
-        self::assertIsString($output, $label);
+        PhpUnitRuntime::assertExample($example, $configuration);
     }
 
     /**
-     * Rewrite a documentation example for safe in-process execution: turn `assert()` into an unconditional
-     * PHPUnit assertion, then wrap everything in a unique namespace to isolate declarations.
+     * @return iterable<string, array{Example}>
      */
-    private static function transformExample(string $code, string $namespace): string
+    public static function documentationExampleProvider(): iterable
     {
-        $parser = (new ParserFactory())->createForHostVersion();
-        $statements = $parser->parse($code);
-
-        if ($statements === null) {
-            throw new \RuntimeException('Unable to parse documentation example.');
-        }
-
-        $printer = new Standard();
-
-        $traverser = new NodeTraverser();
-        $traverser->addVisitor(new class ($printer) extends NodeVisitorAbstract {
-            public function __construct(private readonly Standard $printer)
-            {
-            }
-
-            public function leaveNode(Node $node): ?Node
-            {
-                if (
-                    !$node instanceof Node\Stmt\Expression
-                    || !$node->expr instanceof Node\Expr\FuncCall
-                    || !$node->expr->name instanceof Node\Name
-                    || $node->expr->name->toLowerString() !== 'assert'
-                    || !isset($node->expr->args[0])
-                    || !$node->expr->args[0] instanceof Node\Arg
-                ) {
-                    return null;
-                }
-
-                $condition = $node->expr->args[0]->value;
-
-                $call = new Node\Expr\StaticCall(
-                    new Node\Name\FullyQualified('PHPUnit\\Framework\\Assert'),
-                    'assertTrue',
-                    [
-                        new Node\Arg(new Node\Expr\Cast\Bool_($condition)),
-                        new Node\Arg(new Node\Scalar\String_(
-                            'Documentation example failed: assert(' . $this->printer->prettyPrintExpr($condition) . ')',
-                        )),
-                    ],
-                );
-
-                return new Node\Stmt\Expression($call);
-            }
-        });
-
-        /** @var list<Node\Stmt> $statements the assert rewrite only ever swaps one Stmt for another */
-        $statements = $traverser->traverse($statements);
-
-        // prettyPrint (not prettyPrintFile) omits the <?php tag, as eval() requires.
-        return $printer->prettyPrint([new Node\Stmt\Namespace_(new Node\Name($namespace), $statements)]);
+        yield from PhpUnitExampleDataSets::fromCorpus(self::documentationCorpus());
     }
 
-    /**
-     * @return iterable<string, array{string, string}>
-     */
-    public static function documentationPhpExampleProvider(): iterable
+    private static function documentationCorpus(): ExampleCorpus
     {
-        foreach (MarkdownExamples::phpBlocks() as $block) {
-            yield $block['label'] => [$block['label'], $block['code']];
-        }
+        return MarkdownSource::forProject(self::projectRoot())
+            ->includeFile('README.md')
+            ->includeDirectory('docs/pages')
+            ->exclude('docs/pages/SUMMARY.md')
+            ->load();
+    }
+
+    private static function projectRoot(): string
+    {
+        return dirname(__DIR__, 2);
     }
 }

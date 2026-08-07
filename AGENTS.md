@@ -178,10 +178,10 @@ When shortening or reorganizing documentation, move useful material rather than 
 section, preserve any behavioral guarantee, limitation, edge case, compatibility or configuration requirement, precision
 policy, or tested example in the appropriate guide or reference page.
 
-Before editing examples or moving documentation, inspect the relevant machinery under `tests/Documentation/`. Preserve
-fenced-PHP execution, PHPStan analysis, `//!` expectations, and the explicit Markdown manifest. Search for CI jobs or
-scripts tied to affected filenames. Do not claim examples are tested unless the applicable checks include them, and do
-not weaken verification merely to make a refactor pass.
+Before editing examples or moving documentation, inspect the Akashi integrations under `tests/Documentation/`. Preserve
+the configured Markdown corpus, fenced-PHP execution, PHPStan analysis, `//!` expectations, and any explicit execution
+directives. Search for CI jobs or scripts tied to affected filenames. Do not claim examples are tested unless the
+applicable checks include them, and do not weaken verification merely to make a refactor pass.
 
 ### Required workflow
 
