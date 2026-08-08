@@ -214,9 +214,9 @@ general `unit_float` while preserving the semantic unit.
 `min()` and `max()` preserve a unit when every value they can return is branded with one definitionally equivalent unit.
 This works with direct arguments, arrays, and unpacked arrays. Known integer constants and ranges are narrowed when
 every candidate is required; a general array keeps its declared branded range because its runtime members are not known
-individually. If a possible nonempty input contains a bare number or a different unit, Yumemi does not infer one brand
-for the result. A possible empty-array input does not contribute a result because native `min()` and `max()` throw on
-that path.
+individually. If a possible nonempty input contains an unbranded value or a different unit, Yumemi does not infer one
+brand for the result and reports `yumemi.invalidUnitSelection`. A possible empty-array input does not contribute a
+result because native `min()` and `max()` throw on that path.
 
 Unlike those preserving operations, `sqrt()` transforms the unit. It infers `unit_float<'meter'>` from either an integer
 or float branded as `meter^2`, because native `sqrt()` always returns a `float`. Every symbolic unit power must be
@@ -534,6 +534,7 @@ scope:
 | `yumemi.invalidUnitCall`               | An invalid constant `unit()`, `unit_factor()`, or `unit_to()` call                                           |
 | `yumemi.invalidUnitComparison`         | A native equality, identity, ordering, or spaceship comparison whose units are not definitionally equivalent |
 | `yumemi.invalidUnitRoot`               | Native `sqrt()` received a branded unit without an exact symbolic square root                                |
+| `yumemi.invalidUnitSelection`          | Native `min()` or `max()` can return an unbranded or differently branded candidate                           |
 | `yumemi.invalidQuantityConstruction`   | Invalid `Units::quantity()`, `parseQuantity()`, `deltaQuantity()`, or `point()` construction                 |
 | `yumemi.invalidQuantityArithmetic`     | Invalid quantity arithmetic operands, powers, or exact-root degrees and unit expressions                     |
 | `yumemi.invalidQuantityConversion`     | An invalid or incompatible `Quantity` conversion or native-extraction target                                 |
@@ -563,6 +564,8 @@ Use the identifier to choose the first corrective step:
   affine coordinate was used where multiplicative algebra requires a `delta_*` unit.
 - For `yumemi.invalidUnitRoot`, express the native brand with unit powers divisible by two. Native `sqrt()` does not
   substitute catalog definitions; use `Quantity::simplify()->root(2)` when that runtime transformation is intended.
+- For `yumemi.invalidUnitSelection`, ensure every value that `min()` or `max()` can return has one definitionally
+  equivalent unit. Convert compatible but differently branded values before selecting an extreme.
 - For quantity arithmetic, comparison, or point diagnostics, verify the statically known dimensions and distinguish a
   `PointQuantity` coordinate from a multiplicative difference. Static generic types do not establish runtime context
   identity; objects combined at runtime must also belong to the same `Units` context.

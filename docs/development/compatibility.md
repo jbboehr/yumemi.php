@@ -196,6 +196,7 @@ The following Yumemi identifiers are stable integration keys:
 - `yumemi.invalidUnitCall`
 - `yumemi.invalidUnitComparison`
 - `yumemi.invalidUnitRoot`
+- `yumemi.invalidUnitSelection`
 - `yumemi.invalidQuantityConstruction`
 - `yumemi.invalidQuantityArithmetic`
 - `yumemi.invalidQuantityConversion`

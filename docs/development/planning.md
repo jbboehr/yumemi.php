@@ -503,11 +503,6 @@ repeat the implementation's assumptions:
   Backward Compatibility Check against the latest release tag. Treat intentional breaking changes through an explicit
   versioning policy instead of weakening or bypassing the check.
 
-### Near-Term Work
-
-- Split remaining broad PHPStan diagnostic identifiers only where users need more precise suppression. Native helpers
-  now distinguish dynamic and ambiguous unit expressions from invalid constant calls.
-
 ### Known Limitations And Risks
 
 - Native `unit()`, `unit_factor()`, and `unit_to()` calls require complete constant unit expressions by default. Dynamic
@@ -531,12 +526,12 @@ repeat the implementation's assumptions:
   guidance rather than making the runtime package uninstallable.
 - Explicit integer/float casts and `abs()`, `ceil()`, `floor()`, and `round()` preserve native unit brands. Native
   `min()` and `max()` preserve a common definitionally equivalent brand across direct, array, and unpacked candidates,
-  narrow known integer extrema, and fail closed when a possible returning candidate is bare or differently branded.
-  Dedicated diagnostics for those invalid candidate sets remain near-term work. Native `sqrt()` transforms exact
-  symbolic square units and diagnoses branded units without an exact symbolic root. Other casts and unsupported PHP
-  built-ins can erase brands. Continue adding targeted integrations only for demonstrated workflows; `intdiv()`,
-  generalized native powers, and trigonometric functions remain deferred because they require distinct unit,
-  correlation, or exponent semantics. Exact runtime-object roots are supported through `Quantity::root()`.
+  narrow known integer extrema, and report `yumemi.invalidUnitSelection` when a possible returning candidate is bare or
+  differently branded. Native `sqrt()` transforms exact symbolic square units and diagnoses branded units without an
+  exact symbolic root. Other casts and unsupported PHP built-ins can erase brands. Continue adding targeted integrations
+  only for demonstrated workflows; `intdiv()`, generalized native powers, and trigonometric functions remain deferred
+  because they require distinct unit, correlation, or exponent semantics. Exact runtime-object roots are supported
+  through `Quantity::root()`.
 - Native helpers accept finite alternatives only when every valid path produces one semantic result unit. Independent
   source and target alternatives lose value correlation, so conversion helpers validate the Cartesian product and fail
   closed if any pair is invalid. Quantity boundaries continue to preserve finite target unions.
