@@ -3,8 +3,8 @@
 Guidance for automated agents (and humans) working in this repository.
 
 For structural, compatibility, generation, and long-term maintenance decisions, preserve the project's useful knowledge
-and replacement boundaries according to [Ruinenwert](docs/development/ruinenwert.md). Apply that principle in proportion
-to the change; it does not require new abstractions or documents for routine work.
+and replacement boundaries according to [Ruinenwert](vendor/jbboehr/doctrine-of-the-second-sun/RUINENWERT.md). Apply
+that principle in proportion to the change; it does not require new abstractions or documents for routine work.
 
 The project-specific [architecture](docs/development/architecture.md) defines component ownership, inward dependency
 direction, generated artifacts, and expected replacement boundaries. Consult it before moving responsibilities or adding
@@ -251,6 +251,11 @@ an entry.
 
 ## Yumemi Doctrine
 
+Yumemi adopts the literary, coding, image, generation, gold-exemplar, and Ruinenwert guidance supplied by the
+`jbboehr/doctrine-of-the-second-sun` Composer development dependency. The pinned guides live under
+`vendor/jbboehr/doctrine-of-the-second-sun/`. This section remains authoritative for Yumemi-specific scope, placement,
+citation allocation, asset paths, and verification.
+
 New in-scope named declarations must contain exactly one `@logion` PHPDoc tag.
 
 Do not add, replace, or revise a logion on a preexisting declaration unless the user explicitly requests a doctrine
@@ -259,11 +264,16 @@ pass. A doctrine pass may backfill preexisting declarations within the scope req
 When writing or revising a logion, follow this guide for literary style, imagery, tone, symbolism, and quotation
 construction:
 
-- [`docs/DOCTRINE-STYLE-GUIDE.md`](docs/DOCTRINE-STYLE-GUIDE.md)
+- [`DOCTRINE-STYLE-GUIDE.md`](vendor/jbboehr/doctrine-of-the-second-sun/DOCTRINE-STYLE-GUIDE.md)
 
 For safe editing, comment placement, idempotence, formatting, and verification, follow:
 
-- [`docs/DOCTRINE-CODING-GUIDE.md`](docs/DOCTRINE-CODING-GUIDE.md)
+- [`DOCTRINE-CODING-GUIDE.md`](vendor/jbboehr/doctrine-of-the-second-sun/DOCTRINE-CODING-GUIDE.md)
+
+For the tool-neutral writer, reviewer, and insertion workflow, and for the positive quality ceiling, follow:
+
+- [`DOCTRINE-GENERATION-GUIDE.md`](vendor/jbboehr/doctrine-of-the-second-sun/DOCTRINE-GENERATION-GUIDE.md)
+- [`DOCTRINE-GOLD-EXEMPLARS.md`](vendor/jbboehr/doctrine-of-the-second-sun/DOCTRINE-GOLD-EXEMPLARS.md)
 
 This file is authoritative for repository-specific scope and coverage.
 
@@ -384,6 +394,11 @@ contract in the main context, disclose that limitation, and apply the detached-c
 manually. Never remap candidates according to their apparent relevance to code. The detailed fallback procedure is in
 [`docs/development/doctrine-quality-plan.md`](docs/development/doctrine-quality-plan.md).
 
+The committed Codex adapters mirror the package's adapters under
+`vendor/jbboehr/doctrine-of-the-second-sun/integrations/codex/agents/`. Refresh and review both local copies whenever
+the Doctrine dependency advances; do not maintain an undocumented local prompt fork. `DoctrineIntegrationTest` enforces
+byte-identical copies and verifies that every adopted portable document is installed.
+
 Write the quotation as recitable scripture rather than ornate modern exposition. Favor authoritative declaration,
 parallel clauses, ritual repetition, commands, reasons, consequences, and concrete signs before abstract explanation.
 Controlled KJV-influenced vocabulary and grammar are permitted across all four books but are never mandatory. When using
@@ -423,7 +438,7 @@ Before completing a user-requested doctrine pass:
 
 When generating or revising an image derived from a logion, use the source logion and the style guide for doctrinal
 meaning, then follow this guide for visual interpretation, composition, and rendering:
-[`docs/DOCTRINE-IMAGE-GUIDE.md`](docs/DOCTRINE-IMAGE-GUIDE.md).
+[`DOCTRINE-IMAGE-GUIDE.md`](vendor/jbboehr/doctrine-of-the-second-sun/DOCTRINE-IMAGE-GUIDE.md).
 
 Unless explicitly requested otherwise:
 

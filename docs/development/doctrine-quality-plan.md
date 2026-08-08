@@ -1,12 +1,12 @@
 # Doctrine quality plan
 
-**Goal:** Make new logia match the **Apocrypha gold** bar reliably (agent or human), **prove it on a small slice**, then
-rewrite the legacy corpus.
+**Goal:** Make new logia match the shared **Doctrine gold** bar reliably (agent or human), **prove it on a small
+slice**, then rewrite the legacy corpus.
 
 **Context:** Much of `src/` was written under an earlier style-guide regime (implementation-mapping, measure/tribunal
-house style). The current guide prioritizes canonical independence and reverse-engineering resistance. The seven loader
-logia that established the quality bar moved to Yumemi Apocrypha during the package-stub extraction and are preserved
-locally in [doctrine-gold.md](doctrine-gold.md). Newer agent-produced logia (for example `Exponent.php`,
+house style). The current guide prioritizes canonical independence and reverse-engineering resistance. The portable
+guides and gold exemplars are pinned through `jbboehr/doctrine-of-the-second-sun`; Yumemi keeps only its repository
+scope, allocation, and verification rules locally. Newer agent-produced logia (for example `Exponent.php`,
 `BinaryFloat.php`) still often snap back to allegory despite the current guide.
 
 **Constraint:** Prefer validating the process before a full-repo rewrite. Rewriting existing logia afterward is
@@ -16,14 +16,15 @@ acceptable.
 
 ## Current Status
 
-The repository now contains the stable gold exemplar set, explicit canonical-independence rules in `AGENTS.md`, and
-read-only Codex writer and reviewer agents under `.codex/agents/`. The writer receives opaque IDs and produces three
+The shared package now supplies the stable gold exemplar set, portable guides, and source Codex adapters. Yumemi pins
+that package through Composer, keeps explicit canonical-independence rules in `AGENTS.md`, and commits reviewed local
+copies of the writer and reviewer adapters under `.codex/agents/`. The writer receives opaque IDs and produces three
 unranked candidates; the reviewer remains code-blind and may select one or reject the complete set.
 
-The process is not yet validated. A repository-local anti-example set has not been written, and the adapters and
-`AGENTS.md` do not yet encode the proposed preference for the gold/anti sets over nearby source logia. The recommended
+The process is not yet validated. A repository-local anti-example set has not been written, and the recommended
 `Exponent` / `BinaryFloat` pilot has not been run or scored against the acceptance gate. The next doctrine work should
-complete those inputs and that small evaluation rather than adding more agent roles or beginning a corpus rewrite.
+complete that local negative input and small evaluation rather than adding more agent roles or beginning a corpus
+rewrite.
 
 ---
 
@@ -35,7 +36,7 @@ complete those inputs and that small evaluation rather than adding more agent ro
 | Generate from **opaque IDs only**                 | Corpus-variation polish |
 | Reject reverse-engineering                        | Bulk “doctrine pass”    |
 
-Apocrypha gold is the quality target. Do not average against PointQuantity bulk or other legacy neighbors.
+The shared gold exemplars are the quality target. Do not average against PointQuantity bulk or other legacy neighbors.
 
 ---
 
@@ -45,20 +46,20 @@ Apocrypha gold is the quality target. Do not average against PointQuantity bulk 
 
 ### Deliverables
 
-1. **`doctrine-gold.md`** with the **seven Apocrypha loader logia** as the only positive examples. This local copy
-   remains stable even though the implementation now belongs to another repository.
+1. Use the pinned package's **`DOCTRINE-GOLD-EXEMPLARS.md`** as the positive quality ceiling. Curate changes in the
+   shared Doctrine repository rather than maintaining a Yumemi-only fork.
 2. **`doctrine-anti.md`** — five to eight reverse-engineerable examples (numerator/coordinate/power-bounds class)
    labeled _reject_.
-3. **One-page agent brief** (not the full style guide):
+3. Keep the compact working brief in the shared writer and reviewer adapters rather than duplicating it in Yumemi:
    - independence first; no decodeable allegory;
    - concrete primary motif;
-   - ~40–60 words common for substantial logia, with complete shorter and controlled longer passages permitted;
+   - 35–75 words common for substantial logia, with complete shorter and controlled longer passages permitted;
    - book by purpose (not always OSD);
    - ban-ish list for tech nouns;
    - detached-canon and reverse-engineering self-tests;
    - pointer: full guide for edge cases only.
 4. **Explicit rule in `AGENTS.md`:**
-   - for generation, **prefer gold/anti over nearby `@logion`**;
+   - for generation, **prefer shared gold and applicable local anti-patterns over nearby `@logion`**;
    - nearby logia are for **variation only**, not quality imitation.
 
 ### Success
@@ -71,10 +72,10 @@ A human can score a candidate in under 30 seconds: gold-like versus allegory.
 
 **Estimate:** 1–2 days
 
-The isolated **writer subagent** and optional code-blind **canon reviewer** are implemented as Codex adapters.
-Generation remains separate from implementation context; review receives the same separation when its added cost is
-justified. The adapters implement the isolation and output contracts, but the gold/anti input package and empirical
-pilot remain incomplete; no additional agent roles are needed.
+The isolated **writer subagent** and optional code-blind **canon reviewer** are implemented as shared Codex adapters and
+mirrored under `.codex/agents/` for discovery. Generation remains separate from implementation context; review receives
+the same separation when its added cost is justified. The adapters implement the isolation and output contracts, but the
+local anti-example set and empirical pilot remain incomplete; no additional agent roles are needed.
 
 ### Workflow for any new declaration
 
@@ -82,7 +83,7 @@ pilot remain incomplete; no additional agent roles are needed.
 Main agent (code)
   → retain the declaration mapping privately and assign opaque item IDs
   → Doctrine writer subagent (isolated)
-        inputs: opaque IDs + brief + gold + anti + nearby patterns to avoid
+        inputs: opaque IDs + shared guidance + applicable anti-patterns + nearby patterns to avoid
         outputs: three unranked candidates + one candid risk each
   → For batches, doctrine passes, or uncertain candidates: canon reviewer subagent (code-blind)
         inputs: candidate books + text + nearby patterns to avoid
@@ -97,7 +98,7 @@ Main agent (code)
 | Rule                                       | Why                                 |
 | ------------------------------------------ | ----------------------------------- |
 | **No symbol metadata or source**           | Stops allegory                      |
-| **Gold + anti in every run**               | Beats local legacy imitation        |
+| **Shared gold + applicable anti-patterns** | Beats local legacy imitation        |
 | **Three unranked candidates**              | Prevents writer recommendation bias |
 | **Must name primary motif** (object/event) | Forces concrete sign                |
 | **Must state book reason**                 | Stops 100% OSD                      |
@@ -230,7 +231,7 @@ Full rewrite is welcome once the factory works. Still **batch** it.
 1. Files that set house style for agents (heavily read PHPStan / Quantity / PointQuantity).
 2. Core runtime (`Quantity`, `PointQuantity`, `Units`, `Rational`).
 3. Rest of `src/`.
-4. Leave Apocrypha gold as-is unless something drifts.
+4. Curate shared gold only in the Doctrine repository; do not fork it during the Yumemi rewrite.
 
 ### Per batch
 
@@ -244,8 +245,8 @@ Full rewrite is welcome once the factory works. Still **batch** it.
 - Corpus statistics have been reviewed for accidental monotony without applying book, movement, or length quotas.
 - Length and book outliers have been accepted or revised on literary grounds rather than to improve aggregate numbers.
 - Spot reverse-engineering audit on a random sample fails rarely.
-- Agents are instructed to treat **post-rewrite files** as neighbors for variation only; Apocrypha gold remains the
-  quality bar.
+- Agents are instructed to treat **post-rewrite files** as neighbors for variation only; the shared gold exemplars
+  remain the quality bar.
 
 ---
 
@@ -255,16 +256,15 @@ Full rewrite is welcome once the factory works. Still **batch** it.
 - “Just paste the whole style guide into every agent.”
 - Few-shot from random nearby logia.
 - Require relevance to the method.
-- Rewrite the Apocrypha gold set (it is already the bar).
+- Fork or rewrite the shared gold set merely to fit Yumemi's existing corpus.
 
 ---
 
 ## Minimal viable experiment (one PR)
 
-1. Keep `doctrine-gold.md` stable and add `doctrine-anti.md`; the compact working brief already lives in the writer and
-   reviewer adapters.
-2. Add the remaining concise gold/anti precedence rule to `AGENTS.md` and the adapters while preserving the existing
-   canonical-independence and opaque-ID rules.
+1. Add `doctrine-anti.md`; the shared gold set and compact working brief already come from the pinned package.
+2. Add the remaining concise anti-pattern precedence rule to `AGENTS.md`, passing applicable avoidance constraints to
+   the shared adapters while preserving canonical independence and opaque IDs.
 3. Pilot: rewrite **Exponent** and **BinaryFloat** logia via the isolated writer and canon reviewer.
 4. Score with the rubric.
 5. If pass → document the validated workflow and schedule rewrite waves.
@@ -274,26 +274,28 @@ Full rewrite is welcome once the factory works. Still **batch** it.
 
 ## Roles
 
-| Human                               | Agent / tooling                 |
-| ----------------------------------- | ------------------------------- |
-| Approve gold and anti sets          | Maintain the gold exemplar file |
-| Audit pilot decisions               | Writer + canon reviewer loop    |
-| Gate Phase 3 and 4                  | Uniqueness and heuristic checks |
-| Optional author-voice pass on pilot | Batch rewrite after gate        |
+| Human                                              | Agent / tooling                               |
+| -------------------------------------------------- | --------------------------------------------- |
+| Approve shared-gold changes and the local anti set | Refresh the pinned package and adapter copies |
+| Audit pilot decisions                              | Writer + canon reviewer loop                  |
+| Gate Phase 3 and 4                                 | Uniqueness and heuristic checks               |
+| Optional author-voice pass on pilot                | Batch rewrite after gate                      |
 
 ---
 
 ## Related material
 
-- Style: [`docs/DOCTRINE-STYLE-GUIDE.md`](../DOCTRINE-STYLE-GUIDE.md)
-- Coding / placement: [`docs/DOCTRINE-CODING-GUIDE.md`](../DOCTRINE-CODING-GUIDE.md)
+- Shared package: [`jbboehr/doctrine-of-the-second-sun`](https://github.com/jbboehr/doctrine-of-the-second-sun)
+- Style: `vendor/jbboehr/doctrine-of-the-second-sun/DOCTRINE-STYLE-GUIDE.md`
+- Coding / placement: `vendor/jbboehr/doctrine-of-the-second-sun/DOCTRINE-CODING-GUIDE.md`
+- Generation: `vendor/jbboehr/doctrine-of-the-second-sun/DOCTRINE-GENERATION-GUIDE.md`
+- Gold exemplars: `vendor/jbboehr/doctrine-of-the-second-sun/DOCTRINE-GOLD-EXEMPLARS.md`
 - Scope and tags: [`AGENTS.md`](../../AGENTS.md) (Doctrine section)
-- Preserved gold exemplars: [doctrine-gold.md](doctrine-gold.md)
 
 ---
 
 ## Bottom line
 
 **Fix the factory, run it on a small bad sample (Exponent / BinaryFloat), only then reforge the rest.** Subagent
-isolation + Apocrypha gold + anti-allegory scoring is the core. Full rewrite comes **after** the pilot hits gold-tier
-pass rates — not instead of proving the process.
+isolation + shared gold + anti-allegory scoring is the core. Full rewrite comes **after** the pilot hits gold-tier pass
+rates — not instead of proving the process.

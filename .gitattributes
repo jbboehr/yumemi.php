@@ -14,9 +14,6 @@ composer-project.nix linguist-generated
 AGENTS.md export-ignore
 benchmarks export-ignore
 composer.lock export-ignore
-docs/DOCTRINE-CODING-GUIDE.md export-ignore
-docs/DOCTRINE-IMAGE-GUIDE.md export-ignore
-docs/DOCTRINE-STYLE-GUIDE.md export-ignore
 docs/development export-ignore
 docs/pages/images/logia export-ignore
 docs/pages/images/logia/** export-ignore

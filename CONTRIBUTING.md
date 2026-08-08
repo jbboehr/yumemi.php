@@ -58,8 +58,9 @@ ParaTest report.
 See [`docs/development/mutation-testing.md`](docs/development/mutation-testing.md) for the optional mutation-testing
 workflow and guidance on interpreting escaped mutants.
 
-For architectural, compatibility, generation, and long-term maintenance decisions, see
-[`docs/development/ruinenwert.md`](docs/development/ruinenwert.md). It describes how to leave the project's behavior and
+For architectural, compatibility, generation, and long-term maintenance decisions, see the
+[Ruinenwert](https://github.com/jbboehr/doctrine-of-the-second-sun/blob/master/RUINENWERT.md) guidance pinned through
+the `jbboehr/doctrine-of-the-second-sun` development dependency. It describes how to leave the project's behavior and
 rationale recoverable without requiring speculative abstraction or package splitting.
 
 The project-specific [`docs/development/invariants.md`](docs/development/invariants.md) identifies the semantic rules

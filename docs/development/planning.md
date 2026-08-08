@@ -29,8 +29,9 @@ Important principle:
 
 > One expression model. One registry. One normalization engine.
 
-The generic [Ruinenwert](ruinenwert.md) guidance informs long-term decisions about conformance evidence, generated
-artifacts, replacement boundaries, and recoverability without becoming a separate feature roadmap.
+The generic [Ruinenwert](https://github.com/jbboehr/doctrine-of-the-second-sun/blob/master/RUINENWERT.md) guidance,
+pinned for development through `jbboehr/doctrine-of-the-second-sun`, informs long-term decisions about conformance
+evidence, generated artifacts, replacement boundaries, and recoverability without becoming a separate feature roadmap.
 
 The durable component map, dependency direction, generated-artifact boundaries, expected decay points, and
 project-specific Ruinenwert profile live in [`architecture.md`](architecture.md). This document retains roadmap,
@@ -399,8 +400,9 @@ developer-experience improvement, selected API and formatting polish, and explic
 
 ### Preservation Roadmap
 
-Apply the [Ruinenwert](ruinenwert.md) principles through the following ordered work. These tasks should consolidate and
-enforce knowledge Yumemi already possesses rather than create documentation or abstractions for their own sake:
+Apply the [Ruinenwert](https://github.com/jbboehr/doctrine-of-the-second-sun/blob/master/RUINENWERT.md) principles
+through the following ordered work. These tasks should consolidate and enforce knowledge Yumemi already possesses rather
+than create documentation or abstractions for their own sake:
 
 1. **Established:** maintain [`invariants.md`](invariants.md) as the inventory of durable semantic rules, their reasons,
    representative enforcement, invalid alternatives, consequence classifications, and known enforcement gaps. Update it
