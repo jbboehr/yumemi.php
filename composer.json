@@ -121,6 +121,7 @@
         "analyse": "phpstan analyse --no-progress",
         "benchmark": "phpbench run --report=aggregate",
         "benchmark:perf": "phpbench run --config=phpbench-perfidious.json --report=perfidious",
+        "benchmark:phpstan": "@php benchmarks/phpstan-analysis.php",
         "benchmark:smoke": "phpbench run --iterations=1 --revs=1 --warmup=1 --progress=none",
         "check": [
             "@composer validate --strict",

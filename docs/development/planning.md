@@ -576,6 +576,24 @@ repeat the implementation's assumptions:
   description below 2 milliseconds. These measurements do not justify dedicated optimization work.
 - Hardware-counter benchmarks depend on unreleased `phpbench-perfidious` adapter code and local Linux `perf_events`
   permissions; they are optional and intentionally excluded from CI.
+- The opt-in end-to-end PHPStan benchmark isolates result-cache directories and separates bootstrap, ordinary scalar,
+  branded native, runtime-object inference, annotation-promotion, and mixed workloads. Use several fixture sizes before
+  attributing elapsed time to Yumemi: PHPStan container startup is substantial, scalar and branded fixtures are not
+  structurally identical, each workload is one source file and therefore single-process, and local wall times are
+  diagnostic rather than portable regression floors or project-scale throughput measurements.
+- On the same PHP 8.2 host with 400 generated cases and isolated result caches, Yumemi-enabled startup took about 0.88
+  seconds versus 0.86 without the extension, while ordinary scalar analysis took about 3.98 seconds with Yumemi versus
+  3.77 without it. Focused branded workloads took about 1.2 seconds for PHPDoc type resolution, 2.28 for operators and
+  ranges, 1.48 for `abs()`, 2.78 for `min()`/`max()`, 1.38 for `sqrt()`, 3.48 for the composite built-ins workload, and
+  2.99 for native helpers. Combined native, quantity/point, annotation-promotion, and mixed workloads took about 4.98,
+  3.49, 1.78, and 3.68 seconds respectively. The composite result is not an independent optimization target. These
+  results are linear enough to reject a broad scaling defect, but identify extrema and helper analysis as the first
+  candidates for deeper profiling.
+- Static inspection shows that dynamic return/expression inference and companion diagnostic rules both call the same
+  `analyseCall()` methods for helpers, extrema, and roots. That is a plausible source of duplicated work, especially in
+  the two measured hot paths, but do not add node-level memoization until a focused before/after benchmark demonstrates
+  material savings and tests prove that scope-dependent types and diagnostics cannot become stale. Root analysis is
+  comparatively cheap despite the same shape, so a broad caching abstraction is not yet justified.
 - Dimensional analysis intentionally cannot distinguish semantically different quantities with the same dimension, such
   as gray and sievert.
 - Exact catalog decimals for angles can normalize to large rationals; this is correct but can produce unwieldy display
