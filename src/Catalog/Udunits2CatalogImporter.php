@@ -41,6 +41,7 @@ use DOMElement;
 use DOMXPath;
 use jbboehr\Yumemi\Exception\InvalidArgumentException;
 use jbboehr\Yumemi\Exception\RuntimeException;
+use jbboehr\Yumemi\Registry\UnitRegistry;
 
 /**
  * @phpstan-import-type Udunits2Catalog from \jbboehr\Yumemi\Registry\Udunits2UnitRegistry
@@ -50,8 +51,10 @@ use jbboehr\Yumemi\Exception\RuntimeException;
  *     base: list<string>,
  *     prefixes: array<string, string>,
  *     prefixMetadata: array<string, array{name: string, kind: 'canonical'|'symbol', value: string}>,
- *     prefixRegex?: string
+ *     prefixRegex?: string,
+ *     unitNameIndex?: UnitNameIndex
  * }
+ * @phpstan-import-type UnitNameIndex from UnitRegistry
  * @phpstan-type Udunits2Name array{singular: string, plural: string|null, pluralizable: bool}
  * @phpstan-type Udunits2Aliases array{names: list<Udunits2Name>, symbols: list<string>}
  * @phpstan-type ImplicitPluralTargets array<string, string|null>
@@ -87,6 +90,7 @@ final class Udunits2CatalogImporter
         $this->materializeSemantics($catalog);
         $catalog['units'] += AffineDeltaUnitSynthesizer::synthesize($catalog['units']);
         $catalog['prefixRegex'] = $this->createPrefixRegex(array_keys($catalog['prefixes']));
+        $catalog['unitNameIndex'] = UnitRegistry::indexCatalogRecords($catalog['units']);
 
         /** @phpstan-var Udunits2Catalog $catalog */
         return $catalog;

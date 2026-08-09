@@ -5569,5 +5569,1421 @@ return [
             'value' => '1e-24'
         ]
     ],
-    'prefixRegex' => '~^((?:yotta)|(?:Y)|(?:zetta)|(?:Z)|(?:exa)|(?:E)|(?:peta)|(?:P)|(?:tera)|(?:T)|(?:giga)|(?:G)|(?:mega)|(?:M)|(?:kilo)|(?:k)|(?:hecto)|(?:h)|(?:deka)|(?:da)|(?:deci)|(?:d)|(?:centi)|(?:c)|(?:milli)|(?:m)|(?:micro)|(?:u)|(?:nano)|(?:n)|(?:pico)|(?:p)|(?:femto)|(?:f)|(?:atto)|(?:a)|(?:zepto)|(?:z)|(?:yocto)|(?:y))~'
+    'prefixRegex' => '~^((?:yotta)|(?:Y)|(?:zetta)|(?:Z)|(?:exa)|(?:E)|(?:peta)|(?:P)|(?:tera)|(?:T)|(?:giga)|(?:G)|(?:mega)|(?:M)|(?:kilo)|(?:k)|(?:hecto)|(?:h)|(?:deka)|(?:da)|(?:deci)|(?:d)|(?:centi)|(?:c)|(?:milli)|(?:m)|(?:micro)|(?:u)|(?:nano)|(?:n)|(?:pico)|(?:p)|(?:femto)|(?:f)|(?:atto)|(?:a)|(?:zepto)|(?:z)|(?:yocto)|(?:y))~',
+    'unitNameIndex' => [
+        'aliases' => [
+            'C12_faraday' => [
+                'faraday'
+            ],
+            'IT_Btu' => [
+                'Btu'
+            ],
+            'IT_calorie' => [
+                'calorie'
+            ],
+            'UK_fluid_ounce' => [
+                'UK_liquid_ounce'
+            ],
+            'US_dry_pint' => [
+                'dry_pint'
+            ],
+            'US_dry_quart' => [
+                'dry_quart'
+            ],
+            'US_fluid_ounce' => [
+                'US_liquid_ounce',
+                'fluid_ounce',
+                'liquid_ounce'
+            ],
+            'US_liquid_cup' => [
+                'cup',
+                'liquid_cup'
+            ],
+            'US_liquid_gallon' => [
+                'gallon',
+                'liquid_gallon'
+            ],
+            'US_liquid_gill' => [
+                'gill',
+                'liquid_gill'
+            ],
+            'US_liquid_pint' => [
+                'liquid_pint',
+                'pint'
+            ],
+            'US_liquid_quart' => [
+                'liquid_quart',
+                'quart'
+            ],
+            'US_survey_mile' => [
+                'US_statute_mile'
+            ],
+            'US_therm' => [
+                'therm'
+            ],
+            'angstrom' => [
+                'ångström'
+            ],
+            'arc_degree' => [
+                'angular_degree',
+                'arcdeg',
+                'degree'
+            ],
+            'arc_minute' => [
+                'angular_minute',
+                'arcmin',
+                'arcminute'
+            ],
+            'arc_second' => [
+                'angular_second',
+                'arcsec',
+                'arcsecond'
+            ],
+            'avoirdupois_pound' => [
+                'pound'
+            ],
+            'barie' => [
+                'barye'
+            ],
+            'blondel' => [
+                'apostilb'
+            ],
+            'celsius' => [
+                'degC',
+                'deg_C',
+                'degreeC',
+                'degree_C'
+            ],
+            'circle' => [
+                'cycle',
+                'revolution',
+                'rotation',
+                'turn'
+            ],
+            'conventional_water' => [
+                'water'
+            ],
+            'degree_kelvin' => [
+                'degK',
+                'deg_K',
+                'degreeK',
+                'degree_K'
+            ],
+            'degree_north' => [
+                'degreeE',
+                'degreeN',
+                'degreeT',
+                'degree_E',
+                'degree_N',
+                'degree_T',
+                'degree_east',
+                'degree_true'
+            ],
+            'degree_rankine' => [
+                'degR',
+                'deg_R',
+                'degreeR',
+                'degree_R'
+            ],
+            'degree_west' => [
+                'degreeW',
+                'degree_W'
+            ],
+            'delta_degree_Celsius' => [
+                'delta_celsius',
+                'delta_degC',
+                'delta_deg_C',
+                'delta_degreeC',
+                'delta_degree_C'
+            ],
+            'delta_fahrenheit' => [
+                'delta_degF',
+                'delta_deg_F',
+                'delta_degreeF',
+                'delta_degree_F',
+                'delta_degree_fahrenheit'
+            ],
+            'electronvolt' => [
+                'electron_volt'
+            ],
+            'fahrenheit' => [
+                'degF',
+                'deg_F',
+                'degreeF',
+                'degree_F',
+                'degree_fahrenheit'
+            ],
+            'foot_water' => [
+                'footH2O',
+                'foot_H2O'
+            ],
+            'force_kilogram' => [
+                'kilogram_force'
+            ],
+            'force_ounce' => [
+                'ounce_force'
+            ],
+            'force_pound' => [
+                'pound_force'
+            ],
+            'force_ton' => [
+                'ton_force'
+            ],
+            'geopotential' => [
+                'dynamic'
+            ],
+            'gram_force' => [
+                'force_gram'
+            ],
+            'international_foot' => [
+                'foot'
+            ],
+            'international_inch' => [
+                'inch'
+            ],
+            'international_knot' => [
+                'knot',
+                'knot_international'
+            ],
+            'international_mile' => [
+                'mile'
+            ],
+            'international_yard' => [
+                'yard'
+            ],
+            'liter' => [
+                'litre'
+            ],
+            'mercury_0C' => [
+                'conventional_mercury',
+                'mercury_32F'
+            ],
+            'meter' => [
+                'metre'
+            ],
+            'metric_ton' => [
+                'tonne'
+            ],
+            'millimeter_Hg' => [
+                'torr'
+            ],
+            'molecule' => [
+                'molec',
+                'nuc',
+                'nucleon'
+            ],
+            'octet' => [
+                'byte'
+            ],
+            'printers_pica' => [
+                'pica'
+            ],
+            'refrigeration_ton' => [
+                'ton_of_refrigeration'
+            ],
+            'rod' => [
+                'perch',
+                'pole'
+            ],
+            'shaft_horsepower' => [
+                'horsepower'
+            ],
+            'short_ton' => [
+                'ton'
+            ],
+            'standard_atmosphere' => [
+                'atmosphere'
+            ],
+            'tropical_year' => [
+                'year'
+            ],
+            'troy_ounce' => [
+                'apothecary_ounce'
+            ],
+            'troy_pound' => [
+                'apothecary_pound'
+            ],
+            'unified_atomic_mass_unit' => [
+                'amu',
+                'atomic_mass_unit',
+                'atomicmassunit'
+            ],
+            'water_4C' => [
+                'water_39F'
+            ]
+        ],
+        'symbols' => [
+            'BZ' => [
+                'Bz'
+            ],
+            'IT_calorie' => [
+                'cal'
+            ],
+            'US_fluid_ounce' => [
+                'floz',
+                'oz'
+            ],
+            'US_liquid_pint' => [
+                'pt'
+            ],
+            'US_therm' => [
+                'thm'
+            ],
+            'ampere' => [
+                'A'
+            ],
+            'angstrom' => [
+                'Å',
+                'Å'
+            ],
+            'arc_degree' => [
+                '°'
+            ],
+            'arc_minute' => [
+                '\'',
+                '′'
+            ],
+            'arc_second' => [
+                '"',
+                '″'
+            ],
+            'are' => [
+                'a'
+            ],
+            'astronomical_unit' => [
+                'au'
+            ],
+            'astronomical_unit_BIPM_2006' => [
+                'ua'
+            ],
+            'avoirdupois_pound' => [
+                'lb'
+            ],
+            'barn' => [
+                'b'
+            ],
+            'barrel' => [
+                'bbl'
+            ],
+            'baud' => [
+                'Bd',
+                'bps'
+            ],
+            'becquerel' => [
+                'Bq'
+            ],
+            'bushel' => [
+                'bu'
+            ],
+            'candela' => [
+                'cd'
+            ],
+            'celsius' => [
+                '℃'
+            ],
+            'cm_H2O' => [
+                'cmH2O'
+            ],
+            'cm_Hg' => [
+                'cmHg'
+            ],
+            'conventional_water' => [
+                'H2O',
+                'h2o'
+            ],
+            'coulomb' => [
+                'C'
+            ],
+            'curie' => [
+                'Ci'
+            ],
+            'day' => [
+                'd'
+            ],
+            'degree_Celsius' => [
+                '°C'
+            ],
+            'degree_kelvin' => [
+                '°K'
+            ],
+            'degree_rankine' => [
+                '°R'
+            ],
+            'delta_degree_Celsius' => [
+                'Δ°C'
+            ],
+            'delta_fahrenheit' => [
+                'Δ°F'
+            ],
+            'dobson' => [
+                'DU'
+            ],
+            'dram' => [
+                'dr'
+            ],
+            'electronvolt' => [
+                'eV'
+            ],
+            'fahrenheit' => [
+                '°F',
+                '℉'
+            ],
+            'farad' => [
+                'F'
+            ],
+            'fluid_dram' => [
+                'fldr'
+            ],
+            'foot_water' => [
+                'ftH2O',
+                'fth2o'
+            ],
+            'force_kilogram' => [
+                'kgf'
+            ],
+            'force_ounce' => [
+                'ozf'
+            ],
+            'force_pound' => [
+                'lbf'
+            ],
+            'geopotential' => [
+                'gp'
+            ],
+            'grain' => [
+                'gr'
+            ],
+            'gram' => [
+                'g'
+            ],
+            'gram_force' => [
+                'gf'
+            ],
+            'gray' => [
+                'Gy'
+            ],
+            'henry' => [
+                'H'
+            ],
+            'hertz' => [
+                'Hz'
+            ],
+            'hour' => [
+                'h',
+                'hr'
+            ],
+            'inch_Hg' => [
+                'inHg',
+                'in_Hg'
+            ],
+            'international_foot' => [
+                'ft'
+            ],
+            'international_inch' => [
+                'in'
+            ],
+            'international_mile' => [
+                'mi'
+            ],
+            'international_yard' => [
+                'yd'
+            ],
+            'joule' => [
+                'J'
+            ],
+            'katal' => [
+                'kat'
+            ],
+            'kelvin' => [
+                'K'
+            ],
+            'kilogram' => [
+                'kg'
+            ],
+            'kt' => [
+                'kts'
+            ],
+            'liter' => [
+                'L',
+                'l'
+            ],
+            'lumen' => [
+                'lm'
+            ],
+            'lux' => [
+                'lx'
+            ],
+            'mercury_0C' => [
+                'Hg'
+            ],
+            'meter' => [
+                'm'
+            ],
+            'metric_ton' => [
+                't'
+            ],
+            'millimeter_Hg' => [
+                'mmHg',
+                'mm_Hg',
+                'mm_hg',
+                'mmhg'
+            ],
+            'minute' => [
+                'min'
+            ],
+            'mole' => [
+                'mol'
+            ],
+            'newton' => [
+                'N'
+            ],
+            'nit' => [
+                'nt'
+            ],
+            'oersted' => [
+                'Oe'
+            ],
+            'ohm' => [
+                'Ω',
+                'Ω'
+            ],
+            'pascal' => [
+                'Pa'
+            ],
+            'peck' => [
+                'pk'
+            ],
+            'percent' => [
+                '%'
+            ],
+            'phot' => [
+                'ph'
+            ],
+            'pi' => [
+                'π'
+            ],
+            'potential_vorticity_unit' => [
+                'PVU'
+            ],
+            'ppb' => [
+                'ppbv'
+            ],
+            'ppm' => [
+                'ppmv'
+            ],
+            'ppq' => [
+                'ppqv'
+            ],
+            'ppt' => [
+                'pptv'
+            ],
+            'radian' => [
+                'rad'
+            ],
+            'roentgen' => [
+                'R'
+            ],
+            'rotation_per_second' => [
+                'cps',
+                'rps'
+            ],
+            'second' => [
+                's'
+            ],
+            'shaft_horsepower' => [
+                'hp'
+            ],
+            'siemens' => [
+                'S'
+            ],
+            'sievert' => [
+                'Sv'
+            ],
+            'standard_atmosphere' => [
+                'atm'
+            ],
+            'steradian' => [
+                'sr'
+            ],
+            'stilb' => [
+                'sb'
+            ],
+            'stokes' => [
+                'St'
+            ],
+            'tablespoon' => [
+                'Tbl',
+                'Tblsp',
+                'Tbsp',
+                'tblsp',
+                'tbsp'
+            ],
+            'teaspoon' => [
+                'tsp'
+            ],
+            'technical_atmosphere' => [
+                'at'
+            ],
+            'tesla' => [
+                'T'
+            ],
+            'tropical_year' => [
+                'yr'
+            ],
+            'unified_atomic_mass_unit' => [
+                'u'
+            ],
+            'volt' => [
+                'V'
+            ],
+            'voltampere' => [
+                'VA'
+            ],
+            'watt' => [
+                'W'
+            ],
+            'weber' => [
+                'Wb'
+            ]
+        ],
+        'explicitPlurals' => [
+            'IT_Btu' => [
+                'Btus',
+                'IT_Btus'
+            ],
+            'US_survey_foot' => [
+                'US_survey_feet'
+            ],
+            'acre_foot' => [
+                'acre_feet'
+            ],
+            'board_foot' => [
+                'board_feet'
+            ],
+            'celsius' => [
+                'degreesC',
+                'degrees_C',
+                'degsC',
+                'degs_C'
+            ],
+            'degree_Celsius' => [
+                'degrees_Celsius'
+            ],
+            'degree_kelvin' => [
+                'degreesK',
+                'degrees_K',
+                'degrees_kelvin',
+                'degsK',
+                'degs_K'
+            ],
+            'degree_north' => [
+                'degreesE',
+                'degreesN',
+                'degreesT',
+                'degrees_E',
+                'degrees_N',
+                'degrees_T',
+                'degrees_east',
+                'degrees_north',
+                'degrees_true'
+            ],
+            'degree_rankine' => [
+                'degreesR',
+                'degrees_R',
+                'degrees_rankine',
+                'degsR',
+                'degs_R'
+            ],
+            'degree_west' => [
+                'degreesW',
+                'degrees_W',
+                'degrees_west'
+            ],
+            'delta_degree_Celsius' => [
+                'delta_degreesC',
+                'delta_degrees_C',
+                'delta_degrees_Celsius',
+                'delta_degsC',
+                'delta_degs_C'
+            ],
+            'delta_fahrenheit' => [
+                'delta_degreesF',
+                'delta_degrees_F',
+                'delta_degrees_fahrenheit',
+                'delta_degsF',
+                'delta_degs_F'
+            ],
+            'fahrenheit' => [
+                'degreesF',
+                'degrees_F',
+                'degrees_fahrenheit',
+                'degsF',
+                'degs_F'
+            ],
+            'foot_water' => [
+                'feetH2O',
+                'feet_H2O',
+                'feet_water'
+            ],
+            'force_kilogram' => [
+                'kilograms_force'
+            ],
+            'force_ounce' => [
+                'ounces_force'
+            ],
+            'force_pound' => [
+                'pounds_force'
+            ],
+            'force_ton' => [
+                'tons_force'
+            ],
+            'gram_force' => [
+                'grams_force'
+            ],
+            'inch_H2O_39F' => [
+                'inches_H2O_39F'
+            ],
+            'inch_H2O_60F' => [
+                'inches_H2O_60F'
+            ],
+            'inch_Hg' => [
+                'inches_Hg'
+            ],
+            'inch_Hg_32F' => [
+                'inches_Hg_32F'
+            ],
+            'inch_Hg_60F' => [
+                'inches_Hg_60F'
+            ],
+            'international_foot' => [
+                'feet',
+                'international_feet'
+            ],
+            'mercury_0C' => [
+                'conventional_mercuries',
+                'mercuries_0C',
+                'mercuries_32F'
+            ],
+            'mercury_60F' => [
+                'mercuries_60F'
+            ],
+            'millimeter_Hg' => [
+                'millimeters_Hg'
+            ],
+            'millimeter_Hg_0C' => [
+                'millimeters_Hg_0C'
+            ],
+            'perm_0C' => [
+                'perms_0C'
+            ],
+            'perm_23C' => [
+                'perms_23C'
+            ],
+            'refrigeration_ton' => [
+                'tons_of_refrigeration'
+            ],
+            'rotation_per_second' => [
+                'rotations_per_second'
+            ],
+            'ton_TNT' => [
+                'tons_TNT'
+            ],
+            'water_4C' => [
+                'waters_39F',
+                'waters_4C'
+            ],
+            'water_60F' => [
+                'waters_60F'
+            ]
+        ],
+        'generatedPlurals' => [
+            'C12_faraday' => [
+                'faradays'
+            ],
+            'IT_calorie' => [
+                'calories'
+            ],
+            'US_dry_pint' => [
+                'dry_pints'
+            ],
+            'US_dry_quart' => [
+                'dry_quarts'
+            ],
+            'US_fluid_ounce' => [
+                'fluid_ounces',
+                'liquid_ounces'
+            ],
+            'US_liquid_cup' => [
+                'cups',
+                'liquid_cups'
+            ],
+            'US_liquid_gallon' => [
+                'gallons',
+                'liquid_gallons'
+            ],
+            'US_liquid_gill' => [
+                'gills',
+                'liquid_gills'
+            ],
+            'US_liquid_pint' => [
+                'liquid_pints',
+                'pints'
+            ],
+            'US_liquid_quart' => [
+                'liquid_quarts',
+                'quarts'
+            ],
+            'US_therm' => [
+                'therms'
+            ],
+            'abampere' => [
+                'abamperes'
+            ],
+            'abfarad' => [
+                'abfarads'
+            ],
+            'abhenry' => [
+                'abhenries'
+            ],
+            'abmho' => [
+                'abmhos'
+            ],
+            'abohm' => [
+                'abohms'
+            ],
+            'abvolt' => [
+                'abvolts'
+            ],
+            'acre' => [
+                'acres'
+            ],
+            'amp' => [
+                'amps'
+            ],
+            'ampere' => [
+                'amperes'
+            ],
+            'angstrom' => [
+                'angstroms'
+            ],
+            'apdram' => [
+                'apdrams'
+            ],
+            'apounce' => [
+                'apounces'
+            ],
+            'appound' => [
+                'appounds'
+            ],
+            'arc_degree' => [
+                'angular_degrees',
+                'arc_degrees',
+                'arcdegs',
+                'degrees'
+            ],
+            'arc_minute' => [
+                'angular_minutes',
+                'arc_minutes',
+                'arcmins',
+                'arcminutes'
+            ],
+            'arc_second' => [
+                'angular_seconds',
+                'arc_seconds',
+                'arcseconds',
+                'arcsecs'
+            ],
+            'are' => [
+                'ares'
+            ],
+            'arpentlin' => [
+                'arpentlins'
+            ],
+            'assay_ton' => [
+                'assay_tons'
+            ],
+            'astronomical_unit' => [
+                'astronomical_units'
+            ],
+            'avoirdupois_ounce' => [
+                'avoirdupois_ounces'
+            ],
+            'avoirdupois_pound' => [
+                'avoirdupois_pounds',
+                'pounds'
+            ],
+            'bag' => [
+                'bags'
+            ],
+            'bar' => [
+                'bars'
+            ],
+            'barie' => [
+                'baries',
+                'baryes'
+            ],
+            'barleycorn' => [
+                'barleycorns'
+            ],
+            'barn' => [
+                'barns'
+            ],
+            'barrel' => [
+                'barrels'
+            ],
+            'baud' => [
+                'bauds'
+            ],
+            'becquerel' => [
+                'becquerels'
+            ],
+            'big_point' => [
+                'big_points'
+            ],
+            'biot' => [
+                'biots'
+            ],
+            'bit' => [
+                'bits'
+            ],
+            'blondel' => [
+                'apostilbs',
+                'blondels'
+            ],
+            'boiler_horsepower' => [
+                'boiler_horsepowers'
+            ],
+            'bushel' => [
+                'bushels'
+            ],
+            'candela' => [
+                'candelas'
+            ],
+            'candle' => [
+                'candles'
+            ],
+            'carat' => [
+                'carats'
+            ],
+            'celsius' => [
+                'celsiuses'
+            ],
+            'chain' => [
+                'chains'
+            ],
+            'chemical_faraday' => [
+                'chemical_faradays'
+            ],
+            'circle' => [
+                'circles',
+                'cycles',
+                'revolutions',
+                'rotations',
+                'turns'
+            ],
+            'circular_mil' => [
+                'circular_mils'
+            ],
+            'clo' => [
+                'clos'
+            ],
+            'common_year' => [
+                'common_years'
+            ],
+            'conventional_water' => [
+                'conventional_waters',
+                'waters'
+            ],
+            'coulomb' => [
+                'coulombs'
+            ],
+            'count' => [
+                'counts'
+            ],
+            'curie' => [
+                'curies'
+            ],
+            'darcy' => [
+                'darcies'
+            ],
+            'day' => [
+                'days'
+            ],
+            'delta_degree_Celsius' => [
+                'delta_celsiuses'
+            ],
+            'delta_fahrenheit' => [
+                'delta_fahrenheits'
+            ],
+            'denier' => [
+                'deniers'
+            ],
+            'dobson' => [
+                'dobsons'
+            ],
+            'dram' => [
+                'drams'
+            ],
+            'dyne' => [
+                'dynes'
+            ],
+            'einstein' => [
+                'einsteins'
+            ],
+            'electric_horsepower' => [
+                'electric_horsepowers'
+            ],
+            'electronvolt' => [
+                'electron_volts',
+                'electronvolts'
+            ],
+            'eon' => [
+                'eons'
+            ],
+            'erg' => [
+                'ergs'
+            ],
+            'fahrenheit' => [
+                'fahrenheits'
+            ],
+            'farad' => [
+                'farads'
+            ],
+            'fathom' => [
+                'fathoms'
+            ],
+            'fermi' => [
+                'fermis'
+            ],
+            'firkin' => [
+                'firkins'
+            ],
+            'fluid_dram' => [
+                'fluid_drams'
+            ],
+            'footcandle' => [
+                'footcandles'
+            ],
+            'footlambert' => [
+                'footlamberts'
+            ],
+            'force' => [
+                'forces'
+            ],
+            'force_kilogram' => [
+                'force_kilograms'
+            ],
+            'force_ounce' => [
+                'force_ounces'
+            ],
+            'force_pound' => [
+                'force_pounds'
+            ],
+            'force_ton' => [
+                'force_tons'
+            ],
+            'fortnight' => [
+                'fortnights'
+            ],
+            'furlong' => [
+                'furlongs'
+            ],
+            'gal' => [
+                'gals'
+            ],
+            'gamma' => [
+                'gammas'
+            ],
+            'gauss' => [
+                'gausses'
+            ],
+            'geopotential' => [
+                'dynamics',
+                'geopotentials'
+            ],
+            'gilbert' => [
+                'gilberts'
+            ],
+            'grade' => [
+                'grades'
+            ],
+            'grain' => [
+                'grains'
+            ],
+            'gram' => [
+                'grams'
+            ],
+            'gram_force' => [
+                'force_grams'
+            ],
+            'gravity' => [
+                'gravities'
+            ],
+            'gray' => [
+                'grays'
+            ],
+            'hectare' => [
+                'hectares'
+            ],
+            'henry' => [
+                'henries'
+            ],
+            'hertz' => [
+                'hertzes'
+            ],
+            'hour' => [
+                'hours'
+            ],
+            'international_inch' => [
+                'inches',
+                'international_inches'
+            ],
+            'international_knot' => [
+                'international_knots',
+                'knot_internationals',
+                'knots'
+            ],
+            'international_mile' => [
+                'international_miles',
+                'miles'
+            ],
+            'international_yard' => [
+                'international_yards',
+                'yards'
+            ],
+            'jiffy' => [
+                'jiffies'
+            ],
+            'joule' => [
+                'joules'
+            ],
+            'katal' => [
+                'katals'
+            ],
+            'kayser' => [
+                'kaysers'
+            ],
+            'kelvin' => [
+                'kelvins'
+            ],
+            'kilogram' => [
+                'kilograms'
+            ],
+            'kip' => [
+                'kips'
+            ],
+            'lambert' => [
+                'lamberts'
+            ],
+            'langley' => [
+                'langleys'
+            ],
+            'leap_year' => [
+                'leap_years'
+            ],
+            'light_year' => [
+                'light_years'
+            ],
+            'liter' => [
+                'liters',
+                'litres'
+            ],
+            'long_hundredweight' => [
+                'long_hundredweights'
+            ],
+            'long_ton' => [
+                'long_tons'
+            ],
+            'lumen' => [
+                'lumens'
+            ],
+            'lunar_month' => [
+                'lunar_months'
+            ],
+            'lux' => [
+                'luxes'
+            ],
+            'maxwell' => [
+                'maxwells'
+            ],
+            'meter' => [
+                'meters',
+                'metres'
+            ],
+            'metric_horsepower' => [
+                'metric_horsepowers'
+            ],
+            'metric_ton' => [
+                'metric_tons',
+                'tonnes'
+            ],
+            'micron' => [
+                'microns'
+            ],
+            'mil' => [
+                'mils'
+            ],
+            'millimeter_Hg' => [
+                'torrs'
+            ],
+            'minute' => [
+                'minutes'
+            ],
+            'mole' => [
+                'moles'
+            ],
+            'molecule' => [
+                'molecs',
+                'molecules',
+                'nucleons',
+                'nucs'
+            ],
+            'month' => [
+                'months'
+            ],
+            'nautical_mile' => [
+                'nautical_miles'
+            ],
+            'newton' => [
+                'newtons'
+            ],
+            'nit' => [
+                'nits'
+            ],
+            'nmile' => [
+                'nmiles'
+            ],
+            'octet' => [
+                'bytes',
+                'octets'
+            ],
+            'oersted' => [
+                'oersteds'
+            ],
+            'ohm' => [
+                'ohms'
+            ],
+            'parsec' => [
+                'parsecs'
+            ],
+            'pascal' => [
+                'pascals'
+            ],
+            'peck' => [
+                'pecks'
+            ],
+            'pennyweight' => [
+                'pennyweights'
+            ],
+            'phot' => [
+                'phots'
+            ],
+            'physical_faraday' => [
+                'physical_faradays'
+            ],
+            'poise' => [
+                'poises'
+            ],
+            'pond' => [
+                'ponds'
+            ],
+            'potential_vorticity_unit' => [
+                'potential_vorticity_units'
+            ],
+            'poundal' => [
+                'poundals'
+            ],
+            'printers_pica' => [
+                'picas',
+                'printers_picas'
+            ],
+            'printers_point' => [
+                'printers_points'
+            ],
+            'radian' => [
+                'radians'
+            ],
+            'refrigeration_ton' => [
+                'refrigeration_tons'
+            ],
+            'register_ton' => [
+                'register_tons'
+            ],
+            'rem' => [
+                'rems'
+            ],
+            'rhe' => [
+                'rhes'
+            ],
+            'rod' => [
+                'perches',
+                'poles',
+                'rods'
+            ],
+            'roentgen' => [
+                'roentgens'
+            ],
+            'scruple' => [
+                'scruples'
+            ],
+            'sec' => [
+                'secs'
+            ],
+            'second' => [
+                'seconds'
+            ],
+            'shaft_horsepower' => [
+                'horsepowers',
+                'shaft_horsepowers'
+            ],
+            'shake' => [
+                'shakes'
+            ],
+            'short_hundredweight' => [
+                'short_hundredweights'
+            ],
+            'short_ton' => [
+                'short_tons',
+                'tons'
+            ],
+            'sidereal_day' => [
+                'sidereal_days'
+            ],
+            'sidereal_hour' => [
+                'sidereal_hours'
+            ],
+            'sidereal_minute' => [
+                'sidereal_minutes'
+            ],
+            'sidereal_month' => [
+                'sidereal_months'
+            ],
+            'sidereal_second' => [
+                'sidereal_seconds'
+            ],
+            'sidereal_year' => [
+                'sidereal_years'
+            ],
+            'siemens' => [
+                'siemenses'
+            ],
+            'sievert' => [
+                'sieverts'
+            ],
+            'slug' => [
+                'slugs'
+            ],
+            'standard_atmosphere' => [
+                'atmospheres',
+                'standard_atmospheres'
+            ],
+            'standard_free_fall' => [
+                'standard_free_falls'
+            ],
+            'statampere' => [
+                'statamperes'
+            ],
+            'statcoulomb' => [
+                'statcoulombs'
+            ],
+            'statfarad' => [
+                'statfarads'
+            ],
+            'stathenry' => [
+                'stathenries'
+            ],
+            'statmho' => [
+                'statmhos'
+            ],
+            'statohm' => [
+                'statohms'
+            ],
+            'statvolt' => [
+                'statvolts'
+            ],
+            'steradian' => [
+                'steradians'
+            ],
+            'stere' => [
+                'steres'
+            ],
+            'stilb' => [
+                'stilbs'
+            ],
+            'stokes' => [
+                'stokeses'
+            ],
+            'sverdrup' => [
+                'sverdrups'
+            ],
+            'tablespoon' => [
+                'tablespoons'
+            ],
+            'teaspoon' => [
+                'teaspoons'
+            ],
+            'technical_atmosphere' => [
+                'technical_atmospheres'
+            ],
+            'tesla' => [
+                'teslas'
+            ],
+            'tex' => [
+                'texes'
+            ],
+            'thermochemical_calorie' => [
+                'thermochemical_calories'
+            ],
+            'tropical_month' => [
+                'tropical_months'
+            ],
+            'tropical_year' => [
+                'tropical_years',
+                'years'
+            ],
+            'troy_ounce' => [
+                'apothecary_ounces',
+                'troy_ounces'
+            ],
+            'troy_pound' => [
+                'apothecary_pounds',
+                'troy_pounds'
+            ],
+            'unified_atomic_mass_unit' => [
+                'atomic_mass_units',
+                'atomicmassunits',
+                'unified_atomic_mass_units'
+            ],
+            'unit_pole' => [
+                'unit_poles'
+            ],
+            'volt' => [
+                'volts'
+            ],
+            'voltampere' => [
+                'voltamperes'
+            ],
+            'water_horsepower' => [
+                'water_horsepowers'
+            ],
+            'watt' => [
+                'watts'
+            ],
+            'watthour' => [
+                'watthours'
+            ],
+            'weber' => [
+                'webers'
+            ],
+            'week' => [
+                'weeks'
+            ],
+            'work_month' => [
+                'work_months'
+            ],
+            'work_year' => [
+                'work_years'
+            ]
+        ]
+    ]
 ];

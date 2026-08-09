@@ -55,11 +55,27 @@ final class CompositeUnitRegistry extends UnitRegistry
      */
     private ?array $prefixesCache = null;
 
+    /**
+     * @logion [SFA 17:63] Three roads entered the ruined city beneath three names, yet all ended before the same
+     *     weathered shrine. The pilgrims disputed their maps until a child opened the western door; then each road
+     *     was remembered by the mercy it had carried, and none by the boast of its direction.
+     *
+     * @var list<string>
+     */
+    private readonly array $names;
+
     public function __construct(
         private readonly UnitRegistry $base,
         private readonly UnitRegistry $overlay,
     ) {
         parent::__construct();
+
+        $baseNames = $this->base->names();
+        $overlayNames = $this->overlay->names();
+        $this->names = array_values(array_unique([...$overlayNames, ...$baseNames]));
+        $this->unitNameIndexCache = array_intersect($baseNames, $overlayNames) === []
+            ? $this->buildUnitNameIndex($overlayNames, $this->base->unitNameIndex())
+            : $this->buildUnitNameIndex($this->names);
 
         $primitiveBaseUnits = [];
         foreach ($this->names() as $name) {
@@ -105,10 +121,7 @@ final class CompositeUnitRegistry extends UnitRegistry
      */
     public function names(): array
     {
-        return array_values(array_unique([
-            ...$this->overlay->names(),
-            ...$this->base->names(),
-        ]));
+        return $this->names;
     }
 
     /**

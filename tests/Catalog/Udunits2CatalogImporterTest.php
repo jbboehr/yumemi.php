@@ -160,6 +160,20 @@ final class Udunits2CatalogImporterTest extends TestCase
         $this->assertSame('second', $units['s']['def'] ?? null);
     }
 
+    public function testPrecomputesDeterministicUnitNameIndex(): void
+    {
+        $index = $this->import(self::SAMPLE)['unitNameIndex'] ?? null;
+
+        $this->assertIsArray($index);
+
+        $this->assertSame(['metre'], $index['aliases']['meter']);
+        $this->assertSame(['m'], $index['symbols']['meter']);
+        $this->assertSame(['seconds'], $index['explicitPlurals']['second']);
+        $this->assertSame(['meters', 'metres'], $index['generatedPlurals']['meter']);
+        $this->assertSame(['cps'], $index['aliases']['hertz']);
+        $this->assertSame(['Hz'], $index['symbols']['hertz']);
+    }
+
     public function testGeneratesImplicitPluralsForCanonicalAndAliasNames(): void
     {
         $units = $this->import(self::SAMPLE)['units'];

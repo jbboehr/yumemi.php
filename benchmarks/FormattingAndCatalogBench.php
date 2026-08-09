@@ -53,13 +53,15 @@ use PhpBench\Attributes as Bench;
 final class FormattingAndCatalogBench
 {
     private Units $units;
+    private Udunits2UnitRegistry $registry;
     private Expr $expr;
     private ExprFormatter $warmFormatter;
     private FormatOptions $symbolOptions;
 
     public function setUp(): void
     {
-        $this->units = new Units(new Udunits2UnitRegistry());
+        $this->registry = new Udunits2UnitRegistry();
+        $this->units = new Units($this->registry);
         $this->expr = $this->units->parse('kilometer / second^2');
         $this->symbolOptions = FormatOptions::create()
             ->withUnitNameStyle(UnitNameStyle::Symbol)
@@ -102,5 +104,18 @@ final class FormattingAndCatalogBench
     public function benchDescribePrefixedUnit(): ?UnitDescriptor
     {
         return $this->units->describe('kilometer');
+    }
+
+    #[Bench\BeforeMethods('setUp')]
+    #[Bench\Revs(1)]
+    public function benchDescribeWholeCatalog(): int
+    {
+        $described = 0;
+
+        foreach ($this->registry->names() as $name) {
+            $described += $this->units->describe($name) === null ? 0 : 1;
+        }
+
+        return $described;
     }
 }

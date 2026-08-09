@@ -103,6 +103,8 @@ Yumemi's generation authority then consists of:
   logarithmic semantics;
 - [`AffineDeltaUnitSynthesizer`](../../src/Catalog/AffineDeltaUnitSynthesizer.php), which materializes multiplicative
   difference units; and
+- `UnitRegistry::indexCatalogRecords()`, which derives deterministic alias, symbol, and plural groupings from the
+  imported effective names for constant-time runtime introspection; and
 - [`PhpCatalogExporter`](../../src/Catalog/PhpCatalogExporter.php), which uses `brick/varexporter` for deterministic
   PHP.
 
@@ -124,7 +126,9 @@ run skips that case when the external database is unavailable; `nix flake check`
 requires it to pass.
 
 Additional catalog, registry, conformance, and differential tests verify semantic behavior independently of the PHP
-array's textual layout. A catalog update must pass both exact regeneration and those behavioral checks.
+array's textual layout. The runtime validates the generated name index against its catalog names and alias chains;
+index-less custom catalog files retain dynamic indexing for compatibility. A catalog update must pass both exact
+regeneration and those behavioral checks.
 
 ### Provenance and Licensing
 

@@ -344,6 +344,32 @@ final class UnitRegistryTest extends TestCase
         $this->assertSame(['thing'], $registry->describe('widget')?->aliases);
     }
 
+    public function testDynamicallyBuiltNameIndexIsReusedAcrossDescriptions(): void
+    {
+        $registry = new class () extends UnitRegistry {
+            public int $nameLookups = 0;
+
+            public function __construct()
+            {
+                parent::__construct([], [
+                    'thing' => ['type' => 'alias', 'name' => 'thing', 'def' => 'widget'],
+                    'widget' => ['type' => 'base', 'name' => 'widget'],
+                ]);
+            }
+
+            public function names(): array
+            {
+                ++$this->nameLookups;
+
+                return parent::names();
+            }
+        };
+
+        $this->assertSame(['thing'], $registry->describe('widget')?->aliases);
+        $this->assertSame('widget', $registry->describe('thing')?->canonicalName);
+        $this->assertSame(1, $registry->nameLookups);
+    }
+
     public function testUnknownDescriptionReturnsNull(): void
     {
         $this->assertNull(UnitRegistry::defaults()->describe('league'));

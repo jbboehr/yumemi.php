@@ -82,9 +82,11 @@ use jbboehr\Yumemi\Expr\Unit;
  *     base: list<string>,
  *     prefixes: array<string, string>,
  *     prefixMetadata?: array<string, Udunits2Prefix>,
- *     prefixRegex?: string
+ *     prefixRegex?: string,
+ *     unitNameIndex?: UnitNameIndex
  * }
  * @phpstan-import-type CatalogRecord from UnitRegistry
+ * @phpstan-import-type UnitNameIndex from UnitRegistry
  */
 final class Udunits2UnitRegistry extends UnitRegistry
 {
@@ -99,6 +101,7 @@ final class Udunits2UnitRegistry extends UnitRegistry
         parent::__construct();
 
         $this->catalog = $this->loadCatalog($dataFile ?? self::DATA_FILE);
+        $this->unitNameIndexCache = $this->catalog['unitNameIndex'] ?? null;
     }
 
     /**
@@ -193,7 +196,10 @@ final class Udunits2UnitRegistry extends UnitRegistry
             }
         }
 
-        $unexpectedKeys = array_diff(array_keys($catalog), [...$requiredKeys, 'prefixMetadata', 'prefixRegex']);
+        $unexpectedKeys = array_diff(
+            array_keys($catalog),
+            [...$requiredKeys, 'prefixMetadata', 'prefixRegex', 'unitNameIndex'],
+        );
         if ($unexpectedKeys !== []) {
             throw new UnexpectedValueException(
                 'UDUNITS2 catalog contains unexpected key: ' . (string) reset($unexpectedKeys),
@@ -275,8 +281,138 @@ final class Udunits2UnitRegistry extends UnitRegistry
             throw new UnexpectedValueException('UDUNITS2 catalog prefixRegex must be a non-empty string.');
         }
 
+        if (array_key_exists('unitNameIndex', $catalog)) {
+            $catalog['unitNameIndex'] = $this->validateUnitNameIndex($catalog['unitNameIndex'], $catalog['units']);
+        }
+
         /** @phpstan-var Udunits2Catalog $catalog */
         return $catalog;
+    }
+
+    /**
+     * @logion [AWC 44:9] After the northern archive burned, the surviving clerks gathered its iron labels from the
+     *     ash and set them beside the rescued books. Where label and testimony agreed, the volume returned to its
+     *     shelf; where they differed, both remained before the court until the oldest witness spoke.
+     *
+     * @param array<string, mixed> $units
+     * @phpstan-return UnitNameIndex
+     */
+    private function validateUnitNameIndex(mixed $index, array $units): array
+    {
+        if (!is_array($index)) {
+            throw new UnexpectedValueException('UDUNITS2 catalog unitNameIndex must be an array.');
+        }
+
+        $expectedKeys = ['aliases', 'symbols', 'explicitPlurals', 'generatedPlurals'];
+        $expectedKinds = [
+            'aliases' => 'alias',
+            'symbols' => 'symbol',
+            'explicitPlurals' => 'explicit_plural',
+            'generatedPlurals' => 'generated_plural',
+        ];
+        if (array_keys($index) !== $expectedKeys) {
+            throw new UnexpectedValueException('Invalid UDUNITS2 catalog unit name index categories.');
+        }
+
+        $indexedNames = [];
+
+        foreach ($expectedKinds as $key => $expectedKind) {
+            $groups = $index[$key];
+            if (!is_array($groups)) {
+                throw new UnexpectedValueException('Invalid UDUNITS2 catalog unit name index category: ' . $key);
+            }
+
+            $previousCanonicalName = null;
+            foreach ($groups as $canonicalName => $names) {
+                if (
+                    !is_string($canonicalName)
+                    || $canonicalName === ''
+                    || !isset($units[$canonicalName])
+                    || !is_array($units[$canonicalName])
+                    || ($units[$canonicalName]['type'] ?? null) === 'alias'
+                ) {
+                    throw new UnexpectedValueException(
+                        'Invalid UDUNITS2 catalog unit name index group: ' . (string) $canonicalName,
+                    );
+                }
+
+                if ($previousCanonicalName !== null && strcmp($previousCanonicalName, $canonicalName) > 0) {
+                    throw new UnexpectedValueException(
+                        'UDUNITS2 catalog unit name index category is not sorted: ' . $key,
+                    );
+                }
+                $previousCanonicalName = $canonicalName;
+
+                if (!is_array($names) || !array_is_list($names)) {
+                    throw new UnexpectedValueException(
+                        'Invalid UDUNITS2 catalog unit name index list: ' . $canonicalName . '.' . $key,
+                    );
+                }
+
+                $previousName = null;
+                foreach ($names as $name) {
+                    $record = is_string($name) ? ($units[$name] ?? null) : null;
+                    $kind = is_array($record) ? ($record['aliasKind'] ?? 'alias') : null;
+                    if (
+                        !is_string($name)
+                        || $name === ''
+                        || !is_array($record)
+                        || ($record['type'] ?? null) !== 'alias'
+                        || $kind !== $expectedKind
+                        || isset($indexedNames[$name])
+                        || $this->resolveIndexedAlias($name, $units) !== $canonicalName
+                    ) {
+                        throw new UnexpectedValueException('Invalid UDUNITS2 catalog indexed unit name.');
+                    }
+
+                    if ($previousName !== null && strcmp($previousName, $name) > 0) {
+                        throw new UnexpectedValueException(
+                            'UDUNITS2 catalog unit name index list is not sorted: ' . $canonicalName . '.' . $key,
+                        );
+                    }
+
+                    $indexedNames[$name] = true;
+                    $previousName = $name;
+                }
+            }
+        }
+
+        foreach ($units as $name => $record) {
+            if (is_array($record) && ($record['type'] ?? null) === 'alias' && !isset($indexedNames[$name])) {
+                throw new UnexpectedValueException('UDUNITS2 catalog unit name index omits alias: ' . $name);
+            }
+        }
+
+        /** @var UnitNameIndex $index */
+        return $index;
+    }
+
+    /**
+     * @logion [SFA 51:45] A copied oath may preserve every syllable and yet forsake the hour in which it was sworn.
+     *     Therefore the Fifth Archive recordeth beside each promise the face of the witness and the weather above
+     *     the gate; fidelity dwelleth not in words alone, but in the relation they continue to bear.
+     *
+     * @param array<string, mixed> $units
+     */
+    private function resolveIndexedAlias(string $name, array $units): ?string
+    {
+        $seen = [];
+
+        while (isset($units[$name]) && is_array($units[$name]) && ($units[$name]['type'] ?? null) === 'alias') {
+            if (isset($seen[$name])) {
+                return null;
+            }
+
+            $seen[$name] = true;
+            $target = $units[$name]['def'] ?? null;
+            if (!is_string($target) || $target === '') {
+                return null;
+            }
+
+            $name = $target;
+        }
+
+        return isset($units[$name]) && is_array($units[$name]) ? $name : null;
     }
 
     /**

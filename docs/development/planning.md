@@ -576,16 +576,10 @@ repeat the implementation's assumptions:
 - An application-specific generator for a small requested set of native conversion-factor constants, with deterministic
   regeneration tests against the exact runtime engine. Do not generate every possible catalog pair; ordinary code should
   normally hoist `unit_factor()` outside repeated arithmetic.
-- Optimize bulk catalog introspection by pre-grouping canonical aliases, symbols, and plurals during generation, then
-  lazily caching an index per immutable registry. Build that index from the typed effective-entry lookup so composite
-  registries preserve whole-layer precedence and base aliases continue to follow overlay replacements. The same index
-  should serve canonical/symbol formatter lookups so newly constructed formatters do not repeat catalog scans;
-  expression resolution remains in `UnitResolver`. Cache each composite registry's merged name list as part of this
-  work. Retain a dimension-to-base-unit map in immutable registry metadata and compose it with whole-layer precedence so
-  duplicate primitive dimensions can be rejected without scanning every effective name and allocating entry wrappers.
-  The index may also retain stable entries to avoid repeated wrapper allocation. Avoid a separate unbounded per-name
-  entry cache: unknown-name suggestion ranking inspects the complete catalog and could populate that cache with every
-  entry after one failed lookup.
+- Add a dimension-to-base-unit map that composes with whole-layer precedence, and consider retaining stable effective
+  entries when profiles justify the allocation tradeoff. Avoid a separate unbounded per-name entry cache: unknown-name
+  suggestion ranking inspects the complete catalog and could populate that cache with every entry after one failed
+  lookup.
 - If repeated default-registry construction becomes a measured concern, cache the successfully validated canonical
   `Udunits2UnitRegistry::DATA_FILE` array per process rather than skipping structural validation. Continue fully loading
   and validating every caller-supplied catalog path so a custom file can change between snapshots and malformed trusted

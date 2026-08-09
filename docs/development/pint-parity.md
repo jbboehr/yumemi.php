@@ -176,8 +176,8 @@ Generated aliases, explicit and generated plurals, symbols, and longest-prefix-f
 metadata. Exact names win before prefix decomposition, lookup remains case-sensitive, and introspection exposes
 canonical identity and spelling provenance. A typed effective entry centralizes composite-layer precedence while
 retaining both a materialized prebuilt alias and its catalog metadata when one layer intentionally supplies both.
-
-The main remaining work is performance-oriented indexing, not unresolved lookup policy.
+Generated name indexes and dynamically composed custom overlays make repeated introspection constant-time after registry
+construction without changing lookup policy.
 
 ### 13. Offset And Affine Units
 
@@ -345,13 +345,14 @@ localization layer later without making locale part of expression identity.
 Status: **Partial** | Importance: **P1** | Remaining difficulty: **M**
 
 Resolvers and formatters cache name, definition, derived conversion, and semantic lookups, and registries are immutable
-after construction. PHPBench now covers representative cold and warm runtime workflows. Bulk catalog introspection still
-performs repeated grouping and sorting, and expression operations still reduce eagerly.
+after construction. PHPBench covers representative cold and warm runtime workflows plus full-catalog introspection.
+Generated alias/symbol/plural indexes eliminate repeated catalog grouping, while custom and shadowing registries build
+the equivalent effective index dynamically. Expression operations still reduce eagerly.
 
 Use repeated local benchmarks and real PHPStan or runtime profiles to identify hot paths before optimizing.
-Catalog-build indexing remains a reasonable deferred optimization even without changing expression semantics. Bounded
-per-context parsing and unified multiplicative/affine conversion-plan caches are also deferred until helper-heavy
-benchmarks justify their allocation and eviction policies.
+Dimension-to-base-unit indexing remains a reasonable deferred optimization even without changing expression semantics.
+Bounded per-context parsing and unified multiplicative/affine conversion-plan caches are also deferred until
+helper-heavy benchmarks justify their allocation and eviction policies.
 
 ### 30. Error Messages And Developer Experience
 

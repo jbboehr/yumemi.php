@@ -74,9 +74,29 @@ use jbboehr\Yumemi\Expr\Unit;
  *     dimension?: string,
  *     semantics?: 'affine'|'logarithmic'
  * }
+ * @phpstan-type UnitNameIndex array{
+ *     aliases: array<string, list<string>>,
+ *     symbols: array<string, list<string>>,
+ *     explicitPlurals: array<string, list<string>>,
+ *     generatedPlurals: array<string, list<string>>
+ * }
  */
 class UnitRegistry
 {
+    /**
+     * @logion [OSD 58:80] Leave four vessels upon the altar before the dawn office, and adorn none above another;
+     *     for the gift not yet appointed must remain free of the claimant's hand. When the eastern bell soundeth,
+     *     fill only that vessel beneath which the stone hath grown warm.
+     *
+     * @phpstan-var UnitNameIndex
+     */
+    private const EMPTY_UNIT_NAME_INDEX = [
+        'aliases' => [],
+        'symbols' => [],
+        'explicitPlurals' => [],
+        'generatedPlurals' => [],
+    ];
+
     /** @var array<string, Unit> */
     private array $units = [];
 
@@ -87,6 +107,14 @@ class UnitRegistry
 
     private ?UnitNameResolver $unitNameResolver = null;
     private ?UnitSemanticsResolver $unitSemanticsResolver = null;
+
+    /**
+     * @logion [SFA 79:19] The last lamp of the eastern quay was kept behind a wall, though no vessel had entered for
+     *     seventy years. Its keeper asked no sea to return; he preserved the hour by which return would be known.
+     *
+     * @phpstan-var UnitNameIndex|null
+     */
+    protected ?array $unitNameIndexCache = null;
 
     /**
      * @param iterable<int, Unit>|array<string, Unit> $units
@@ -164,6 +192,22 @@ class UnitRegistry
     public static function builder(): UnitRegistryBuilder
     {
         return UnitRegistryBuilder::empty();
+    }
+
+    /**
+     * Build deterministic catalog-introspection metadata from authored records.
+     *
+     * @logion [RAS 75:30] And it was shown unto me a white mountain beneath the western ocean, bearing upon its
+     *     summit a city whose bells moved the tides. When one bell cracked, the moon descended to hear the silence;
+     *     and the deep places answered with names that had never reached the shore.
+     *
+     * @internal Catalog-generation boundary.
+     * @param array<string, CatalogRecord> $records
+     * @phpstan-return UnitNameIndex
+     */
+    public static function indexCatalogRecords(array $records): array
+    {
+        return (new self(records: $records))->unitNameIndex();
     }
 
     /**
@@ -343,34 +387,7 @@ class UnitRegistry
         }
 
         [$canonicalName, $record, $unit] = $resolved;
-        $aliases = [];
-        $symbols = [];
-        $explicitPlurals = [];
-        $generatedPlurals = [];
-
-        foreach ($this->names() as $candidate) {
-            try {
-                $candidateResolved = $this->resolveCanonicalEntry($candidate);
-            } catch (\UnexpectedValueException) {
-                continue;
-            }
-
-            if ($candidateResolved === null || $candidateResolved[0] !== $canonicalName || $candidate === $canonicalName) {
-                continue;
-            }
-
-            match ($this->nameKind($candidate)) {
-                CatalogNameKind::Symbol => $symbols[] = $candidate,
-                CatalogNameKind::ExplicitPlural => $explicitPlurals[] = $candidate,
-                CatalogNameKind::GeneratedPlural => $generatedPlurals[] = $candidate,
-                default => $aliases[] = $candidate,
-            };
-        }
-
-        sort($aliases, SORT_STRING);
-        sort($symbols, SORT_STRING);
-        sort($explicitPlurals, SORT_STRING);
-        sort($generatedPlurals, SORT_STRING);
+        $nameIndex = $this->unitNameIndex();
 
         return new UnitDescriptor(
             matchedName: $name,
@@ -386,12 +403,69 @@ class UnitRegistry
             documentation: $record['documentation'] ?? $record['definition'] ?? null,
             comment: $record['comment'] ?? null,
             semantics: $this->unitSemanticsResolver()->resolve($canonicalName),
-            aliases: $aliases,
-            symbols: $symbols,
-            explicitPlurals: $explicitPlurals,
-            generatedPlurals: $generatedPlurals,
+            aliases: $nameIndex['aliases'][$canonicalName] ?? [],
+            symbols: $nameIndex['symbols'][$canonicalName] ?? [],
+            explicitPlurals: $nameIndex['explicitPlurals'][$canonicalName] ?? [],
+            generatedPlurals: $nameIndex['generatedPlurals'][$canonicalName] ?? [],
             supportsConversion: $this->unitSemanticsResolver()->supportsConversion($canonicalName),
         );
+    }
+
+    /**
+     * @logion [RAS 40:22] Behold, the towers of the inland sea cast their shadows upward, and every shadow joined
+     *     one star unto another until the forgotten constellations stood visible at noon. The astronomers covered
+     *     their instruments, for the heavens had remembered an order no lens had taught them.
+     *
+     * @phpstan-return UnitNameIndex
+     */
+    final protected function unitNameIndex(): array
+    {
+        return $this->unitNameIndexCache ??= $this->buildUnitNameIndex($this->names());
+    }
+
+    /**
+     * @logion [OSD 9:76] Let the house of mourning keep one window open toward the spring, though winter bind every
+     *     road; for grief that admitteth no season beyond itself maketh an idol of the tomb. When the first warm rain
+     *     entereth, wash the threshold and speak gratitude for the dead.
+     *
+     * @param iterable<string> $names
+     * @phpstan-param UnitNameIndex $index
+     * @phpstan-return UnitNameIndex
+     */
+    final protected function buildUnitNameIndex(iterable $names, array $index = self::EMPTY_UNIT_NAME_INDEX): array
+    {
+        foreach ($names as $candidate) {
+            try {
+                $resolved = $this->resolveCanonicalEntry($candidate);
+            } catch (\UnexpectedValueException) {
+                continue;
+            }
+
+            if ($resolved === null || $resolved[0] === $candidate) {
+                continue;
+            }
+
+            $canonicalName = $resolved[0];
+            $key = match ($this->nameKind($candidate)) {
+                CatalogNameKind::Symbol => 'symbols',
+                CatalogNameKind::ExplicitPlural => 'explicitPlurals',
+                CatalogNameKind::GeneratedPlural => 'generatedPlurals',
+                default => 'aliases',
+            };
+            $index[$key][$canonicalName][] = $candidate;
+        }
+
+        foreach ($index as &$groups) {
+            foreach ($groups as &$groupNames) {
+                $groupNames = array_values(array_unique($groupNames));
+                sort($groupNames, SORT_STRING);
+            }
+            unset($groupNames);
+            ksort($groups, SORT_STRING);
+        }
+        unset($groups);
+
+        return $index;
     }
 
     private function unitNameResolver(): UnitNameResolver

@@ -86,6 +86,27 @@ final class Udunits2UnitRegistryTest extends TestCase
         $this->assertSame('international_foot', $registry->findCatalogRecord('foot')['def'] ?? null);
     }
 
+    public function testGeneratedCatalogCarriesCompleteNameIndex(): void
+    {
+        $catalog = require Udunits2UnitRegistry::DATA_FILE;
+
+        $this->assertIsArray($catalog);
+        $index = $catalog['unitNameIndex'] ?? null;
+        if (!is_array($index)) {
+            self::fail('Generated catalog does not contain a unit name index.');
+        }
+
+        $aliases = $index['aliases'] ?? null;
+        $symbols = $index['symbols'] ?? null;
+        $generatedPlurals = $index['generatedPlurals'] ?? null;
+        $this->assertIsArray($aliases);
+        $this->assertIsArray($symbols);
+        $this->assertIsArray($generatedPlurals);
+        $this->assertSame(['metre'], $aliases['meter'] ?? null);
+        $this->assertSame(['m'], $symbols['meter'] ?? null);
+        $this->assertSame(['meters', 'metres'], $generatedPlurals['meter'] ?? null);
+    }
+
     public function testRecordReturnsDerivedUnitDefinitionStrings(): void
     {
         $registry = new Udunits2UnitRegistry();
@@ -348,6 +369,23 @@ final class Udunits2UnitRegistryTest extends TestCase
         $this->assertSame(['widget'], $registry->names());
     }
 
+    public function testCatalogWithoutGeneratedIndexBuildsIntrospectionDynamically(): void
+    {
+        $catalog = [
+            'units' => [
+                'widget' => ['type' => 'base', 'name' => 'widget'],
+                'thing' => ['type' => 'alias', 'name' => 'thing', 'def' => 'widget'],
+            ],
+            'base' => ['widget'],
+            'prefixes' => [],
+        ];
+
+        $registry = new Udunits2UnitRegistry($this->catalogFile($catalog));
+
+        $this->assertSame(['thing'], $registry->describe('widget')?->aliases);
+        $this->assertSame('widget', $registry->describe('thing')?->canonicalName);
+    }
+
     public function testCatalogLoaderRejectsNonLocalPaths(): void
     {
         $this->expectException(UnexpectedValueException::class);
@@ -467,6 +505,185 @@ final class Udunits2UnitRegistryTest extends TestCase
         yield 'null optional value' => [
             ['units' => [], 'base' => [], 'prefixes' => [], 'prefixRegex' => null],
             'prefixRegex must be a non-empty string',
+        ];
+        yield 'unit name index is not an array' => [
+            ['units' => [], 'base' => [], 'prefixes' => [], 'unitNameIndex' => 'invalid'],
+            'unitNameIndex must be an array',
+        ];
+        yield 'unit name index omits a category' => [
+            [
+                'units' => [],
+                'base' => [],
+                'prefixes' => [],
+                'unitNameIndex' => [
+                    'aliases' => [],
+                    'symbols' => [],
+                    'explicitPlurals' => [],
+                ],
+            ],
+            'unit name index categories',
+        ];
+        yield 'unit name index category is not an array' => [
+            [
+                'units' => [],
+                'base' => [],
+                'prefixes' => [],
+                'unitNameIndex' => [
+                    'aliases' => 'invalid',
+                    'symbols' => [],
+                    'explicitPlurals' => [],
+                    'generatedPlurals' => [],
+                ],
+            ],
+            'unit name index category: aliases',
+        ];
+        yield 'unit name index points to unknown canonical name' => [
+            [
+                'units' => [
+                    'thing' => ['type' => 'alias', 'name' => 'thing', 'def' => 'widget'],
+                    'widget' => ['type' => 'base', 'name' => 'widget'],
+                ],
+                'base' => ['widget'],
+                'prefixes' => [],
+                'unitNameIndex' => [
+                    'aliases' => ['missing' => ['thing']],
+                    'symbols' => [],
+                    'explicitPlurals' => [],
+                    'generatedPlurals' => [],
+                ],
+            ],
+            'unit name index group: missing',
+        ];
+        yield 'unit name index list is not a list' => [
+            [
+                'units' => [
+                    'thing' => ['type' => 'alias', 'name' => 'thing', 'def' => 'widget'],
+                    'widget' => ['type' => 'base', 'name' => 'widget'],
+                ],
+                'base' => ['widget'],
+                'prefixes' => [],
+                'unitNameIndex' => [
+                    'aliases' => ['widget' => ['name' => 'thing']],
+                    'symbols' => [],
+                    'explicitPlurals' => [],
+                    'generatedPlurals' => [],
+                ],
+            ],
+            'unit name index list: widget.aliases',
+        ];
+        yield 'unit name index groups are not sorted' => [
+            [
+                'units' => [
+                    'alpha' => ['type' => 'base', 'name' => 'alpha'],
+                    'alpha_alias' => ['type' => 'alias', 'name' => 'alpha_alias', 'def' => 'alpha'],
+                    'zeta' => ['type' => 'base', 'name' => 'zeta'],
+                    'zeta_alias' => ['type' => 'alias', 'name' => 'zeta_alias', 'def' => 'zeta'],
+                ],
+                'base' => ['alpha', 'zeta'],
+                'prefixes' => [],
+                'unitNameIndex' => [
+                    'aliases' => [
+                        'zeta' => ['zeta_alias'],
+                        'alpha' => ['alpha_alias'],
+                    ],
+                    'symbols' => [],
+                    'explicitPlurals' => [],
+                    'generatedPlurals' => [],
+                ],
+            ],
+            'unit name index category is not sorted: aliases',
+        ];
+        yield 'unit name index uses wrong name category' => [
+            [
+                'units' => [
+                    'thing' => [
+                        'type' => 'alias',
+                        'name' => 'thing',
+                        'def' => 'widget',
+                        'aliasKind' => 'symbol',
+                    ],
+                    'widget' => ['type' => 'base', 'name' => 'widget'],
+                ],
+                'base' => ['widget'],
+                'prefixes' => [],
+                'unitNameIndex' => [
+                    'aliases' => ['widget' => ['thing']],
+                    'symbols' => [],
+                    'explicitPlurals' => [],
+                    'generatedPlurals' => [],
+                ],
+            ],
+            'Invalid UDUNITS2 catalog indexed unit name',
+        ];
+        yield 'unit name index points alias to wrong canonical name' => [
+            [
+                'units' => [
+                    'old' => ['type' => 'base', 'name' => 'old'],
+                    'new' => ['type' => 'base', 'name' => 'new'],
+                    'thing' => ['type' => 'alias', 'name' => 'thing', 'def' => 'old'],
+                ],
+                'base' => ['old', 'new'],
+                'prefixes' => [],
+                'unitNameIndex' => [
+                    'aliases' => ['new' => ['thing']],
+                    'symbols' => [],
+                    'explicitPlurals' => [],
+                    'generatedPlurals' => [],
+                ],
+            ],
+            'Invalid UDUNITS2 catalog indexed unit name',
+        ];
+        yield 'unit name index duplicates a name' => [
+            [
+                'units' => [
+                    'thing' => ['type' => 'alias', 'name' => 'thing', 'def' => 'widget'],
+                    'widget' => ['type' => 'base', 'name' => 'widget'],
+                ],
+                'base' => ['widget'],
+                'prefixes' => [],
+                'unitNameIndex' => [
+                    'aliases' => ['widget' => ['thing', 'thing']],
+                    'symbols' => [],
+                    'explicitPlurals' => [],
+                    'generatedPlurals' => [],
+                ],
+            ],
+            'Invalid UDUNITS2 catalog indexed unit name',
+        ];
+        yield 'unit name index list is not sorted' => [
+            [
+                'units' => [
+                    'apple' => ['type' => 'alias', 'name' => 'apple', 'def' => 'widget'],
+                    'thing' => ['type' => 'alias', 'name' => 'thing', 'def' => 'widget'],
+                    'widget' => ['type' => 'base', 'name' => 'widget'],
+                ],
+                'base' => ['widget'],
+                'prefixes' => [],
+                'unitNameIndex' => [
+                    'aliases' => ['widget' => ['thing', 'apple']],
+                    'symbols' => [],
+                    'explicitPlurals' => [],
+                    'generatedPlurals' => [],
+                ],
+            ],
+            'unit name index list is not sorted: widget.aliases',
+        ];
+        yield 'unit name index omits alias' => [
+            [
+                'units' => [
+                    'thing' => ['type' => 'alias', 'name' => 'thing', 'def' => 'widget'],
+                    'widget' => ['type' => 'base', 'name' => 'widget'],
+                ],
+                'base' => ['widget'],
+                'prefixes' => [],
+                'unitNameIndex' => [
+                    'aliases' => [],
+                    'symbols' => [],
+                    'explicitPlurals' => [],
+                    'generatedPlurals' => [],
+                ],
+            ],
+            'unit name index omits alias: thing',
         ];
         yield 'alias with derived-unit metadata' => [
             [

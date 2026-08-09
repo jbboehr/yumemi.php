@@ -208,6 +208,90 @@ final class CompositeUnitRegistryTest extends TestCase
         $this->assertCount(1, array_keys($names, 'shared', true));
     }
 
+    public function testMergedNamesAreCachedForTheImmutableLayers(): void
+    {
+        $base = new class (['base']) extends UnitRegistry {
+            public int $nameLookups = 0;
+
+            /** @param list<string> $configuredNames */
+            public function __construct(private readonly array $configuredNames)
+            {
+                parent::__construct([new Unit('base')]);
+            }
+
+            public function names(): array
+            {
+                ++$this->nameLookups;
+
+                return $this->configuredNames;
+            }
+        };
+        $overlay = new class (['overlay']) extends UnitRegistry {
+            public int $nameLookups = 0;
+
+            /** @param list<string> $configuredNames */
+            public function __construct(private readonly array $configuredNames)
+            {
+                parent::__construct([new Unit('overlay')]);
+            }
+
+            public function names(): array
+            {
+                ++$this->nameLookups;
+
+                return $this->configuredNames;
+            }
+        };
+
+        $composite = new CompositeUnitRegistry($base, $overlay);
+        $baseLookups = $base->nameLookups;
+        $overlayLookups = $overlay->nameLookups;
+
+        $this->assertSame(['overlay', 'base'], $composite->names());
+        $this->assertSame(['overlay', 'base'], $composite->names());
+        $this->assertSame($baseLookups, $base->nameLookups);
+        $this->assertSame($overlayLookups, $overlay->nameLookups);
+    }
+
+    public function testDisjointOverlayAliasesExtendBaseNameIndex(): void
+    {
+        $composite = new CompositeUnitRegistry(
+            new UnitRegistry([], [
+                'widget' => ['type' => 'base', 'name' => 'widget'],
+                'w' => ['type' => 'alias', 'name' => 'w', 'def' => 'widget', 'aliasKind' => 'symbol'],
+            ]),
+            new UnitRegistry([], [
+                'thing' => ['type' => 'alias', 'name' => 'thing', 'def' => 'widget'],
+            ]),
+        );
+
+        $descriptor = $composite->describe('widget');
+
+        $this->assertNotNull($descriptor);
+        $this->assertSame(['thing'], $descriptor->aliases);
+        $this->assertSame(['w'], $descriptor->symbols);
+        $this->assertSame('widget', $composite->describe('thing')?->canonicalName);
+    }
+
+    public function testShadowedAliasRebuildsDependentCanonicalGroups(): void
+    {
+        $composite = new CompositeUnitRegistry(
+            new UnitRegistry([], [
+                'old' => ['type' => 'base', 'name' => 'old'],
+                'new' => ['type' => 'base', 'name' => 'new'],
+                'bridge' => ['type' => 'alias', 'name' => 'bridge', 'def' => 'old'],
+                'dependent' => ['type' => 'alias', 'name' => 'dependent', 'def' => 'bridge'],
+            ]),
+            new UnitRegistry([], [
+                'bridge' => ['type' => 'alias', 'name' => 'bridge', 'def' => 'new'],
+            ]),
+        );
+
+        $this->assertSame('new', $composite->describe('dependent')?->canonicalName);
+        $this->assertSame(['bridge', 'dependent'], $composite->describe('new')?->aliases);
+        $this->assertSame([], $composite->describe('old')?->aliases);
+    }
+
     public function testPrefixesMergeWithOverlayWinning(): void
     {
         $composite = new CompositeUnitRegistry(
