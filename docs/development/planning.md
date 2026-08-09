@@ -550,6 +550,12 @@ repeat the implementation's assumptions:
   resolution.
 - Expression arithmetic reduces eagerly. The benchmark suite measures representative reduction and normalization, but no
   cross-machine regression floor or production-workload profile has established that this is a hot path.
+- Paired helper-boundary benchmarks and local hardware-counter profiles identify repeated parsing as a concrete runtime
+  cost. On the same PHP 8.2 host, repeated `Quantity::valueIn()` with a compound string target took about 17 times the
+  wall time and 15 times the retired instructions of the equivalent pre-parsed target; string-based quantity
+  construction took about 9 times both. Direct warm string conversion-factor and affine point-conversion subjects
+  remained in the same low-single-digit-microsecond range as the pre-parsed quantity control because
+  `UnitConversionResolver` already caches resolved strings.
 - Hardware-counter benchmarks depend on unreleased `phpbench-perfidious` adapter code and local Linux `perf_events`
   permissions; they are optional and intentionally excluded from CI.
 - Dimensional analysis intentionally cannot distinguish semantically different quantities with the same dimension, such
@@ -571,8 +577,12 @@ repeat the implementation's assumptions:
   acquiring speculative bundled definitions.
 - A separate strict-expression option for dynamic `Units`, `Quantity`, and `PointQuantity` boundaries if applications
   demonstrate a need beyond the native-helper policy. Their explicit runtime parsing role remains dynamic by default.
-- A bounded parse cache scoped to each immutable `Units` context, and a unified multiplicative/affine conversion-plan
-  cache keyed by that context. Benchmark helper-heavy workloads before fixing cache sizes or eviction policy.
+- A bounded successful-parse cache scoped to each immutable `Units` context. Paired helper-boundary benchmarks now
+  justify this work; define the capacity and eviction policy explicitly, preserve source-span behavior by not caching
+  failures, and use the benchmark controls to verify the result.
+- A unified multiplicative/affine conversion-plan cache keyed by each immutable `Units` context. Current profiles do not
+  justify it: cached string resolution keeps repeated conversion-factor and affine point paths comparatively small.
+  Reconsider only if a production profile identifies conversion-plan construction as material after parse caching.
 - An application-specific generator for a small requested set of native conversion-factor constants, with deterministic
   regeneration tests against the exact runtime engine. Do not generate every possible catalog pair; ordinary code should
   normally hoist `unit_factor()` outside repeated arithmetic.

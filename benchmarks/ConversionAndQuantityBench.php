@@ -36,7 +36,9 @@
 
 namespace jbboehr\Yumemi\Benchmarks;
 
+use jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\PointQuantity;
 use jbboehr\Yumemi\Quantity;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
 use jbboehr\Yumemi\Units;
@@ -48,21 +50,32 @@ use PhpBench\Attributes as Bench;
 final class ConversionAndQuantityBench
 {
     private Units $units;
+    private Expr $metersUnit;
+    private Expr $feetUnit;
+    private Expr $speedUnit;
     private Quantity $meters;
     private Quantity $feet;
     private Quantity $speed;
     private Quantity $duration;
+    private PointQuantity $temperature;
 
     public function setUp(): void
     {
         $this->units = new Units(new Udunits2UnitRegistry());
+        $this->metersUnit = $this->units->parse('meter');
+        $this->feetUnit = $this->units->parse('foot');
+        $this->speedUnit = $this->units->parse('meter / second');
         $this->meters = $this->units->quantity(100, 'meter');
         $this->feet = $this->units->quantity(100, 'foot');
         $this->speed = $this->units->quantity(90, 'kilometer / hour');
         $this->duration = $this->units->quantity(30, 'second');
+        $this->temperature = $this->units->point(100, 'celsius');
 
         $this->units->conversionFactor('meter', 'foot');
+        $this->units->conversionFactor($this->metersUnit, $this->feetUnit);
         $this->units->convert(100, 'celsius', 'fahrenheit');
+        $this->speed->valueIn($this->speedUnit);
+        $this->temperature->valueIn('fahrenheit');
     }
 
     #[Bench\BeforeMethods('setUp')]
@@ -70,6 +83,13 @@ final class ConversionAndQuantityBench
     public function benchWarmConversionFactor(): Rational
     {
         return $this->units->conversionFactor('meter', 'foot');
+    }
+
+    #[Bench\BeforeMethods('setUp')]
+    #[Bench\Revs(500)]
+    public function benchWarmConversionFactorWithParsedUnits(): Rational
+    {
+        return $this->units->conversionFactor($this->metersUnit, $this->feetUnit);
     }
 
     #[Bench\BeforeMethods('setUp')]
@@ -98,5 +118,33 @@ final class ConversionAndQuantityBench
     public function benchQuantityValueIn(): Rational
     {
         return $this->speed->valueIn('meter / second');
+    }
+
+    #[Bench\BeforeMethods('setUp')]
+    #[Bench\Revs(500)]
+    public function benchQuantityValueInWithParsedUnit(): Rational
+    {
+        return $this->speed->valueIn($this->speedUnit);
+    }
+
+    #[Bench\BeforeMethods('setUp')]
+    #[Bench\Revs(500)]
+    public function benchPointQuantityValueIn(): Rational
+    {
+        return $this->temperature->valueIn('fahrenheit');
+    }
+
+    #[Bench\BeforeMethods('setUp')]
+    #[Bench\Revs(200)]
+    public function benchQuantityConstructionWithStringUnit(): Quantity
+    {
+        return $this->units->quantity(100, 'meter / second');
+    }
+
+    #[Bench\BeforeMethods('setUp')]
+    #[Bench\Revs(500)]
+    public function benchQuantityConstructionWithParsedUnit(): Quantity
+    {
+        return $this->units->quantity(100, $this->speedUnit);
     }
 }

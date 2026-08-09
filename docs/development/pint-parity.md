@@ -351,9 +351,12 @@ dimension scans. Disjoint composites extend those indexes while retrying previou
 composites rebuild the effective name index lazily. The validated bundled catalog is cached per process, while custom
 catalog paths remain dynamically loaded and validated. Expression operations still reduce eagerly.
 
-Use repeated local benchmarks and real PHPStan or runtime profiles to identify hot paths before optimizing. Bounded
-per-context parsing and unified multiplicative/affine conversion-plan caches remain deferred until helper-heavy
-benchmarks justify their allocation and eviction policies.
+Paired helper-boundary benchmarks and local hardware-counter profiles identify repeated parsing as the material runtime
+cost: compound string targets in `Quantity` operations perform substantially more work than retained pre-parsed
+expressions. A bounded successful-parse cache per immutable `Units` context is therefore justified, subject to an
+explicit capacity and eviction policy. Do not cache parse failures, whose source diagnostics belong to each invocation.
+The existing resolved-string cache already keeps repeated multiplicative and affine conversions comparatively small, so
+a separate pairwise conversion-plan cache remains deferred until a production profile demonstrates additional need.
 
 ### 30. Error Messages And Developer Experience
 

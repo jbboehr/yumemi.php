@@ -90,6 +90,12 @@ native values measure the same scalar operation, while separate subjects include
 construction, and native or exact unit conversion. Compare equivalent subjects rather than treating one result as a
 summary of an entire representation.
 
+The conversion and quantity subjects pair repeated string boundaries with equivalent pre-parsed `Expr` inputs. Compare
+`benchQuantityValueIn` with `benchQuantityValueInWithParsedUnit`, and compare the two quantity-construction subjects, to
+isolate parsing and context binding from conversion and object construction. `benchWarmConversionFactor` and
+`benchPointQuantityValueIn` exercise the existing cached string-resolution paths, so they help distinguish a parsing
+cost from evidence for a separate pairwise conversion-plan cache.
+
 Use measurements to identify an optimization target before changing cache ownership or expression semantics. A faster
 microbenchmark is not sufficient if the corresponding operation does not materially contribute to an application or
 PHPStan analysis workload.
