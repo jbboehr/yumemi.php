@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\Benchmarks;
 
 use jbboehr\Yumemi\Catalog\UnitDescriptor;
+use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Formatter\DivisionStyle;
 use jbboehr\Yumemi\Formatter\ExprFormatter;
@@ -44,6 +45,7 @@ use jbboehr\Yumemi\Formatter\FormatOptions;
 use jbboehr\Yumemi\Formatter\Typography;
 use jbboehr\Yumemi\Formatter\UnitNameStyle;
 use jbboehr\Yumemi\Registry\UnitRegistry;
+use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
 use jbboehr\Yumemi\Units;
 use PhpBench\Attributes as Bench;
@@ -124,5 +126,21 @@ final class FormattingAndCatalogBench
     public function benchConstructBundledRegistry(): UnitRegistry
     {
         return UnitRegistry::bundled();
+    }
+
+    #[Bench\Revs(1)]
+    public function benchConstructDefaultCompositeRegistry(): UnitRegistry
+    {
+        return UnitRegistryBuilder::default()->build();
+    }
+
+    #[Bench\Revs(1)]
+    public function benchConstructCustomRegistryOverlay(): UnitRegistry
+    {
+        return UnitRegistryBuilder::default()
+            ->baseUnit('benchmark_credit', Dimension::CURRENCY)
+            ->define('benchmark_token = 100 / 107 * benchmark_credit')
+            ->alias('benchmark_tokens', 'benchmark_token')
+            ->build();
     }
 }

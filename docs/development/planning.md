@@ -556,6 +556,21 @@ repeat the implementation's assumptions:
   construction took about 9 times both. Direct warm string conversion-factor and affine point-conversion subjects
   remained in the same low-single-digit-microsecond range as the pre-parsed quantity control because
   `UnitConversionResolver` already caches resolved strings.
+- A broader runtime survey found the same parsing cost at other public boundaries. On that host, formatting a compound
+  string took about 36 microseconds versus 7.5 for a retained expression, normalization took about 50 microseconds
+  versus 15, `parseQuantity()` took about 72 microseconds, and constructing a point took about 49 microseconds.
+  Function-level profiles attributed the string-formatting difference primarily to parsing rather than rendering.
+- Affine delta derivation is a narrower repeated-work candidate: resolving the delta unit for a warmed coordinate name
+  took about 34 microseconds and 720,000 retired instructions, accounting for most of repeated point construction.
+  `deltaUnit()` parses the requested coordinate spelling during linearization and then parses the synthesized expression
+  even after ordinary conversion resolution is warm.
+- Persistence validation is intentionally substantial. Representative quantity and point deserialization took about 205
+  and 112 microseconds respectively because restoration reparses and revalidates normalized units, dimensions, origins,
+  and scales. Preserve those semantic seals; first measure how much the general parsing and semantic caches remove
+  before considering persistence-specific optimization.
+- Representative rational arithmetic and decimal rendering remained below 4 microseconds, cached dimensions and
+  compatibility below 0.4 microseconds, custom registry overlay construction below 0.4 milliseconds, and full-catalog
+  description below 2 milliseconds. These measurements do not justify dedicated optimization work.
 - Hardware-counter benchmarks depend on unreleased `phpbench-perfidious` adapter code and local Linux `perf_events`
   permissions; they are optional and intentionally excluded from CI.
 - Dimensional analysis intentionally cannot distinguish semantically different quantities with the same dimension, such
@@ -577,9 +592,15 @@ repeat the implementation's assumptions:
   acquiring speculative bundled definitions.
 - A separate strict-expression option for dynamic `Units`, `Quantity`, and `PointQuantity` boundaries if applications
   demonstrate a need beyond the native-helper policy. Their explicit runtime parsing role remains dynamic by default.
-- A bounded successful-parse cache scoped to each immutable `Units` context. Paired helper-boundary benchmarks now
-  justify this work; define the capacity and eviction policy explicitly, preserve source-span behavior by not caching
-  failures, and use the benchmark controls to verify the result.
+- A bounded successful-parse-work cache scoped to each immutable `Units` context. Paired helper-boundary benchmarks now
+  justify this work, but a cache containing only the resolved `Expr` returned by `Units::parse()` would leave repeated
+  symbolic formatting and `parseQuantity()` parsing untouched. Evaluate one immutable parsed-syntax record with lazy
+  symbolic and registry-resolved forms, or another design that safely shares the parser result across those boundaries.
+  Define capacity and eviction explicitly, preserve source spans, do not cache failures, and use the
+  string-versus-object benchmark controls to verify each affected API independently.
+- Cache successful affine delta derivation by coordinate spelling if it remains material after the shared parse-work
+  cache. Preserve registry-context ownership and exact synthesized syntax; do not store failures or weaken point
+  construction's coordinate-unit validation.
 - A unified multiplicative/affine conversion-plan cache keyed by each immutable `Units` context. Current profiles do not
   justify it: cached string resolution keeps repeated conversion-factor and affine point paths comparatively small.
   Reconsider only if a production profile identifies conversion-plan construction as material after parse caching.
