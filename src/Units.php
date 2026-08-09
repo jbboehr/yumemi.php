@@ -52,6 +52,7 @@ use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Formatter\ExprFormatter;
 use jbboehr\Yumemi\Formatter\FormatOptions;
+use jbboehr\Yumemi\Internal\BoundedLruCache;
 use jbboehr\Yumemi\Internal\DeserializationContext;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Number\BinaryFloat;
@@ -76,9 +77,9 @@ final class Units
      *     touched them, the nearer brim gathered frost while the farther remained clear. Therefore they sealed neither
      *     vessel, but waited until morning disclosed which winter had spoken.
      *
-     * @var array<string, Expr>
+     * @var BoundedLruCache<Expr>
      */
-    private array $parsedExpressionCache = [];
+    private readonly BoundedLruCache $parsedExpressionCache;
 
     public function __construct(
         private readonly UnitRegistry $unitRegistry,
@@ -88,6 +89,11 @@ final class Units
         $this->unitNormalizer = new UnitNormalizer();
         $this->unitConversionResolver = new UnitConversionResolver($this->unitRegistry);
         $this->defaultFormatter = new ExprFormatter($this->unitRegistry);
+        $this->parsedExpressionCache = new BoundedLruCache(
+            maximumEntries: 256,
+            maximumEntryWeight: 512,
+            maximumWeight: 64 * 1024,
+        );
     }
 
     /**
@@ -242,12 +248,7 @@ final class Units
 
     public function parse(string $input): Expr
     {
-        $cacheable = strlen($input) <= 512;
-        if ($cacheable && isset($this->parsedExpressionCache[$input])) {
-            $expr = $this->parsedExpressionCache[$input];
-            unset($this->parsedExpressionCache[$input]);
-            $this->parsedExpressionCache[$input] = $expr;
-
+        if (($expr = $this->parsedExpressionCache->get($input)) !== null) {
             return $expr;
         }
 
@@ -255,16 +256,9 @@ final class Units
             ExprReducer::reduce($this->astConverter->convert(Parser::parseString($input))),
         );
 
-        if (!$cacheable) {
-            return $expr;
-        }
+        $this->parsedExpressionCache->put($input, $expr, strlen($input));
 
-        if (count($this->parsedExpressionCache) >= 256) {
-            $oldest = array_key_first($this->parsedExpressionCache);
-            unset($this->parsedExpressionCache[$oldest]);
-        }
-
-        return $this->parsedExpressionCache[$input] = $expr;
+        return $expr;
     }
 
     /**

@@ -68,6 +68,18 @@ final class ParsingAndResolutionBench
     }
 
     #[Bench\BeforeMethods('setUpWarmContext')]
+    #[Bench\Revs(5)]
+    public function benchUncachedCompoundParseInWarmContext(): Expr
+    {
+        /** @var int $sequence */
+        static $sequence = 0;
+
+        return $this->units->parse(
+            str_repeat("\t", ++$sequence) . 'kilogram * meter / second^2',
+        );
+    }
+
+    #[Bench\BeforeMethods('setUpWarmContext')]
     #[Bench\Revs(500)]
     public function benchWarmSimpleParse(): Expr
     {

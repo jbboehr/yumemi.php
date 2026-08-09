@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\Parser;
 
+use jbboehr\Yumemi\Internal\BoundedLruCache;
 use jbboehr\Yumemi\Parser\Ast\Add;
 use jbboehr\Yumemi\Parser\Ast\At;
 use jbboehr\Yumemi\Parser\Ast\Div;
@@ -70,15 +71,16 @@ trait ParserUtils
      */
     public static function parseString(string $input): Ast
     {
-        /** @var array<string, Ast> $cache */
-        static $cache = [];
+        /** @var BoundedLruCache<Ast>|null $cache */
+        static $cache;
 
-        $cacheable = strlen($input) <= 512;
-        if ($cacheable && isset($cache[$input])) {
-            $ast = $cache[$input];
-            unset($cache[$input]);
-            $cache[$input] = $ast;
+        $cache ??= new BoundedLruCache(
+            maximumEntries: 256,
+            maximumEntryWeight: 512,
+            maximumWeight: 16 * 1024,
+        );
 
+        if (($ast = $cache->get($input)) !== null) {
             return $ast;
         }
 
@@ -91,18 +93,9 @@ trait ParserUtils
         }
 
         $ast = $parser->getAst();
-        if (!$cacheable) {
-            return $ast;
-        }
+        $cache->put($input, $ast, strlen($input));
 
-        if (count($cache) >= 256) {
-            $oldest = array_key_first($cache);
-            if ($oldest !== null) {
-                unset($cache[$oldest]);
-            }
-        }
-
-        return $cache[$input] = $ast;
+        return $ast;
     }
 
     private static function makeInteger(string $text, ?Location $location = null): Ast

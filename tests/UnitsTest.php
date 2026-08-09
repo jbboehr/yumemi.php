@@ -273,8 +273,9 @@ final class UnitsTest extends TestCase
     public function testParsedExpressionCacheDoesNotRetainOversizedInputs(): void
     {
         $units = Units::default();
-        $input = str_repeat(' ', 513) . 'meter';
+        $input = str_repeat(' ', 508) . 'meter';
 
+        $this->assertSame(513, strlen($input));
         $this->assertNotSame($units->parse($input), $units->parse($input));
     }
 
@@ -296,8 +297,35 @@ final class UnitsTest extends TestCase
             $units->parse($index . ' * meter');
         }
 
-        $units->parse(str_repeat(' ', 513) . 'meter');
+        $units->parse(str_repeat(' ', 508) . 'meter');
         $this->assertSame($anchor, $units->parse('ampere * meter'));
+    }
+
+    public function testParsedExpressionCacheRetainsEntriesAtTheCumulativeWeightLimit(): void
+    {
+        $units = new Units(UnitRegistryBuilder::default()->build());
+        $anchorInput = str_pad('999999 * meter', 512, ' ', STR_PAD_LEFT);
+        $anchor = $units->parse($anchorInput);
+
+        for ($index = 0; $index < 127; ++$index) {
+            $units->parse(str_pad(($index + 1) . ' * meter', 512, ' ', STR_PAD_LEFT));
+        }
+
+        $this->assertSame($anchor, $units->parse($anchorInput));
+    }
+
+    public function testParsedExpressionCacheEvictsEntriesBeyondTheCumulativeWeightLimit(): void
+    {
+        $units = new Units(UnitRegistryBuilder::default()->build());
+        $anchorInput = str_pad('999998 * meter', 512, ' ', STR_PAD_LEFT);
+        $anchor = $units->parse($anchorInput);
+
+        for ($index = 0; $index < 127; ++$index) {
+            $units->parse(str_pad(($index + 1000) . ' * meter', 512, ' ', STR_PAD_LEFT));
+        }
+
+        $units->parse(str_pad('meter', 64, ' ', STR_PAD_LEFT));
+        $this->assertNotSame($anchor, $units->parse($anchorInput));
     }
 
     public function testParseUnitPropagatesLookupErrors(): void
@@ -315,6 +343,18 @@ final class UnitsTest extends TestCase
 
         $this->assertNotSame($first, $second);
         $this->assertEquals($first->span, $second->span);
+        $this->assertSame($first->getMessage(), $second->getMessage());
+    }
+
+    public function testRepeatedSyntaxParseFailuresProduceFreshDiagnostics(): void
+    {
+        $units = Units::default();
+        $first = $this->syntaxFailure($units, 'meter * / cache_missing_unit');
+        $second = $this->syntaxFailure($units, 'meter * / cache_missing_unit');
+
+        $this->assertNotSame($first, $second);
+        $this->assertEquals($first->span, $second->span);
+        $this->assertSame($first->source, $second->source);
         $this->assertSame($first->getMessage(), $second->getMessage());
     }
 
@@ -664,6 +704,16 @@ final class UnitsTest extends TestCase
             $units->parse($input);
             self::fail('Expected unit lookup to fail.');
         } catch (UnitNotFoundException $exception) {
+            return $exception;
+        }
+    }
+
+    private function syntaxFailure(Units $units, string $input): ParseException
+    {
+        try {
+            $units->parse($input);
+            self::fail('Expected unit syntax to fail.');
+        } catch (ParseException $exception) {
             return $exception;
         }
     }

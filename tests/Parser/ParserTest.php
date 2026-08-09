@@ -356,6 +356,40 @@ final class ParserTest extends TestCase
         $this->assertSame(Parser::parseString($input), Parser::parseString($input));
     }
 
+    public function testSuccessfulParseCacheUsesByteLengthForMultibyteInput(): void
+    {
+        $input = 'm' . str_repeat('²', 256);
+
+        $this->assertSame(257, mb_strlen($input));
+        $this->assertGreaterThan(512, strlen($input));
+        $this->assertNotSame(Parser::parseString($input), Parser::parseString($input));
+    }
+
+    public function testSuccessfulParseCacheRetainsEntriesAtTheCumulativeWeightLimit(): void
+    {
+        $anchorInput = str_pad('cache_weight_anchor', 512, 'a');
+        $anchor = Parser::parseString($anchorInput);
+
+        for ($index = 0; $index < 31; ++$index) {
+            Parser::parseString(str_pad('cache_weight_' . $index, 512, 'a'));
+        }
+
+        $this->assertSame($anchor, Parser::parseString($anchorInput));
+    }
+
+    public function testSuccessfulParseCacheEvictsEntriesBeyondTheCumulativeWeightLimit(): void
+    {
+        $anchorInput = str_pad('cache_weight_overflow_anchor', 512, 'a');
+        $anchor = Parser::parseString($anchorInput);
+
+        for ($index = 0; $index < 31; ++$index) {
+            Parser::parseString(str_pad('cache_weight_overflow_' . $index, 512, 'a'));
+        }
+
+        Parser::parseString(str_pad('cw_over', 16, 'a'));
+        $this->assertNotSame($anchor, Parser::parseString($anchorInput));
+    }
+
     public function testOversizedParseDoesNotEvictCachedInput(): void
     {
         $anchor = Parser::parseString('cache_oversized_anchor');

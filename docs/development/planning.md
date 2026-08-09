@@ -556,15 +556,18 @@ repeat the implementation's assumptions:
   wall time and 15 times the retired instructions of the equivalent pre-parsed target; string-based quantity
   construction took about 9 times both. Formatting, normalization, quantity parsing, point construction, and affine
   delta derivation showed the same parser-heavy behavior.
-- Successful parser ASTs now use a process-local, exact-input LRU cache, while fully resolved expressions use a separate
-  cache owned by each immutable `Units` context. Each layer retains at most 256 expressions no longer than 512 bytes;
-  oversized inputs and all failures bypass caching. Immutable raw ASTs may be shared across registries, but resolved
-  meaning never crosses a `Units` boundary.
-- On the same PHP 8.2 host after caching, warm compound `parse()` fell from about 55 to 0.15 microseconds, string and
+- Successful parser ASTs now use one process-local, exact-input LRU cache, while fully resolved expressions use a
+  separate cache owned by each immutable `Units` context. Both retain at most 256 expressions no longer than 512 bytes.
+  The AST cache additionally retains at most 16 KiB of source-input weight across all entries; each resolved cache
+  permits at most 64 KiB. These weights bound represented input rather than exact PHP heap usage. Oversized inputs and
+  all failures bypass caching. Immutable raw ASTs may be shared across registries, but resolved meaning never crosses a
+  `Units` boundary. The AST budget is smaller because dense syntax trees and their source spans retain materially more
+  memory per input byte than reduced expressions.
+- On the same PHP 8.2 host after caching, warm compound `parse()` fell from about 55 to 0.23 microseconds, string and
   pre-parsed `Quantity::valueIn()` converged at about 4.5 and 4.2 microseconds, and string normalization converged with
   pre-parsed normalization at about 15 microseconds. Formatting fell from about 36 to 10 microseconds, point
-  construction from about 49 to 2.5, affine delta derivation from about 34 to 1.7, and `parseQuantity()` from about 72
-  to 34.
+  construction from about 49 to 2.7, affine delta derivation from about 34 to 1.9, and `parseQuantity()` from about 72
+  to 33.
 - Persistence validation is intentionally substantial. Representative quantity and point deserialization took about 205
   and 112 microseconds before caching and about 87 and 27 afterward. Restoration still revalidates normalized units,
   dimensions, origins, and scales; preserve those semantic seals rather than pursuing lower timings by weakening them.
