@@ -589,11 +589,11 @@ repeat the implementation's assumptions:
   3.49, 1.78, and 3.68 seconds respectively. The composite result is not an independent optimization target. These
   results are linear enough to reject a broad scaling defect, but identify extrema and helper analysis as the first
   candidates for deeper profiling.
-- Static inspection shows that dynamic return/expression inference and companion diagnostic rules both call the same
-  `analyseCall()` methods for helpers, extrema, and roots. That is a plausible source of duplicated work, especially in
-  the two measured hot paths, but do not add node-level memoization until a focused before/after benchmark demonstrates
-  material savings and tests prove that scope-dependent types and diagnostics cannot become stale. Root analysis is
-  comparatively cheap despite the same shape, so a broad caching abstraction is not yet justified.
+- Dynamic return/expression inference and companion diagnostic rules both call the same `analyseCall()` methods for
+  helpers, extrema, and roots. A focused 400-case extrema experiment safely memoized analysis by exact AST node and
+  `Scope`, but moved the local median only from about 2.898 to 2.886 seconds (roughly 0.4%); the cache was therefore
+  discarded. Do not apply node-level memoization to helpers or roots by analogy. Profile the helper path to identify a
+  material repeated operation before adding cache state; root analysis is already comparatively cheap.
 - Dimensional analysis intentionally cannot distinguish semantically different quantities with the same dimension, such
   as gray and sievert.
 - Exact catalog decimals for angles can normalize to large rationals; this is correct but can produce unwieldy display
