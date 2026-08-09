@@ -39,9 +39,11 @@ namespace jbboehr\Yumemi\Tests\Registry;
 use jbboehr\Yumemi\Catalog\CatalogNameKind;
 use jbboehr\Yumemi\Catalog\UnitKind;
 use jbboehr\Yumemi\Catalog\UnitSemantics;
+use jbboehr\Yumemi\Exception\UnexpectedValueException;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Unit;
+use jbboehr\Yumemi\Registry\CompositeUnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
 use jbboehr\Yumemi\Registry\UnitRegistryEntry;
@@ -368,6 +370,77 @@ final class UnitRegistryTest extends TestCase
         $this->assertSame(['thing'], $registry->describe('widget')?->aliases);
         $this->assertSame('widget', $registry->describe('thing')?->canonicalName);
         $this->assertSame(1, $registry->nameLookups);
+    }
+
+    public function testGeneratedNameIndexRejectsUnresolvableAliases(): void
+    {
+        $this->expectException(UnexpectedValueException::class);
+        $this->expectExceptionMessage('unresolvable alias: thing');
+
+        UnitRegistry::indexCatalogRecords([
+            'thing' => ['type' => 'alias', 'name' => 'thing', 'def' => 'missing'],
+        ]);
+    }
+
+    public function testDynamicallyBuiltNameIndexSortsUnresolvableAliases(): void
+    {
+        $registry = new class () extends UnitRegistry {
+            public function __construct()
+            {
+                parent::__construct([], [
+                    'zeta' => ['type' => 'alias', 'name' => 'zeta', 'def' => 'missing'],
+                    'alpha' => ['type' => 'alias', 'name' => 'alpha', 'def' => 'missing'],
+                ]);
+            }
+
+            /** @return list<string> */
+            public function unresolvedNames(): array
+            {
+                return $this->unitNameIndex()['unresolved'];
+            }
+        };
+
+        $this->assertSame(['alpha', 'zeta'], $registry->unresolvedNames());
+    }
+
+    public function testCatalogPrimitiveDimensionIndexIsDeterministic(): void
+    {
+        $this->assertSame([
+            'currency' => 'USD',
+            'image_sample' => 'pixel',
+        ], UnitRegistry::indexCatalogPrimitiveDimensions([
+            'dozen' => ['type' => 'dimensionless', 'name' => 'dozen'],
+            'pixel' => ['type' => 'base', 'name' => 'pixel', 'dimension' => 'image_sample'],
+            'USD' => ['type' => 'base', 'name' => 'USD', 'dimension' => 'currency'],
+        ]));
+    }
+
+    public function testDynamicallyBuiltPrimitiveDimensionIndexIsReusedAcrossCompositions(): void
+    {
+        $base = new class () extends UnitRegistry {
+            public int $nameLookups = 0;
+
+            public function __construct()
+            {
+                parent::__construct([], [
+                    'USD' => ['type' => 'base', 'name' => 'USD', 'dimension' => 'currency'],
+                ]);
+            }
+
+            public function names(): array
+            {
+                ++$this->nameLookups;
+
+                return parent::names();
+            }
+        };
+        $overlay = new UnitRegistry();
+
+        new CompositeUnitRegistry($base, $overlay);
+        $firstCompositionLookups = $base->nameLookups;
+        new CompositeUnitRegistry($base, $overlay);
+
+        $this->assertSame($firstCompositionLookups + 1, $base->nameLookups);
     }
 
     public function testUnknownDescriptionReturnsNull(): void

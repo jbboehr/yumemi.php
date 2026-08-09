@@ -105,6 +105,15 @@ final class Udunits2UnitRegistryTest extends TestCase
         $this->assertSame(['metre'], $aliases['meter'] ?? null);
         $this->assertSame(['m'], $symbols['meter'] ?? null);
         $this->assertSame(['meters', 'metres'], $generatedPlurals['meter'] ?? null);
+        $this->assertSame([], $index['unresolved'] ?? null);
+    }
+
+    public function testGeneratedCatalogCarriesPrimitiveDimensionIndex(): void
+    {
+        $catalog = require Udunits2UnitRegistry::DATA_FILE;
+
+        $this->assertIsArray($catalog);
+        $this->assertSame([], $catalog['primitiveDimensionIndex'] ?? null);
     }
 
     public function testRecordReturnsDerivedUnitDefinitionStrings(): void
@@ -373,7 +382,7 @@ final class Udunits2UnitRegistryTest extends TestCase
     {
         $catalog = [
             'units' => [
-                'widget' => ['type' => 'base', 'name' => 'widget'],
+                'widget' => ['type' => 'base', 'name' => 'widget', 'dimension' => 'custom_measure'],
                 'thing' => ['type' => 'alias', 'name' => 'thing', 'def' => 'widget'],
             ],
             'base' => ['widget'],
@@ -384,6 +393,48 @@ final class Udunits2UnitRegistryTest extends TestCase
 
         $this->assertSame(['thing'], $registry->describe('widget')?->aliases);
         $this->assertSame('widget', $registry->describe('thing')?->canonicalName);
+        $this->assertSame('custom_measure', $registry->findPrimitiveDimension('widget'));
+    }
+
+    public function testCallerSuppliedCatalogIsReloadedForEachSnapshot(): void
+    {
+        $file = $this->catalogFile([
+            'units' => ['first' => ['type' => 'base', 'name' => 'first']],
+            'base' => ['first'],
+            'prefixes' => [],
+        ]);
+
+        $first = new Udunits2UnitRegistry($file);
+        file_put_contents($file, "<?php\n\nreturn " . var_export([
+            'units' => ['second' => ['type' => 'base', 'name' => 'second']],
+            'base' => ['second'],
+            'prefixes' => [],
+        ], true) . ";\n");
+        $second = new Udunits2UnitRegistry($file);
+
+        $this->assertSame(['first'], $first->names());
+        $this->assertSame(['second'], $second->names());
+    }
+
+    public function testCatalogAcceptsPrimitiveDimensionIndexSortedIndependentlyOfRecordOrder(): void
+    {
+        $catalog = [
+            'units' => [
+                'zeta' => ['type' => 'base', 'name' => 'zeta', 'dimension' => 'zeta_measure'],
+                'alpha' => ['type' => 'base', 'name' => 'alpha', 'dimension' => 'alpha_measure'],
+            ],
+            'base' => ['zeta', 'alpha'],
+            'prefixes' => [],
+            'primitiveDimensionIndex' => [
+                'alpha_measure' => 'alpha',
+                'zeta_measure' => 'zeta',
+            ],
+        ];
+
+        $registry = new Udunits2UnitRegistry($this->catalogFile($catalog));
+
+        $this->assertSame('alpha_measure', $registry->findPrimitiveDimension('alpha'));
+        $this->assertSame('zeta_measure', $registry->findPrimitiveDimension('zeta'));
     }
 
     public function testCatalogLoaderRejectsNonLocalPaths(): void
@@ -537,6 +588,38 @@ final class Udunits2UnitRegistryTest extends TestCase
             ],
             'unit name index category: aliases',
         ];
+        yield 'unit name index contains unresolved aliases' => [
+            [
+                'units' => [
+                    'thing' => ['type' => 'alias', 'name' => 'thing', 'def' => 'missing'],
+                ],
+                'base' => [],
+                'prefixes' => [],
+                'unitNameIndex' => [
+                    'aliases' => [],
+                    'symbols' => [],
+                    'explicitPlurals' => [],
+                    'generatedPlurals' => [],
+                    'unresolved' => ['thing'],
+                ],
+            ],
+            'unit name index contains unresolved aliases',
+        ];
+        yield 'unit name index unresolved aliases is not an array' => [
+            [
+                'units' => [],
+                'base' => [],
+                'prefixes' => [],
+                'unitNameIndex' => [
+                    'aliases' => [],
+                    'symbols' => [],
+                    'explicitPlurals' => [],
+                    'generatedPlurals' => [],
+                    'unresolved' => 'invalid',
+                ],
+            ],
+            'unit name index contains unresolved aliases',
+        ];
         yield 'unit name index points to unknown canonical name' => [
             [
                 'units' => [
@@ -684,6 +767,57 @@ final class Udunits2UnitRegistryTest extends TestCase
                 ],
             ],
             'unit name index omits alias: thing',
+        ];
+        yield 'primitive dimension index is not an array' => [
+            [
+                'units' => [],
+                'base' => [],
+                'prefixes' => [],
+                'primitiveDimensionIndex' => 'invalid',
+            ],
+            'primitiveDimensionIndex must be an array',
+        ];
+        yield 'primitive dimension index disagrees with records' => [
+            [
+                'units' => [
+                    'widget' => ['type' => 'base', 'name' => 'widget', 'dimension' => 'custom_measure'],
+                ],
+                'base' => ['widget'],
+                'prefixes' => [],
+                'primitiveDimensionIndex' => ['other_measure' => 'widget'],
+            ],
+            'primitiveDimensionIndex does not match its base unit records',
+        ];
+        yield 'primitive dimension is empty' => [
+            [
+                'units' => [
+                    'widget' => ['type' => 'base', 'name' => 'widget', 'dimension' => ''],
+                ],
+                'base' => ['widget'],
+                'prefixes' => [],
+            ],
+            'Invalid UDUNITS2 catalog primitive dimension: widget',
+        ];
+        yield 'primitive dimension name is malformed' => [
+            [
+                'units' => [
+                    'widget' => ['type' => 'base', 'name' => 'widget', 'dimension' => 'Not Valid'],
+                ],
+                'base' => ['widget'],
+                'prefixes' => [],
+            ],
+            'Invalid UDUNITS2 catalog primitive dimension: widget',
+        ];
+        yield 'primitive dimension has multiple base units' => [
+            [
+                'units' => [
+                    'first' => ['type' => 'base', 'name' => 'first', 'dimension' => 'custom_measure'],
+                    'second' => ['type' => 'base', 'name' => 'second', 'dimension' => 'custom_measure'],
+                ],
+                'base' => ['first', 'second'],
+                'prefixes' => [],
+            ],
+            'Primitive dimension "custom_measure" has multiple base units',
         ];
         yield 'alias with derived-unit metadata' => [
             [

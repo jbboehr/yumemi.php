@@ -576,14 +576,9 @@ repeat the implementation's assumptions:
 - An application-specific generator for a small requested set of native conversion-factor constants, with deterministic
   regeneration tests against the exact runtime engine. Do not generate every possible catalog pair; ordinary code should
   normally hoist `unit_factor()` outside repeated arithmetic.
-- Add a dimension-to-base-unit map that composes with whole-layer precedence, and consider retaining stable effective
-  entries when profiles justify the allocation tradeoff. Avoid a separate unbounded per-name entry cache: unknown-name
-  suggestion ranking inspects the complete catalog and could populate that cache with every entry after one failed
-  lookup.
-- If repeated default-registry construction becomes a measured concern, cache the successfully validated canonical
-  `Udunits2UnitRegistry::DATA_FILE` array per process rather than skipping structural validation. Continue fully loading
-  and validating every caller-supplied catalog path so a custom file can change between snapshots and malformed trusted
-  configuration still fails closed. The small authored Yumemi supplement does not justify an independent cache.
+- Consider retaining stable effective registry entries when profiles justify the allocation tradeoff. Avoid a separate
+  unbounded per-name entry cache: unknown-name suggestion ranking inspects the complete catalog and could populate that
+  cache with every entry after one failed lookup.
 - Stable registry identifiers and an application resolver for serialized graphs containing values from several custom
   `Units` contexts. Native serialization currently supports the default context plus one dynamically scoped custom
   context through `Units::deserialize()` and rejects semantic drift. Broader ecosystem integrations remain deferred.

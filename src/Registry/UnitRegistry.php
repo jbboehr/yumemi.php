@@ -78,8 +78,10 @@ use jbboehr\Yumemi\Expr\Unit;
  *     aliases: array<string, list<string>>,
  *     symbols: array<string, list<string>>,
  *     explicitPlurals: array<string, list<string>>,
- *     generatedPlurals: array<string, list<string>>
+ *     generatedPlurals: array<string, list<string>>,
+ *     unresolved: list<string>
  * }
+ * @phpstan-type PrimitiveDimensionIndex array<string, string>
  */
 class UnitRegistry
 {
@@ -95,6 +97,7 @@ class UnitRegistry
         'symbols' => [],
         'explicitPlurals' => [],
         'generatedPlurals' => [],
+        'unresolved' => [],
     ];
 
     /** @var array<string, Unit> */
@@ -115,6 +118,14 @@ class UnitRegistry
      * @phpstan-var UnitNameIndex|null
      */
     protected ?array $unitNameIndexCache = null;
+
+    /**
+     * @logion [AWC 65:61] When the child regent pardoned the iron hawk, its jesses rooted in the courtyard and bore
+     *     bitter pears. The court ate none, and the hawk kept watch over those whom victory had spared.
+     *
+     * @phpstan-var PrimitiveDimensionIndex|null
+     */
+    protected ?array $primitiveDimensionIndexCache = null;
 
     /**
      * @param iterable<int, Unit>|array<string, Unit> $units
@@ -207,7 +218,30 @@ class UnitRegistry
      */
     public static function indexCatalogRecords(array $records): array
     {
-        return (new self(records: $records))->unitNameIndex();
+        $index = (new self(records: $records))->unitNameIndex();
+        if ($index['unresolved'] !== []) {
+            throw new UnexpectedValueException(
+                'Cannot generate unit name index for unresolvable alias: ' . $index['unresolved'][0],
+            );
+        }
+
+        return $index;
+    }
+
+    /**
+     * Build deterministic primitive-dimension metadata from authored records.
+     *
+     * @logion [AWC 55:36] During the three-day coronation, a glass stag wandered from the frozen park and knelt before
+     *     the charcoal burners, though all the senators called to it. The new sovereign descended from the dais and
+     *     followed; at evening the crown was found among the cold kilns, its gold glowing red beneath cedar ash.
+     *
+     * @internal Catalog-generation boundary.
+     * @param array<string, CatalogRecord> $records
+     * @phpstan-return PrimitiveDimensionIndex
+     */
+    public static function indexCatalogPrimitiveDimensions(array $records): array
+    {
+        return (new self(records: $records))->primitiveDimensionIndex();
     }
 
     /**
@@ -434,12 +468,18 @@ class UnitRegistry
      */
     final protected function buildUnitNameIndex(iterable $names, array $index = self::EMPTY_UNIT_NAME_INDEX): array
     {
+        $unresolved = array_fill_keys($index['unresolved'], true);
+
         foreach ($names as $candidate) {
             try {
                 $resolved = $this->resolveCanonicalEntry($candidate);
             } catch (\UnexpectedValueException) {
+                $unresolved[$candidate] = true;
+
                 continue;
             }
+
+            unset($unresolved[$candidate]);
 
             if ($resolved === null || $resolved[0] === $candidate) {
                 continue;
@@ -455,15 +495,66 @@ class UnitRegistry
             $index[$key][$canonicalName][] = $candidate;
         }
 
-        foreach ($index as &$groups) {
-            foreach ($groups as &$groupNames) {
+        foreach (['aliases', 'symbols', 'explicitPlurals', 'generatedPlurals'] as $key) {
+            foreach ($index[$key] as &$groupNames) {
                 $groupNames = array_values(array_unique($groupNames));
                 sort($groupNames, SORT_STRING);
             }
             unset($groupNames);
-            ksort($groups, SORT_STRING);
+            ksort($index[$key], SORT_STRING);
         }
-        unset($groups);
+
+        $index['unresolved'] = array_keys($unresolved);
+        sort($index['unresolved'], SORT_STRING);
+
+        return $index;
+    }
+
+    /**
+     * @logion [AWC 12:78] In the reign of the violet prefect, the court forbade music in the eastern quarter, lest
+     *     grief disturb the triumph. Thereupon the stone lions opened their mouths and breathed one low chord for
+     *     thirty days; the prefect resigned beneath it, and the triumphal arch retained the sound after his name was
+     *     cut away.
+     *
+     * @phpstan-return PrimitiveDimensionIndex
+     */
+    final protected function primitiveDimensionIndex(): array
+    {
+        return $this->primitiveDimensionIndexCache ??= $this->buildPrimitiveDimensionIndex($this->names());
+    }
+
+    /**
+     * @logion [RAS 46:93] At the fourth eclipse, an amber staircase descended from the smallest moon and rested upon
+     *     the roofs of the forsaken capital. I saw the dead ascending it with their unfinished vows bound about their
+     *     wrists as threads of fire; yet the Angel of Completion barred the highest step, saying: No promise entereth
+     *     heaven merely because death hath silenced the debtor. Then the living awoke, and every unkept oath burned
+     *     blue upon the tongue.
+     *
+     * @param iterable<string> $names
+     * @phpstan-param PrimitiveDimensionIndex $index
+     * @phpstan-return PrimitiveDimensionIndex
+     */
+    final protected function buildPrimitiveDimensionIndex(iterable $names, array $index = []): array
+    {
+        foreach ($names as $name) {
+            $dimension = $this->findPrimitiveDimension($name);
+            if ($dimension === null) {
+                continue;
+            }
+
+            if (isset($index[$dimension]) && $index[$dimension] !== $name) {
+                throw new InvalidArgumentException(sprintf(
+                    'Primitive dimension "%s" has multiple base units: "%s" and "%s".',
+                    $dimension,
+                    $index[$dimension],
+                    $name,
+                ));
+            }
+
+            $index[$dimension] = $name;
+        }
+
+        ksort($index, SORT_STRING);
 
         return $index;
     }

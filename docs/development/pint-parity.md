@@ -346,13 +346,14 @@ Status: **Partial** | Importance: **P1** | Remaining difficulty: **M**
 
 Resolvers and formatters cache name, definition, derived conversion, and semantic lookups, and registries are immutable
 after construction. PHPBench covers representative cold and warm runtime workflows plus full-catalog introspection.
-Generated alias/symbol/plural indexes eliminate repeated catalog grouping, while custom and shadowing registries build
-the equivalent effective index dynamically. Expression operations still reduce eagerly.
+Generated alias/symbol/plural and primitive-dimension indexes eliminate repeated catalog grouping and whole-registry
+dimension scans. Disjoint composites extend those indexes while retrying previously unresolved aliases; shadowing
+composites rebuild the effective name index lazily. The validated bundled catalog is cached per process, while custom
+catalog paths remain dynamically loaded and validated. Expression operations still reduce eagerly.
 
-Use repeated local benchmarks and real PHPStan or runtime profiles to identify hot paths before optimizing.
-Dimension-to-base-unit indexing remains a reasonable deferred optimization even without changing expression semantics.
-Bounded per-context parsing and unified multiplicative/affine conversion-plan caches are also deferred until
-helper-heavy benchmarks justify their allocation and eviction policies.
+Use repeated local benchmarks and real PHPStan or runtime profiles to identify hot paths before optimizing. Bounded
+per-context parsing and unified multiplicative/affine conversion-plan caches remain deferred until helper-heavy
+benchmarks justify their allocation and eviction policies.
 
 ### 30. Error Messages And Developer Experience
 

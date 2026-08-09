@@ -43,6 +43,7 @@ use jbboehr\Yumemi\Formatter\ExprFormatter;
 use jbboehr\Yumemi\Formatter\FormatOptions;
 use jbboehr\Yumemi\Formatter\Typography;
 use jbboehr\Yumemi\Formatter\UnitNameStyle;
+use jbboehr\Yumemi\Registry\UnitRegistry;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
 use jbboehr\Yumemi\Units;
 use PhpBench\Attributes as Bench;
@@ -117,5 +118,11 @@ final class FormattingAndCatalogBench
         }
 
         return $described;
+    }
+
+    #[Bench\Revs(1)]
+    public function benchConstructBundledRegistry(): UnitRegistry
+    {
+        return UnitRegistry::bundled();
     }
 }

@@ -172,6 +172,12 @@ final class Udunits2CatalogImporterTest extends TestCase
         $this->assertSame(['meters', 'metres'], $index['generatedPlurals']['meter']);
         $this->assertSame(['cps'], $index['aliases']['hertz']);
         $this->assertSame(['Hz'], $index['symbols']['hertz']);
+        $this->assertSame([], $index['unresolved']);
+    }
+
+    public function testPrecomputesDeterministicPrimitiveDimensionIndex(): void
+    {
+        $this->assertSame([], $this->import(self::SAMPLE)['primitiveDimensionIndex']);
     }
 
     public function testGeneratesImplicitPluralsForCanonicalAndAliasNames(): void

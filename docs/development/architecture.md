@@ -95,9 +95,10 @@ The runtime surface presents the semantic core to applications:
 - [`Exception`](../../src/Exception) provides the common project exception contract and domain-specific failures.
 - [`UnitRegistryBuilder`](../../src/Registry/UnitRegistryBuilder.php) and
   [`CompositeUnitRegistry`](../../src/Registry/CompositeUnitRegistry.php) construct immutable effective registry
-  snapshots. Generated catalogs may carry precomputed name-group indexes, while custom and shadowing registries derive
-  the same internal view from effective entries; the index accelerates introspection without becoming a second source of
-  unit semantics.
+  snapshots. Generated catalogs may carry precomputed name-group and primitive-dimension indexes, while custom and
+  shadowing registries derive the same internal views from effective entries. Name indexes retain aliases whose targets
+  are not yet available so a later disjoint layer can resolve them; shadowing layers rebuild their effective name index
+  lazily. These indexes accelerate introspection and composition without becoming a second source of unit semantics.
 
 Public language visibility does not by itself settle long-term compatibility. The
 [compatibility policy](compatibility.md) distinguishes supported application APIs from integration contracts and

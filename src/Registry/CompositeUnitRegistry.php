@@ -37,7 +37,6 @@
 namespace jbboehr\Yumemi\Registry;
 
 use jbboehr\Yumemi\Catalog\PrefixDescriptor;
-use jbboehr\Yumemi\Exception\InvalidArgumentException;
 use jbboehr\Yumemi\Expr\Unit;
 
 /**
@@ -73,28 +72,17 @@ final class CompositeUnitRegistry extends UnitRegistry
         $baseNames = $this->base->names();
         $overlayNames = $this->overlay->names();
         $this->names = array_values(array_unique([...$overlayNames, ...$baseNames]));
-        $this->unitNameIndexCache = array_intersect($baseNames, $overlayNames) === []
-            ? $this->buildUnitNameIndex($overlayNames, $this->base->unitNameIndex())
-            : $this->buildUnitNameIndex($this->names);
-
-        $primitiveBaseUnits = [];
-        foreach ($this->names() as $name) {
-            $dimension = $this->findPrimitiveDimension($name);
-            if ($dimension === null) {
-                continue;
-            }
-
-            if (isset($primitiveBaseUnits[$dimension])) {
-                throw new InvalidArgumentException(sprintf(
-                    'Primitive dimension "%s" has multiple base units: "%s" and "%s".',
-                    $dimension,
-                    $primitiveBaseUnits[$dimension],
-                    $name,
-                ));
-            }
-
-            $primitiveBaseUnits[$dimension] = $name;
+        $hasShadowedNames = array_intersect($baseNames, $overlayNames) !== [];
+        if (!$hasShadowedNames) {
+            $baseIndex = $this->base->unitNameIndex();
+            $this->unitNameIndexCache = $this->buildUnitNameIndex(
+                [...$baseIndex['unresolved'], ...$overlayNames],
+                $baseIndex,
+            );
         }
+        $this->primitiveDimensionIndexCache = !$hasShadowedNames
+            ? $this->buildPrimitiveDimensionIndex($overlayNames, $this->base->primitiveDimensionIndex())
+            : $this->buildPrimitiveDimensionIndex($this->names);
     }
 
     public function findPrebuiltUnit(string $name): ?Unit

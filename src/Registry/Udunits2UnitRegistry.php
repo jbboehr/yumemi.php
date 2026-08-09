@@ -38,6 +38,7 @@ namespace jbboehr\Yumemi\Registry;
 
 use jbboehr\Yumemi\Catalog\CatalogNameKind;
 use jbboehr\Yumemi\Catalog\PrefixDescriptor;
+use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\Exception\UnexpectedValueException;
 use jbboehr\Yumemi\Expr\Unit;
 
@@ -48,7 +49,14 @@ use jbboehr\Yumemi\Expr\Unit;
  * {@see \jbboehr\Yumemi\Analyzer\UnitResolver} reads {@see findEntry()} and builds expression trees from its catalog
  * records.
  *
- * @phpstan-type Udunits2BaseUnit array{type: 'base', name: string, definition?: string, plural?: string, comment?: string}
+ * @phpstan-type Udunits2BaseUnit array{
+ *     type: 'base',
+ *     name: string,
+ *     definition?: string,
+ *     plural?: string,
+ *     comment?: string,
+ *     dimension?: string
+ * }
  * @phpstan-type Udunits2DimensionlessUnit array{
  *     type: 'dimensionless',
  *     name: string,
@@ -83,9 +91,11 @@ use jbboehr\Yumemi\Expr\Unit;
  *     prefixes: array<string, string>,
  *     prefixMetadata?: array<string, Udunits2Prefix>,
  *     prefixRegex?: string,
- *     unitNameIndex?: UnitNameIndex
+ *     unitNameIndex?: UnitNameIndex,
+ *     primitiveDimensionIndex: PrimitiveDimensionIndex
  * }
  * @phpstan-import-type CatalogRecord from UnitRegistry
+ * @phpstan-import-type PrimitiveDimensionIndex from UnitRegistry
  * @phpstan-import-type UnitNameIndex from UnitRegistry
  */
 final class Udunits2UnitRegistry extends UnitRegistry
@@ -102,6 +112,7 @@ final class Udunits2UnitRegistry extends UnitRegistry
 
         $this->catalog = $this->loadCatalog($dataFile ?? self::DATA_FILE);
         $this->unitNameIndexCache = $this->catalog['unitNameIndex'] ?? null;
+        $this->primitiveDimensionIndexCache = $this->catalog['primitiveDimensionIndex'];
     }
 
     /**
@@ -161,6 +172,14 @@ final class Udunits2UnitRegistry extends UnitRegistry
      */
     private function loadCatalog(string $dataFile): array
     {
+        /** @var Udunits2Catalog|null $bundledCatalog */
+        static $bundledCatalog = null;
+
+        $isBundledCatalog = $dataFile === self::DATA_FILE;
+        if ($isBundledCatalog && $bundledCatalog !== null) {
+            return $bundledCatalog;
+        }
+
         if (
             str_contains($dataFile, '://')
             || !stream_is_local($dataFile)
@@ -173,8 +192,13 @@ final class Udunits2UnitRegistry extends UnitRegistry
         }
 
         $catalog = require $dataFile;
+        $catalog = $this->validateCatalog($catalog);
 
-        return $this->validateCatalog($catalog);
+        if ($isBundledCatalog) {
+            $bundledCatalog = $catalog;
+        }
+
+        return $catalog;
     }
 
     /**
@@ -198,7 +222,7 @@ final class Udunits2UnitRegistry extends UnitRegistry
 
         $unexpectedKeys = array_diff(
             array_keys($catalog),
-            [...$requiredKeys, 'prefixMetadata', 'prefixRegex', 'unitNameIndex'],
+            [...$requiredKeys, 'prefixMetadata', 'prefixRegex', 'unitNameIndex', 'primitiveDimensionIndex'],
         );
         if ($unexpectedKeys !== []) {
             throw new UnexpectedValueException(
@@ -211,6 +235,7 @@ final class Udunits2UnitRegistry extends UnitRegistry
         }
 
         $baseNames = [];
+        $primitiveDimensionIndex = [];
         foreach ($catalog['units'] as $name => $record) {
             if (!is_string($name) || $name === '') {
                 throw new UnexpectedValueException('UDUNITS2 catalog unit keys must be non-empty strings.');
@@ -219,8 +244,23 @@ final class Udunits2UnitRegistry extends UnitRegistry
             $this->validateUnitRecord($name, $record);
             if (is_array($record) && ($record['type'] ?? null) === 'base') {
                 $baseNames[] = $name;
+
+                $dimension = $record['dimension'] ?? null;
+                if (is_string($dimension)) {
+                    if (isset($primitiveDimensionIndex[$dimension])) {
+                        throw new UnexpectedValueException(sprintf(
+                            'Primitive dimension "%s" has multiple base units: "%s" and "%s".',
+                            $dimension,
+                            $primitiveDimensionIndex[$dimension],
+                            $name,
+                        ));
+                    }
+
+                    $primitiveDimensionIndex[$dimension] = $name;
+                }
             }
         }
+        ksort($primitiveDimensionIndex, SORT_STRING);
 
         if (!is_array($catalog['base']) || !array_is_list($catalog['base'])) {
             throw new UnexpectedValueException('UDUNITS2 catalog base must be a list of unit names.');
@@ -285,8 +325,36 @@ final class Udunits2UnitRegistry extends UnitRegistry
             $catalog['unitNameIndex'] = $this->validateUnitNameIndex($catalog['unitNameIndex'], $catalog['units']);
         }
 
+        $catalog['primitiveDimensionIndex'] = $this->validatePrimitiveDimensionIndex(
+            $catalog['primitiveDimensionIndex'] ?? $primitiveDimensionIndex,
+            $primitiveDimensionIndex,
+        );
+
         /** @phpstan-var Udunits2Catalog $catalog */
         return $catalog;
+    }
+
+    /**
+     * @logion [AWC 94:30] When the cedar fleet returned without the fishermen it had pressed into war, the admiral
+     *     hung one black sail above the banquet hall and forbade mourning. Before the feast ended, the sail filled
+     *     though every window was shut, drew the roof seaward, and left the victorious court dining beneath the rain.
+     *
+     * @phpstan-param PrimitiveDimensionIndex $expected
+     * @phpstan-return PrimitiveDimensionIndex
+     */
+    private function validatePrimitiveDimensionIndex(mixed $index, array $expected): array
+    {
+        if (!is_array($index)) {
+            throw new UnexpectedValueException('UDUNITS2 catalog primitiveDimensionIndex must be an array.');
+        }
+
+        if ($index !== $expected) {
+            throw new UnexpectedValueException(
+                'UDUNITS2 catalog primitiveDimensionIndex does not match its base unit records.',
+            );
+        }
+
+        return $expected;
     }
 
     /**
@@ -303,7 +371,11 @@ final class Udunits2UnitRegistry extends UnitRegistry
             throw new UnexpectedValueException('UDUNITS2 catalog unitNameIndex must be an array.');
         }
 
-        $expectedKeys = ['aliases', 'symbols', 'explicitPlurals', 'generatedPlurals'];
+        if (!array_key_exists('unresolved', $index)) {
+            $index['unresolved'] = [];
+        }
+
+        $expectedKeys = ['aliases', 'symbols', 'explicitPlurals', 'generatedPlurals', 'unresolved'];
         $expectedKinds = [
             'aliases' => 'alias',
             'symbols' => 'symbol',
@@ -312,6 +384,10 @@ final class Udunits2UnitRegistry extends UnitRegistry
         ];
         if (array_keys($index) !== $expectedKeys) {
             throw new UnexpectedValueException('Invalid UDUNITS2 catalog unit name index categories.');
+        }
+
+        if (!is_array($index['unresolved']) || !array_is_list($index['unresolved']) || $index['unresolved'] !== []) {
+            throw new UnexpectedValueException('UDUNITS2 catalog unit name index contains unresolved aliases.');
         }
 
         $indexedNames = [];
@@ -437,6 +513,7 @@ final class Udunits2UnitRegistry extends UnitRegistry
         $allowedKeys = match ($record['type']) {
             'alias' => ['type', 'name', 'def', 'aliasKind'],
             'unit' => ['type', 'name', 'def', 'definition', 'plural', 'comment', 'semantics'],
+            'base' => ['type', 'name', 'definition', 'plural', 'comment', 'dimension'],
             default => ['type', 'name', 'definition', 'plural', 'comment'],
         };
         $unexpectedKeys = array_diff(array_keys($record), $allowedKeys);
@@ -447,6 +524,25 @@ final class Udunits2UnitRegistry extends UnitRegistry
         foreach (['def', 'definition', 'comment', 'plural'] as $key) {
             if (array_key_exists($key, $record) && !is_string($record[$key])) {
                 throw new UnexpectedValueException('Invalid UDUNITS2 catalog unit field ' . $key . ': ' . $name);
+            }
+        }
+
+        if (
+            array_key_exists('dimension', $record)
+            && (!is_string($record['dimension']) || $record['dimension'] === '')
+        ) {
+            throw new UnexpectedValueException('Invalid UDUNITS2 catalog primitive dimension: ' . $name);
+        }
+
+        if (isset($record['dimension'])) {
+            try {
+                Dimension::fromNamedPowers([$record['dimension'] => 1]);
+            } catch (\InvalidArgumentException $exception) {
+                throw new UnexpectedValueException(
+                    'Invalid UDUNITS2 catalog primitive dimension: ' . $name,
+                    0,
+                    $exception,
+                );
             }
         }
 

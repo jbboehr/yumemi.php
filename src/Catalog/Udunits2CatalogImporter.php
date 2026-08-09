@@ -52,8 +52,10 @@ use jbboehr\Yumemi\Registry\UnitRegistry;
  *     prefixes: array<string, string>,
  *     prefixMetadata: array<string, array{name: string, kind: 'canonical'|'symbol', value: string}>,
  *     prefixRegex?: string,
- *     unitNameIndex?: UnitNameIndex
+ *     unitNameIndex?: UnitNameIndex,
+ *     primitiveDimensionIndex?: PrimitiveDimensionIndex
  * }
+ * @phpstan-import-type PrimitiveDimensionIndex from UnitRegistry
  * @phpstan-import-type UnitNameIndex from UnitRegistry
  * @phpstan-type Udunits2Name array{singular: string, plural: string|null, pluralizable: bool}
  * @phpstan-type Udunits2Aliases array{names: list<Udunits2Name>, symbols: list<string>}
@@ -91,6 +93,7 @@ final class Udunits2CatalogImporter
         $catalog['units'] += AffineDeltaUnitSynthesizer::synthesize($catalog['units']);
         $catalog['prefixRegex'] = $this->createPrefixRegex(array_keys($catalog['prefixes']));
         $catalog['unitNameIndex'] = UnitRegistry::indexCatalogRecords($catalog['units']);
+        $catalog['primitiveDimensionIndex'] = UnitRegistry::indexCatalogPrimitiveDimensions($catalog['units']);
 
         /** @phpstan-var Udunits2Catalog $catalog */
         return $catalog;

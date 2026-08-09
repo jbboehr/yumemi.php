@@ -6984,6 +6984,8 @@ return [
             'work_year' => [
                 'work_years'
             ]
-        ]
-    ]
+        ],
+        'unresolved' => []
+    ],
+    'primitiveDimensionIndex' => []
 ];

@@ -68,6 +68,25 @@ final class CompositeUnitRegistryTest extends TestCase
         new CompositeUnitRegistry($base, $overlay);
     }
 
+    public function testShadowedBaseUnitNoLongerClaimsItsPrimitiveDimension(): void
+    {
+        $inner = new CompositeUnitRegistry(
+            new UnitRegistry([], [
+                'USD' => ['type' => 'base', 'name' => 'USD', 'dimension' => 'currency'],
+            ]),
+            new UnitRegistry([], [
+                'USD' => ['type' => 'unit', 'name' => 'USD', 'def' => '1'],
+            ]),
+        );
+        $outer = new CompositeUnitRegistry($inner, new UnitRegistry([], [
+            'USD' => ['type' => 'unit', 'name' => 'USD', 'def' => '1'],
+            'EUR' => ['type' => 'base', 'name' => 'EUR', 'dimension' => 'currency'],
+        ]));
+
+        $this->assertNull($outer->findPrimitiveDimension('USD'));
+        $this->assertSame('currency', $outer->findPrimitiveDimension('EUR'));
+    }
+
     public function testOverlayWinsForLookupAndRecordWithBaseFallback(): void
     {
         $baseShared = new Unit('shared');
@@ -273,6 +292,23 @@ final class CompositeUnitRegistryTest extends TestCase
         $this->assertSame('widget', $composite->describe('thing')?->canonicalName);
     }
 
+    public function testDisjointOverlayRetriesBaseAliasesWhoseTargetsWerePreviouslyUnknown(): void
+    {
+        $composite = new CompositeUnitRegistry(
+            new UnitRegistry([], [
+                'dependent' => ['type' => 'alias', 'name' => 'dependent', 'def' => 'thing'],
+                'thing' => ['type' => 'alias', 'name' => 'thing', 'def' => 'widget'],
+            ]),
+            new UnitRegistry([], [
+                'widget' => ['type' => 'base', 'name' => 'widget'],
+            ]),
+        );
+
+        $this->assertSame('widget', $composite->describe('dependent')?->canonicalName);
+        $this->assertSame('widget', $composite->describe('thing')?->canonicalName);
+        $this->assertSame(['dependent', 'thing'], $composite->describe('widget')?->aliases);
+    }
+
     public function testShadowedAliasRebuildsDependentCanonicalGroups(): void
     {
         $composite = new CompositeUnitRegistry(
@@ -290,6 +326,24 @@ final class CompositeUnitRegistryTest extends TestCase
         $this->assertSame('new', $composite->describe('dependent')?->canonicalName);
         $this->assertSame(['bridge', 'dependent'], $composite->describe('new')?->aliases);
         $this->assertSame([], $composite->describe('old')?->aliases);
+    }
+
+    public function testShadowedNamesDeferTheFullNameIndexUntilIntrospection(): void
+    {
+        $composite = new CompositeUnitRegistry(
+            new UnitRegistry([], [
+                'old' => ['type' => 'base', 'name' => 'old'],
+                'bridge' => ['type' => 'alias', 'name' => 'bridge', 'def' => 'old'],
+            ]),
+            new UnitRegistry([], [
+                'new' => ['type' => 'base', 'name' => 'new'],
+                'bridge' => ['type' => 'alias', 'name' => 'bridge', 'def' => 'new'],
+            ]),
+        );
+        $cache = new \ReflectionProperty(UnitRegistry::class, 'unitNameIndexCache');
+
+        $this->assertNull($cache->getValue($composite));
+        $this->assertSame(['bridge'], $composite->describe('new')?->aliases);
     }
 
     public function testPrefixesMergeWithOverlayWinning(): void
