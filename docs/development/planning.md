@@ -69,7 +69,8 @@ registration.
 The implemented foundation now includes:
 
 - exact `Rational` arithmetic with explicit integer, decimal, and binary64 output policies;
-- a reduced symbolic expression model, Bison parser, hybrid SI/extension `Dimension`, and derived-unit normalization;
+- a reduced symbolic expression model, Bison parser, bounded successful syntax and resolved-expression caches, hybrid
+  SI/extension `Dimension`, and derived-unit normalization;
 - a generated UDUNITS2 catalog with exact aliases, plurals, prefixes, introspection, and deterministic regeneration;
 - mutable custom-registry construction producing immutable snapshots, with one typed effective entry per exact lookup so
   composite overlays select a whole layer before exposing prebuilt expressions or catalog metadata while legacy lookup
@@ -550,24 +551,23 @@ repeat the implementation's assumptions:
   resolution.
 - Expression arithmetic reduces eagerly. The benchmark suite measures representative reduction and normalization, but no
   cross-machine regression floor or production-workload profile has established that this is a hot path.
-- Paired helper-boundary benchmarks and local hardware-counter profiles identify repeated parsing as a concrete runtime
-  cost. On the same PHP 8.2 host, repeated `Quantity::valueIn()` with a compound string target took about 17 times the
+- Paired helper-boundary benchmarks and local hardware-counter profiles identified repeated parsing as a concrete
+  runtime cost. Before caching, repeated `Quantity::valueIn()` with a compound string target took about 17 times the
   wall time and 15 times the retired instructions of the equivalent pre-parsed target; string-based quantity
-  construction took about 9 times both. Direct warm string conversion-factor and affine point-conversion subjects
-  remained in the same low-single-digit-microsecond range as the pre-parsed quantity control because
-  `UnitConversionResolver` already caches resolved strings.
-- A broader runtime survey found the same parsing cost at other public boundaries. On that host, formatting a compound
-  string took about 36 microseconds versus 7.5 for a retained expression, normalization took about 50 microseconds
-  versus 15, `parseQuantity()` took about 72 microseconds, and constructing a point took about 49 microseconds.
-  Function-level profiles attributed the string-formatting difference primarily to parsing rather than rendering.
-- Affine delta derivation is a narrower repeated-work candidate: resolving the delta unit for a warmed coordinate name
-  took about 34 microseconds and 720,000 retired instructions, accounting for most of repeated point construction.
-  `deltaUnit()` parses the requested coordinate spelling during linearization and then parses the synthesized expression
-  even after ordinary conversion resolution is warm.
+  construction took about 9 times both. Formatting, normalization, quantity parsing, point construction, and affine
+  delta derivation showed the same parser-heavy behavior.
+- Successful parser ASTs now use a process-local, exact-input LRU cache, while fully resolved expressions use a separate
+  cache owned by each immutable `Units` context. Each layer retains at most 256 expressions no longer than 512 bytes;
+  oversized inputs and all failures bypass caching. Immutable raw ASTs may be shared across registries, but resolved
+  meaning never crosses a `Units` boundary.
+- On the same PHP 8.2 host after caching, warm compound `parse()` fell from about 55 to 0.15 microseconds, string and
+  pre-parsed `Quantity::valueIn()` converged at about 4.5 and 4.2 microseconds, and string normalization converged with
+  pre-parsed normalization at about 15 microseconds. Formatting fell from about 36 to 10 microseconds, point
+  construction from about 49 to 2.5, affine delta derivation from about 34 to 1.7, and `parseQuantity()` from about 72
+  to 34.
 - Persistence validation is intentionally substantial. Representative quantity and point deserialization took about 205
-  and 112 microseconds respectively because restoration reparses and revalidates normalized units, dimensions, origins,
-  and scales. Preserve those semantic seals; first measure how much the general parsing and semantic caches remove
-  before considering persistence-specific optimization.
+  and 112 microseconds before caching and about 87 and 27 afterward. Restoration still revalidates normalized units,
+  dimensions, origins, and scales; preserve those semantic seals rather than pursuing lower timings by weakening them.
 - Representative rational arithmetic and decimal rendering remained below 4 microseconds, cached dimensions and
   compatibility below 0.4 microseconds, custom registry overlay construction below 0.4 milliseconds, and full-catalog
   description below 2 milliseconds. These measurements do not justify dedicated optimization work.
@@ -592,15 +592,14 @@ repeat the implementation's assumptions:
   acquiring speculative bundled definitions.
 - A separate strict-expression option for dynamic `Units`, `Quantity`, and `PointQuantity` boundaries if applications
   demonstrate a need beyond the native-helper policy. Their explicit runtime parsing role remains dynamic by default.
-- A bounded successful-parse-work cache scoped to each immutable `Units` context. Paired helper-boundary benchmarks now
-  justify this work, but a cache containing only the resolved `Expr` returned by `Units::parse()` would leave repeated
-  symbolic formatting and `parseQuantity()` parsing untouched. Evaluate one immutable parsed-syntax record with lazy
-  symbolic and registry-resolved forms, or another design that safely shares the parser result across those boundaries.
-  Define capacity and eviction explicitly, preserve source spans, do not cache failures, and use the
-  string-versus-object benchmark controls to verify each affected API independently.
-- Cache successful affine delta derivation by coordinate spelling if it remains material after the shared parse-work
-  cache. Preserve registry-context ownership and exact synthesized syntax; do not store failures or weaken point
-  construction's coordinate-unit validation.
+- A cache of derived `parseQuantity()` components only if production measurements show repeated parsing of complete
+  quantity strings to be material. The shared syntax cache has already halved this path's cost; any additional cache
+  must preserve fresh immutable `Quantity` results, exact constants, source spans, and registry-context ownership.
+- Whitespace-normalized resolved-expression cache keys only if measured workloads show meaningful variation in otherwise
+  equivalent input. The lexer ignores whitespace runs, so trimming outer whitespace and collapsing each internal run to
+  one separator can preserve token boundaries; never delete internal whitespace, because `meter second` and
+  `metersecond` are different expressions. Keep parser AST cache keys byte-exact because their half-open source spans
+  refer to the original input, and retain cacheability limits based on the original byte length.
 - A unified multiplicative/affine conversion-plan cache keyed by each immutable `Units` context. Current profiles do not
   justify it: cached string resolution keeps repeated conversion-factor and affine point paths comparatively small.
   Reconsider only if a production profile identifies conversion-plan construction as material after parse caching.

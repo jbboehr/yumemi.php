@@ -77,8 +77,10 @@ committed as project-wide guarantees.
 ## Interpreting Subjects
 
 Cold subjects construct their registry and `Units` context inside the measured method. They represent startup and first
-resolution costs. Warm subjects build isolated state in a PHPBench setup hook and explicitly prime the relevant lookup
-before measurement. They represent repeated work within a long-lived runtime or PHPStan process.
+resolution costs. The cold compound-parse subject varies insignificant source whitespace so each measured input misses
+the process-local syntax cache. Warm subjects build isolated state in a PHPBench setup hook and explicitly prime the
+relevant syntax, resolved-expression, or lookup cache before measurement. They represent repeated work within a
+long-lived runtime or PHPStan process.
 
 Expression subjects receive preconstructed expressions when isolating reduction or normalization. Quantity subjects
 reuse immutable operands. Formatting subjects distinguish construction and first lookup from repeated use of one

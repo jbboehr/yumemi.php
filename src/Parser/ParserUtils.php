@@ -70,6 +70,18 @@ trait ParserUtils
      */
     public static function parseString(string $input): Ast
     {
+        /** @var array<string, Ast> $cache */
+        static $cache = [];
+
+        $cacheable = strlen($input) <= 512;
+        if ($cacheable && isset($cache[$input])) {
+            $ast = $cache[$input];
+            unset($cache[$input]);
+            $cache[$input] = $ast;
+
+            return $ast;
+        }
+
         $lexer = new Lexer($input);
         $parser = new Parser($lexer);
         if (!$parser->parse()) {
@@ -77,7 +89,20 @@ trait ParserUtils
 
             throw new ParseException('Syntax error', 0, new SourceSpan($end, $end), $input);
         }
-        return $parser->getAst();
+
+        $ast = $parser->getAst();
+        if (!$cacheable) {
+            return $ast;
+        }
+
+        if (count($cache) >= 256) {
+            $oldest = array_key_first($cache);
+            if ($oldest !== null) {
+                unset($cache[$oldest]);
+            }
+        }
+
+        return $cache[$input] = $ast;
     }
 
     private static function makeInteger(string $text, ?Location $location = null): Ast

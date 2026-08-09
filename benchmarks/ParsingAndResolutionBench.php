@@ -59,7 +59,12 @@ final class ParsingAndResolutionBench
     #[Bench\Revs(5)]
     public function benchColdContextAndCompoundParse(): Expr
     {
-        return self::newUnits()->parse('kilogram * meter / second^2');
+        /** @var int $sequence */
+        static $sequence = 0;
+
+        return self::newUnits()->parse(
+            str_repeat(' ', ++$sequence) . 'kilogram * meter / second^2',
+        );
     }
 
     #[Bench\BeforeMethods('setUpWarmContext')]

@@ -351,12 +351,15 @@ dimension scans. Disjoint composites extend those indexes while retrying previou
 composites rebuild the effective name index lazily. The validated bundled catalog is cached per process, while custom
 catalog paths remain dynamically loaded and validated. Expression operations still reduce eagerly.
 
-Paired helper-boundary benchmarks and local hardware-counter profiles identify repeated parsing as the material runtime
-cost: compound string targets in `Quantity` operations perform substantially more work than retained pre-parsed
-expressions. A bounded successful-parse cache per immutable `Units` context is therefore justified, subject to an
-explicit capacity and eviction policy. Do not cache parse failures, whose source diagnostics belong to each invocation.
-The existing resolved-string cache already keeps repeated multiplicative and affine conversions comparatively small, so
-a separate pairwise conversion-plan cache remains deferred until a production profile demonstrates additional need.
+Paired helper-boundary benchmarks and local hardware-counter profiles identified repeated parsing as the material
+runtime cost. Successful parser ASTs now use a process-local exact-input LRU cache, and fully resolved expressions use a
+separate LRU cache owned by each immutable `Units` context. Both retain at most 256 expressions no longer than 512
+bytes. Oversized inputs and failures bypass caching, preserving fresh source diagnostics, while registry-independent
+immutable ASTs may be shared without allowing resolved meaning to cross contexts. Warm string and pre-parsed quantity
+conversion and normalization now perform comparably. Complete `parseQuantity()` strings still rebuild their derived
+components; cache those only if a production profile makes that remaining work material. The existing resolved-string
+cache already keeps repeated multiplicative and affine conversions comparatively small, so a separate pairwise
+conversion-plan cache remains deferred until a production profile demonstrates additional need.
 
 ### 30. Error Messages And Developer Experience
 

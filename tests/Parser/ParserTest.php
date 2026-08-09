@@ -308,6 +308,66 @@ final class ParserTest extends TestCase
         $this->assertSpan($ast->right->right, 14, 15);
     }
 
+    public function testSuccessfulParsesAreCachedByExactInput(): void
+    {
+        $first = Parser::parseString('cache_exact_meter / second');
+
+        $this->assertSame($first, Parser::parseString('cache_exact_meter / second'));
+        $this->assertNotSame($first, Parser::parseString(' cache_exact_meter / second '));
+    }
+
+    public function testSuccessfulParseCacheEvictsTheLeastRecentlyUsedEntry(): void
+    {
+        $anchor = Parser::parseString('cache_eviction_anchor');
+
+        for ($index = 0; $index < 256; ++$index) {
+            Parser::parseString('cache_eviction_' . $index);
+        }
+
+        $this->assertNotSame($anchor, Parser::parseString('cache_eviction_anchor'));
+    }
+
+    public function testSuccessfulParseCacheRefreshesRecentlyUsedEntries(): void
+    {
+        $anchor = Parser::parseString('cache_recency_anchor');
+
+        for ($index = 0; $index < 255; ++$index) {
+            Parser::parseString('cache_recency_' . $index);
+        }
+
+        $this->assertSame($anchor, Parser::parseString('cache_recency_anchor'));
+        Parser::parseString('cache_recency_overflow');
+        $this->assertSame($anchor, Parser::parseString('cache_recency_anchor'));
+    }
+
+    public function testSuccessfulParseCacheDoesNotRetainOversizedInputs(): void
+    {
+        $input = str_repeat('cacheableunit', 43);
+
+        $this->assertGreaterThan(512, strlen($input));
+        $this->assertNotSame(Parser::parseString($input), Parser::parseString($input));
+    }
+
+    public function testSuccessfulParseCacheRetainsInputsAtTheByteLimit(): void
+    {
+        $input = str_repeat('a', 512);
+
+        $this->assertSame(512, strlen($input));
+        $this->assertSame(Parser::parseString($input), Parser::parseString($input));
+    }
+
+    public function testOversizedParseDoesNotEvictCachedInput(): void
+    {
+        $anchor = Parser::parseString('cache_oversized_anchor');
+
+        for ($index = 0; $index < 255; ++$index) {
+            Parser::parseString('cache_oversized_' . $index);
+        }
+
+        Parser::parseString(str_repeat('b', 513));
+        $this->assertSame($anchor, Parser::parseString('cache_oversized_anchor'));
+    }
+
     private function assertAstEquals(Ast $expected, Ast $actual): void
     {
         $this->assertSame($expected::class, $actual::class);

@@ -71,6 +71,15 @@ final class Units
     private readonly UnitNormalizer $unitNormalizer;
     private readonly UnitResolver $unitResolver;
 
+    /**
+     * @logion [OSD 92:33] At the ninth vigil, the keepers set two bowls beneath the eastern bell; and though no hand
+     *     touched them, the nearer brim gathered frost while the farther remained clear. Therefore they sealed neither
+     *     vessel, but waited until morning disclosed which winter had spoken.
+     *
+     * @var array<string, Expr>
+     */
+    private array $parsedExpressionCache = [];
+
     public function __construct(
         private readonly UnitRegistry $unitRegistry,
     ) {
@@ -233,9 +242,29 @@ final class Units
 
     public function parse(string $input): Expr
     {
-        return $this->bindContext(
+        $cacheable = strlen($input) <= 512;
+        if ($cacheable && isset($this->parsedExpressionCache[$input])) {
+            $expr = $this->parsedExpressionCache[$input];
+            unset($this->parsedExpressionCache[$input]);
+            $this->parsedExpressionCache[$input] = $expr;
+
+            return $expr;
+        }
+
+        $expr = $this->bindContext(
             ExprReducer::reduce($this->astConverter->convert(Parser::parseString($input))),
         );
+
+        if (!$cacheable) {
+            return $expr;
+        }
+
+        if (count($this->parsedExpressionCache) >= 256) {
+            $oldest = array_key_first($this->parsedExpressionCache);
+            unset($this->parsedExpressionCache[$oldest]);
+        }
+
+        return $this->parsedExpressionCache[$input] = $expr;
     }
 
     /**

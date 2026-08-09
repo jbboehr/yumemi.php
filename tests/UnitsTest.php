@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\Tests;
 
 use jbboehr\Yumemi\Catalog\UnitSemantics;
+use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\Exception\OverflowException;
 use jbboehr\Yumemi\Exception\RuntimeException;
@@ -204,11 +205,117 @@ final class UnitsTest extends TestCase
         ));
     }
 
+    public function testSuccessfulUnitParsesAreCachedWithinOneRegistryContext(): void
+    {
+        $units = Units::default();
+        $first = $units->parse('meter / second');
+
+        $this->assertSame($first, $units->parse('meter / second'));
+    }
+
+    public function testParsedExpressionCacheDoesNotShareResolvedMeaningAcrossRegistries(): void
+    {
+        $left = new Units(UnitRegistryBuilder::default()
+            ->define('cache_context_widget = 2 * meter')
+            ->build());
+        $right = new Units(UnitRegistryBuilder::default()
+            ->define('cache_context_widget = 3 * meter')
+            ->build());
+
+        $leftExpression = $left->parse('cache_context_widget');
+        $rightExpression = $right->parse('cache_context_widget');
+
+        $this->assertNotSame($leftExpression, $rightExpression);
+        $this->assertSame('2 * meter', $left->normalize($leftExpression)->toString());
+        $this->assertSame('3 * meter', $right->normalize($rightExpression)->toString());
+    }
+
+    public function testParsedCompoundExpressionsBindCustomPrimitiveDimensionsRecursively(): void
+    {
+        $units = new Units(UnitRegistryBuilder::empty()
+            ->baseUnit('cache_coin', Dimension::CURRENCY)
+            ->baseUnit('cache_sample', Dimension::IMAGE_SAMPLE)
+            ->build());
+
+        $this->assertSame('currency ^ 2', $units->parse('cache_coin^2')->dimension()->toString());
+        $this->assertSame(
+            'currency * image_sample',
+            $units->parse('cache_coin * cache_sample')->dimension()->toString(),
+        );
+    }
+
+    public function testParsedExpressionCacheEvictsTheLeastRecentlyUsedEntry(): void
+    {
+        $units = Units::default();
+        $anchor = $units->parse('ampere * meter');
+
+        for ($index = 0; $index < 256; ++$index) {
+            $units->parse($index . ' * meter');
+        }
+
+        $this->assertNotSame($anchor, $units->parse('ampere * meter'));
+    }
+
+    public function testParsedExpressionCacheRefreshesRecentlyUsedEntries(): void
+    {
+        $units = new Units(UnitRegistryBuilder::default()->build());
+        $anchor = $units->parse('ampere * meter');
+
+        for ($index = 0; $index < 255; ++$index) {
+            $units->parse($index . ' * meter');
+        }
+
+        $this->assertSame($anchor, $units->parse('ampere * meter'));
+        $units->parse('256 * meter');
+        $this->assertSame($anchor, $units->parse('ampere * meter'));
+    }
+
+    public function testParsedExpressionCacheDoesNotRetainOversizedInputs(): void
+    {
+        $units = Units::default();
+        $input = str_repeat(' ', 513) . 'meter';
+
+        $this->assertNotSame($units->parse($input), $units->parse($input));
+    }
+
+    public function testParsedExpressionCacheRetainsInputsAtTheByteLimit(): void
+    {
+        $units = new Units(UnitRegistryBuilder::default()->build());
+        $input = str_repeat(' ', 507) . 'meter';
+
+        $this->assertSame(512, strlen($input));
+        $this->assertSame($units->parse($input), $units->parse($input));
+    }
+
+    public function testOversizedUnitParseDoesNotEvictCachedInput(): void
+    {
+        $units = new Units(UnitRegistryBuilder::default()->build());
+        $anchor = $units->parse('ampere * meter');
+
+        for ($index = 0; $index < 255; ++$index) {
+            $units->parse($index . ' * meter');
+        }
+
+        $units->parse(str_repeat(' ', 513) . 'meter');
+        $this->assertSame($anchor, $units->parse('ampere * meter'));
+    }
+
     public function testParseUnitPropagatesLookupErrors(): void
     {
         $this->expectException(UnitNotFoundException::class);
 
         Units::default()->parseUnit('not_a_real_unit_xyz');
+    }
+
+    public function testRepeatedSemanticParseFailuresProduceFreshDiagnostics(): void
+    {
+        $units = Units::default();
+        $first = $this->unitNotFoundFailure($units, 'meter / cache_missing_unit');
+        $second = $this->unitNotFoundFailure($units, 'meter / cache_missing_unit');
+
+        $this->assertNotSame($first, $second);
+        $this->assertEquals($first->span, $second->span);
+        $this->assertSame($first->getMessage(), $second->getMessage());
     }
 
     public function testParseReportsAnAliasTargetThatCannotBeResolved(): void
@@ -549,5 +656,15 @@ final class UnitsTest extends TestCase
     private static function parseQuantity(Units $units, string $input): Quantity
     {
         return $units->parseQuantity($input);
+    }
+
+    private function unitNotFoundFailure(Units $units, string $input): UnitNotFoundException
+    {
+        try {
+            $units->parse($input);
+            self::fail('Expected unit lookup to fail.');
+        } catch (UnitNotFoundException $exception) {
+            return $exception;
+        }
     }
 }

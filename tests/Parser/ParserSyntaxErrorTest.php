@@ -59,6 +59,17 @@ final class ParserSyntaxErrorTest extends TestCase
         }
     }
 
+    public function testRepeatedFailuresProduceFreshDiagnostics(): void
+    {
+        $first = $this->parseFailure('cache_failure_meter /');
+        $second = $this->parseFailure('cache_failure_meter /');
+
+        $this->assertNotSame($first, $second);
+        $this->assertEquals($first->getSpan(), $second->getSpan());
+        $this->assertSame($first->getSource(), $second->getSource());
+        $this->assertSame($first->getMessage(), $second->getMessage());
+    }
+
     #[DataProvider('syntaxErrorProvider')]
     public function testReportsExactSyntaxErrorSpan(
         string $source,
@@ -216,6 +227,16 @@ final class ParserSyntaxErrorTest extends TestCase
             $this->assertCount(3, $lines);
             $this->assertSame('| ...' . substr($source, 63, 114) . '...', $lines[1]);
             $this->assertSame('| ' . str_repeat(' ', 60) . '^', $lines[2]);
+        }
+    }
+
+    private function parseFailure(string $source): ParseException
+    {
+        try {
+            Parser::parseString($source);
+            self::fail('Expected malformed unit expression to fail.');
+        } catch (ParseException $exception) {
+            return $exception;
         }
     }
 }
