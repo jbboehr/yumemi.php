@@ -5,7 +5,8 @@ fixtures use public inputs and observable outputs so another implementation can 
 current PHP class structure.
 
 The corpus complements the detailed PHPUnit, PHPStan, differential, generative, and property tests. It does not replace
-those tests, and implementation-specific behavior remains in the implementation-language suites.
+those tests, and implementation-specific behavior remains in the implementation-language suites. It also records
+representative significant-decimal output without depending on binary floating point.
 
 ## Versioning
 

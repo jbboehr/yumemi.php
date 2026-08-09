@@ -34,6 +34,7 @@ assertType('jbboehr\\Yumemi\\Number\\Rational', $freezing->valueIn('fahrenheit')
 assertType('int', $freezing->intValueIn('fahrenheit'));
 assertType('int', $freezing->exactIntValueIn('fahrenheit'));
 assertType('string', $freezing->decimalValueIn('fahrenheit', 2, \RoundingMode::HalfEven));
+assertType('string', $freezing->significantDecimalValueIn('fahrenheit', 3, \RoundingMode::HalfEven));
 assertType('string', $freezing->exactDecimalValueIn('fahrenheit'));
 assertType('float', $freezing->floatValueIn('fahrenheit'));
 

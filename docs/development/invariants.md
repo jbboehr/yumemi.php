@@ -108,7 +108,8 @@ round-tripping, and reproducible output depend on binary rounding.
 denominator values. [`Quantity`](../../src/Quantity.php) and [`PointQuantity`](../../src/PointQuantity.php) retain
 `Rational` state. [`BinaryFloat`](../../src/Number/BinaryFloat.php) decodes finite binary64 inputs exactly, while named
 output methods expose integer, decimal, and float policies. `Rational::root()` and `Quantity::root()` throw
-`NonExactRootException` when the requested result cannot remain exact.
+`NonExactRootException` when the requested result cannot remain exact. Significant-decimal output computes one exact
+rounded coefficient and decimal exponent before rendering either plain or scientific notation.
 [`RationalTest`](../../tests/Number/RationalTest.php), [`BinaryFloatTest`](../../tests/Number/BinaryFloatTest.php), and
 [`QuantityTest`](../../tests/QuantityTest.php) cover roots, rounding, non-terminating decimals, overflow, and underflow.
 

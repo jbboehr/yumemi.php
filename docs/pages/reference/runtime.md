@@ -12,26 +12,27 @@ needs arise.
 
 ## Common Tasks
 
-| I need to...                                        | Use                                    |
-| --------------------------------------------------- | -------------------------------------- |
-| Construct an exact quantity                         | `Units::quantity()`                    |
-| Construct an exact decimal magnitude                | `Rational::fromDecimalString()`        |
-| Construct an exact coordinate point                 | `Units::point()`                       |
-| Construct a difference for a coordinate scale       | `Units::deltaQuantity()`               |
-| Parse a value and unit together                     | `Units::parseQuantity()`               |
-| Convert a quantity                                  | `Quantity::to()`                       |
-| Convert a coordinate point                          | `PointQuantity::to()`                  |
-| Preserve the exact rational result after conversion | `Quantity::valueIn()`                  |
-| Obtain a minimal exact terminating decimal          | `Quantity::exactDecimalValueIn()`      |
-| Obtain a rounded decimal with a requested scale     | `Quantity::decimalValueIn()`           |
-| Obtain a native binary floating-point result        | `Quantity::floatValueIn()`             |
-| Convert a native scalar                             | `unit_to()`                            |
-| Add compatible quantities                           | `Quantity::add()`                      |
-| Reject implicit unit conversion                     | `Quantity::addWithSameUnit()`          |
-| Select symbols or Unicode notation                  | `FormatOptions` and formatting methods |
+| I need to...                                        | Use                                     |
+| --------------------------------------------------- | --------------------------------------- |
+| Construct an exact quantity                         | `Units::quantity()`                     |
+| Construct an exact decimal magnitude                | `Rational::fromDecimalString()`         |
+| Construct an exact coordinate point                 | `Units::point()`                        |
+| Construct a difference for a coordinate scale       | `Units::deltaQuantity()`                |
+| Parse a value and unit together                     | `Units::parseQuantity()`                |
+| Convert a quantity                                  | `Quantity::to()`                        |
+| Convert a coordinate point                          | `PointQuantity::to()`                   |
+| Preserve the exact rational result after conversion | `Quantity::valueIn()`                   |
+| Obtain a minimal exact terminating decimal          | `Quantity::exactDecimalValueIn()`       |
+| Obtain a rounded decimal with a requested scale     | `Quantity::decimalValueIn()`            |
+| Round to a requested significant-digit precision    | `Quantity::significantDecimalValueIn()` |
+| Obtain a native binary floating-point result        | `Quantity::floatValueIn()`              |
+| Convert a native scalar                             | `unit_to()`                             |
+| Add compatible quantities                           | `Quantity::add()`                       |
+| Reject implicit unit conversion                     | `Quantity::addWithSameUnit()`           |
+| Select symbols or Unicode notation                  | `FormatOptions` and formatting methods  |
 
 `exactDecimalValueIn()` throws when the exact rational result has a non-terminating decimal expansion. Use
-`decimalValueIn()` with an explicit scale and rounding mode in that case.
+`decimalValueIn()` or `significantDecimalValueIn()` with an explicit rounding mode in that case.
 
 Every throwable explicitly created by Yumemi implements `jbboehr\Yumemi\Exception\ExceptionInterface`. Yumemi's wrappers
 also extend their corresponding native PHP classes, so callers may catch the common interface, a specific Yumemi
@@ -244,6 +245,8 @@ Exact `Rational` values can be extracted after conversion:
 - `intValueIn()` follows `intdiv()`-style truncation toward zero and throws if the result does not fit a PHP integer.
 - `exactIntValueIn()` additionally requires an integral result.
 - `decimalValueIn()` returns a fixed number of decimal places using an explicit `RoundingMode`.
+- `significantDecimalValueIn()` returns a requested number of significant decimal digits in plain or scientific
+  `DecimalNotation`.
 - `exactDecimalValueIn()` returns a minimal terminating decimal or throws for non-terminating rational values.
 - `floatValueIn()` rounds to binary64 with ties to even and throws on infinity or nonzero underflow to zero.
 
@@ -253,14 +256,29 @@ PHP 8.2 and 8.3 receive the PHP 8.4 `RoundingMode` enum through `symfony/polyfil
 <?php
 
 use jbboehr\Yumemi\Units;
+use jbboehr\Yumemi\Number\DecimalNotation;
 
 $length = Units::default()->quantity(1, 'foot');
 
 assert($length->intValueIn('meter') === 0);
 assert($length->exactDecimalValueIn('meter') === '0.3048');
 assert($length->decimalValueIn('meter', 2, \RoundingMode::HalfEven) === '0.30');
+assert($length->significantDecimalValueIn('meter', 3, \RoundingMode::HalfEven) === '0.305');
+assert($length->significantDecimalValueIn(
+    'meter',
+    3,
+    \RoundingMode::HalfEven,
+    DecimalNotation::Scientific,
+) === '3.05e-1');
 assert($length->floatValueIn('meter') === 0.3048);
 ```
+
+Scale and precision answer different questions. A scale of `2` requests two places after the decimal point, while a
+precision of `3` requests three significant digits wherever the decimal point falls. Significant output retains
+fractional trailing zeros, so zero at precision `3` is `0.00` in plain notation and `0.00e+0` in scientific notation.
+Plain integral text cannot distinguish whether trailing zeros are significant: use scientific notation when that
+distinction must remain visible. Precision is limited to `1` through `10000`, and scientific exponents use Yumemi's
+existing `-10000` through `10000` bound.
 
 ## Affine Conversion
 

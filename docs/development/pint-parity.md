@@ -152,11 +152,10 @@ would require a separate quantity-kind model rather than another dimension repre
 Status: **Done for the exact core** | Importance: **P1** | Remaining difficulty: **M**
 
 `Rational` supports exact integer and decimal construction, arithmetic, truncating and exact integer output, all PHP 8.4
-fixed-scale rounding modes, terminating-decimal output, and correctly rounded binary64 conversion with strict overflow
-and underflow handling. Quantity extraction converts to the requested unit first.
-
-Significant-digit and scientific-notation formatting remain absent. Approximate decimal arithmetic should remain a
-separate explicit model rather than replacing rational storage.
+rounding modes for fixed-scale and significant-digit output, terminating-decimal output, plain and scientific notation,
+and correctly rounded binary64 conversion with strict overflow and underflow handling. Quantity and point extraction
+converts to the requested unit first. Approximate decimal arithmetic remains a separate potential model rather than
+replacing rational storage.
 
 ### 11. Formatting And Display Units
 

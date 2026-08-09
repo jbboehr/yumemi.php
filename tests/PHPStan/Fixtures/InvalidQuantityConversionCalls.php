@@ -12,6 +12,7 @@ $meters->valueIn('second');
 $meters->intValueIn('second');
 $meters->exactIntValueIn('second');
 $meters->decimalValueIn('second', 2, \RoundingMode::HalfEven);
+$meters->significantDecimalValueIn('second', 3, \RoundingMode::HalfEven);
 $meters->exactDecimalValueIn('second');
 $meters->floatValueIn('second');
 $meters->to('not_a_real_unit_xyz');
@@ -31,6 +32,7 @@ $meters->valueIn('foot');
 $meters->intValueIn('foot');
 $meters->exactIntValueIn('foot');
 $meters->decimalValueIn('foot', 2, \RoundingMode::HalfEven);
+$meters->significantDecimalValueIn('foot', 3, \RoundingMode::HalfEven);
 $meters->exactDecimalValueIn('foot');
 $meters->floatValueIn('foot');
 $meters->to('meter * / second');
@@ -44,6 +46,7 @@ function convertUnknown(Quantity $quantity, string $unit): void
     $quantity->intValueIn($unit);
     $quantity->exactIntValueIn($unit);
     $quantity->decimalValueIn($unit, 2, \RoundingMode::HalfEven);
+    $quantity->significantDecimalValueIn($unit, 3, \RoundingMode::HalfEven);
     $quantity->exactDecimalValueIn($unit);
     $quantity->floatValueIn($unit);
 }

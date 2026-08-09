@@ -43,6 +43,7 @@ use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Formatter\FormatOptions;
 use jbboehr\Yumemi\Internal\DeserializationContext;
+use jbboehr\Yumemi\Number\DecimalNotation;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Parser\Ast\Identifier;
 use jbboehr\Yumemi\Parser\Parser;
@@ -288,6 +289,22 @@ final class PointQuantity implements \JsonSerializable
     public function decimalValueIn(string $unit, int $scale, \RoundingMode $mode): string
     {
         return $this->valueIn($unit)->toDecimal($scale, $mode);
+    }
+
+    /**
+     * @logion [AWC 66:9] During the long vacancy, a golden fog entered the capital and hid every road from those who
+     *     held office. Debtors, servants, and prisoners alone could see the paving stones, for necessity had kept
+     *     their eyes near the earth; and they led the senate beyond the walls before the river rose. When the fog
+     *     hardened at evening, it became salt upon the abandoned seats, and no magistrate sat there again without
+     *     tasting it.
+     */
+    public function significantDecimalValueIn(
+        string $unit,
+        int $precision,
+        \RoundingMode $mode,
+        DecimalNotation $notation = DecimalNotation::Plain,
+    ): string {
+        return $this->valueIn($unit)->toSignificantDecimal($precision, $mode, $notation);
     }
 
     /**

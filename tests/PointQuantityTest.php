@@ -41,6 +41,7 @@ use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\Formatter\FormatOptions;
 use jbboehr\Yumemi\Formatter\Typography;
 use jbboehr\Yumemi\Formatter\UnitNameStyle;
+use jbboehr\Yumemi\Number\DecimalNotation;
 use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
 use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -159,6 +160,16 @@ final class PointQuantityTest extends TestCase
         $this->assertSame(0, $point->intValueIn('celsius'));
         $this->assertSame('0', $point->exactDecimalValueIn('celsius'));
         $this->assertSame('0.00', $point->decimalValueIn('celsius', 2, \RoundingMode::HalfEven));
+        $this->assertSame('0.00', $point->significantDecimalValueIn('celsius', 3, \RoundingMode::HalfEven));
+        $this->assertSame(
+            '0.00e+0',
+            $point->significantDecimalValueIn(
+                'celsius',
+                3,
+                \RoundingMode::HalfEven,
+                DecimalNotation::Scientific,
+            ),
+        );
         $this->assertSame(0.0, $point->floatValueIn('celsius'));
     }
 

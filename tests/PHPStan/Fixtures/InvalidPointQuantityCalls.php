@@ -14,6 +14,7 @@ $celsius->sub($units->quantity(1, 'second'));
 $celsius->difference($meters);
 $celsius->to('meter');
 $celsius->valueIn('second');
+$celsius->significantDecimalValueIn('second', 3, \RoundingMode::HalfEven);
 $celsius->compareTo($meters);
 $celsius->equals($meters);
 $celsius->lessThan($meters);
@@ -26,6 +27,7 @@ $fahrenheit = $units->point(32, 'fahrenheit');
 $celsius->add($units->quantity(18, 'delta_fahrenheit'));
 $celsius->difference($fahrenheit);
 $celsius->to('kelvin');
+$celsius->significantDecimalValueIn('fahrenheit', 3, \RoundingMode::HalfEven);
 $celsius->compareTo($fahrenheit);
 $celsius->equals($fahrenheit);
 $celsius->lessThan($fahrenheit);
@@ -38,6 +40,7 @@ function inspectUnknownPoint(PointQuantity $unknown, string $unit): void
 {
     Units::default()->point(0, 'celsius')->difference($unknown);
     $unknown->to($unit);
+    $unknown->significantDecimalValueIn($unit, 3, \RoundingMode::HalfEven);
 }
 
 /** @param PointQuantity<'celsius'>|PointQuantity<'meter'> $point */

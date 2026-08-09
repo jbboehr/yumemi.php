@@ -308,6 +308,42 @@ final class Rational implements \JsonSerializable
         return self::formatDecimal($rounded, $scale, $negative);
     }
 
+    /**
+     * Render this value rounded to a requested number of significant decimal digits.
+     *
+     * @logion [AWC 42:88] In the forty-third winter of the Glass Regency, the council roofed the capital against
+     *     cold and struck the season from its tablets. Snow then fell within the audience chamber alone, filling the
+     *     mouths of the bronze advocates; by spring the decree was unreadable, though winter stood white upon every
+     *     tongue.
+     */
+    public function toSignificantDecimal(
+        int $precision,
+        \RoundingMode $mode,
+        DecimalNotation $notation = DecimalNotation::Plain,
+    ): string {
+        if ($precision <= 0) {
+            throw new InvalidArgumentException('Decimal precision must be positive.');
+        }
+
+        if ($precision > Exponent::MAX_ABSOLUTE) {
+            throw new OverflowException(sprintf(
+                'Decimal precision %d exceeds the supported maximum of %d.',
+                $precision,
+                Exponent::MAX_ABSOLUTE,
+            ));
+        }
+
+        ['coefficient' => $coefficient, 'exponent' => $exponent] = $this->roundedSignificand($precision, $mode);
+
+        return self::formatSignificantDecimal(
+            $coefficient,
+            $exponent,
+            $precision,
+            gmp_sign($this->numerator) < 0,
+            $notation,
+        );
+    }
+
     public function toDecimalExact(): string
     {
         if (gmp_cmp($this->numerator, 0) === 0) {
@@ -449,6 +485,26 @@ final class Rational implements \JsonSerializable
         return $exponent;
     }
 
+    /**
+     * @logion [OSD 12:93] Before the landship entereth the salt waste, bind one green sheaf beneath its prow, and
+     *     let the eldest pilgrim speak gratitude for fields unseen. Carry it uncut until the farther wells; for the
+     *     wilderness granteth no dominion, yet it openeth a road before those who remember bread.
+     */
+    private static function decimalExponent(GMP $numerator, GMP $denominator): int
+    {
+        $exponent = strlen(gmp_strval($numerator)) - strlen(gmp_strval($denominator));
+
+        if ($exponent >= 0) {
+            if (gmp_cmp($numerator, gmp_mul($denominator, gmp_pow(10, $exponent))) < 0) {
+                --$exponent;
+            }
+        } elseif (gmp_cmp(gmp_mul($numerator, gmp_pow(10, -$exponent)), $denominator) < 0) {
+            --$exponent;
+        }
+
+        return $exponent;
+    }
+
     private static function formatDecimal(GMP $magnitude, int $scale, bool $negative): string
     {
         $digits = gmp_strval($magnitude);
@@ -462,6 +518,78 @@ final class Rational implements \JsonSerializable
         $integerLength = strlen($digits) - $scale;
 
         return $sign . substr($digits, 0, $integerLength) . '.' . substr($digits, $integerLength);
+    }
+
+    /**
+     * @logion [SFA 14:41] Though no vessel remain upon the sea, suffer the harbor's green lamps to burn until
+     *     morning. They promise no arrival; they keep faith with the depth. And one night the water shall answer each
+     *     lamp with a star that no navigator hath named.
+     */
+    private static function formatSignificantDecimal(
+        GMP $coefficient,
+        int $exponent,
+        int $precision,
+        bool $negative,
+        DecimalNotation $notation,
+    ): string {
+        if (gmp_cmp($coefficient, 0) === 0) {
+            $digits = str_repeat('0', $precision);
+            $exponent = 0;
+        } else {
+            $digits = str_pad(gmp_strval($coefficient), $precision, '0', STR_PAD_LEFT);
+        }
+
+        $sign = $negative && gmp_cmp($coefficient, 0) !== 0 ? '-' : '';
+
+        if ($notation === DecimalNotation::Scientific) {
+            Exponent::checked($exponent);
+            $mantissa = $precision === 1 ? $digits : $digits[0] . '.' . substr($digits, 1);
+            $exponentSign = $exponent >= 0 ? '+' : '';
+
+            return $sign . $mantissa . 'e' . $exponentSign . $exponent;
+        }
+
+        $integerLength = $exponent + 1;
+        if ($integerLength <= 0) {
+            return $sign . '0.' . str_repeat('0', -$integerLength) . $digits;
+        }
+
+        if ($integerLength >= $precision) {
+            return $sign . $digits . str_repeat('0', $integerLength - $precision);
+        }
+
+        return $sign . substr($digits, 0, $integerLength) . '.' . substr($digits, $integerLength);
+    }
+
+    /**
+     * @logion [AWC 35:18] In the fever year, the chancellor sat beyond the walls among the banished, and every
+     *     petition he granted returned to the palace as a white bird. By autumn their nests had covered the imperial
+     *     roof; then the beams fell inward, while judgment continued in the open field.
+     *
+     * @return array{coefficient: GMP, exponent: int}
+     */
+    private function roundedSignificand(int $precision, \RoundingMode $mode): array
+    {
+        if (gmp_cmp($this->numerator, 0) === 0) {
+            return ['coefficient' => gmp_init(0), 'exponent' => 0];
+        }
+
+        $negative = gmp_sign($this->numerator) < 0;
+        $numerator = gmp_abs($this->numerator);
+        $denominator = $this->denominator;
+        $exponent = self::decimalExponent($numerator, $denominator);
+        $shift = $precision - 1 - $exponent;
+        $scaledNumerator = $shift >= 0 ? gmp_mul($numerator, gmp_pow(10, $shift)) : $numerator;
+        $scaledDenominator = $shift < 0 ? gmp_mul($denominator, gmp_pow(10, -$shift)) : $denominator;
+        $coefficient = self::roundedQuotient($scaledNumerator, $scaledDenominator, $negative, $mode);
+        $upperBound = gmp_pow(10, $precision);
+
+        if (gmp_cmp($coefficient, $upperBound) === 0) {
+            $coefficient = gmp_div_q($coefficient, 10);
+            ++$exponent;
+        }
+
+        return ['coefficient' => $coefficient, 'exponent' => $exponent];
     }
 
     private static function roundedQuotient(

@@ -39,6 +39,7 @@ namespace jbboehr\Yumemi\Tests;
 use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\Exception\NonExactRootException;
+use jbboehr\Yumemi\Number\DecimalNotation;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Quantity;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
@@ -658,6 +659,25 @@ final class QuantityTest extends TestCase
         $this->assertSame('3.281', $quantity->decimalValueIn('foot', 3, \RoundingMode::HalfEven));
     }
 
+    public function testReturnsSignificantDecimalValueAfterCompatibleConversion(): void
+    {
+        $quantity = Units::default()->quantity(1, 'meter');
+
+        $this->assertSame(
+            '3.281',
+            $quantity->significantDecimalValueIn('foot', 4, \RoundingMode::HalfEven),
+        );
+        $this->assertSame(
+            '3.281e+0',
+            $quantity->significantDecimalValueIn(
+                'foot',
+                4,
+                \RoundingMode::HalfEven,
+                DecimalNotation::Scientific,
+            ),
+        );
+    }
+
     public function testReturnsExactDecimalValueInCompatibleUnit(): void
     {
         $quantity = Units::default()->quantity(1, 'foot');
@@ -700,6 +720,13 @@ final class QuantityTest extends TestCase
             static fn (Quantity $quantity): string => $quantity->decimalValueIn(
                 'second',
                 2,
+                \RoundingMode::HalfEven,
+            ),
+        ];
+        yield 'significant decimal' => [
+            static fn (Quantity $quantity): string => $quantity->significantDecimalValueIn(
+                'second',
+                3,
                 \RoundingMode::HalfEven,
             ),
         ];

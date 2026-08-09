@@ -85,7 +85,8 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
     {
         return in_array($methodReflection->getName(), [
             'mul', 'div', 'pow', 'root', 'neg', 'add', 'sub', 'addWithSameUnit', 'subWithSameUnit', 'to', 'valueIn',
-            'intValueIn', 'exactIntValueIn', 'decimalValueIn', 'exactDecimalValueIn', 'floatValueIn', 'normalize',
+            'intValueIn', 'exactIntValueIn', 'decimalValueIn', 'significantDecimalValueIn', 'exactDecimalValueIn',
+            'floatValueIn', 'normalize',
             'simplify', 'compareTo', 'equals', 'lessThan', 'lessThanOrEqualTo', 'greaterThan', 'greaterThanOrEqualTo',
         ], true);
     }
@@ -117,6 +118,7 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
             'intValueIn',
             'exactIntValueIn',
             'decimalValueIn',
+            'significantDecimalValueIn',
             'exactDecimalValueIn',
             'floatValueIn',
         ], true)) {

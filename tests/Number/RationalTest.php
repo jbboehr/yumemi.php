@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\Tests\Number;
 
 use jbboehr\Yumemi\Exception\NonExactRootException;
+use jbboehr\Yumemi\Number\DecimalNotation;
 use jbboehr\Yumemi\Number\Rational;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -321,6 +322,251 @@ final class RationalTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         (new Rational(1, 2))->toDecimal(-1, \RoundingMode::HalfEven);
+    }
+
+    #[DataProvider('significantDecimalProvider')]
+    public function testFormatsSignificantDecimals(
+        Rational $rational,
+        int $precision,
+        \RoundingMode $mode,
+        DecimalNotation $notation,
+        string $expected,
+    ): void {
+        $this->assertSame($expected, $rational->toSignificantDecimal($precision, $mode, $notation));
+    }
+
+    /**
+     * @return iterable<string, array{Rational, int, \RoundingMode, DecimalNotation, string}>
+     */
+    public static function significantDecimalProvider(): iterable
+    {
+        yield 'plain rounds to significant digits' => [
+            Rational::fromDecimalString('12345.678'),
+            4,
+            \RoundingMode::HalfEven,
+            DecimalNotation::Plain,
+            '12350',
+        ];
+        yield 'scientific rounds to significant digits' => [
+            Rational::fromDecimalString('12345.678'),
+            4,
+            \RoundingMode::HalfEven,
+            DecimalNotation::Scientific,
+            '1.235e+4',
+        ];
+        yield 'plain zero preserves precision' => [
+            new Rational(0),
+            3,
+            \RoundingMode::HalfEven,
+            DecimalNotation::Plain,
+            '0.00',
+        ];
+        yield 'scientific zero preserves precision' => [
+            new Rational(0),
+            3,
+            \RoundingMode::HalfEven,
+            DecimalNotation::Scientific,
+            '0.00e+0',
+        ];
+        yield 'plain fractional trailing zeros' => [
+            Rational::fromDecimalString('1.2'),
+            4,
+            \RoundingMode::HalfEven,
+            DecimalNotation::Plain,
+            '1.200',
+        ];
+        yield 'plain integral trailing zeros remain textually ambiguous' => [
+            new Rational(1200),
+            4,
+            \RoundingMode::HalfEven,
+            DecimalNotation::Plain,
+            '1200',
+        ];
+        yield 'plain small value preserves significant trailing zeros' => [
+            Rational::fromDecimalString('0.0012'),
+            4,
+            \RoundingMode::HalfEven,
+            DecimalNotation::Plain,
+            '0.001200',
+        ];
+        yield 'non-terminating value is rounded' => [
+            new Rational(1, 3),
+            4,
+            \RoundingMode::HalfEven,
+            DecimalNotation::Scientific,
+            '3.333e-1',
+        ];
+        yield 'rounding carry changes exponent' => [
+            new Rational(9995),
+            3,
+            \RoundingMode::HalfEven,
+            DecimalNotation::Scientific,
+            '1.00e+4',
+        ];
+        yield 'one significant digit omits decimal point' => [
+            new Rational(15),
+            1,
+            \RoundingMode::HalfEven,
+            DecimalNotation::Scientific,
+            '2e+1',
+        ];
+        yield 'one exact significant digit remains visible' => [
+            new Rational(1),
+            1,
+            \RoundingMode::HalfEven,
+            DecimalNotation::Plain,
+            '1',
+        ];
+        yield 'negative scientific value retains sign' => [
+            new Rational(-1),
+            1,
+            \RoundingMode::HalfEven,
+            DecimalNotation::Scientific,
+            '-1e+0',
+        ];
+        yield 'negative small plain value retains sign and trailing zero' => [
+            new Rational(-1, 1000),
+            2,
+            \RoundingMode::HalfEven,
+            DecimalNotation::Plain,
+            '-0.0010',
+        ];
+        yield 'negative integral plain value retains sign' => [
+            new Rational(-1200),
+            2,
+            \RoundingMode::HalfEven,
+            DecimalNotation::Plain,
+            '-1200',
+        ];
+        yield 'exact positive power of ten keeps exponent' => [
+            new Rational(10),
+            2,
+            \RoundingMode::HalfEven,
+            DecimalNotation::Scientific,
+            '1.0e+1',
+        ];
+        yield 'exact negative power of ten keeps exponent' => [
+            new Rational(1, 10),
+            2,
+            \RoundingMode::HalfEven,
+            DecimalNotation::Scientific,
+            '1.0e-1',
+        ];
+        yield 'positive digit-length estimate is corrected' => [
+            new Rational(80000, 99),
+            3,
+            \RoundingMode::HalfEven,
+            DecimalNotation::Scientific,
+            '8.08e+2',
+        ];
+        yield 'negative digit-length estimate is corrected' => [
+            new Rational(1, 11),
+            2,
+            \RoundingMode::HalfEven,
+            DecimalNotation::Scientific,
+            '9.1e-2',
+        ];
+        yield 'half away from zero positive tie' => [
+            new Rational(5, 4),
+            2,
+            \RoundingMode::HalfAwayFromZero,
+            DecimalNotation::Plain,
+            '1.3',
+        ];
+        yield 'half towards zero positive tie' => [
+            new Rational(5, 4),
+            2,
+            \RoundingMode::HalfTowardsZero,
+            DecimalNotation::Plain,
+            '1.2',
+        ];
+        yield 'half even rounds even down' => [
+            new Rational(5, 4),
+            2,
+            \RoundingMode::HalfEven,
+            DecimalNotation::Plain,
+            '1.2',
+        ];
+        yield 'half odd rounds even up' => [
+            new Rational(5, 4),
+            2,
+            \RoundingMode::HalfOdd,
+            DecimalNotation::Plain,
+            '1.3',
+        ];
+        yield 'towards zero' => [
+            new Rational(129, 100),
+            2,
+            \RoundingMode::TowardsZero,
+            DecimalNotation::Plain,
+            '1.2',
+        ];
+        yield 'away from zero' => [
+            new Rational(121, 100),
+            2,
+            \RoundingMode::AwayFromZero,
+            DecimalNotation::Plain,
+            '1.3',
+        ];
+        yield 'positive infinity with negative value' => [
+            new Rational(-129, 100),
+            2,
+            \RoundingMode::PositiveInfinity,
+            DecimalNotation::Plain,
+            '-1.2',
+        ];
+        yield 'negative infinity with negative value' => [
+            new Rational(-121, 100),
+            2,
+            \RoundingMode::NegativeInfinity,
+            DecimalNotation::Plain,
+            '-1.3',
+        ];
+    }
+
+    public function testSignificantDecimalRejectsNonPositivePrecision(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Decimal precision must be positive.');
+
+        (new Rational(1))->toSignificantDecimal(0, \RoundingMode::HalfEven);
+    }
+
+    public function testSignificantDecimalRejectsExcessivePrecision(): void
+    {
+        $this->expectException(\OverflowException::class);
+        $this->expectExceptionMessage('Decimal precision 10001 exceeds the supported maximum of 10000.');
+
+        (new Rational(1))->toSignificantDecimal(10001, \RoundingMode::HalfEven);
+    }
+
+    public function testSignificantDecimalAcceptsMaximumPrecision(): void
+    {
+        $actual = (new Rational(1))->toSignificantDecimal(10000, \RoundingMode::HalfEven);
+
+        $this->assertSame(10001, strlen($actual));
+        $this->assertStringStartsWith('1.', $actual);
+        $this->assertStringEndsWith('0', $actual);
+    }
+
+    public function testScientificDecimalRejectsExcessivePositiveExponentAfterCarry(): void
+    {
+        $value = new Rational(gmp_mul(9995, gmp_pow(10, 9997)));
+
+        $this->expectException(\OverflowException::class);
+        $this->expectExceptionMessage('Exponent 10001 exceeds the supported range');
+
+        $value->toSignificantDecimal(3, \RoundingMode::HalfEven, DecimalNotation::Scientific);
+    }
+
+    public function testScientificDecimalRejectsExcessiveNegativeExponent(): void
+    {
+        $value = new Rational(1, gmp_pow(10, 10001));
+
+        $this->expectException(\OverflowException::class);
+        $this->expectExceptionMessage('Exponent -10001 exceeds the supported range');
+
+        $value->toSignificantDecimal(3, \RoundingMode::HalfEven, DecimalNotation::Scientific);
     }
 
     #[DataProvider('exactDecimalProvider')]

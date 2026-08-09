@@ -36,7 +36,7 @@ The principal supported surfaces are:
 - `Units`, `Quantity`, `PointQuantity`, `Rational`, and `Dimension`;
 - `Expr` values obtained from supported `Units` and value-object methods;
 - `UnitRegistryBuilder`, the documented `UnitRegistry` views, `CompositeUnitRegistry`, and `Udunits2UnitRegistry`;
-- `FormatOptions`, `ExprFormatter`, and the formatting policy enums;
+- `FormatOptions`, `ExprFormatter`, `DecimalNotation`, and the formatting policy enums;
 - descriptors and backed enums returned by `describe()` and `describePrefix()`; and
 - `ExceptionInterface`, documented exception categories and metadata, `ParseException`, and `SourceSpan`.
 

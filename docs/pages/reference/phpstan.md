@@ -384,8 +384,8 @@ The extension models current unit-sensitive methods, including:
 - arithmetic through `add()`, `sub()`, `addWithSameUnit()`, `subWithSameUnit()`, `mul()`, `div()`, `neg()`, `pow()`, and
   exact `root()`;
 - conversion through `to()` and `valueIn()`;
-- native extraction through `intValueIn()`, `exactIntValueIn()`, `decimalValueIn()`, `exactDecimalValueIn()`, and
-  `floatValueIn()`;
+- native extraction through `intValueIn()`, `exactIntValueIn()`, `decimalValueIn()`, `significantDecimalValueIn()`,
+  `exactDecimalValueIn()`, and `floatValueIn()`;
 - unit transformation through `normalize()` and `simplify()`;
 - comparisons through `compareTo()`, `equals()`, `lessThan()`, `lessThanOrEqualTo()`, `greaterThan()`, and
   `greaterThanOrEqualTo()`.

@@ -44,6 +44,7 @@ use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
+use jbboehr\Yumemi\Number\DecimalNotation;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Parser\SourceSpan;
@@ -70,6 +71,11 @@ final class RuntimeConformanceTest extends TestCase
             'pointDifferences',
             'pointTranslations',
             'deltaUnits',
+        ],
+        'numeric-output.json' => [
+            'rationalSignificantDecimals',
+            'quantitySignificantDecimals',
+            'pointSignificantDecimals',
         ],
         'errors.json' => ['cases'],
     ];
@@ -302,6 +308,70 @@ final class RuntimeConformanceTest extends TestCase
     /**
      * @param array<string, mixed> $case
      */
+    #[DataProvider('rationalSignificantDecimalProvider')]
+    public function testRationalSignificantDecimalConformance(array $case): void
+    {
+        $context = self::context('numeric-output.json', $case);
+        self::assertKeys($case, ['id', 'value', 'precision', 'rounding', 'notation', 'expected'], $context);
+
+        $actual = self::rational($case['value'] ?? null, $context . '.value')->toSignificantDecimal(
+            self::integer($case, 'precision', $context),
+            self::roundingMode($case, $context),
+            self::decimalNotation($case, $context),
+        );
+
+        self::assertSame(self::string($case, 'expected', $context), $actual, $context);
+    }
+
+    /**
+     * @param array<string, mixed> $case
+     */
+    #[DataProvider('quantitySignificantDecimalProvider')]
+    public function testQuantitySignificantDecimalConformance(array $case): void
+    {
+        $context = self::context('numeric-output.json', $case);
+        self::assertKeys(
+            $case,
+            ['id', 'quantity', 'target', 'precision', 'rounding', 'notation', 'expected'],
+            $context,
+        );
+
+        $actual = self::quantity($case['quantity'] ?? null, $context . '.quantity')->significantDecimalValueIn(
+            self::string($case, 'target', $context),
+            self::integer($case, 'precision', $context),
+            self::roundingMode($case, $context),
+            self::decimalNotation($case, $context),
+        );
+
+        self::assertSame(self::string($case, 'expected', $context), $actual, $context);
+    }
+
+    /**
+     * @param array<string, mixed> $case
+     */
+    #[DataProvider('pointSignificantDecimalProvider')]
+    public function testPointSignificantDecimalConformance(array $case): void
+    {
+        $context = self::context('numeric-output.json', $case);
+        self::assertKeys(
+            $case,
+            ['id', 'point', 'target', 'precision', 'rounding', 'notation', 'expected'],
+            $context,
+        );
+
+        $actual = self::point($case['point'] ?? null, $context . '.point')->significantDecimalValueIn(
+            self::string($case, 'target', $context),
+            self::integer($case, 'precision', $context),
+            self::roundingMode($case, $context),
+            self::decimalNotation($case, $context),
+        );
+
+        self::assertSame(self::string($case, 'expected', $context), $actual, $context);
+    }
+
+    /**
+     * @param array<string, mixed> $case
+     */
     #[DataProvider('errorProvider')]
     public function testErrorConformance(array $case): void
     {
@@ -435,6 +505,24 @@ final class RuntimeConformanceTest extends TestCase
     }
 
     /** @return iterable<string, array{array<string, mixed>}> */
+    public static function rationalSignificantDecimalProvider(): iterable
+    {
+        yield from self::provider('numeric-output.json', 'rationalSignificantDecimals');
+    }
+
+    /** @return iterable<string, array{array<string, mixed>}> */
+    public static function quantitySignificantDecimalProvider(): iterable
+    {
+        yield from self::provider('numeric-output.json', 'quantitySignificantDecimals');
+    }
+
+    /** @return iterable<string, array{array<string, mixed>}> */
+    public static function pointSignificantDecimalProvider(): iterable
+    {
+        yield from self::provider('numeric-output.json', 'pointSignificantDecimals');
+    }
+
+    /** @return iterable<string, array{array<string, mixed>}> */
     public static function errorProvider(): iterable
     {
         yield from self::provider('errors.json', 'cases');
@@ -525,6 +613,36 @@ final class RuntimeConformanceTest extends TestCase
     private static function context(string $file, array $case): string
     {
         return sprintf('%s:%s', pathinfo($file, PATHINFO_FILENAME), self::string($case, 'id', $file));
+    }
+
+    /**
+     * @param array<string, mixed> $case
+     */
+    private static function decimalNotation(array $case, string $context): DecimalNotation
+    {
+        return match (self::string($case, 'notation', $context)) {
+            'plain' => DecimalNotation::Plain,
+            'scientific' => DecimalNotation::Scientific,
+            default => throw new \UnexpectedValueException($context . '.notation is not recognized'),
+        };
+    }
+
+    /**
+     * @param array<string, mixed> $case
+     */
+    private static function roundingMode(array $case, string $context): \RoundingMode
+    {
+        return match (self::string($case, 'rounding', $context)) {
+            'towards-zero' => \RoundingMode::TowardsZero,
+            'away-from-zero' => \RoundingMode::AwayFromZero,
+            'negative-infinity' => \RoundingMode::NegativeInfinity,
+            'positive-infinity' => \RoundingMode::PositiveInfinity,
+            'half-away-from-zero' => \RoundingMode::HalfAwayFromZero,
+            'half-towards-zero' => \RoundingMode::HalfTowardsZero,
+            'half-even' => \RoundingMode::HalfEven,
+            'half-odd' => \RoundingMode::HalfOdd,
+            default => throw new \UnexpectedValueException($context . '.rounding is not recognized'),
+        };
     }
 
     private static function quantity(mixed $value, string $context): Quantity

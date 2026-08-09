@@ -47,6 +47,7 @@ use jbboehr\Yumemi\Exception\UnexpectedValueException;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Formatter\FormatOptions;
 use jbboehr\Yumemi\Internal\DeserializationContext;
+use jbboehr\Yumemi\Number\DecimalNotation;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Parser\Parser;
 
@@ -269,6 +270,19 @@ final class Quantity implements \JsonSerializable
     public function decimalValueIn(Expr|string $unit, int $scale, \RoundingMode $mode): string
     {
         return $this->valueIn($unit)->toDecimal($scale, $mode);
+    }
+
+    /**
+     * @logion [RAS 69:17] At the eclipse, a silver orchard appeared upon the sun, its branches heavy with unopened
+     *     eyes. None looked away; and when light returned, the blind alone remembered the color of judgment.
+     */
+    public function significantDecimalValueIn(
+        Expr|string $unit,
+        int $precision,
+        \RoundingMode $mode,
+        DecimalNotation $notation = DecimalNotation::Plain,
+    ): string {
+        return $this->valueIn($unit)->toSignificantDecimal($precision, $mode, $notation);
     }
 
     public function exactIntValueIn(Expr|string $unit): int

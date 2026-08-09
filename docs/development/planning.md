@@ -251,9 +251,10 @@ Exact `Rational` storage remains authoritative, and every native conversion is e
 termination, overflow, underflow, and PHPStan-branding policies are maintained in
 [Native Numeric Output](../pages/reference/runtime.md#native-numeric-output).
 
-Future formatting work should add significant-digit and scientific-notation APIs separately rather than overloading
-fixed-scale semantics. A future policy API may also allow callers to request IEEE infinity or zero on float range loss;
-the default exact-to-native boundary should remain strict.
+Significant-digit output is separate from fixed-scale output: `toDecimal()` always interprets its integer as decimal
+places, while `toSignificantDecimal()` always interprets it as significant precision. `DecimalNotation` renders the same
+rounded coefficient in plain or scientific form. A future policy API may allow callers to request IEEE infinity or zero
+on float range loss; the default exact-to-native boundary should remain strict.
 
 ## Design Choices
 
@@ -560,7 +561,6 @@ repeat the implementation's assumptions:
 
 - Logarithmic units
 - Exact rational powers beyond integer-degree roots; approximate results require explicit precision and rounding
-- Significant-digit and scientific-notation numeric formatting
 - Configurable alternatives to the current strict float policy, which rejects non-finite input, overflow to infinity,
   and nonzero exact results that underflow to zero
 - GNU Units import

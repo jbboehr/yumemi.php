@@ -1,0 +1,57 @@
+{
+    "schema": "yumemi.conformance/v1",
+    "rationalSignificantDecimals": [
+        {
+            "id": "non-terminating-rational-plain",
+            "value": { "numerator": "1", "denominator": "3" },
+            "precision": 4,
+            "rounding": "half-even",
+            "notation": "plain",
+            "expected": "0.3333"
+        },
+        {
+            "id": "rounding-carry-scientific",
+            "value": { "numerator": "9995", "denominator": "1" },
+            "precision": 3,
+            "rounding": "half-even",
+            "notation": "scientific",
+            "expected": "1.00e+4"
+        },
+        {
+            "id": "zero-preserves-scientific-precision",
+            "value": { "numerator": "0", "denominator": "1" },
+            "precision": 3,
+            "rounding": "half-even",
+            "notation": "scientific",
+            "expected": "0.00e+0"
+        }
+    ],
+    "quantitySignificantDecimals": [
+        {
+            "id": "quantity-converts-before-significant-rounding",
+            "quantity": {
+                "value": { "numerator": "1", "denominator": "1" },
+                "unit": "meter"
+            },
+            "target": "foot",
+            "precision": 4,
+            "rounding": "half-even",
+            "notation": "plain",
+            "expected": "3.281"
+        }
+    ],
+    "pointSignificantDecimals": [
+        {
+            "id": "point-converts-before-significant-rounding",
+            "point": {
+                "value": { "numerator": "32", "denominator": "1" },
+                "unit": "fahrenheit"
+            },
+            "target": "celsius",
+            "precision": 3,
+            "rounding": "half-even",
+            "notation": "scientific",
+            "expected": "0.00e+0"
+        }
+    ]
+}

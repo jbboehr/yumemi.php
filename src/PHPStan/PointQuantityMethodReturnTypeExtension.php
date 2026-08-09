@@ -95,6 +95,7 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
             'intValueIn',
             'exactIntValueIn',
             'decimalValueIn',
+            'significantDecimalValueIn',
             'exactDecimalValueIn',
             'floatValueIn',
             'compareTo',
@@ -139,6 +140,7 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
             'intValueIn',
             'exactIntValueIn',
             'decimalValueIn',
+            'significantDecimalValueIn',
             'exactDecimalValueIn',
             'floatValueIn',
         ], true)) {

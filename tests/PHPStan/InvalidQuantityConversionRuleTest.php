@@ -81,35 +81,39 @@ final class InvalidQuantityConversionRuleTest extends RuleTestCase
                 14,
             ],
             [
-                'Cannot call Quantity::exactDecimalValueIn() with dimensionally incompatible units meter (length) and second (time).',
+                'Cannot call Quantity::significantDecimalValueIn() with dimensionally incompatible units meter (length) and second (time).',
                 15,
             ],
             [
-                'Cannot call Quantity::floatValueIn() with dimensionally incompatible units meter (length) and second (time).',
+                'Cannot call Quantity::exactDecimalValueIn() with dimensionally incompatible units meter (length) and second (time).',
                 16,
             ],
             [
-                'Unit not found: not_a_real_unit_xyz.',
+                'Cannot call Quantity::floatValueIn() with dimensionally incompatible units meter (length) and second (time).',
                 17,
             ],
             [
+                'Unit not found: not_a_real_unit_xyz.',
+                18,
+            ],
+            [
                 'Cannot call Quantity::to() with dimensionally incompatible units meter (length) and second (time).',
-                25,
+                26,
             ],
             [
                 "Syntax error, unexpected '/' at line 1, column 9 (byte offset 8).\n"
                     . "| meter * / second\n"
                     . '|         ^',
-                36,
+                38,
             ],
             [
                 'Unit "degree_Celsius" uses affine semantics, which are not supported by multiplicative unit algebra (definition: K @ 273.15).',
-                37,
+                39,
             ],
             [
                 'Cannot call Quantity::to() with dimensionally incompatible units second (time) '
                     . 'and international_foot (length).',
-                54,
+                57,
             ],
         ]);
     }
