@@ -40,7 +40,7 @@ and release-style consumer archive.
 | Parallel local test suite         | `composer test:parallel`                                     | None beyond installed dependencies       |
 | One PHPStan rule test             | `composer test -- tests/PHPStan/InvalidUnitCallRuleTest.php` | None beyond installed dependencies       |
 | Static-analysis-only iteration    | `composer analyse`                                           | None beyond installed dependencies       |
-| Public documentation              | `composer docs:check`                                        | mdBook                                   |
+| Documentation build and links     | `composer docs:check`                                        | mdBook                                   |
 | Benchmarks                        | `composer benchmark:smoke`                                   | None beyond installed dependencies       |
 | Package or extension registration | `composer test:consumer:archive`                             | Network access for the isolated consumer |
 | Complete non-Nix verification     | `composer check:full`                                        | mdBook and consumer network access       |
@@ -91,12 +91,14 @@ Internal documents are not included in the generated site.
 With Composer dependencies installed, build or preview the public documentation with:
 
 ```shell
-make docs
-make docs-serve
+composer docs
+composer docs:serve
 ```
 
 The generated site is written to `build/docs`. [Akashi](https://github.com/jbboehr/akashi.php) discovers PHP examples in
 the public documentation, executes them through PHPUnit, and verifies PHPStan-relevant examples and `//!` diagnostics.
+Run `composer test -- tests/Documentation` for focused example verification; use `composer check:full` before submitting
+a public-documentation change.
 
 ## Definitions
 

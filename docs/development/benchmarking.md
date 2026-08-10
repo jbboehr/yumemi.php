@@ -76,9 +76,9 @@ composer benchmark:perf
 composer benchmark:perf -- --group=comparison
 ```
 
-The profile records CPU clock, retired instructions, page faults, and context switches. The adapter is installed from
-its unreleased `develop` branch because that branch normalizes counters by revolutions and supplies the custom report.
-Composer locks the exact commit.
+The profile records CPU clock, retired instructions, page faults, and context switches. The adapter is installed from an
+unreleased development branch that normalizes counters by revolutions and supplies the custom report. Composer locks the
+exact commit.
 
 The normal `benchmark` and `benchmark:smoke` commands do not load the adapter or require `ext-perfidious`. Hardware
 counters are deliberately excluded from CI because GitHub-hosted virtualization may not expose them. Local execution may

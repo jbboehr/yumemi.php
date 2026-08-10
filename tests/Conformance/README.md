@@ -42,7 +42,7 @@ spans are half-open byte ranges into the fixture input.
 From the repository root:
 
 ```shell
-vendor/bin/phpunit --no-coverage tests/Conformance
+composer test -- tests/Conformance
 ```
 
 The normal PHPUnit suite discovers these tests automatically.

@@ -510,6 +510,10 @@ repeat the implementation's assumptions:
   underflow. The remaining survivors are equivalent normalization and zero fast paths, scaling by one, sign guards,
   casts, or exception prose. Four timeouts remove progress or termination from denominator reduction for terminating
   decimals. The audit found no runtime defect.
+- Add a machine-checked inventory of stable public `yumemi.*` diagnostic identifiers. It should prove that every public
+  rule identifier is represented in the compatibility policy and PHPStan reference, and that every listed identifier has
+  an emitting implementation and representative suppression coverage. Do not treat configuration keys, result-cache
+  metadata, or human-readable diagnostic prose as identifiers governed by that inventory.
 - After the first public release establishes a compatibility baseline, run an API compatibility checker such as Roave
   Backward Compatibility Check against the latest release tag. Treat intentional breaking changes through an explicit
   versioning policy instead of weakening or bypassing the check.

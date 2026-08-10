@@ -1,6 +1,6 @@
 # Pint Feature Comparison
 
-Snapshot date: 2026-08-05
+Snapshot date: 2026-08-09
 
 This document compares Yumemi with Python's Pint library to identify useful capabilities and deliberate differences. It
 is a feature comparison, not the project roadmap. Current priorities, architectural risks, and deferred work belong in
@@ -78,7 +78,8 @@ plurals, and safe generated plurals. A small authored supplement adds nominal ra
 without changing the generated catalog's provenance. Lookup is case-sensitive, exact names precede prefix decomposition,
 and introspection preserves spelling provenance and semantic capabilities.
 
-Future work is primarily indexing and performance optimization for bulk introspection and formatting.
+Generated indexes now remove repeated whole-catalog grouping from bulk introspection. Additional registry optimization
+should follow a concrete profile rather than assuming indexing remains unfinished.
 
 ### 4. Custom Unit Definitions
 
@@ -255,9 +256,10 @@ Status: **Partial** | Importance: **P2** | Remaining difficulty: **L**
 
 Exact integer `pow()` exists for rational magnitudes, expressions, dimensions, quantities, and PHPStan inference.
 `Rational::root()`, `Dimension::root()`, and `Quantity::root()` support exact positive integer-degree roots while
-keeping unit powers integral and symbolic substitution explicit. General rational powers, approximate real powers,
-trigonometric functions, logarithms, and exponentials remain absent. Approximate functions need a separate precision and
-rounding contract.
+keeping unit powers integral and symbolic substitution explicit. Native branded `sqrt()` transforms an exact symbolic
+square unit and diagnoses non-rootable brands. General rational powers, approximate real powers, trigonometric
+functions, logarithms, and exponentials remain absent. Approximate functions need a separate precision and rounding
+contract.
 
 ### 21. Static Analysis With PHPStan
 
@@ -273,10 +275,12 @@ stubs without expanding core's dependency graph. Branded integer constants and P
 propagate through supported arithmetic, allowing exact bounds to distinguish safe integer results, guaranteed float
 overflow, and mixed outcomes. Integer-brand extraction inspects only direct values and immediate intersection
 constraints, so callables, arrays, and other compound types retain nested brands without collapsing into integers.
-Explicit integer/float casts and `abs()`, `ceil()`, `floor()`, and `round()` preserve native brands. Remaining work is
-branded float precision, additional built-ins justified by real workflows, more precise diagnostics, and future advanced
-unit semantics. Dynamic native-helper expressions are diagnosed by default; explicit runtime parsing APIs remain
-dynamic, while deliberately suppressed or configured native-helper calls retain their declared unbranded fallback type.
+Explicit integer/float casts and `abs()`, `ceil()`, `floor()`, and `round()` preserve native brands. `min()` and `max()`
+preserve one definitionally equivalent brand across every possible returning candidate, while native `sqrt()` transforms
+exact symbolic square units. Remaining work is branded float precision, additional built-ins justified by real
+workflows, more precise diagnostics, and future advanced unit semantics. Dynamic native-helper expressions are diagnosed
+by default; explicit runtime parsing APIs remain dynamic, while deliberately suppressed or configured native-helper
+calls retain their declared unbranded fallback type.
 
 ### 22. Function Boundary Checking
 
@@ -391,8 +395,8 @@ only where users need more precise suppression.
 Status: **Done for the current public surface** | Importance: **P1** | Remaining difficulty: **S/M**
 
 The root README is a concise landing page, and mdBook contains focused concept, PHPStan, syntax, runtime, and catalog
-guides. Public PHP examples execute under PHPUnit, PHPStan-relevant examples verify expected diagnostics, and mdBook is
-built through Composer and Make.
+guides. Akashi discovers public PHP examples for execution under PHPUnit and verifies PHPStan-relevant examples against
+their expected diagnostics. The mdBook build and link check remain available through Composer and Make.
 
 Documentation must continue to evolve with behavior, but the missing infrastructure and organization from the original
 comparison are now present.
