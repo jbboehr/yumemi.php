@@ -594,6 +594,15 @@ repeat the implementation's assumptions:
   `Scope`, but moved the local median only from about 2.898 to 2.886 seconds (roughly 0.4%); the cache was therefore
   discarded. Do not apply node-level memoization to helpers or roots by analogy. Profile the helper path to identify a
   material repeated operation before adding cache state; root analysis is already comparatively cheap.
+- The 2026-08-09 native-helper profiling pass measured a byte-identical 400-case pair at about 2.766 seconds without
+  Yumemi and 2.989 seconds with it, placing the extension's helper-fixture cost near 222 milliseconds. Focused
+  one-helper pairs attributed roughly 114 milliseconds each to `unit()` and `unit_factor()` and 124 milliseconds to
+  `unit_to()`, so no helper is a singular hotspot. In a separate 20-case Xdebug profile, all helper inference and
+  diagnostic entry points accounted for about 104 milliseconds of 3.61 instrumented seconds; parser calls accounted for
+  49 milliseconds, argument lookup for 3.3, and finite-string extraction for 1.3. The rule and return extensions receive
+  different `FiberScope` and `MutatingScope` wrappers, so an exact node-and-scope cache cannot share their analyses,
+  while a node-only cache would risk stale scope-dependent types. Retain the controlled benchmark, but do not add helper
+  cache state without a new profile identifying safely reusable material work.
 - Dimensional analysis intentionally cannot distinguish semantically different quantities with the same dimension, such
   as gray and sievert.
 - Exact catalog decimals for angles can normalize to large rationals; this is correct but can produce unwieldy display

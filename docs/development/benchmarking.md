@@ -46,20 +46,23 @@ composer benchmark:phpstan -- --cases=200 --workload=all
 The harness generates deterministic fixtures for extension-free and Yumemi-enabled startup, extension-free and
 Yumemi-enabled scalar analysis, PHPDoc type resolution (`types`), native operators and ranges (`operators`), `abs()`
 preservation (`preserving`), `min()`/`max()` inference (`extrema`), `sqrt()` inference (`roots`), their combined
-`builtins` workload, native helpers, combined branded inference, quantity and affine inference, optional `@yumemi-*`
-promotion, and a mixed application workload. Every measured process receives a fresh PHPStan temporary directory,
-preventing the result cache from skipping analysis. Repeated unit strings within one fixture are intentional: they
-exercise parser and semantic caches during a realistic long-running analysis process.
+`builtins` workload, extension-free and Yumemi-enabled native helpers (`helper-baseline` and `helpers`), combined
+branded inference, quantity and affine inference, optional `@yumemi-*` promotion, and a mixed application workload.
+Every measured process receives a fresh PHPStan temporary directory, preventing the result cache from skipping analysis.
+Repeated unit strings within one fixture are intentional: they exercise parser and semantic caches during a realistic
+long-running analysis process.
 
 The `baseline`/`bootstrap` pair compares minimal analyzer startup without and with Yumemi. The `plain`/`scalar` pair
 compares the same ordinary numeric fixture without and with Yumemi, exposing adapter callbacks that decline unbranded
 expressions. Compare scalar and branded workloads only as directional evidence: their source shapes are similar but not
-identical. Use multiple fixture sizes to distinguish mostly fixed startup cost from work that scales with analyzed
-declarations. The reported wall times are local diagnostic measurements, not cross-machine performance guarantees or CI
-thresholds. The default run uses the representative workloads; `--workload=all` additionally runs the focused type,
-operator, preserving-function, extrema, root, combined-built-in, and helper subjects. Each workload is deliberately one
-generated source file, so PHPStan has nothing to parallelize; the harness measures stable single-process analysis rather
-than project-scale parallel throughput.
+identical. The `helper-baseline`/`helpers` pair is byte-identical and differs only in whether Yumemi is enabled, so it
+isolates extension overhead for the native helper fixture. Use multiple fixture sizes to distinguish mostly fixed
+startup cost from work that scales with analyzed declarations. The reported wall times are local diagnostic
+measurements, not cross-machine performance guarantees or CI thresholds. The default run uses the representative
+workloads; `--workload=all` additionally runs the focused type, operator, preserving-function, extrema, root,
+combined-built-in, and controlled helper subjects. Each workload is deliberately one generated source file, so PHPStan
+has nothing to parallelize; the harness measures stable single-file analysis rather than project-scale parallel
+throughput.
 
 ## Hardware Performance Counters
 

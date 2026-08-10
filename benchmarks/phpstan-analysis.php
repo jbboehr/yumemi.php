@@ -49,6 +49,7 @@ const PHPSTAN_WORKLOADS = [
     'extrema',
     'roots',
     'builtins',
+    'helper-baseline',
     'helpers',
     'native',
     'quantity',
@@ -106,7 +107,7 @@ function main(array $options): int
                     $root,
                     $temporaryRoot,
                     $run,
-                    $workload !== 'baseline' && $workload !== 'plain',
+                    !in_array($workload, ['baseline', 'plain', 'helper-baseline'], true),
                     $workload === 'tags' || $workload === 'mixed',
                 );
                 $elapsed = analyseFixture($root, $configuration, $fixture);
@@ -125,11 +126,11 @@ function main(array $options): int
         removeDirectory($temporaryRoot);
     }
 
-    printf("%-12s %12s %12s %12s\n", 'workload', 'median', 'minimum', 'maximum');
-    printf("%-12s %12s %12s %12s\n", str_repeat('-', 12), str_repeat('-', 12), str_repeat('-', 12), str_repeat('-', 12));
+    printf("%-15s %12s %12s %12s\n", 'workload', 'median', 'minimum', 'maximum');
+    printf("%-15s %12s %12s %12s\n", str_repeat('-', 15), str_repeat('-', 12), str_repeat('-', 12), str_repeat('-', 12));
     foreach ($results as $workload => $samples) {
         printf(
-            "%-12s %9.2f ms %9.2f ms %9.2f ms\n",
+            "%-15s %9.2f ms %9.2f ms %9.2f ms\n",
             $workload,
             median($samples) * 1000,
             min($samples) * 1000,
@@ -248,6 +249,7 @@ PHP;
         'extrema' => renderCases('extrema', $cases),
         'roots' => renderCases('roots', $cases),
         'builtins' => renderCases('builtins', $cases),
+        'helper-baseline' => renderCases('helpers', $cases),
         'helpers' => renderCases('helpers', $cases),
         'native' => renderCases('native', $cases),
         'quantity' => renderCases('quantity', $cases),
