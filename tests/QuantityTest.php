@@ -528,6 +528,26 @@ final class QuantityTest extends TestCase
         $this->assertFalse($units->quantity(-1, 'meter')->isZero());
     }
 
+    public function testChecksQuantityCompatibilityWithoutConverting(): void
+    {
+        $units = Units::default();
+        $meters = $units->quantity(1, 'meter');
+
+        $this->assertTrue($meters->isCompatibleWith($units->quantity(1, 'foot')));
+        $this->assertTrue($meters->isCompatibleWith($units->quantity(1, 'kilometer')));
+        $this->assertFalse($meters->isCompatibleWith($units->quantity(1, 'second')));
+    }
+
+    public function testQuantitiesFromDifferentContextsAreNotCompatible(): void
+    {
+        $left = new Units(new Udunits2UnitRegistry());
+        $right = new Units(new Udunits2UnitRegistry());
+
+        $this->assertFalse(
+            $left->quantity(1, 'meter')->isCompatibleWith($right->quantity(1, 'meter')),
+        );
+    }
+
     public function testRejectsMultiplicationAcrossDifferentUnitsContexts(): void
     {
         $this->expectException(IncompatibleQuantityContextException::class);

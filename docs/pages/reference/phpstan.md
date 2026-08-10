@@ -428,8 +428,9 @@ The extension models current unit-sensitive methods, including:
 - comparisons through `compareTo()`, `equals()`, `lessThan()`, `lessThanOrEqualTo()`, `greaterThan()`, and
   `greaterThanOrEqualTo()`.
 
-`isZero()` returns an ordinary native `bool` from its declared signature and requires no unit-specific return-type
-inference.
+`isZero()` and `isCompatibleWith()` return ordinary native `bool` values from their declared signatures and require no
+unit-specific return-type inference. A compatibility check remains valid when PHPStan knows the dimensions differ: its
+result is `false`, not a diagnostic.
 
 Known invalid arithmetic, construction, conversion, and comparison calls produce standalone diagnostics even when the
 method result is unused. A branded magnitude supplied to `Units::quantity()` must match the unit being assigned:

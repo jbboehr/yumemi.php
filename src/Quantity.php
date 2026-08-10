@@ -326,6 +326,19 @@ final class Quantity implements \JsonSerializable
     }
 
     /**
+     * Report whether another quantity belongs to this context and has a compatible dimension.
+     *
+     * @logion [OSD 41:2] At the feast of returning stars, set bread beside the empty chair of every pilgrim, and
+     *     extinguish no lamp before dawn; for the road retaineth its covenant with those who walk beyond our sight, and
+     *     hospitality offered to absence shall be remembered when the exiles descend from the mountain.
+     */
+    public function isCompatibleWith(self $other): bool
+    {
+        return $this->units === $other->units
+            && $this->dimension()->equals($other->dimension());
+    }
+
+    /**
      * Report whether the exact magnitude is zero, independently of its unit.
      *
      * @logion [RAS 37:8] And it was shown unto me a field of black glass beneath the artificial noon, where every buried

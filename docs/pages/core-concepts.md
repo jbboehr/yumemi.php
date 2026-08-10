@@ -100,25 +100,26 @@ value remains a string until an explicit integer or float cast moves it into num
 
 ## Choose An Operation
 
-| Goal                                                     | Operation                                            |
-| -------------------------------------------------------- | ---------------------------------------------------- |
-| Brand an existing native magnitude                       | `unit()` or a `unit_int` / `unit_float` PHPDoc type  |
-| Label an exact magnitude without converting it           | `Units::quantity()`                                  |
-| Parse one string containing a magnitude and unit         | `Units::parseQuantity()`                             |
-| Construct an exact coordinate point                      | `Units::point()`                                     |
-| Construct a multiplicative coordinate difference         | `Units::deltaQuantity()`                             |
-| Check whether two units share a dimension                | `Units::areCompatible()`                             |
-| Convert an exact magnitude                               | `Units::convert()` or `Quantity::to()` / `valueIn()` |
-| Convert a native scalar                                  | `unit_to()` or `Units::convertFloat()`               |
-| Obtain an exact multiplicative factor                    | `Units::conversionFactor()`                          |
-| Obtain a native factor whose static units cancel         | `unit_factor()`                                      |
-| Take an exact root without implicit unit substitution    | `Quantity::root()`                                   |
-| Take an exact absolute value                             | `Quantity::abs()`                                    |
-| Test an exact magnitude for zero                         | `Quantity::isZero()`                                 |
-| Substitute definitions without changing stored magnitude | `Quantity::normalize()`                              |
-| Substitute definitions and fold scale into magnitude     | `Quantity::simplify()`                               |
-| Request a particular target unit                         | `Quantity::to()`                                     |
-| Change names, symbols, typography, or division layout    | Formatting APIs                                      |
+| Goal                                                       | Operation                                            |
+| ---------------------------------------------------------- | ---------------------------------------------------- |
+| Brand an existing native magnitude                         | `unit()` or a `unit_int` / `unit_float` PHPDoc type  |
+| Label an exact magnitude without converting it             | `Units::quantity()`                                  |
+| Parse one string containing a magnitude and unit           | `Units::parseQuantity()`                             |
+| Construct an exact coordinate point                        | `Units::point()`                                     |
+| Construct a multiplicative coordinate difference           | `Units::deltaQuantity()`                             |
+| Check whether two units share a dimension                  | `Units::areCompatible()`                             |
+| Check whether two quantities share a context and dimension | `Quantity::isCompatibleWith()`                       |
+| Convert an exact magnitude                                 | `Units::convert()` or `Quantity::to()` / `valueIn()` |
+| Convert a native scalar                                    | `unit_to()` or `Units::convertFloat()`               |
+| Obtain an exact multiplicative factor                      | `Units::conversionFactor()`                          |
+| Obtain a native factor whose static units cancel           | `unit_factor()`                                      |
+| Take an exact root without implicit unit substitution      | `Quantity::root()`                                   |
+| Take an exact absolute value                               | `Quantity::abs()`                                    |
+| Test an exact magnitude for zero                           | `Quantity::isZero()`                                 |
+| Substitute definitions without changing stored magnitude   | `Quantity::normalize()`                              |
+| Substitute definitions and fold scale into magnitude       | `Quantity::simplify()`                               |
+| Request a particular target unit                           | `Quantity::to()`                                     |
+| Change names, symbols, typography, or division layout      | Formatting APIs                                      |
 
 The important semantic boundaries are documented once in the references:
 

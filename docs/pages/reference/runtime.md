@@ -31,6 +31,7 @@ needs arise.
 | Reject implicit unit conversion                     | `Quantity::addWithSameUnit()`           |
 | Take the exact absolute value of a quantity         | `Quantity::abs()`                       |
 | Test whether an exact quantity is zero              | `Quantity::isZero()`                    |
+| Check whether two quantities are compatible         | `Quantity::isCompatibleWith()`          |
 | Select symbols or Unicode notation                  | `FormatOptions` and formatting methods  |
 
 `exactDecimalValueIn()` throws when the exact rational result has a non-terminating decimal expansion. Use
@@ -223,6 +224,10 @@ only the exact converted magnitude and leaves the quantity unchanged.
 `compareTo()`, `equals()`, `lessThan()`, `lessThanOrEqualTo()`, `greaterThan()`, and `greaterThanOrEqualTo()` convert a
 compatible right operand exactly before comparing. Incompatible dimensions throw `IncompatibleUnitException`.
 
+`isCompatibleWith()` checks whether two quantities belong to the same `Units` context and have compatible dimensions. It
+returns `false` for a different context or dimension; it does not convert either magnitude or throw merely because the
+quantities are incompatible.
+
 Do not use PHP's object comparison operators as unit-aware comparisons. They compare PHP object state rather than
 Yumemi's conversion semantics.
 
@@ -238,6 +243,8 @@ assert($meter->equals($units->quantity(100, 'centimeter')));
 assert($meter->greaterThan($units->quantity(3, 'foot')));
 assert($meter->lessThan($units->quantity(4, 'foot')));
 assert($meter->compareTo($units->quantity(1000, 'millimeter')) === 0);
+assert($meter->isCompatibleWith($units->quantity(1, 'foot')));
+assert(!$meter->isCompatibleWith($units->quantity(1, 'second')));
 
 $rate = $units->quantity(2, 'centimeter / second')->div($units->quantity(3, 'foot'));
 

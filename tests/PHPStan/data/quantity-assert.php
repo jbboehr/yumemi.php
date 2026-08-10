@@ -142,6 +142,7 @@ function rootReceiverUnion(Quantity $quantity): void
 assertType("Quantity<'meter'>", $m->abs());
 assertType("Quantity<'meter'>", $m->neg());
 assertType('bool', $m->isZero());
+assertType('bool', $m->isCompatibleWith($s));
 
 /** @param Quantity<'meter'>|Quantity<'second'> $quantity */
 function absoluteReceiverUnion(Quantity $quantity): void
