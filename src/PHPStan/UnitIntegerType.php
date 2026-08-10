@@ -41,6 +41,7 @@ use PHPStan\Type\AcceptsResult;
 use PHPStan\Type\IntegerType;
 use PHPStan\Type\IsSuperTypeOfResult;
 use PHPStan\Type\Type;
+use PHPStan\Type\UnionType;
 use PHPStan\Type\VerbosityLevel;
 
 /**
@@ -75,6 +76,19 @@ final class UnitIntegerType extends IntegerType
 
     public function accepts(Type $type, bool $strictTypes): AcceptsResult
     {
+        $types = $type instanceof UnionType ? $type->getTypes() : [$type];
+        foreach ($types as $innerType) {
+            if (UnitNumericStringType::extractUnit($innerType) !== null) {
+                return AcceptsResult::createNo([
+                    sprintf(
+                        "Unit %s must be explicitly cast before assignment to unit_int<'%s'>.",
+                        $type->describe(VerbosityLevel::typeOnly()),
+                        $this->unit->displayString,
+                    ),
+                ]);
+            }
+        }
+
         $metadata = UnitIntegerTypeHelper::extract($type);
         if ($metadata !== null) {
             if ($this->unit->equivalent($metadata['unit'])) {

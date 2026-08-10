@@ -52,6 +52,15 @@ function currentSpeed(): float
 }
 
 /**
+ * @return numeric-string
+ * @yumemi-return unit_numeric_string<'second'>
+ */
+function configuredDelay(): string
+{
+    return '30';
+}
+
+/**
  * @yumemi-return Quantity<'newton'>
  */
 function appliedForce(Units $units): Quantity

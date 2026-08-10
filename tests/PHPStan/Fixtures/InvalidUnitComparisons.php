@@ -75,3 +75,34 @@ function compareUnitAndObject(int|\stdClass $value): void
     $value === unit(1, 'meter');
     unit(1, 'meter') !== $value;
 }
+
+/** @var unit_numeric_string<'meter'> $meterText */
+$meterText = '1';
+/** @var unit_numeric_string<'100 * centimeter'> $equivalentMeterText */
+$equivalentMeterText = '1';
+/** @var unit_numeric_string<'second'> $secondText */
+$secondText = '1';
+/** @var numeric-string $bareText */
+$bareText = '1';
+
+// Valid: numeric-string and native brands carry definitionally equivalent units.
+$meterText == $equivalentMeterText;
+$meterText <=> $meters;
+
+$meterText == $secondText;
+$meterText === $secondText;
+$meterText < $seconds;
+$meterText === $bareText;
+$bareText == $meterText;
+
+/**
+ * @param unit_numeric_string<'meter'>|unit_numeric_string<'second'> $value
+ * @param unit_numeric_string<'meter'> $meters
+ */
+function compareNumericStringUnion(string $value, string $meters): void
+{
+    $value == $meters;
+}
+
+// Valid: the comparison rule ignores non-comparison binary operations.
+$meters + $seconds;

@@ -332,6 +332,7 @@ final class YumemiDocTagPromoter extends NodeVisitorAbstract
             if (
                 $inner instanceof UnitIntegerType
                 || $inner instanceof UnitFloatType
+                || $inner instanceof UnitNumericStringType
                 || $inner instanceof QuantityType
                 || $inner instanceof PointQuantityType
             ) {
@@ -347,7 +348,8 @@ final class YumemiDocTagPromoter extends NodeVisitorAbstract
 
         return $hasUnit
             ? null
-            : "expected a type containing unit_int<'...'>, unit_float<'...'>, Quantity<'...'>, or PointQuantity<'...'>.";
+            : "expected a type containing unit_int<'...'>, unit_float<'...'>, unit_numeric_string<'...'>, "
+                . "Quantity<'...'>, or PointQuantity<'...'>.";
     }
 
     /**

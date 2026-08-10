@@ -13,6 +13,12 @@ $float = unit(1.5, 'second');
 assertType("unit_int<'second'>", (int) $float);
 assertType("unit_float<'second'>", (float) $float);
 
+/** @var unit_numeric_string<'second'> $numericString */
+$numericString = '30';
+assertType("unit_int<'second'>", (int) $numericString);
+assertType("unit_float<'second'>", (float) $numericString);
+assertType('float|int', $numericString + 0);
+
 /** @param int<-5, 10> $value */
 function assertBrandedRangeCasts(int $value): void
 {

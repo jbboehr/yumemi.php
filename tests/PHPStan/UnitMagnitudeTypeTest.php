@@ -40,9 +40,16 @@ use jbboehr\Yumemi\PHPStan\UnitExpressionParser;
 use jbboehr\Yumemi\PHPStan\UnitFloatType;
 use jbboehr\Yumemi\PHPStan\UnitIntegerType;
 use jbboehr\Yumemi\PHPStan\UnitIntegerTypeHelper;
+use jbboehr\Yumemi\PHPStan\UnitNumericStringType;
+use PHPStan\Type\Accessory\AccessoryLiteralStringType;
+use PHPStan\Type\Accessory\AccessoryNumericStringType;
+use PHPStan\Type\ArrayType;
 use PHPStan\Type\FloatType;
 use PHPStan\Type\IntegerType;
+use PHPStan\Type\IntersectionType;
 use PHPStan\Type\StringType;
+use PHPStan\Type\TypeCombinator;
+use PHPStan\Type\UnionType;
 use PHPStan\Type\VerbosityLevel;
 use PHPUnit\Framework\TestCase;
 
@@ -63,6 +70,97 @@ final class UnitMagnitudeTypeTest extends TestCase
 
         $this->assertSame("unit_float<'kilogram'>", $type->describe(VerbosityLevel::precise()));
         $this->assertTrue($type->isFloat()->yes());
+    }
+
+    public function testNumericStringTypeDescribesUnitAndRetainsItsNativeCarrier(): void
+    {
+        $type = $this->unitNumericString('second');
+
+        $this->assertSame("unit_numeric_string<'second'>", $type->describe(VerbosityLevel::precise()));
+        $this->assertTrue($type->isString()->yes());
+        $this->assertTrue($type->isNumericString()->yes());
+        $this->assertTrue($type->isNonEmptyString()->yes());
+        $this->assertTrue($type->isClassString()->no());
+        $this->assertTrue($type->isInteger()->no());
+        $this->assertTrue($type->isFloat()->no());
+    }
+
+    public function testNumericStringUnitRelationshipsRequireAUnitBrand(): void
+    {
+        $seconds = $this->unitNumericString('second');
+        $equivalentSeconds = $this->unitNumericString('1000 * millisecond');
+        $meters = $this->unitNumericString('meter');
+        $bareNumericString = TypeCombinator::intersect(
+            new StringType(),
+            new AccessoryNumericStringType(),
+        );
+
+        $this->assertTrue($seconds->equals($equivalentSeconds));
+        $this->assertFalse($seconds->equals($meters));
+        $this->assertTrue($seconds->accepts($equivalentSeconds, true)->yes());
+        $differentUnit = $seconds->accepts($meters, true);
+        $bareNumeric = $seconds->accepts($bareNumericString, true);
+        $bareString = $seconds->accepts(new StringType(), true);
+
+        $this->assertTrue($differentUnit->no());
+        $this->assertSame([
+            "Unit unit_numeric_string<'meter'> is not assignable to unit_numeric_string<'second'> "
+                . '(normalized forms differ).',
+        ], $differentUnit->reasons);
+        $this->assertTrue($bareNumeric->no());
+        $this->assertSame([
+            "Bare numeric string is not assignable to unit_numeric_string<'second'>; keep the unit annotation.",
+        ], $bareNumeric->reasons);
+        $this->assertTrue($bareString->no());
+        $this->assertSame([
+            "Bare string is not assignable to unit_numeric_string<'second'>; keep the unit annotation.",
+        ], $bareString->reasons);
+        $this->assertTrue($seconds->isSuperTypeOf($equivalentSeconds)->yes());
+        $this->assertTrue($seconds->isSuperTypeOf($meters)->no());
+        $this->assertTrue($seconds->isSuperTypeOf($bareNumericString)->no());
+        $this->assertTrue($bareNumericString->accepts($seconds, true)->yes());
+    }
+
+    public function testNumericStringRequiresExplicitCastToPreserveItsUnit(): void
+    {
+        $seconds = $this->unitNumericString('second');
+        $numericStringUnion = new UnionType([$seconds, $this->unitNumericString('meter')]);
+
+        $this->assertSame("unit_int<'second'>", $seconds->toInteger()->describe(VerbosityLevel::precise()));
+        $this->assertSame("unit_float<'second'>", $seconds->toFloat()->describe(VerbosityLevel::precise()));
+        $this->assertStringNotContainsString('unit_', $seconds->toNumber()->describe(VerbosityLevel::precise()));
+        $this->assertStringNotContainsString(
+            'unit_int',
+            $seconds->toCoercedArgumentType(false)->describe(VerbosityLevel::precise()),
+        );
+        $this->assertStringNotContainsString(
+            'unit_float',
+            $seconds->toCoercedArgumentType(false)->describe(VerbosityLevel::precise()),
+        );
+        $this->assertSame($seconds, $seconds->toCoercedArgumentType(true));
+        $this->assertTrue($this->unitInt('second')->accepts($seconds, false)->no());
+        $this->assertTrue($this->unitFloat('second')->accepts($seconds, false)->no());
+        $this->assertTrue($this->unitInt('second')->accepts($numericStringUnion, false)->no());
+        $this->assertTrue($this->unitFloat('second')->accepts($numericStringUnion, false)->no());
+    }
+
+    public function testNumericStringExtractionDoesNotDescendIntoContainersOrUnions(): void
+    {
+        $seconds = $this->unitNumericString('second');
+        $equivalentSeconds = $this->unitNumericString('1000 * millisecond');
+        $meters = $this->unitNumericString('meter');
+        $array = new ArrayType($seconds, $equivalentSeconds);
+        $union = new UnionType([$seconds, $equivalentSeconds]);
+        $refined = new IntersectionType([new AccessoryLiteralStringType(), $seconds]);
+        $conflicting = new IntersectionType([$seconds, $meters]);
+        $refinedUnit = UnitNumericStringType::extractUnit($refined);
+
+        $this->assertNull(UnitNumericStringType::extractUnit($array));
+        $this->assertNull(UnitNumericStringType::extractUnit($union));
+        $this->assertNull(UnitNumericStringType::extractUnit(new StringType()));
+        $this->assertNull(UnitNumericStringType::extractUnit($conflicting));
+        $this->assertNotNull($refinedUnit);
+        $this->assertTrue($seconds->getUnitExpression()->equivalent($refinedUnit));
     }
 
     public function testEqualUnitsAreEqual(): void
@@ -235,5 +333,13 @@ final class UnitMagnitudeTypeTest extends TestCase
         $this->assertTrue($parsed->isOk(), $parsed->errorMessage() ?? '');
 
         return new UnitFloatType($parsed->expression());
+    }
+
+    private function unitNumericString(string $unit): UnitNumericStringType
+    {
+        $parsed = (new UnitExpressionParser())->parse($unit);
+        $this->assertTrue($parsed->isOk(), $parsed->errorMessage() ?? '');
+
+        return new UnitNumericStringType($parsed->expression());
     }
 }

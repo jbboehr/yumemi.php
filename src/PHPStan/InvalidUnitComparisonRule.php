@@ -105,18 +105,12 @@ final class InvalidUnitComparisonRule implements Rule
                 || (!$isStrictIdentity && (
                     $leftHasNonUnitArm
                     || $rightHasNonUnitArm
-                    || $leftUnits === []
-                    || $rightUnits === []
                 ))
             ) {
                 return [self::error(sprintf(
                     'Cannot use %s between a unit type and a bare value; every possible operand needs a unit.',
                     $operator,
                 ))];
-            }
-
-            if ($leftUnits === [] || $rightUnits === []) {
-                return [];
             }
 
             foreach ($leftUnits as $leftUnit) {
@@ -174,6 +168,12 @@ final class InvalidUnitComparisonRule implements Rule
             if ($innerType instanceof UnitFloatType) {
                 $units[] = $innerType->getUnitExpression();
             } else {
+                $numericString = UnitNumericStringType::extractUnit($innerType);
+                if ($numericString !== null) {
+                    $units[] = $numericString;
+                    continue;
+                }
+
                 $integer = UnitIntegerTypeHelper::extract($innerType);
                 if ($integer !== null) {
                     $units[] = $integer['unit'];
@@ -183,7 +183,8 @@ final class InvalidUnitComparisonRule implements Rule
                 $hasNonUnitArm = true;
                 $hasBareNumericArm = $hasBareNumericArm
                     || !$innerType->isInteger()->no()
-                    || !$innerType->isFloat()->no();
+                    || !$innerType->isFloat()->no()
+                    || !$innerType->isNumericString()->no();
             }
         }
 

@@ -67,7 +67,7 @@ final class YumemiTagPromotionRuleTest extends RuleTestCase
                 40,
             ],
             [
-                "PHPDoc tag @yumemi-return has invalid type: expected a type containing unit_int<'...'>, unit_float<'...'>, Quantity<'...'>, or PointQuantity<'...'>.",
+                "PHPDoc tag @yumemi-return has invalid type: expected a type containing unit_int<'...'>, unit_float<'...'>, unit_numeric_string<'...'>, Quantity<'...'>, or PointQuantity<'...'>.",
                 45,
             ],
             ['PHPDoc tag @yumemi-param references unknown parameter $missing.', 51],
@@ -94,6 +94,10 @@ final class YumemiTagPromotionRuleTest extends RuleTestCase
             ],
             ['PHPDoc tag @yumemi-var without a variable name has an ambiguous fallback.', 108],
             ['PHPDoc tag @yumemi-param is only supported on function-like declarations.', 113],
+            [
+                'PHPDoc tag @yumemi-return must be an exact unit transform of string; its erased type is numeric-string.',
+                130,
+            ],
         ]);
     }
 }

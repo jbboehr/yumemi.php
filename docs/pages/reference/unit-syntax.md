@@ -2,7 +2,8 @@
 
 Unit strings can be simple names such as `meter`, products such as `kilogram * meter / second^2`, or exact constants
 such as `100 centimeter`. Yumemi uses the same parser and catalog resolver at runtime and in its PHPStan extension, so
-these strings have the same meaning in `Units::parse()`, `Quantity`, `unit_int<'...'>`, and `unit_float<'...'>`.
+these strings have the same meaning in `Units::parse()`, `Quantity`, `unit_int<'...'>`, `unit_float<'...'>`, and
+`unit_numeric_string<'...'>`.
 
 ## Supported Expressions
 

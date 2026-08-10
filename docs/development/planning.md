@@ -85,7 +85,7 @@ The implemented foundation now includes:
 - native `unit_int` / `unit_float` and object `Quantity<'...'>` / `PointQuantity<'...'>` PHPStan types with arithmetic
   inference, branded integer constants and ranges, overflow-aware bounds, diagnostics, custom registries, strict native
   helper expressions, finite object-boundary unions, explicit numeric-cast and common scalar-function brand
-  preservation, and optional `@yumemi-*` promotion;
+  preservation, `unit_numeric_string<'...'>` for trusted string-oriented boundaries, and optional `@yumemi-*` promotion;
 - a separately versioned [Yumemi Apocrypha](https://github.com/jbboehr/yumemi-apocrypha.php) package for curated
   third-party stubs, leaving the generic `@yumemi-*` mechanism in core;
 - focused public documentation whose executable PHP and PHPStan examples are verified through Akashi, using child
@@ -654,13 +654,6 @@ repeat the implementation's assumptions:
   validate continuous intervals. Their arithmetic must define sound behavior for infinities, underflow, and NaN rather
   than treating them as integer ranges with different endpoints.
 - Third-party stub breadth and package-version maintenance are tracked in Yumemi Apocrypha rather than this core plan.
-- A possible `unit_numeric_string<'...'>` PHPStan type for numeric values that cross string-oriented framework
-  boundaries, such as Laravel configuration, environment values, request parameters, headers, and serialized scalar
-  fields. It should remain a subtype of `numeric-string`, carry the same unit expression as native brands, and require
-  explicit construction or parsing. Arithmetic, coercion, casts, and conversion into `unit_int` / `unit_float` need a
-  sound policy before implementation; package stubs should not introduce the type speculatively. This type would not
-  cover complete dimension-bearing strings such as `10px` or formatted values such as `3:45`, because neither is a PHP
-  numeric string. Parser-aware quantity strings, if eventually justified, require a distinct design.
 
 The broader feature comparison and intentionally deferred Pint-style capabilities remain in
 [pint-parity.md](pint-parity.md).

@@ -50,6 +50,7 @@ use PHPStan\Type\Type;
  *
  * - unit_int<'meter / second'>
  * - unit_float<'kilogram'>
+ * - unit_numeric_string<'second'>
  * - Quantity<'meter / second'>
  * - PointQuantity<'celsius'>
  *
@@ -61,6 +62,7 @@ final class UnitTypeNodeResolverExtension implements TypeNodeResolverExtension
     private const NAMES = [
         'unit_int' => 'int',
         'unit_float' => 'float',
+        'unit_numeric_string' => 'numeric-string',
         'quantity' => 'quantity',
         'pointquantity' => 'point',
     ];
@@ -129,6 +131,7 @@ final class UnitTypeNodeResolverExtension implements TypeNodeResolverExtension
             return match (self::NAMES[$name]) {
                 'int' => new UnitIntegerType($unit),
                 'float' => new UnitFloatType($unit),
+                'numeric-string' => new UnitNumericStringType($unit),
                 'quantity' => new QuantityType($unit),
             };
         } catch (\Throwable $exception) {

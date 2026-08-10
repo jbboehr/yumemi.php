@@ -89,6 +89,24 @@ final class InvalidUnitComparisonRuleTest extends RuleTestCase
             ],
             ['Cannot use == between a unit type and a bare value; every possible operand needs a unit.', 71],
             ['Cannot use == between a unit type and a bare value; every possible operand needs a unit.', 72],
+            [
+                'Cannot use == with units meter and second because they are not definitionally equivalent.',
+                92,
+            ],
+            [
+                'Cannot use === with units meter and second because they are not definitionally equivalent.',
+                93,
+            ],
+            [
+                'Cannot use < with units meter and second because they are not definitionally equivalent.',
+                94,
+            ],
+            ['Cannot use === between a unit type and a bare value; every possible operand needs a unit.', 95],
+            ['Cannot use == between a unit type and a bare value; every possible operand needs a unit.', 96],
+            [
+                'Cannot use == with units second and meter because they are not definitionally equivalent.',
+                104,
+            ],
         ]);
     }
 }

@@ -1,6 +1,6 @@
 # Yumemi PHPStan extension (incremental).
 # Piece 1: unit expression parsing
-# Piece 2: unit_int / unit_float PHPDoc types
+# Piece 2: unit_int / unit_float / unit_numeric_string PHPDoc types
 # Piece 3: arithmetic operator type inference (+ - * / ** % and unary +/-)
 # Piece 4: unit() construction helper (dynamic return type)
 # Piece 5: unit_to() conversion helper (dynamic return type)

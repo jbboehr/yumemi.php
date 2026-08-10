@@ -94,6 +94,10 @@ Use declarations or stubs where the unit is already guaranteed, use `unit()` whe
 keep repeated arithmetic on branded native values. When exact fractions or runtime unit identity matter more, use
 `Quantity` instead.
 
+A trusted string-oriented contract may use `unit_numeric_string<'...'>` when it exposes a numeric magnitude as text. The
+value remains a string until an explicit integer or float cast moves it into numerical code. See
+[Numeric Strings](reference/phpstan.md#numeric-strings) for the assignment, cast, and coercion rules.
+
 ## Choose An Operation
 
 | Goal                                                     | Operation                                            |

@@ -56,7 +56,14 @@ final class DocumentationPhpStanExamplesTest extends RuleTestCase
     /**
      * Tokens that mark a documentation block as PHPStan-relevant rather than a pure runtime example.
      */
-    private const UNIT_TOKENS = ['//!', 'unit_int<', 'unit_float<', "Quantity<'", '@yumemi-'];
+    private const UNIT_TOKENS = [
+        '//!',
+        'unit_int<',
+        'unit_float<',
+        'unit_numeric_string<',
+        "Quantity<'",
+        '@yumemi-',
+    ];
 
     protected function getRule(): Rule
     {

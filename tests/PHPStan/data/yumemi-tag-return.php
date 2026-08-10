@@ -15,6 +15,7 @@ use function jbboehr\Yumemi\Tests\PHPStan\Fixtures\appliedForce;
 use function jbboehr\Yumemi\Tests\PHPStan\Fixtures\bogusUnit;
 use function jbboehr\Yumemi\Tests\PHPStan\Fixtures\boundedDuration;
 use function jbboehr\Yumemi\Tests\PHPStan\Fixtures\constantLength;
+use function jbboehr\Yumemi\Tests\PHPStan\Fixtures\configuredDelay;
 use function jbboehr\Yumemi\Tests\PHPStan\Fixtures\currentSpeed;
 use function jbboehr\Yumemi\Tests\PHPStan\Fixtures\durations;
 use function jbboehr\Yumemi\Tests\PHPStan\Fixtures\freezingPoint;
@@ -30,6 +31,7 @@ assertType("unit_int<'international_foot'>", measuredFeet());
 assertType("unit_int<'second'>&int<0, 100>", boundedDuration());
 assertType("3&unit_int<'meter'>", constantLength());
 assertType("unit_float<'meter / second'>", currentSpeed());
+assertType("unit_numeric_string<'second'>", configuredDelay());
 assertType("Quantity<'newton'>", appliedForce(Units::default()));
 assertType("PointQuantity<'celsius'>", freezingPoint(Units::default()));
 

@@ -41,6 +41,7 @@ use jbboehr\Yumemi\PHPStan\UnitConstantIntegerType;
 use jbboehr\Yumemi\PHPStan\UnitFloatType;
 use jbboehr\Yumemi\PHPStan\UnitIntegerType;
 use jbboehr\Yumemi\PHPStan\UnitIntegerTypeHelper;
+use jbboehr\Yumemi\PHPStan\UnitNumericStringType;
 use jbboehr\Yumemi\PHPStan\UnitOperatorTypeSpecifyingExtension;
 use PHPStan\Type\BenevolentUnionType;
 use PHPStan\Type\Constant\ConstantIntegerType;
@@ -154,6 +155,17 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
         $result = $this->extension->specifyType('+', $this->unitInt('meter'), new IntegerType());
 
         $this->assertInstanceOf(ErrorType::class, $result);
+    }
+
+    public function testArithmeticDoesNotTreatBrandedNumericStringsAsBareScalars(): void
+    {
+        $numericString = $this->unitNumericString('second');
+
+        foreach (['+', '-', '*', '/', '%', '**'] as $operator) {
+            $result = $this->extension->specifyType($operator, $this->unitInt('meter'), $numericString);
+
+            $this->assertInstanceOf(ErrorType::class, $result, $operator);
+        }
     }
 
     public function testMulCombinesUnitsAndAllowsFloatOverflow(): void
@@ -536,6 +548,11 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
         $this->assertTrue($parsed->isOk(), $parsed->errorMessage() ?? '');
 
         return new UnitFloatType($parsed->expression());
+    }
+
+    private function unitNumericString(string $unit): UnitNumericStringType
+    {
+        return new UnitNumericStringType($this->unit($unit));
     }
 
     private function unit(string $unit): \jbboehr\Yumemi\PHPStan\UnitExpression

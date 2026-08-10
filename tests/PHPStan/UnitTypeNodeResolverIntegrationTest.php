@@ -162,6 +162,28 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $this->assertStringContainsString('Bare int is not assignable', $output, $output);
     }
 
+    public function testNumericStringBrandsRequireMatchingUnitsAndExplicitNumericCasts(): void
+    {
+        $output = $this->analyse('unit-numeric-string-invalid.php');
+
+        $this->assertStringContainsString('[ERROR] Found 3 errors', $output, $output);
+        $this->assertStringContainsString("unit_numeric_string<'second'>", $output, $output);
+        $this->assertStringContainsString("unit_numeric_string<'meter'>", $output, $output);
+        $this->assertStringContainsString('Bare numeric string is not assignable', $output, $output);
+        $this->assertStringContainsString('normalized forms differ', $output, $output);
+        $this->assertStringContainsString('must be explicitly cast', $output, $output);
+    }
+
+    public function testWeakCoercionStillRequiresAnExplicitNumericCast(): void
+    {
+        $output = $this->analyse('unit-numeric-string-weak-coercion.php');
+
+        $this->assertStringContainsString('[ERROR] Found 2 errors', $output, $output);
+        $this->assertStringContainsString("unit_numeric_string<'second'>", $output, $output);
+        $this->assertStringContainsString('expects int', $output, $output);
+        $this->assertStringContainsString('expects float', $output, $output);
+    }
+
     public function testInvalidConfiguredRegistryFactoryFailsAtStartup(): void
     {
         $output = $this->analyse('unit-phpdoc-valid.php', \stdClass::class);

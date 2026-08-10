@@ -122,3 +122,12 @@ if (false) {
 function validAlreadyPromoted(int $seconds): void
 {
 }
+
+/**
+ * @return string
+ * @yumemi-return unit_numeric_string<'second'>
+ */
+function numericStringFallbackMismatch(): string
+{
+    return '30';
+}

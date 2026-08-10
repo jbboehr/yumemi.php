@@ -1,7 +1,8 @@
 # PHPStan Reference
 
 Yumemi's PHPStan extension attaches units to ordinary PHP `int` and `float` values and propagates them through supported
-operations. The runtime values remain native numbers; the additional unit identity exists only during static analysis.
+operations. It can also brand a `numeric-string` at a string-oriented boundary. The runtime values remain native
+scalars; the additional unit identity exists only during static analysis.
 
 The extension uses the same parser, catalog, reduction, normalization, and conversion semantics as the
 [runtime API](runtime.md). See the [unit syntax reference](unit-syntax.md) for accepted expressions and name resolution.
@@ -14,6 +15,7 @@ libraries.
 | I need to...                            | Start with                                          |
 | --------------------------------------- | --------------------------------------------------- |
 | Add a unit to an existing native number | [`unit()` and branded types](#branded-native-types) |
+| Brand numeric text from a trusted API   | [Numeric Strings](#numeric-strings)                 |
 | Infer units through PHP operators       | [Native Operators](#native-operators)               |
 | Convert a native magnitude              | [Boundary Helpers](#boundary-helpers)               |
 | Track an exact runtime quantity         | [Quantity Types](#quantity-types)                   |
@@ -76,6 +78,40 @@ literal and range precision remain ordinary PHPStan types, while `unit_int` cont
 Bounded targets enforce both parts. A bare `int<0, 100>` lacks the required unit, a branded value outside the range
 violates the bound, and a value with another unit violates the brand. An unbounded `unit_int<'second'>` accepts bounded
 and constant seconds.
+
+### Numeric Strings
+
+`unit_numeric_string<'unit'>` brands a PHPStan `numeric-string` whose magnitude has a statically known unit. It is
+useful when a trusted configuration or framework API represents a number as text while its contract defines the unit. At
+runtime the value remains an ordinary string: Yumemi does not attach metadata, parse a combined value such as
+`"30 second"`, or validate where the magnitude came from.
+
+A bare `numeric-string` does not satisfy a unit-bearing parameter, and strings branded with different units are not
+interchangeable. An explicit integer or float cast preserves the brand on the resulting native number. Convert that
+number through the normal unit boundary when a different unit is required. Implicit arithmetic, weak parameter coercion,
+and other string-to-number conversions do not preserve the brand; cast first when entering numerical code:
+
+```php
+<?php
+
+interface RetryConfiguration
+{
+    /** @return unit_numeric_string<'second'> */
+    public function retryDelay(): string;
+}
+
+/** @param unit_int<'second'> $delay */
+function scheduleConfiguredRetry(int $delay): void {}
+
+function applyRetryConfiguration(RetryConfiguration $configuration): void
+{
+    scheduleConfiguredRetry((int) $configuration->retryDelay());
+}
+```
+
+Use this type only when the external contract already guarantees both numeric syntax and the unit. It is a static
+declaration, not a runtime validation helper; use ordinary validation before branding data whose contents are not yet
+trusted.
 
 ### Definitional Equivalence And Compatibility
 
@@ -174,6 +210,8 @@ square root is exact:
 | ---------------------------------- | -------------------------------------------------------- |
 | `(float) $unitInteger`             | `unit_float<'same unit'>`                                |
 | `(int) $unitFloat`                 | `unit_int<'same unit'>`                                  |
+| `(int) $unitNumericString`         | `unit_int<'same unit'>`                                  |
+| `(float) $unitNumericString`       | `unit_float<'same unit'>`                                |
 | `abs($unitFloat)`                  | `unit_float<'same unit'>`                                |
 | `abs($unitInteger)`                | Branded integer bounds, with possible overflow promotion |
 | `ceil()`, `floor()`, and `round()` | `unit_float<'same unit'>`                                |
@@ -481,13 +519,13 @@ Without `yumemi-tags.neon`, these are unknown tags and the ordinary PHPDoc or na
 Yumemi promotes them onto PHPStan's normal type surface for parameters, returns, properties, and local variables.
 
 A Yumemi tag may replace a fallback only when erasing its units produces the same PHPDoc structure. Every
-`unit_int<'...'>` must erase to `int`, every `unit_float<'...'>` to `float`, and every `Quantity<'...'>` to `Quantity`,
-and every `PointQuantity<'...'>` to `PointQuantity`, including within nullable, union, intersection, and generic types.
-For example, `unit_int<'second'>&int<0, max>` erases to `int<0, max>`, while `3&unit_int<'meter'>` erases to `3`.
-Parameter references and variadic markers must also match. Union and intersection order and nullable spelling do not
-matter. `@phpstan-*` takes priority over the ordinary tag. An already promoted `@phpstan-*` tag with exactly the same
-unit-bearing structure is accepted idempotently. Any other mismatch leaves the fallback unchanged and reports a
-diagnostic.
+`unit_int<'...'>` must erase to `int`, every `unit_float<'...'>` to `float`, every `unit_numeric_string<'...'>` to
+`numeric-string`, every `Quantity<'...'>` to `Quantity`, and every `PointQuantity<'...'>` to `PointQuantity`, including
+within nullable, union, intersection, and generic types. For example, `unit_int<'second'>&int<0, max>` erases to
+`int<0, max>`, while `3&unit_int<'meter'>` erases to `3`. Parameter references and variadic markers must also match.
+Union and intersection order and nullable spelling do not matter. `@phpstan-*` takes priority over the ordinary tag. An
+already promoted `@phpstan-*` tag with exactly the same unit-bearing structure is accepted idempotently. Any other
+mismatch leaves the fallback unchanged and reports a diagnostic.
 
 ```php
 <?php
@@ -579,9 +617,11 @@ Important limits of the current static model are:
 - Native `unit()`, `unit_factor()`, and `unit_to()` calls require statically recoverable unit expressions by default.
   Dynamic object parsing and conversion remain supported, but cannot retain a specific generic unit type.
 - PHPStan supports one configured registry and does not track runtime registry identity per value.
-- Explicit integer/float casts and `abs()`, `ceil()`, `floor()`, `round()`, `min()`, and `max()` preserve native unit
-  brands when their operation has one sound result unit. `sqrt()` transforms brands with exact symbolic square roots.
-  Other casts and unsupported PHP built-ins can erase brands.
+- Explicit integer/float casts preserve native numeric brands and move a `unit_numeric_string` brand onto the resulting
+  number. Implicit arithmetic and weak numeric coercion do not preserve a numeric-string brand; comparisons still
+  require definitionally equivalent brands. `abs()`, `ceil()`, `floor()`, `round()`, `min()`, and `max()` preserve
+  numeric unit brands when their operation has one sound result unit. `sqrt()` transforms brands with exact symbolic
+  square roots. Other casts and unsupported PHP built-ins can erase brands.
 - Native `+` and `-` cannot convert dimensionally compatible magnitudes; use an explicit conversion or `Quantity`.
 - Native affine targets remain unbranded because native scalars do not retain point-versus-difference identity. Use
   `PointQuantity<'...'>` when that identity must remain statically visible.

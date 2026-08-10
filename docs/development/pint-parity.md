@@ -260,10 +260,10 @@ rounding contract.
 
 Status: **Done for the current core** | Importance: **P0** | Remaining difficulty: **M/L**
 
-Yumemi resolves `unit_int<'...'>`, `unit_float<'...'>`, `Quantity<'...'>`, and `PointQuantity<'...'>`; infers native,
-quantity, and point operations; validates construction, conversion, extraction, and comparisons; supports native
-conversion helpers with strict, semantically unambiguous expressions; preserves finite unions at runtime-object
-boundaries; configures custom registries; and provides stable diagnostics.
+Yumemi resolves `unit_int<'...'>`, `unit_float<'...'>`, `unit_numeric_string<'...'>`, `Quantity<'...'>`, and
+`PointQuantity<'...'>`; infers native, quantity, and point operations; validates construction, conversion, extraction,
+and comparisons; supports native conversion helpers with strict, semantically unambiguous expressions; preserves finite
+unions at runtime-object boundaries; configures custom registries; and provides stable diagnostics.
 
 The separate [Yumemi Apocrypha](https://github.com/jbboehr/yumemi-apocrypha.php) package supplies curated third-party
 stubs without expanding core's dependency graph. Branded integer constants and PHPStan integer-range intersections now

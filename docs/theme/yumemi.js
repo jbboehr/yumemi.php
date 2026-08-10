@@ -36,6 +36,7 @@
                         id: "integer-constants-and-ranges",
                         title: "Integer Constants And Ranges",
                     },
+                    { id: "numeric-strings", title: "Numeric Strings" },
                     {
                         id: "definitional-equivalence-and-compatibility",
                         title: "Definitional Equivalence And Compatibility",

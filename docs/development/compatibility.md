@@ -150,11 +150,13 @@ The supported PHPDoc types are:
 
 - `unit_int<'expression'>`;
 - `unit_float<'expression'>`;
+- `unit_numeric_string<'expression'>`;
 - `Quantity<'expression'>`; and
 - `PointQuantity<'coordinate-unit'>`.
 
 Ordinary PHPStan constant and integer-range types may intersect with `unit_int`; there is no separate constant-unit type
-syntax. The documented assignment, operator, comparison, helper-return, quantity, and point inference rules are part of
+syntax. `unit_numeric_string` remains a runtime string and preserves its unit only through documented explicit numeric
+casts. The documented assignment, operator, comparison, helper-return, quantity, and point inference rules are part of
 the extension contract. Native brands remain analysis-only and must not be described as runtime wrappers.
 
 A change that causes previously valid documented code to fail, accepts a previously rejected unsound operation, changes
