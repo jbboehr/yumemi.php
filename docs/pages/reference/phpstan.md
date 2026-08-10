@@ -79,6 +79,14 @@ Bounded targets enforce both parts. A bare `int<0, 100>` lacks the required unit
 violates the bound, and a value with another unit violates the brand. An unbounded `unit_int<'second'>` accepts bounded
 and constant seconds.
 
+Known float values use the same idea. `unit(1.5, 'meter')` is inferred as `1.5&unit_float<'meter'>`: PHPStan's ordinary
+constant-float type supplies `1.5`, while `unit_float` supplies the unit. There is no separate `unit_const_float`
+syntax, and the intersection shown in a diagnostic is not a runtime wrapper.
+
+Here, “known” means that PHPStan knows the actual PHP binary floating-point value. It does not make `1.5`, a conversion
+ratio, or a calculated result into an exact rational quantity. Use `Rational` or `Quantity` when the program must retain
+exact decimal or fractional semantics at runtime.
+
 ### Numeric Strings
 
 `unit_numeric_string<'unit'>` brands a PHPStan `numeric-string` whose magnitude has a statically known unit. It is
@@ -137,7 +145,8 @@ Yumemi infers native unit types for unary `+` and `-` and for these binary opera
 
 Multiplication and division may combine a unit value with a bare numeric scalar. Division always produces a
 `unit_float`; operations involving a float-like magnitude also produce a float brand. Yumemi preserves known integer
-constants and signed ranges through addition, subtraction, multiplication, unary signs, and nonnegative powers. Exact
+constants and signed ranges through addition, subtraction, multiplication, unary signs, and nonnegative powers. It also
+preserves known float values through supported arithmetic when every required operand value is known. Exact integer
 endpoint arithmetic determines the result kind:
 
 | Mathematical result relative to PHP's integer range | Inferred type                                           |
@@ -206,17 +215,18 @@ Explicit integer and float casts preserve the unit while changing the native num
 through a small set of built-in scalar functions. Most retain the input unit; `sqrt()` transforms it when the symbolic
 square root is exact:
 
-| Expression                         | Inferred result                                          |
-| ---------------------------------- | -------------------------------------------------------- |
-| `(float) $unitInteger`             | `unit_float<'same unit'>`                                |
-| `(int) $unitFloat`                 | `unit_int<'same unit'>`                                  |
-| `(int) $unitNumericString`         | `unit_int<'same unit'>`                                  |
-| `(float) $unitNumericString`       | `unit_float<'same unit'>`                                |
-| `abs($unitFloat)`                  | `unit_float<'same unit'>`                                |
-| `abs($unitInteger)`                | Branded integer bounds, with possible overflow promotion |
-| `ceil()`, `floor()`, and `round()` | `unit_float<'same unit'>`                                |
-| `min()` and `max()`                | Common brand, with narrowed branded integer bounds       |
-| `sqrt($unitNumber)`                | `unit_float<'exact symbolic square-root unit'>`          |
+| Expression                   | Inferred result                                          |
+| ---------------------------- | -------------------------------------------------------- |
+| `(float) $unitInteger`       | Same unit, retaining a known constant                    |
+| `(int) $unitFloat`           | Same unit, retaining a known constant                    |
+| `(int) $unitNumericString`   | `unit_int<'same unit'>`                                  |
+| `(float) $unitNumericString` | `unit_float<'same unit'>`                                |
+| `abs($unitFloat)`            | Same unit, retaining a known float constant              |
+| `abs($unitInteger)`          | Branded integer bounds, with possible overflow promotion |
+| `ceil()` and `floor()`       | Same unit, retaining a known numeric constant            |
+| `round()`                    | `unit_float<'same unit'>`                                |
+| `min()` and `max()`          | Common brand, with narrowed branded integer bounds       |
+| `sqrt($unitNumber)`          | Rooted unit, retaining a known numeric constant          |
 
 For example, these transformations remain ordinary native PHP operations at runtime:
 
@@ -245,9 +255,10 @@ assert($displayHeight === 12.0);
 assert($platformWidth === 12.0);
 ```
 
-Crossing from an integer brand to a float brand generalizes known integer constants and ranges because PHPStan has no
-corresponding branded float-constant or float-range representation. `ceil()`, `floor()`, and `round()` likewise return a
-general `unit_float` while preserving the semantic unit.
+Crossing a known integer constant to a float retains both its value and unit. Integer ranges still generalize because
+PHPStan has no corresponding public float-range type. `abs()`, `ceil()`, `floor()`, and `sqrt()` retain a constant value
+when the input and result are known; `round()` currently preserves the unit but generalizes the magnitude because its
+optional precision and rounding-mode arguments are not part of this resolver.
 
 `min()` and `max()` preserve a unit when every value they can return is branded with one definitionally equivalent unit.
 This works with direct arguments, arrays, and unpacked arrays. Known integer constants and ranges are narrowed when
@@ -280,11 +291,11 @@ branded float; disabling promotion widens the result to an unbounded `unit_int`.
 Yumemi provides three functions for introducing and converting native unit values:
 
 - `unit($value, $unit)` validates a multiplicative unit and returns the unchanged native magnitude branded as `unit_int`
-  or `unit_float`.
+  or `unit_float`, retaining a known scalar value.
 - `unit_factor($from, $to)` returns a native conversion ratio branded as `to / from`. Multiplying it by a source value
-  cancels the source unit and produces the target unit.
+  cancels the source unit and produces the target unit; known factors remain float constants during analysis.
 - `unit_to($value, $from, $to)` performs the conversion directly and returns a float. Multiplicative targets retain a
-  `unit_float` brand.
+  `unit_float` brand, and a statically known input and conversion retain the resulting float value.
 
 ```php
 <?php
@@ -313,7 +324,11 @@ float.
 
 `unit_to()` also performs affine conversions. A multiplicative target such as `kelvin` remains branded. An affine target
 such as `celsius` is plain `float` because the current native type model cannot distinguish absolute coordinates from
-delta temperatures.
+delta temperatures. A known affine conversion may still produce an unbranded PHPStan float constant.
+
+Constant helper results describe the PHP float that the corresponding runtime call will return. They do not promise
+decimal exactness: for example, a converted binary float may be displayed as `0.9144000000000001` rather than `0.9144`.
+Use the exact runtime object APIs when that distinction matters.
 
 If a branded value is passed to `unit_to()`, its brand must match the declared source unit. `unit()` and known helper
 arguments are also validated against the configured catalog. Unknown expressions and incompatible conversions fail
@@ -635,7 +650,8 @@ Important limits of the current static model are:
 - `unit_to()` and `unit_factor()` validate the Cartesian product of independent source and target alternatives and
   reject the call if any pairing is invalid. Valid alternatives must also collapse to one semantic result unit.
 - Unit exponentiation supports constant integers only.
-- PHPStan has no corresponding native float-range syntax, so branded floats do not retain continuous bounds.
+- PHPStan has no corresponding native float-range syntax, so branded floats can retain known constants but not
+  continuous bounds.
 - Dimensional analysis cannot distinguish different physical meanings with the same dimension, such as gray and sievert.
 
 Add targeted PHPStan integrations for demonstrated application workflows rather than assuming every cast, built-in, or

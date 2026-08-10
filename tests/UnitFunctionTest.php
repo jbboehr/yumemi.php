@@ -55,7 +55,7 @@ final class UnitFunctionTest extends TestCase
 {
     public function testReturnsMagnitudeUnchanged(): void
     {
-        $this->assertSame(1500.0, unit(1500.0, 'kilogram'));
+        $this->assertSame(1500.0, self::callUnit(1500.0, 'kilogram'));
         $this->assertSame(3, unit(self::three(), 'meter'));
     }
 
@@ -72,8 +72,8 @@ final class UnitFunctionTest extends TestCase
 
         try {
             $this->assertSame(3, unit(self::three(), $widget));
-            $this->assertSame(2.0, unit_factor($widget, $meter));
-            $this->assertSame(6.0, unit_to(3, $widget, $meter));
+            $this->assertSame(2.0, self::callUnitFactor($widget, $meter));
+            $this->assertSame(6.0, self::callUnitTo(3, $widget, $meter));
         } finally {
             Units::setDefault($previous);
         }
@@ -118,8 +118,8 @@ final class UnitFunctionTest extends TestCase
 
     public function testUnitFactorAlwaysReturnsFloat(): void
     {
-        $this->assertSame(1.0, unit_factor('meter', 'meter'));
-        $this->assertSame(100.0, unit_factor('meter', 'centimeter'));
+        $this->assertSame(1.0, self::callUnitFactor('meter', 'meter'));
+        $this->assertSame(100.0, self::callUnitFactor('meter', 'centimeter'));
     }
 
     public function testUnitFactorConvertsNativeMagnitudeByMultiplication(): void
@@ -381,9 +381,9 @@ final class UnitFunctionTest extends TestCase
 
     public function testUnitToSupportsAffineIntegerAndFloatConversions(): void
     {
-        $this->assertSame(32.0, unit_to(0, 'celsius', 'fahrenheit'));
+        $this->assertSame(32.0, self::callUnitTo(0, 'celsius', 'fahrenheit'));
         $this->assertEqualsWithDelta(98.6, unit_to(37.0, 'celsius', 'fahrenheit'), 1e-12);
-        $this->assertSame(0.0, unit_to(32, 'fahrenheit', 'celsius'));
+        $this->assertSame(0.0, self::callUnitTo(32, 'fahrenheit', 'celsius'));
     }
 
     public function testUnitToReportsUnsupportedConversionSemantics(): void
@@ -409,6 +409,16 @@ final class UnitFunctionTest extends TestCase
         }
 
         return $value * $this->rationalToFloat($factor);
+    }
+
+    private static function callUnit(int|float $value, string $unitExpression): int|float
+    {
+        return unit($value, $unitExpression); // @phpstan-ignore yumemi.dynamicUnitExpression (runtime helper coverage)
+    }
+
+    private static function callUnitFactor(string $from, string $to): float
+    {
+        return unit_factor($from, $to); // @phpstan-ignore yumemi.dynamicUnitExpression (runtime helper coverage)
     }
 
     private static function callUnitTo(int|float $value, string $from, string $to): float

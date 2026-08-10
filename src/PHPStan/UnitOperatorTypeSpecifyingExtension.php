@@ -38,6 +38,7 @@ namespace jbboehr\Yumemi\PHPStan;
 
 use jbboehr\Yumemi\Util\Exponent;
 use PHPStan\Type\BenevolentUnionType;
+use PHPStan\Type\Constant\ConstantFloatType;
 use PHPStan\Type\Constant\ConstantIntegerType;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\OperatorTypeSpecifyingExtension;
@@ -58,7 +59,13 @@ use PHPStan\Type\VerbosityLevel;
  * - int / int → unit_float (PHP division always yields float)
  * - overflow-capable integer operations optionally preserve unit_int|unit_float
  *
- * @phpstan-type UnitMagnitudeMetadata array{unit: UnitExpression, integer: bool, min: ?int, max: ?int}
+ * @phpstan-type UnitMagnitudeMetadata array{
+ *     unit: UnitExpression,
+ *     integer: bool,
+ *     min: ?int,
+ *     max: ?int,
+ *     value: int|float|null
+ * }
  *
  * @internal
  */
@@ -153,6 +160,14 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
         }
 
         if (!$leftUnit['integer'] || !$rightUnit['integer']) {
+            if ($leftUnit['value'] !== null && $rightUnit['value'] !== null) {
+                $value = $operatorSigil === '+'
+                    ? $leftUnit['value'] + $rightUnit['value']
+                    : $leftUnit['value'] - $rightUnit['value'];
+
+                return new UnitConstantFloatType((float) $value, $leftUnit['unit']);
+            }
+
             return new UnitFloatType($leftUnit['unit']);
         }
 
@@ -230,6 +245,19 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
                 : UnitExpressionAlgebra::divide($leftUnit['unit'], $rightUnit['unit']);
 
             if ($operatorSigil === '/' || !$leftUnit['integer'] || !$rightUnit['integer']) {
+                if (
+                    $leftUnit['value'] !== null
+                    && $rightUnit['value'] !== null
+                    && ($operatorSigil !== '/'
+                        || ($rightUnit['value'] !== 0 && $rightUnit['value'] !== 0.0))
+                ) {
+                    $value = $operatorSigil === '*'
+                        ? $leftUnit['value'] * $rightUnit['value']
+                        : $leftUnit['value'] / $rightUnit['value'];
+
+                    return new UnitConstantFloatType((float) $value, $unit);
+                }
+
                 return new UnitFloatType($unit);
             }
 
@@ -244,6 +272,19 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
         if ($leftUnit !== null && $this->isBareNumeric($rightSide)) {
             // unit *| / scalar → same unit
             if ($operatorSigil === '/' || !$leftUnit['integer'] || $rightSide->isFloat()->yes()) {
+                $rightValue = self::constantNumericValue($rightSide);
+                if (
+                    $leftUnit['value'] !== null
+                    && $rightValue !== null
+                    && ($operatorSigil !== '/' || ($rightValue !== 0 && $rightValue !== 0.0))
+                ) {
+                    $value = $operatorSigil === '*'
+                        ? $leftUnit['value'] * $rightValue
+                        : $leftUnit['value'] / $rightValue;
+
+                    return new UnitConstantFloatType((float) $value, $leftUnit['unit']);
+                }
+
                 return new UnitFloatType($leftUnit['unit']);
             }
 
@@ -261,6 +302,14 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
         if ($rightUnit !== null && $this->isBareNumeric($leftSide)) {
             if ($operatorSigil === '*') {
                 if (!$rightUnit['integer'] || $leftSide->isFloat()->yes()) {
+                    $leftValue = self::constantNumericValue($leftSide);
+                    if ($leftValue !== null && $rightUnit['value'] !== null) {
+                        return new UnitConstantFloatType(
+                            (float) ($leftValue * $rightUnit['value']),
+                            $rightUnit['unit'],
+                        );
+                    }
+
                     return new UnitFloatType($rightUnit['unit']);
                 }
 
@@ -276,7 +325,18 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
             }
 
             // scalar / unit → inverse unit
-            return new UnitFloatType(UnitExpressionAlgebra::invert($rightUnit['unit']));
+            $unit = UnitExpressionAlgebra::invert($rightUnit['unit']);
+            $leftValue = self::constantNumericValue($leftSide);
+            if (
+                $leftValue !== null
+                && $rightUnit['value'] !== null
+                && $rightUnit['value'] !== 0
+                && $rightUnit['value'] !== 0.0
+            ) {
+                return new UnitConstantFloatType((float) ($leftValue / $rightUnit['value']), $unit);
+            }
+
+            return new UnitFloatType($unit);
         }
 
         return new ErrorType(sprintf(
@@ -321,6 +381,13 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
 
         // PHP: negative exponents yield float; also promote when the base is float-like.
         if ($exponent < 0 || !$leftUnit['integer']) {
+            if (
+                $leftUnit['value'] !== null
+                && !(($leftUnit['value'] === 0 || $leftUnit['value'] === 0.0) && $exponent < 0)
+            ) {
+                return new UnitConstantFloatType((float) ($leftUnit['value'] ** $exponent), $unit);
+            }
+
             return new UnitFloatType($unit);
         }
 
@@ -381,8 +448,15 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
     /** @return UnitMagnitudeMetadata|null */
     private function asUnit(Type $type): ?array
     {
-        if ($type instanceof UnitFloatType) {
-            return ['unit' => $type->getUnitExpression(), 'integer' => false, 'min' => null, 'max' => null];
+        $float = UnitFloatType::extract($type);
+        if ($float !== null) {
+            return [
+                'unit' => $float['unit'],
+                'integer' => false,
+                'min' => null,
+                'max' => null,
+                'value' => $float['value'],
+            ];
         }
 
         $integer = UnitIntegerTypeHelper::extract($type);
@@ -392,10 +466,27 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
                 'integer' => true,
                 'min' => $integer['min'],
                 'max' => $integer['max'],
+                'value' => $integer['min'] !== null && $integer['min'] === $integer['max']
+                    ? $integer['min']
+                    : null,
             ];
         }
 
         return null;
+    }
+
+    /**
+     * @logion [RAS 87:79] Over the black orchard appeared a cyan eclipse, thin as a ring left upon the hand of heaven.
+     *     Its light ripened no fruit, yet every buried seed stirred and turned downward, fleeing its brilliance. I heard
+     *     the keepers lament, for they knew that radiance may awaken life while teaching it the wrong direction.
+     */
+    private static function constantNumericValue(Type $type): int|float|null
+    {
+        return match (true) {
+            $type instanceof ConstantIntegerType,
+            $type instanceof ConstantFloatType => $type->getValue(),
+            default => null,
+        };
     }
 
     /**

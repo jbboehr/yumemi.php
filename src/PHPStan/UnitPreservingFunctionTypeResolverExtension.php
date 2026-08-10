@@ -147,8 +147,20 @@ final class UnitPreservingFunctionTypeResolverExtension implements ExpressionTyp
      */
     private function transformArm(Type $type, string $functionName): ?Type
     {
-        if ($type instanceof UnitFloatType) {
-            return $type;
+        $float = UnitFloatType::extract($type);
+        if ($float !== null) {
+            if ($float['value'] === null || $functionName === 'round') {
+                return new UnitFloatType($float['unit']);
+            }
+
+            $value = match ($functionName) {
+                'abs' => abs($float['value']),
+                'ceil' => ceil($float['value']),
+                'floor' => floor($float['value']),
+                default => throw new \LogicException('Unsupported unit-preserving function: ' . $functionName),
+            };
+
+            return new UnitConstantFloatType($value, $float['unit']);
         }
 
         $integer = UnitIntegerTypeHelper::extract($type);
@@ -162,6 +174,14 @@ final class UnitPreservingFunctionTypeResolverExtension implements ExpressionTyp
                 ['min' => $integer['min'], 'max' => $integer['max']],
                 $this->integerOverflowToFloat,
             );
+        }
+
+        if (
+            $functionName !== 'round'
+            && $integer['min'] !== null
+            && $integer['min'] === $integer['max']
+        ) {
+            return new UnitConstantFloatType((float) $integer['min'], $integer['unit']);
         }
 
         return new UnitFloatType($integer['unit']);

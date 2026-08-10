@@ -6,12 +6,12 @@ use function jbboehr\Yumemi\unit;
 use function PHPStan\Testing\assertType;
 
 $integer = unit(3, 'meter');
-assertType("unit_float<'meter'>", (float) $integer);
+assertType("3.0&unit_float<'meter'>", (float) $integer);
 assertType("3&unit_int<'meter'>", (int) $integer);
 
 $float = unit(1.5, 'second');
-assertType("unit_int<'second'>", (int) $float);
-assertType("unit_float<'second'>", (float) $float);
+assertType("1&unit_int<'second'>", (int) $float);
+assertType("1.5&unit_float<'second'>", (float) $float);
 
 /** @var unit_numeric_string<'second'> $numericString */
 $numericString = '30';
@@ -36,7 +36,7 @@ function assertBrandedUnionCasts(int $value): void
 
 assertType("3&unit_int<'meter'>", abs(unit(-3, 'meter')));
 assertType("unit_float<'meter'>", abs(unit(-9223372036854775807 - 1, 'meter')));
-assertType("unit_float<'second'>", abs(unit(-1.5, 'second')));
+assertType("1.5&unit_float<'second'>", abs(unit(-1.5, 'second')));
 assertType("3&unit_int<'meter'>", abs(num: unit(-3, 'meter')));
 
 /** @param int<-5, 10> $value */
@@ -54,16 +54,16 @@ function assertUnboundedBrandedAbsoluteValue(int $value): void
     );
 }
 
-assertType("unit_float<'meter'>", ceil(unit(1.25, 'meter')));
-assertType("unit_float<'meter'>", floor(unit(1.75, 'meter')));
+assertType("2.0&unit_float<'meter'>", ceil(unit(1.25, 'meter')));
+assertType("1.0&unit_float<'meter'>", floor(unit(1.75, 'meter')));
 assertType("unit_float<'meter'>", round(unit(1.25, 'meter')));
 assertType("unit_float<'meter'>", round(unit(125, 'meter'), -1));
 assertType(
     "unit_float<'meter'>",
     round(num: unit(1.25, 'meter'), precision: 1, mode: RoundingMode::HalfEven),
 );
-assertType("unit_float<'second'>", ceil(num: unit(2, 'second')));
-assertType("unit_float<'second'>", floor(num: unit(2, 'second')));
+assertType("2.0&unit_float<'second'>", ceil(num: unit(2, 'second')));
+assertType("2.0&unit_float<'second'>", floor(num: unit(2, 'second')));
 
 assertType("1&unit_int<'meter'>", min(unit(3, 'meter'), unit(1, 'meter'), unit(2, 'meter')));
 assertType("3&unit_int<'meter'>", max(unit(3, 'meter'), unit(1, 'meter'), unit(2, 'meter')));
@@ -138,13 +138,13 @@ function assertMixedCarrierExtrema(float $floating): void
     );
 }
 
-assertType("unit_float<'meter'>", sqrt(unit(9, 'meter^2')));
-assertType("unit_float<'1/100 * meter'>", sqrt(unit(2.25, 'centimeter^2')));
-assertType("unit_float<'newton'>", sqrt(unit(4.0, 'newton^2')));
-assertType("unit_float<'meter / second'>", sqrt(unit(4.0, 'meter^2 / second^2')));
-assertType("unit_float<'1 / meter'>", sqrt(unit(4.0, 'meter^-2')));
-assertType("unit_float<'1'>", sqrt(unit(4, '1')));
-assertType("unit_float<'meter'>", sqrt(num: unit(4, 'meter^2')));
+assertType("3.0&unit_float<'meter'>", sqrt(unit(9, 'meter^2')));
+assertType("1.5&unit_float<'1/100 * meter'>", sqrt(unit(2.25, 'centimeter^2')));
+assertType("2.0&unit_float<'newton'>", sqrt(unit(4.0, 'newton^2')));
+assertType("2.0&unit_float<'meter / second'>", sqrt(unit(4.0, 'meter^2 / second^2')));
+assertType("2.0&unit_float<'1 / meter'>", sqrt(unit(4.0, 'meter^-2')));
+assertType("2.0&unit_float<'1'>", sqrt(unit(4, '1')));
+assertType("2.0&unit_float<'meter'>", sqrt(num: unit(4, 'meter^2')));
 assertType('float', sqrt(unit(1, 'meter')));
 
 /** @param int<0, 100> $value */

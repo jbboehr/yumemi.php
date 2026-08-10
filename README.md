@@ -66,7 +66,7 @@ $elapsed = unit(10.0, 'second');
 
 storeTelemetrySpeed($distance / $elapsed);
 
-//! expects unit_float<'meter / second'>, unit_float<'meter * second'> given
+//! unit_float<'meter * second'> is not assignable
 storeTelemetrySpeed($distance * $elapsed);
 
 assert($distance / $elapsed === 10.0);

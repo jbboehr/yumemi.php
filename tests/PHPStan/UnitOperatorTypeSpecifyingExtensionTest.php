@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
 use jbboehr\Yumemi\PHPStan\UnitExpressionParser;
+use jbboehr\Yumemi\PHPStan\UnitConstantFloatType;
 use jbboehr\Yumemi\PHPStan\UnitConstantIntegerType;
 use jbboehr\Yumemi\PHPStan\UnitFloatType;
 use jbboehr\Yumemi\PHPStan\UnitIntegerType;
@@ -44,6 +45,7 @@ use jbboehr\Yumemi\PHPStan\UnitIntegerTypeHelper;
 use jbboehr\Yumemi\PHPStan\UnitNumericStringType;
 use jbboehr\Yumemi\PHPStan\UnitOperatorTypeSpecifyingExtension;
 use PHPStan\Type\BenevolentUnionType;
+use PHPStan\Type\Constant\ConstantFloatType;
 use PHPStan\Type\Constant\ConstantIntegerType;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\FloatType;
@@ -102,6 +104,90 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
 
         $this->assertInstanceOf(UnitFloatType::class, $result);
         $this->assertSame("unit_float<'meter'>", $result->describe(VerbosityLevel::precise()));
+    }
+
+    public function testConstantFloatArithmeticPreservesValueAndDerivedUnit(): void
+    {
+        $meters = $this->unitConstantFloat(1.5, 'meter');
+        $otherMeters = $this->unitConstantFloat(2.25, 'meter');
+        $seconds = $this->unitConstantFloat(2.0, 'second');
+
+        $this->assertSame(
+            "3.75&unit_float<'meter'>",
+            $this->extension->specifyType('+', $meters, $otherMeters)->describe(VerbosityLevel::precise()),
+        );
+        $this->assertSame(
+            "-0.75&unit_float<'meter'>",
+            $this->extension->specifyType('-', $meters, $otherMeters)->describe(VerbosityLevel::precise()),
+        );
+        $this->assertSame(
+            "3.0&unit_float<'meter * second'>",
+            $this->extension->specifyType('*', $meters, $seconds)->describe(VerbosityLevel::precise()),
+        );
+        $this->assertSame(
+            "0.75&unit_float<'meter / second'>",
+            $this->extension->specifyType('/', $meters, $seconds)->describe(VerbosityLevel::precise()),
+        );
+        $this->assertSame(
+            "4.5&unit_float<'meter'>",
+            $this->extension->specifyType('*', $meters, new ConstantIntegerType(3))
+                ->describe(VerbosityLevel::precise()),
+        );
+        $this->assertSame(
+            "4.0&unit_float<'1 / second'>",
+            $this->extension->specifyType('/', new ConstantFloatType(8.0), $seconds)
+                ->describe(VerbosityLevel::precise()),
+        );
+        $this->assertSame(
+            "2.25&unit_float<'meter ^ 2'>",
+            $this->extension->specifyType('**', $meters, new ConstantIntegerType(2))
+                ->describe(VerbosityLevel::precise()),
+        );
+    }
+
+    public function testPartiallyKnownFloatArithmeticWidensWithoutDiscardingTheUnit(): void
+    {
+        $constantMeters = $this->unitConstantFloat(1.5, 'meter');
+
+        $this->assertSame(
+            "unit_float<'meter'>",
+            $this->extension->specifyType('+', $constantMeters, $this->unitFloat('meter'))
+                ->describe(VerbosityLevel::precise()),
+        );
+        $this->assertSame(
+            "unit_float<'meter'>",
+            $this->extension->specifyType('*', $constantMeters, new FloatType())
+                ->describe(VerbosityLevel::precise()),
+        );
+    }
+
+    public function testUndefinedConstantFloatArithmeticWidensInsteadOfFolding(): void
+    {
+        $zeroSeconds = $this->unitConstantFloat(0.0, 'second');
+
+        $this->assertSame(
+            "unit_float<'meter / second'>",
+            $this->extension->specifyType('/', $this->unitConstantFloat(1.0, 'meter'), $zeroSeconds)
+                ->describe(VerbosityLevel::precise()),
+        );
+        $this->assertSame(
+            "unit_float<'meter'>",
+            $this->extension->specifyType('/', $this->unitConstantFloat(1.0, 'meter'), new ConstantFloatType(0.0))
+                ->describe(VerbosityLevel::precise()),
+        );
+        $this->assertSame(
+            "unit_float<'1 / second'>",
+            $this->extension->specifyType('/', new ConstantFloatType(1.0), $zeroSeconds)
+                ->describe(VerbosityLevel::precise()),
+        );
+        $this->assertSame(
+            "unit_float<'1 / meter'>",
+            $this->extension->specifyType(
+                '**',
+                $this->unitConstantFloat(0.0, 'meter'),
+                new ConstantIntegerType(-1),
+            )->describe(VerbosityLevel::precise()),
+        );
     }
 
     public function testSubtractSameIntegerUnitAllowsFloatOverflow(): void
@@ -548,6 +634,11 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
         $this->assertTrue($parsed->isOk(), $parsed->errorMessage() ?? '');
 
         return new UnitFloatType($parsed->expression());
+    }
+
+    private function unitConstantFloat(float $value, string $unit): UnitConstantFloatType
+    {
+        return new UnitConstantFloatType($value, $this->unit($unit));
     }
 
     private function unitNumericString(string $unit): UnitNumericStringType

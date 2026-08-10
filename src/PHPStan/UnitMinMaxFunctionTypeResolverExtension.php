@@ -373,8 +373,9 @@ final class UnitMinMaxFunctionTypeResolverExtension implements ExpressionTypeRes
                 continue;
             }
 
-            if ($innerType instanceof UnitFloatType) {
-                $innerUnit = $innerType->getUnitExpression();
+            $float = UnitFloatType::extract($innerType);
+            if ($float !== null) {
+                $innerUnit = $float['unit'];
                 $hasFloat = true;
             } else {
                 $integer = UnitIntegerTypeHelper::extract($innerType);

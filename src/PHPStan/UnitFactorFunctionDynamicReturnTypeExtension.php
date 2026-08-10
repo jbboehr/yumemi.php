@@ -38,6 +38,8 @@ namespace jbboehr\Yumemi\PHPStan;
 
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\Exception\NonMultiplicativeConversionException;
+use jbboehr\Yumemi\Exception\OverflowException;
+use jbboehr\Yumemi\Exception\UnderflowException;
 use jbboehr\Yumemi\Units;
 use PhpParser\Node\Expr\FuncCall;
 use PHPStan\Analyser\Scope;
@@ -166,11 +168,12 @@ final class UnitFactorFunctionDynamicReturnTypeExtension implements DynamicFunct
             $toUnits[] = $toResult->expression();
         }
 
+        $resultTypes = [];
         $resultUnits = [];
         foreach ($fromUnits as $fromUnit) {
             foreach ($toUnits as $toUnit) {
                 try {
-                    $this->units->conversionFactor($fromUnit->expr, $toUnit->expr);
+                    $factor = $this->units->conversionFactor($fromUnit->expr, $toUnit->expr);
                 } catch (IncompatibleUnitException|NonMultiplicativeConversionException $exception) {
                     $message = 'Cannot calculate unit_factor(): ' . $exception->getMessage();
 
@@ -182,20 +185,26 @@ final class UnitFactorFunctionDynamicReturnTypeExtension implements DynamicFunct
                 }
 
                 $resultUnit = UnitExpressionAlgebra::divide($toUnit, $fromUnit);
+                $knownResultUnit = false;
                 foreach ($resultUnits as $existing) {
                     if ($existing->equivalent($resultUnit)) {
-                        continue 2;
+                        $knownResultUnit = true;
+                        break;
                     }
                 }
 
-                $resultUnits[] = $resultUnit;
+                if (!$knownResultUnit) {
+                    $resultUnits[] = $resultUnit;
+                }
+                try {
+                    $resultTypes[] = new UnitConstantFloatType($factor->toFloat(), $resultUnit);
+                } catch (OverflowException|UnderflowException) {
+                    $resultTypes[] = new UnitFloatType($resultUnit);
+                }
             }
         }
 
-        $type = TypeCombinator::union(...array_map(
-            static fn (UnitExpression $unit): UnitFloatType => new UnitFloatType($unit),
-            $resultUnits,
-        ));
+        $type = TypeCombinator::union(...$resultTypes);
 
         if (count($resultUnits) === 1) {
             return ['type' => $type, 'issue' => null, 'message' => null];

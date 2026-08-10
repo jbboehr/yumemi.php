@@ -66,7 +66,7 @@ $speed = $distance / $duration;
 saveJourneySpeed($speed);
 assert($speed === 10.0);
 
-//! expects unit_float<'meter / second'>, unit_float<'meter * second'> given
+//! unit_float<'meter * second'> is not assignable
 saveJourneySpeed($distance * $duration);
 ```
 

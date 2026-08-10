@@ -172,23 +172,30 @@ final class UnitRootFunctionTypeResolverExtension implements ExpressionTypeResol
      * @logion [SFA 41:68] The sealed measure answereth only when every mark thereof
      *     is whole; the divided inscription returneth in silence unto the margin.
      *
-     * @return array{branded: bool, type: UnitFloatType|null, unit: string}
+     * @return array{branded: bool, type: UnitFloatType|UnitConstantFloatType|null, unit: string}
      */
     private function transformArm(Type $type): array
     {
-        $unit = $type instanceof UnitFloatType
-            ? $type->getUnitExpression()
-            : UnitIntegerTypeHelper::extract($type)['unit'] ?? null;
+        $float = UnitFloatType::extract($type);
+        $integer = UnitIntegerTypeHelper::extract($type);
+        $unit = $float['unit'] ?? $integer['unit'] ?? null;
         if ($unit === null) {
             return ['branded' => false, 'type' => null, 'unit' => ''];
         }
 
         $symbolicUnit = ExprRenderer::format($unit->symbolicExpr);
+        $value = $float['value'] ?? (
+            $integer !== null && $integer['min'] !== null && $integer['min'] === $integer['max']
+                ? (float) $integer['min']
+                : null
+        );
 
         try {
             return [
                 'branded' => true,
-                'type' => new UnitFloatType(UnitExpressionAlgebra::root($unit, 2)),
+                'type' => $value !== null
+                    ? new UnitConstantFloatType(sqrt($value), UnitExpressionAlgebra::root($unit, 2))
+                    : new UnitFloatType(UnitExpressionAlgebra::root($unit, 2)),
                 'unit' => $symbolicUnit,
             ];
         } catch (NonExactRootException) {

@@ -31,19 +31,19 @@ function configuredEquivalentUnits(string $unit): void
 }
 
 $meters = unit_to($widget, 'widget', 'meter');
-assertType("unit_float<'meter'>", $meters);
+assertType("24.0&unit_float<'meter'>", $meters);
 
 $widgetToMeter = unit_factor('widget', 'meter');
-assertType("unit_float<'meter / widget'>", $widgetToMeter);
-assertType("unit_float<'meter'>", $widget * $widgetToMeter);
+assertType("12.0&unit_float<'meter / widget'>", $widgetToMeter);
+assertType("24.0&unit_float<'meter'>", $widget * $widgetToMeter);
 
-assertType("unit_float<'kelvin'>", unit_to(0, 'degree_widget', 'kelvin'));
-assertType('float', unit_to(100, 'kelvin', 'degree_widget'));
+assertType("100.0&unit_float<'kelvin'>", unit_to(0, 'degree_widget', 'kelvin'));
+assertType('0.0', unit_to(100, 'kelvin', 'degree_widget'));
 
 $euros = unit(107, 'EUR');
 assertType("107&unit_int<'EUR'>", $euros);
-assertType("unit_float<'USD'>", unit_to($euros, 'EUR', 'USD'));
-assertType("unit_float<'USD / EUR'>", unit_factor('EUR', 'USD'));
+assertType("100.0&unit_float<'USD'>", unit_to($euros, 'EUR', 'USD'));
+assertType("0.9345794392523364&unit_float<'USD / EUR'>", unit_factor('EUR', 'USD'));
 
 $dollars = Units::default()->quantity(100, 'USD');
 $euroQuantity = Units::default()->quantity(107, 'EUR');

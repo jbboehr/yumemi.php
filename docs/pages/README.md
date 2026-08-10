@@ -21,7 +21,7 @@ use function jbboehr\Yumemi\unit;
 /** @param unit_float<'meter'> $height */
 function setDoorHeight(float $height): void {}
 
-//! expects unit_float<'meter'>, unit_float<'international_foot'> given
+//! unit_float<'international_foot'> is not assignable
 setDoorHeight(unit(6.0, 'foot'));
 ```
 

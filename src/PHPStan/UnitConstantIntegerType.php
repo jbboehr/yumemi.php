@@ -201,7 +201,7 @@ final class UnitConstantIntegerType extends ConstantIntegerType
      */
     public function toFloat(): Type
     {
-        return new UnitFloatType($this->unit);
+        return new UnitConstantFloatType((float) $this->getValue(), $this->unit);
     }
 
     /**

@@ -165,8 +165,9 @@ final class InvalidUnitComparisonRule implements Rule
         $hasNonUnitArm = false;
 
         foreach ($types as $innerType) {
-            if ($innerType instanceof UnitFloatType) {
-                $units[] = $innerType->getUnitExpression();
+            $float = UnitFloatType::extract($innerType);
+            if ($float !== null) {
+                $units[] = $float['unit'];
             } else {
                 $numericString = UnitNumericStringType::extractUnit($innerType);
                 if ($numericString !== null) {

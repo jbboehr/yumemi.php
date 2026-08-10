@@ -66,14 +66,15 @@ final class UnitUnaryOperatorTypeSpecifyingExtension implements UnaryOperatorTyp
             return false;
         }
 
-        return $operand instanceof UnitFloatType || UnitIntegerTypeHelper::extract($operand) !== null;
+        return UnitFloatType::extract($operand) !== null || UnitIntegerTypeHelper::extract($operand) !== null;
     }
 
     public function specifyType(string $operatorSigil, Type $operand): Type
     {
         try {
             $integer = UnitIntegerTypeHelper::extract($operand);
-            if ($integer === null && !$operand instanceof UnitFloatType) {
+            $float = UnitFloatType::extract($operand);
+            if ($integer === null && $float === null) {
                 return new ErrorType('Unary unit operator requires a unit_int or unit_float operand.');
             }
 
@@ -85,7 +86,11 @@ final class UnitUnaryOperatorTypeSpecifyingExtension implements UnaryOperatorTyp
                 );
             }
 
-            // Unary + and float negation preserve unit identity and magnitude kind.
+            if ($operatorSigil === '-' && $float['value'] !== null) {
+                return new UnitConstantFloatType(-$float['value'], $float['unit']);
+            }
+
+            // Unary + and nonconstant float negation preserve unit identity and magnitude kind.
             return $operand;
         } catch (\Throwable $exception) {
             ShouldNotHappenException::rethrow($exception);

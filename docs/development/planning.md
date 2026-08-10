@@ -83,9 +83,10 @@ The implemented foundation now includes:
   deserialization for runtime value objects;
 - configurable ASCII and Unicode formatting with catalog-aware names and fraction or negative-power division;
 - native `unit_int` / `unit_float` and object `Quantity<'...'>` / `PointQuantity<'...'>` PHPStan types with arithmetic
-  inference, branded integer constants and ranges, overflow-aware bounds, diagnostics, custom registries, strict native
-  helper expressions, finite object-boundary unions, explicit numeric-cast and common scalar-function brand
-  preservation, `unit_numeric_string<'...'>` for trusted string-oriented boundaries, and optional `@yumemi-*` promotion;
+  inference, branded integer constants and ranges, known branded float values, overflow-aware bounds, diagnostics,
+  custom registries, strict native helper expressions, finite object-boundary unions, explicit numeric-cast and common
+  scalar-function brand preservation, `unit_numeric_string<'...'>` for trusted string-oriented boundaries, and optional
+  `@yumemi-*` promotion;
 - a separately versioned [Yumemi Apocrypha](https://github.com/jbboehr/yumemi-apocrypha.php) package for curated
   third-party stubs, leaving the generic `@yumemi-*` mechanism in core;
 - focused public documentation whose executable PHP and PHPStan examples are verified through Akashi, using child
@@ -662,11 +663,6 @@ repeat the implementation's assumptions:
   `Units` contexts. Native serialization currently supports the default context plus one dynamically scoped custom
   context through `Units::deserialize()` and rejects semantic drift. Broader ecosystem integrations remain deferred.
 - Strict same-unit comparison variants and PHP object comparison operators unless a concrete use case appears
-- Constant-valued native unit floats. Branded integer literals now use an internal `UnitConstantIntegerType` and the
-  public intersection spelling `3&unit_int<'meter'>`; no separate `unit_const_int` pseudo-type is needed. A future
-  `UnitConstantFloatType` may implement PHPStan's `ConstantScalarType`, but retaining a known binary float would not
-  make that value mathematically exact. Float constants would be particularly useful for literal conversion ratios such
-  as points, twips, pixels, or EMUs per inch without discarding their scalar values.
 - Range-bearing native float types are a separate, more custom follow-up because PHPStan does not provide corresponding
   public float-range PHPDoc syntax or an integer-range-equivalent core type. They would be particularly valuable for
   bounded coordinates such as latitude and longitude, nonnegative fractional durations and rates, and other APIs that

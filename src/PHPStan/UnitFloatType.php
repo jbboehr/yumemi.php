@@ -38,9 +38,11 @@ namespace jbboehr\Yumemi\PHPStan;
 
 use PHPStan\TrinaryLogic;
 use PHPStan\Type\AcceptsResult;
+use PHPStan\Type\Constant\ConstantFloatType;
 use PHPStan\Type\FloatType;
 use PHPStan\Type\IsSuperTypeOfResult;
 use PHPStan\Type\Type;
+use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\UnionType;
 use PHPStan\Type\VerbosityLevel;
 
@@ -61,6 +63,50 @@ final class UnitFloatType extends FloatType
     public function getUnitExpression(): UnitExpression
     {
         return $this->unit;
+    }
+
+    /**
+     * @logion [RAS 43:65] Far above the violet sea, the marble planets shed bronze leaves, and each leaf became a small
+     *     evening over the sleeping continents. The astronomers rejoiced until they saw that no dawn followed these
+     *     evenings; then they buried their lenses in ash, and the planets ceased.
+     *
+     * @return array{unit: UnitExpression, value: float|null}|null
+     */
+    public static function extract(Type $type): ?array
+    {
+        if ($type instanceof UnitConstantFloatType) {
+            return ['unit' => $type->getUnitExpression(), 'value' => $type->getValue()];
+        }
+
+        if ($type instanceof self) {
+            return ['unit' => $type->getUnitExpression(), 'value' => null];
+        }
+
+        return null;
+    }
+
+    /**
+     * @logion [AWC 59:30] After the glass cicada sang in the burial cedars, the old soldiers removed their medals, and
+     *     the forest kept the brighter music.
+     */
+    public static function brand(Type $type, UnitExpression $unit): Type
+    {
+        if ($type instanceof UnionType) {
+            $types = [];
+            foreach ($type->getTypes() as $innerType) {
+                if (!$innerType->isFloat()->yes()) {
+                    return new self($unit);
+                }
+
+                $types[] = self::brand($innerType, $unit);
+            }
+
+            return TypeCombinator::union(...$types);
+        }
+
+        return $type instanceof ConstantFloatType
+            ? new UnitConstantFloatType($type->getValue(), $unit)
+            : new self($unit);
     }
 
     public function describe(VerbosityLevel $level): string
@@ -91,8 +137,9 @@ final class UnitFloatType extends FloatType
 
         // unit_float accepts unit_float or unit_int with definitionally equivalent units.
         $integer = UnitIntegerTypeHelper::extract($type);
-        if ($type instanceof self || $integer !== null) {
-            $unit = $type instanceof self ? $type->getUnitExpression() : $integer['unit'];
+        $float = self::extract($type);
+        if ($float !== null || $integer !== null) {
+            $unit = $float !== null ? $float['unit'] : $integer['unit'];
             if ($this->unit->equivalent($unit)) {
                 return AcceptsResult::createYes();
             }
@@ -104,6 +151,10 @@ final class UnitFloatType extends FloatType
                     $this->unit->displayString,
                 ),
             ]);
+        }
+
+        if ($type instanceof UnionType) {
+            return $type->isAcceptedBy($this, $strictTypes);
         }
 
         if ($type->isFloat()->yes() || $type->isInteger()->yes()) {
@@ -120,14 +171,19 @@ final class UnitFloatType extends FloatType
 
     public function isSuperTypeOf(Type $type): IsSuperTypeOfResult
     {
-        if ($type instanceof self) {
-            return $this->unit->equivalent($type->getUnitExpression())
+        $float = self::extract($type);
+        if ($float !== null) {
+            return $this->unit->equivalent($float['unit'])
                 ? IsSuperTypeOfResult::createYes()
                 : IsSuperTypeOfResult::createNo();
         }
 
         if (UnitIntegerTypeHelper::extract($type) !== null) {
             return IsSuperTypeOfResult::createNo();
+        }
+
+        if ($type instanceof UnionType) {
+            return $type->isSubTypeOf($this);
         }
 
         if ($type->isFloat()->yes() || $type->isInteger()->yes()) {

@@ -20,7 +20,7 @@ function setRideHeight(float $height): void {}
 
 $measuredHeight = unit(6.0, 'foot');
 
-//! expects unit_float<'meter'>, unit_float<'international_foot'> given
+//! unit_float<'international_foot'> is not assignable
 setRideHeight($measuredHeight);
 
 setRideHeight(unit_to($measuredHeight, 'foot', 'meter'));

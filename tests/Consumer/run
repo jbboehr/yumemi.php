@@ -114,7 +114,7 @@ run_core_fixture() {
         exit 1
     fi
 
-    if [[ $output != *"expects unit_float<'meter'>, unit_float<'second'> given"* ]]; then
+    if [[ $output != *"expects unit_float<'meter'>, 1.0&unit_float<'second'> given"* ]]; then
         printf '%s consumer PHPStan fixture reported an unexpected diagnostic:\n%s\n' "$fixture" "$output" >&2
         exit 1
     fi

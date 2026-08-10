@@ -280,10 +280,12 @@ overflow, and mixed outcomes. Integer-brand extraction inspects only direct valu
 constraints, so callables, arrays, and other compound types retain nested brands without collapsing into integers.
 Explicit integer/float casts and `abs()`, `ceil()`, `floor()`, and `round()` preserve native brands. `min()` and `max()`
 preserve one definitionally equivalent brand across every possible returning candidate, while native `sqrt()` transforms
-exact symbolic square units. Remaining work is branded float precision, additional built-ins justified by real
-workflows, more precise diagnostics, and future advanced unit semantics. Dynamic native-helper expressions are diagnosed
-by default; explicit runtime parsing APIs remain dynamic, while deliberately suppressed or configured native-helper
-calls retain their declared unbranded fallback type.
+exact symbolic square units. Known native float values now survive construction, conversion factors, direct conversion,
+supported arithmetic, casts, and modeled scalar functions without being mistaken for exact rational quantities.
+Remaining work is branded float ranges, additional built-ins justified by real workflows, more precise diagnostics, and
+future advanced unit semantics. Dynamic native-helper expressions are diagnosed by default; explicit runtime parsing
+APIs remain dynamic, while deliberately suppressed or configured native-helper calls retain their declared unbranded
+fallback type.
 
 ### 22. Function Boundary Checking
 

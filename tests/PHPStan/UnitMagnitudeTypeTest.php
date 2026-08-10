@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
 use jbboehr\Yumemi\PHPStan\UnitExpressionParser;
+use jbboehr\Yumemi\PHPStan\UnitConstantFloatType;
 use jbboehr\Yumemi\PHPStan\UnitFloatType;
 use jbboehr\Yumemi\PHPStan\UnitIntegerType;
 use jbboehr\Yumemi\PHPStan\UnitIntegerTypeHelper;
@@ -44,6 +45,7 @@ use jbboehr\Yumemi\PHPStan\UnitNumericStringType;
 use PHPStan\Type\Accessory\AccessoryLiteralStringType;
 use PHPStan\Type\Accessory\AccessoryNumericStringType;
 use PHPStan\Type\ArrayType;
+use PHPStan\Type\Constant\ConstantFloatType;
 use PHPStan\Type\FloatType;
 use PHPStan\Type\IntegerType;
 use PHPStan\Type\IntersectionType;
@@ -306,7 +308,7 @@ final class UnitMagnitudeTypeTest extends TestCase
             $integer->toFloat()->describe(VerbosityLevel::precise()),
         );
         $this->assertSame(
-            "unit_float<'meter'>",
+            "3.0&unit_float<'meter'>",
             $constant->toFloat()->describe(VerbosityLevel::precise()),
         );
         $this->assertSame(
@@ -316,6 +318,91 @@ final class UnitMagnitudeTypeTest extends TestCase
         $this->assertSame(
             "unit_int<'second'>",
             $float->toInteger()->describe(VerbosityLevel::precise()),
+        );
+    }
+
+    public function testConstantFloatRetainsValueAndUnitIdentity(): void
+    {
+        $meters = $this->unitFloat('meter')->getUnitExpression();
+        $equivalentMeters = $this->unitFloat('100 * centimeter')->getUnitExpression();
+        $constant = new UnitConstantFloatType(1.5, $meters);
+        $equivalent = new UnitConstantFloatType(1.5, $equivalentMeters);
+        $differentValue = new UnitConstantFloatType(2.5, $meters);
+        $seconds = new UnitConstantFloatType(1.5, $this->unitFloat('second')->getUnitExpression());
+
+        $this->assertSame("1.5&unit_float<'meter'>", $constant->describe(VerbosityLevel::precise()));
+        $this->assertTrue($constant->equals($equivalent));
+        $this->assertFalse($constant->equals($differentValue));
+        $this->assertFalse($constant->equals($seconds));
+        $this->assertTrue($constant->accepts($equivalent, true)->yes());
+        $this->assertTrue($constant->accepts($differentValue, true)->no());
+        $this->assertTrue($constant->accepts($seconds, true)->no());
+        $this->assertTrue($constant->accepts($this->unitFloat('meter'), true)->maybe());
+        $this->assertTrue($constant->accepts(new ConstantFloatType(1.5), true)->no());
+        $this->assertTrue($this->unitFloat('meter')->accepts($constant, true)->yes());
+        $this->assertTrue($this->unitFloat('meter')->isSuperTypeOf($constant)->yes());
+        $this->assertTrue($constant->isSuperTypeOf($equivalent)->yes());
+        $this->assertTrue($constant->isSuperTypeOf($differentValue)->no());
+    }
+
+    public function testConstantFloatPreservesBrandAcrossScalarTransforms(): void
+    {
+        $constant = new UnitConstantFloatType(-1.5, $this->unitFloat('meter')->getUnitExpression());
+
+        $this->assertSame("unit_float<'meter'>", $constant
+            ->generalize(\PHPStan\Type\GeneralizePrecision::moreSpecific())
+            ->describe(VerbosityLevel::precise()));
+        $this->assertSame([], $constant->getConstantScalarTypes());
+        $this->assertSame("unit_float<'meter'>", $constant->toNumber()->describe(VerbosityLevel::precise()));
+        $this->assertSame("-1&unit_int<'meter'>", $constant->toInteger()->describe(VerbosityLevel::precise()));
+        $this->assertSame(
+            "1.5&unit_float<'meter'>",
+            $constant->toAbsoluteNumber()->describe(VerbosityLevel::precise()),
+        );
+        $this->assertTrue($constant->equals(UnitConstantFloatType::__set_state([
+            'value' => -1.5,
+            'unit' => $constant->getUnitExpression(),
+        ])));
+    }
+
+    public function testFloatBrandingPreservesDirectConstantsWithoutInspectingContainers(): void
+    {
+        $meters = $this->unitFloat('meter')->getUnitExpression();
+        $one = UnitFloatType::brand(new ConstantFloatType(1.0), $meters);
+        $alternatives = UnitFloatType::brand(new UnionType([
+            new ConstantFloatType(1.0),
+            new ConstantFloatType(2.0),
+        ]), $meters);
+        $mixedUnits = new UnionType([
+            new UnitConstantFloatType(1.0, $meters),
+            new UnitConstantFloatType(2.0, $this->unitFloat('second')->getUnitExpression()),
+        ]);
+
+        $this->assertInstanceOf(UnitConstantFloatType::class, $one);
+        $this->assertSame("1.0&unit_float<'meter'>", $one->describe(VerbosityLevel::precise()));
+        $this->assertSame(
+            "1.0&unit_float<'meter'>|2.0&unit_float<'meter'>",
+            $alternatives->describe(VerbosityLevel::precise()),
+        );
+        $this->assertTrue($this->unitFloat('meter')->accepts($alternatives, true)->yes());
+        $this->assertTrue($this->unitFloat('meter')->isSuperTypeOf($alternatives)->yes());
+        $this->assertTrue($this->unitFloat('meter')->accepts($mixedUnits, true)->maybe());
+        $this->assertTrue($this->unitFloat('meter')->isSuperTypeOf($mixedUnits)->maybe());
+        $this->assertSame(
+            "unit_float<'meter'>",
+            UnitFloatType::brand(new FloatType(), $meters)->describe(VerbosityLevel::precise()),
+        );
+        $this->assertSame(
+            "unit_float<'meter'>",
+            UnitFloatType::brand(new UnionType([
+                new ConstantFloatType(1.0),
+                new IntegerType(),
+            ]), $meters)->describe(VerbosityLevel::precise()),
+        );
+        $this->assertNull(UnitFloatType::extract(new ArrayType(new IntegerType(), $one)));
+        $this->assertSame(
+            "unit_float<'meter'>",
+            TypeCombinator::union($this->unitFloat('meter'), $one)->describe(VerbosityLevel::precise()),
         );
     }
 

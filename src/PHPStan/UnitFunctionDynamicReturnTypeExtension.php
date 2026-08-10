@@ -153,7 +153,7 @@ final class UnitFunctionDynamicReturnTypeExtension implements DynamicFunctionRet
             ));
         } else {
             $type = TypeCombinator::union(...array_map(
-                static fn (UnitExpression $unit): UnitFloatType => new UnitFloatType($unit),
+                static fn (UnitExpression $unit): Type => UnitFloatType::brand($valueType, $unit),
                 $units,
             ));
         }

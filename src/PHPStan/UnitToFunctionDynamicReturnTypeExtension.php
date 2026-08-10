@@ -36,6 +36,8 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
+use jbboehr\Yumemi\Exception\OverflowException;
+use jbboehr\Yumemi\Exception\UnderflowException;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
@@ -44,6 +46,8 @@ use jbboehr\Yumemi\Units;
 use PhpParser\Node\Expr\FuncCall;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\FunctionReflection;
+use PHPStan\Type\Constant\ConstantFloatType;
+use PHPStan\Type\Constant\ConstantIntegerType;
 use PHPStan\Type\DynamicFunctionReturnTypeExtension;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\FloatType;
@@ -227,9 +231,35 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
         }
 
         $resultTypes = [];
-        foreach ($toStrings as $toString) {
-            $toUnit = $toUnits[$toString];
-            $resultTypes[] = $toUnit === null ? new FloatType() : new UnitFloatType($toUnit);
+        $constantValues = self::constantNumericValues($scope->getType($valueArgument->value));
+        foreach ($fromStrings as $fromString) {
+            foreach ($toStrings as $toString) {
+                $toUnit = $toUnits[$toString];
+                if ($constantValues === null) {
+                    $resultTypes[] = $toUnit === null ? new FloatType() : new UnitFloatType($toUnit);
+                    continue;
+                }
+
+                foreach ($constantValues as $constantValue) {
+                    if (is_float($constantValue) && !is_finite($constantValue)) {
+                        $resultTypes[] = $toUnit === null ? new FloatType() : new UnitFloatType($toUnit);
+                        continue;
+                    }
+
+                    try {
+                        $converted = is_int($constantValue)
+                            ? $this->units->convert($constantValue, $fromString, $toString)->toFloat()
+                            : $this->units->convertFloat($constantValue, $fromString, $toString);
+                    } catch (OverflowException|UnderflowException) {
+                        $resultTypes[] = $toUnit === null ? new FloatType() : new UnitFloatType($toUnit);
+                        continue;
+                    }
+
+                    $resultTypes[] = $toUnit === null
+                        ? new ConstantFloatType($converted)
+                        : new UnitConstantFloatType($converted, $toUnit);
+                }
+            }
         }
 
         $type = TypeCombinator::union(...$resultTypes);
@@ -305,8 +335,9 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
         $types = $type instanceof UnionType ? $type->getTypes() : [$type];
         $units = [];
         foreach ($types as $innerType) {
-            if ($innerType instanceof UnitFloatType) {
-                $units[] = $innerType->getUnitExpression();
+            $float = UnitFloatType::extract($innerType);
+            if ($float !== null) {
+                $units[] = $float['unit'];
                 continue;
             }
 
@@ -322,5 +353,28 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
         );
 
         return $units;
+    }
+
+    /**
+     * @logion [AWC 37:42] At autumn's first frost, the bridge of the eastern province sounded like a harp beneath the
+     *     feet of refugees. The guards lowered their spears, and the governor forbade the music; but the stones continued
+     *     until his own household crossed among the poor. By sunrise the bridge was silent, and his palace stood on the
+     *     farther bank.
+     *
+     * @return list<int|float>|null
+     */
+    private static function constantNumericValues(Type $type): ?array
+    {
+        $types = $type instanceof UnionType ? $type->getTypes() : [$type];
+        $values = [];
+        foreach ($types as $innerType) {
+            if (!$innerType instanceof ConstantIntegerType && !$innerType instanceof ConstantFloatType) {
+                return null;
+            }
+
+            $values[] = $innerType->getValue();
+        }
+
+        return $values;
     }
 }

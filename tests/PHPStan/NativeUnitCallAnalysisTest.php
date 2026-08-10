@@ -53,8 +53,10 @@ use PhpParser\Node\Scalar\Int_;
 use PhpParser\Node\Scalar\String_;
 use PHPStan\Analyser\Scope;
 use PHPStan\Type\Constant\ConstantIntegerType;
+use PHPStan\Type\Constant\ConstantFloatType;
 use PHPStan\Type\Constant\ConstantStringType;
 use PHPStan\Type\ErrorType;
+use PHPStan\Type\FloatType;
 use PHPStan\Type\StringType;
 use PHPStan\Type\Type;
 use PHPStan\Type\UnionType;
@@ -164,6 +166,97 @@ final class NativeUnitCallAnalysisTest extends TestCase
         self::assertSame('dynamic', $conversion['issue']);
         self::assertNull($conversionFromDynamic['type']);
         self::assertSame('dynamic', $conversionFromDynamic['issue']);
+    }
+
+    public function testConstantNativeCallsRetainTheirBinaryFloatValues(): void
+    {
+        $parser = new UnitExpressionParser();
+        $units = Units::default();
+        $value = new Float_(1.5);
+        $threeFeet = new Float_(3.0);
+        $meter = new String_('meter');
+        $centimeter = new String_('centimeter');
+        $foot = new String_('foot');
+        $scope = $this->scopeFor([
+            [$value, new ConstantFloatType(1.5)],
+            [$threeFeet, new ConstantFloatType(3.0)],
+            [$meter, new ConstantStringType('meter')],
+            [$centimeter, new ConstantStringType('centimeter')],
+            [$foot, new ConstantStringType('foot')],
+        ]);
+
+        $branded = (new UnitFunctionDynamicReturnTypeExtension($parser))->analyseCall(
+            new FuncCall(new Name('unit'), [new Arg($value), new Arg($meter)]),
+            $scope,
+        );
+        $factor = (new UnitFactorFunctionDynamicReturnTypeExtension($parser, $units))->analyseCall(
+            new FuncCall(new Name('unit_factor'), [new Arg($meter), new Arg($centimeter)]),
+            $scope,
+        );
+        $converted = (new UnitToFunctionDynamicReturnTypeExtension($parser, $units))->analyseCall(
+            new FuncCall(new Name('unit_to'), [new Arg($threeFeet), new Arg($foot), new Arg($meter)]),
+            $scope,
+        );
+
+        self::assertSame(
+            "1.5&unit_float<'meter'>",
+            $branded['type']?->describe(\PHPStan\Type\VerbosityLevel::precise()),
+        );
+        self::assertSame(
+            "100.0&unit_float<'1/100'>",
+            $factor['type']?->describe(\PHPStan\Type\VerbosityLevel::precise()),
+        );
+        self::assertSame(
+            "0.9144000000000001&unit_float<'meter'>",
+            $converted['type']?->describe(\PHPStan\Type\VerbosityLevel::precise()),
+        );
+    }
+
+    public function testNonFiniteConstantConversionFallsBackToTheBrandedFloatType(): void
+    {
+        $parser = new UnitExpressionParser();
+        $value = new Float_(INF);
+        $foot = new String_('foot');
+        $meter = new String_('meter');
+        $scope = $this->scopeFor([
+            [$value, new ConstantFloatType(INF)],
+            [$foot, new ConstantStringType('foot')],
+            [$meter, new ConstantStringType('meter')],
+        ]);
+
+        $analysis = (new UnitToFunctionDynamicReturnTypeExtension($parser, Units::default()))->analyseCall(
+            new FuncCall(new Name('unit_to'), [new Arg($value), new Arg($foot), new Arg($meter)]),
+            $scope,
+        );
+
+        self::assertSame("unit_float<'meter'>", $analysis['type']?->describe(\PHPStan\Type\VerbosityLevel::precise()));
+    }
+
+    public function testNonConstantConversionRetainsEveryTargetAlternative(): void
+    {
+        $parser = new UnitExpressionParser();
+        $value = new Variable('value');
+        $from = new String_('inch');
+        $to = new Variable('to');
+        $scope = $this->scopeFor([
+            [$value, new FloatType()],
+            [$from, new ConstantStringType('inch')],
+            [$to, new UnionType([
+                new ConstantStringType('foot'),
+                new ConstantStringType('meter'),
+            ])],
+        ]);
+
+        $analysis = (new UnitToFunctionDynamicReturnTypeExtension($parser, Units::default()))->analyseCall(
+            new FuncCall(new Name('unit_to'), [new Arg($value), new Arg($from), new Arg($to)]),
+            $scope,
+        );
+
+        self::assertSame(
+            "unit_float<'international_foot'>|unit_float<'meter'>",
+            $analysis['type']?->describe(\PHPStan\Type\VerbosityLevel::precise()),
+        );
+        self::assertSame('ambiguous', $analysis['issue']);
     }
 
     public function testBrandedValueUnionMismatchMessageIsDeterministic(): void

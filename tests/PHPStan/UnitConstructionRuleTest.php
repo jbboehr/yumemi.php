@@ -69,9 +69,9 @@ final class UnitConstructionRuleTest extends RuleTestCase
     {
         $this->analyse([__DIR__ . '/Fixtures/UnitConstructionScaleMismatch.php'], [
             [
-                'Parameter #1 $length of method jbboehr\Yumemi\Tests\PHPStan\Fixtures\UnitConstructionScaleMismatch::expectMeters() expects unit_float<\'meter\'>, unit_float<\'international_foot\'> given.',
+                'Parameter #1 $length of method jbboehr\Yumemi\Tests\PHPStan\Fixtures\UnitConstructionScaleMismatch::expectMeters() expects unit_float<\'meter\'>, 3.0&unit_float<\'international_foot\'> given.',
                 19,
-                'Unit unit_float<\'international_foot\'> is not assignable to unit_float<\'meter\'> (normalized forms differ).',
+                'Unit 3.0&unit_float<\'international_foot\'> is not assignable to unit_float<\'meter\'> (normalized forms differ).',
             ],
         ]);
     }
