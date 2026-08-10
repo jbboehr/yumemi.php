@@ -123,6 +123,45 @@ maintaining another catalog.
 PHPStan APIs are expected to decay faster than the runtime model. Adapter changes should preserve the runtime contract
 and PHPStan conformance evidence instead of pushing tool-specific concepts inward.
 
+#### Scalar Brand Representation
+
+Yumemi represents native brands with internal scalar subclasses: `UnitIntegerType`, `UnitFloatType`,
+`UnitConstantIntegerType`, and `UnitConstantFloatType`. The range-bearing integer representation intersects the unit
+integer type with PHPStan's native integer-range type. These classes extend PHPStan scalar classes documented as public
+extension APIs rather than implementing PHPStan's type interfaces directly.
+
+A carrier-independent accessory representation was evaluated and rejected for the current PHPStan adapter. It would
+conceptually represent values as intersections such as:
+
+```text
+int<1, 10> & UnitAccessory<'meter'>
+1.5 & UnitAccessory<'meter'>
+```
+
+That model is attractive because the carrier, constant or range, and unit metadata appear orthogonal. It does not
+provide a safer or simpler implementation under PHPStan's current extension contracts:
+
+- PHPStan exposes no supported generic accessory capable of carrying a Yumemi `UnitExpression`. A custom accessory would
+  still be a custom type, while `AccessoryType` is not marked as public API and its required `Type` and `CompoundType`
+  protocols are marked `@api-do-not-implement`.
+- PHPStan performs built-in constant folding for addition, subtraction, multiplication, and division before consulting
+  operator extensions. `IntersectionType::getConstantScalarTypes()` aggregates constants from its members, so a native
+  constant intersected with a unit accessory would expose the bare scalar and allow that early fold to discard the
+  brand. The constant scalar subclasses deliberately suppress this path so Yumemi's operator extension can preserve or
+  transform the unit.
+- Generic intersection conversion, generalization, and description operate on members independently. An accessory cannot
+  veto a constant contributed by another member, and some verbosity levels intentionally omit accessory types, making
+  unit-bearing diagnostics less dependable.
+- A hybrid using accessories for broad values and ranges while retaining custom constant subclasses would introduce a
+  second brand representation without removing the difficult classes. The existing integer-range intersection already
+  obtains the useful part of that composition.
+
+Do not migrate native brands to accessories merely to make their internal representation look more orthogonal. Revisit
+the decision if PHPStan publishes a supported custom-accessory API that can carry extension metadata, participate in or
+defer scalar constant folding, and preserve refinements through conversions and diagnostics. Any prototype must first
+prove the existing helper, operator, cast, range, union, and diagnostic conformance cases without adding a parallel
+public pseudo-type model.
+
 ### Acquisition and Presentation Tooling
 
 The following layers support development or generation but do not define runtime semantics by themselves:
