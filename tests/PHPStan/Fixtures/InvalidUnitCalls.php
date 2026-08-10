@@ -246,3 +246,19 @@ function mixedAffineAndMultiplicativeConversionTargets(string $to): void
 {
     unit_to(273.15, 'kelvin', $to);
 }
+
+// @phpstan-ignore yumemi.invalidUnitCall (exercise identifier-specific suppression)
+unit(1.0, 'not_a_real_unit_xyz');
+
+function ignoredDynamicUnitExpression(string $unit): void
+{
+    // @phpstan-ignore yumemi.dynamicUnitExpression (exercise identifier-specific suppression)
+    unit(1.0, $unit);
+}
+
+/** @param 'foot'|'meter' $unit */
+function ignoredAmbiguousUnitExpression(string $unit): void
+{
+    // @phpstan-ignore yumemi.ambiguousUnitExpression (exercise identifier-specific suppression)
+    unit(1.0, $unit);
+}

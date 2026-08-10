@@ -35,3 +35,6 @@ $units->parseQuantity('2 B');
 
 $units->point(1, 'celsius / second');
 $units->deltaQuantity(1, 'B');
+
+// @phpstan-ignore yumemi.invalidQuantityConstruction (exercise identifier-specific suppression)
+$units->quantity(1, 'not_a_real_unit_xyz');

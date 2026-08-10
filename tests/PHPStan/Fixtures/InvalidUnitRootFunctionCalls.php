@@ -27,3 +27,6 @@ function rejectInvalidMixedRootUnion(int|float $value): void
 {
     sqrt($value);
 }
+
+// @phpstan-ignore yumemi.invalidUnitRoot (exercise identifier-specific suppression)
+sqrt($length);

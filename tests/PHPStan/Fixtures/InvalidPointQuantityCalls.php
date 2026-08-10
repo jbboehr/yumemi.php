@@ -60,3 +60,6 @@ function compareIncompatiblePointOperandUnion(PointQuantity $other): void
 {
     Units::default()->point(0, 'celsius')->lessThan($other);
 }
+
+// @phpstan-ignore yumemi.invalidPointQuantityOperation (exercise identifier-specific suppression)
+$celsius->to('meter');

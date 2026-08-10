@@ -89,5 +89,7 @@ These are point-in-time diagnostics, not enforced floors:
   `ParserUtils::parseString()`'s defensive `parse() === false` fallback: the generated parser either succeeds or invokes
   the throwing error handler.
 
-The next cross-cutting verification task is a machine-checked inventory of PHPStan diagnostic identifiers and their
-documented suppression boundaries. It should validate stable identifiers without freezing human-readable prose.
+The subsequent cross-cutting verification added a machine-checked inventory of PHPStan diagnostic identifiers and their
+documented suppression boundaries. It validates both documentation lists, emitting implementation keys, and the set of
+identifier-specific local-ignore fixtures; focused rule tests prove those ignores match real diagnostics without
+freezing human-readable prose.

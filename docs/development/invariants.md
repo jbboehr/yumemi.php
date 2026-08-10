@@ -330,19 +330,18 @@ future localization. Depending on complete English messages would make harmless 
 [`InvalidUnitCallRule`](../../src/PHPStan/InvalidUnitCallRule.php),
 [`InvalidQuantityConstructionRule`](../../src/PHPStan/InvalidQuantityConstructionRule.php), and
 [`YumemiTagPromotionRule`](../../src/PHPStan/YumemiTagPromotionRule.php) assign identifiers. The
-[`UnitTypeNodeResolverIntegrationTest`](../../tests/PHPStan/UnitTypeNodeResolverIntegrationTest.php) verifies important
-identifiers and local ignores. The public [PHPStan reference](../pages/reference/phpstan.md#diagnostics) explains their
-meanings.
+[`DiagnosticIdentifierInventoryTest`](../../tests/PHPStan/DiagnosticIdentifierInventoryTest.php) is the machine-checked
+compatibility inventory: it requires every public identifier to appear in both the public
+[PHPStan reference](../pages/reference/phpstan.md#diagnostics) and the compatibility policy, classifies every
+first-party `yumemi.*` PHPStan key, and records an identifier-specific local-ignore fixture for every public diagnostic.
+Focused PHPStan rule tests separately exercise those fixtures with unmatched-ignore reporting enabled, proving that each
+comment suppresses the identifier it names.
 
 **Invalid shortcut.** Reusing one broad identifier for unrelated failures, renaming an identifier merely to improve its
 wording, or asking users to suppress a complete message string.
 
 **Classification.** Missing or incorrect identifiers are correctness defects for the extension. Renaming or removing a
 documented identifier is a compatibility break. Message-only wording changes are normally compatible.
-
-**Current gap.** Identifiers are distributed across rule classes, documentation, and tests. There is no single
-machine-checked inventory proving that every documented identifier is emitted and every emitted public identifier is
-documented.
 
 ## Maintenance Rule
 

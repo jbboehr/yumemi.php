@@ -131,3 +131,48 @@ function numericStringFallbackMismatch(): string
 {
     return '30';
 }
+
+/** @yumemi-param unit_int<'meter'> */
+// @phpstan-ignore yumemi.docTagSyntax (exercise identifier-specific suppression)
+function ignoredInvalidParamSyntax(int $length): void
+{
+}
+
+/** @yumemi-return int */
+// @phpstan-ignore yumemi.docTagType (exercise identifier-specific suppression)
+function ignoredMissingUnitType(): int
+{
+    return 1;
+}
+
+/** @yumemi-param unit_int<'meter'> $missing */
+// @phpstan-ignore yumemi.docTagParameter (exercise identifier-specific suppression)
+function ignoredUnknownParameter(int $length): void
+{
+}
+
+/**
+ * @yumemi-param unit_int<'meter'> $length
+ * @yumemi-param unit_int<'foot'> $length
+ */
+// @phpstan-ignore yumemi.docTagDuplicate (exercise identifier-specific suppression)
+function ignoredDuplicate(int $length): void
+{
+}
+
+/**
+ * @param float $length
+ * @yumemi-param unit_int<'meter'> $length
+ */
+// @phpstan-ignore yumemi.docTagTransform (exercise identifier-specific suppression)
+function ignoredTransformMismatch(float $length): void
+{
+}
+
+if (false) {
+    $ignoredInvalidTarget = new class {
+        /** @yumemi-param unit_int<'meter'> $length */
+        // @phpstan-ignore yumemi.docTagUnsupported (exercise identifier-specific suppression)
+        public int $length = 1;
+    };
+}

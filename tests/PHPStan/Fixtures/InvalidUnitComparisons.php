@@ -106,3 +106,6 @@ function compareNumericStringUnion(string $value, string $meters): void
 
 // Valid: the comparison rule ignores non-comparison binary operations.
 $meters + $seconds;
+
+// @phpstan-ignore yumemi.invalidUnitComparison (exercise identifier-specific suppression)
+$meters == $seconds;

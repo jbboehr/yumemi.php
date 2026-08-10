@@ -55,3 +55,6 @@ function addOperandUnion(Quantity $other): void
 {
     Units::default()->quantity(1, 'meter')->add($other);
 }
+
+// @phpstan-ignore yumemi.invalidQuantityArithmetic (exercise identifier-specific suppression)
+$meters->add($seconds);

@@ -56,3 +56,6 @@ function convertReceiverUnion(Quantity $quantity): void
 {
     $quantity->to('foot');
 }
+
+// @phpstan-ignore yumemi.invalidQuantityConversion (exercise identifier-specific suppression)
+$meters->to('second');

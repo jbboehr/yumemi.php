@@ -43,3 +43,6 @@ function compareOperandUnion(Quantity $other): void
 {
     Units::default()->quantity(1, 'meter')->equals($other);
 }
+
+// @phpstan-ignore yumemi.invalidQuantityComparison (exercise identifier-specific suppression)
+$meters->equals($seconds);
