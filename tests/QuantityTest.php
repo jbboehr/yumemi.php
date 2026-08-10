@@ -40,6 +40,7 @@ use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\Exception\NonExactRootException;
 use jbboehr\Yumemi\Number\DecimalNotation;
+use jbboehr\Yumemi\Number\FloatRangePolicy;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Quantity;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
@@ -752,6 +753,13 @@ final class QuantityTest extends TestCase
         $this->expectException(\UnderflowException::class);
 
         $quantity->floatValueIn('meter');
+    }
+
+    public function testFloatValueCanReturnInfinityAfterConversion(): void
+    {
+        $quantity = Units::default()->quantity(new Rational(gmp_pow(2, 1024)), 'meter');
+
+        $this->assertSame(INF, $quantity->floatValueIn('meter', FloatRangePolicy::Ieee754));
     }
 
     public function testAccessorsExposeStoredValueAndUnit(): void

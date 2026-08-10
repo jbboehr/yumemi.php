@@ -33,7 +33,7 @@ documented exceptions.
 The principal supported surfaces are:
 
 - `unit()`, `unit_factor()`, and `unit_to()`;
-- `Units`, `Quantity`, `PointQuantity`, `Rational`, and `Dimension`;
+- `Units`, `Quantity`, `PointQuantity`, `Rational`, `Dimension`, and `FloatRangePolicy`;
 - `Expr` values obtained from supported `Units` and value-object methods;
 - `UnitRegistryBuilder`, the documented `UnitRegistry` views, `CompositeUnitRegistry`, and `Udunits2UnitRegistry`;
 - `FormatOptions`, `ExprFormatter`, `DecimalNotation`, and the formatting policy enums;
@@ -105,6 +105,8 @@ preserving:
 
 - exact rational conversion and arithmetic until an explicitly approximate output boundary, including roots that fail
   instead of approximating when the magnitude or symbolic unit expression has no exact result;
+- ties-to-even exact float output with strict range handling by default and explicit signed infinity or signed zero when
+  requested through `FloatRangePolicy`;
 - the distinction among symbolic reduction, definition substitution, and display formatting;
 - the distinction among structural equality, definitional equivalence, and dimensional compatibility;
 - affine points, multiplicative differences, and their permitted operations;

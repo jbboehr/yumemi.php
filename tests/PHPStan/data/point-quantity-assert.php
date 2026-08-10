@@ -1,5 +1,6 @@
 <?php
 
+use jbboehr\Yumemi\Number\FloatRangePolicy;
 use jbboehr\Yumemi\PointQuantity;
 use jbboehr\Yumemi\Units;
 use function PHPStan\Testing\assertType;
@@ -37,6 +38,7 @@ assertType('string', $freezing->decimalValueIn('fahrenheit', 2, \RoundingMode::H
 assertType('string', $freezing->significantDecimalValueIn('fahrenheit', 3, \RoundingMode::HalfEven));
 assertType('string', $freezing->exactDecimalValueIn('fahrenheit'));
 assertType('float', $freezing->floatValueIn('fahrenheit'));
+assertType('float', $freezing->floatValueIn('fahrenheit', FloatRangePolicy::Ieee754));
 
 assertType('-1|0|1', $freezing->compareTo($boilingFahrenheit));
 assertType('bool', $freezing->equals($boilingFahrenheit));

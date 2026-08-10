@@ -6,6 +6,7 @@
  * Slice 1: Units::quantity() construction inference and Quantity<'...'> PHPDoc resolution.
  */
 
+use jbboehr\Yumemi\Number\FloatRangePolicy;
 use jbboehr\Yumemi\Quantity;
 use jbboehr\Yumemi\Units;
 use function jbboehr\Yumemi\unit;
@@ -175,6 +176,7 @@ assertType('string', $m->decimalValueIn('foot', 2, \RoundingMode::HalfEven));
 assertType('string', $m->significantDecimalValueIn('foot', 3, \RoundingMode::HalfEven));
 assertType('string', $m->exactDecimalValueIn('meter'));
 assertType("unit_float<'international_foot'>", $m->floatValueIn('foot'));
+assertType("unit_float<'international_foot'>", $m->floatValueIn('foot', FloatRangePolicy::Ieee754));
 assertType('*ERROR*', $m->to('second'));
 assertType('*ERROR*', $m->valueIn('second'));
 assertType('*ERROR*', $m->intValueIn('second'));

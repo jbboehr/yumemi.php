@@ -42,6 +42,8 @@ use jbboehr\Yumemi\Formatter\FormatOptions;
 use jbboehr\Yumemi\Formatter\Typography;
 use jbboehr\Yumemi\Formatter\UnitNameStyle;
 use jbboehr\Yumemi\Number\DecimalNotation;
+use jbboehr\Yumemi\Number\FloatRangePolicy;
+use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
 use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -171,6 +173,13 @@ final class PointQuantityTest extends TestCase
             ),
         );
         $this->assertSame(0.0, $point->floatValueIn('celsius'));
+    }
+
+    public function testFloatValueCanReturnSignedZeroAfterConversion(): void
+    {
+        $point = Units::default()->point(new Rational(-1, gmp_pow(2, 1075)), 'kelvin');
+
+        $this->assertSame(-INF, fdiv(1.0, $point->floatValueIn('kelvin', FloatRangePolicy::Ieee754)));
     }
 
     public function testPointUnitsMustBeSingleNamedCoordinateUnits(): void

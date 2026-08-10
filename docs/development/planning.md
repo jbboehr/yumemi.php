@@ -255,8 +255,9 @@ termination, overflow, underflow, and PHPStan-branding policies are maintained i
 
 Significant-digit output is separate from fixed-scale output: `toDecimal()` always interprets its integer as decimal
 places, while `toSignificantDecimal()` always interprets it as significant precision. `DecimalNotation` renders the same
-rounded coefficient in plain or scientific form. A future policy API may allow callers to request IEEE infinity or zero
-on float range loss; the default exact-to-native boundary should remain strict.
+rounded coefficient in plain or scientific form. `FloatRangePolicy` keeps exact-to-native float output strict by default
+and can explicitly select signed infinity or signed zero when binary64 range is lost. Native-float helper paths remain
+strict because they also accept or produce already-approximate values.
 
 ## Design Choices
 
@@ -615,8 +616,9 @@ repeat the implementation's assumptions:
 
 - Logarithmic units
 - Exact rational powers beyond integer-degree roots; approximate results require explicit precision and rounding
-- Configurable alternatives to the current strict float policy, which rejects non-finite input, overflow to infinity,
-  and nonzero exact results that underflow to zero
+- Configurable range-loss behavior for native-float helpers such as `convertFloat()`, `unit_to()`, and `unit_factor()`;
+  exact `Rational`, `Quantity`, and `PointQuantity` outputs now provide an explicit policy, while helper paths remain
+  strict pending a separate input-and-intermediate-value contract
 - GNU Units import
 - Formula interpolation
 - Preferred/compact unit selection and broader formatting presets

@@ -248,7 +248,8 @@ Exact `Rational` values can be extracted after conversion:
 - `significantDecimalValueIn()` returns a requested number of significant decimal digits in plain or scientific
   `DecimalNotation`.
 - `exactDecimalValueIn()` returns a minimal terminating decimal or throws for non-terminating rational values.
-- `floatValueIn()` rounds to binary64 with ties to even and throws on infinity or nonzero underflow to zero.
+- `floatValueIn()` rounds to binary64 with ties to even. Its default `FloatRangePolicy::Strict` throws if the result
+  overflows to infinity or a nonzero value underflows to zero.
 
 PHP 8.2 and 8.3 receive the PHP 8.4 `RoundingMode` enum through `symfony/polyfill-php84`.
 
@@ -257,6 +258,8 @@ PHP 8.2 and 8.3 receive the PHP 8.4 `RoundingMode` enum through `symfony/polyfil
 
 use jbboehr\Yumemi\Units;
 use jbboehr\Yumemi\Number\DecimalNotation;
+use jbboehr\Yumemi\Number\FloatRangePolicy;
+use jbboehr\Yumemi\Number\Rational;
 
 $length = Units::default()->quantity(1, 'foot');
 
@@ -271,6 +274,10 @@ assert($length->significantDecimalValueIn(
     DecimalNotation::Scientific,
 ) === '3.05e-1');
 assert($length->floatValueIn('meter') === 0.3048);
+
+$large = Units::default()->quantity(new Rational(gmp_pow(2, 1024)), 'meter');
+
+assert($large->floatValueIn('meter', FloatRangePolicy::Ieee754) === INF);
 ```
 
 Scale and precision answer different questions. A scale of `2` requests two places after the decimal point, while a
@@ -279,6 +286,11 @@ fractional trailing zeros, so zero at precision `3` is `0.00` in plain notation 
 Plain integral text cannot distinguish whether trailing zeros are significant: use scientific notation when that
 distinction must remain visible. Precision is limited to `1` through `10000`, and scientific exponents use Yumemi's
 existing `-10000` through `10000` bound.
+
+Pass `FloatRangePolicy::Ieee754` to `Rational::toFloat()`, `Quantity::floatValueIn()`, or
+`PointQuantity::floatValueIn()` when binary64's signed infinity and signed zero are preferable to range exceptions.
+Finite values use the same ties-to-even rounding under either policy. This option applies only when extracting a native
+float from an exact value; `convertFloat()`, `unit_to()`, and `unit_factor()` remain strict native-float boundaries.
 
 ## Affine Conversion
 

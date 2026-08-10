@@ -384,7 +384,7 @@ final class Rational implements \JsonSerializable
         return self::formatDecimal($magnitude, $scale, gmp_sign($this->numerator) < 0);
     }
 
-    public function toFloat(): float
+    public function toFloat(FloatRangePolicy $rangePolicy = FloatRangePolicy::Strict): float
     {
         $sign = gmp_sign($this->numerator);
 
@@ -397,10 +397,18 @@ final class Rational implements \JsonSerializable
         $exponent = self::binaryExponent($numerator, $denominator);
 
         if ($exponent > 1023) {
+            if ($rangePolicy === FloatRangePolicy::Ieee754) {
+                return $sign < 0 ? -INF : INF;
+            }
+
             throw new OverflowException('Rational value does not fit in a finite float: ' . $this->toString());
         }
 
         if ($exponent < -1075) {
+            if ($rangePolicy === FloatRangePolicy::Ieee754) {
+                return $sign < 0 ? -0.0 : 0.0;
+            }
+
             throw new UnderflowException('Non-zero rational value rounds to zero as a float: ' . $this->toString());
         }
 
@@ -413,6 +421,10 @@ final class Rational implements \JsonSerializable
             );
 
             if (gmp_cmp($significand, 0) === 0) {
+                if ($rangePolicy === FloatRangePolicy::Ieee754) {
+                    return $sign < 0 ? -0.0 : 0.0;
+                }
+
                 throw new UnderflowException(
                     'Non-zero rational value rounds to zero as a float: ' . $this->toString(),
                 );
@@ -438,6 +450,10 @@ final class Rational implements \JsonSerializable
             ++$exponent;
 
             if ($exponent > 1023) {
+                if ($rangePolicy === FloatRangePolicy::Ieee754) {
+                    return $sign < 0 ? -INF : INF;
+                }
+
                 throw new OverflowException('Rational value does not fit in a finite float: ' . $this->toString());
             }
         }

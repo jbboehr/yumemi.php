@@ -44,6 +44,7 @@ use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Formatter\FormatOptions;
 use jbboehr\Yumemi\Internal\DeserializationContext;
 use jbboehr\Yumemi\Number\DecimalNotation;
+use jbboehr\Yumemi\Number\FloatRangePolicy;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Parser\Ast\Identifier;
 use jbboehr\Yumemi\Parser\Parser;
@@ -338,9 +339,11 @@ final class PointQuantity implements \JsonSerializable
      * @logion [OSD 67:28] The exact coordinate crossed into the binary vessel,
      *     surrendering only what that vessel could lawfully contain.
      */
-    public function floatValueIn(string $unit): float
-    {
-        return $this->valueIn($unit)->toFloat();
+    public function floatValueIn(
+        string $unit,
+        FloatRangePolicy $rangePolicy = FloatRangePolicy::Strict,
+    ): float {
+        return $this->valueIn($unit)->toFloat($rangePolicy);
     }
 
     /**

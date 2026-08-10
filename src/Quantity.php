@@ -48,6 +48,7 @@ use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Formatter\FormatOptions;
 use jbboehr\Yumemi\Internal\DeserializationContext;
 use jbboehr\Yumemi\Number\DecimalNotation;
+use jbboehr\Yumemi\Number\FloatRangePolicy;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Parser\Parser;
 
@@ -295,9 +296,11 @@ final class Quantity implements \JsonSerializable
         return $this->valueIn($unit)->toDecimalExact();
     }
 
-    public function floatValueIn(Expr|string $unit): float
-    {
-        return $this->valueIn($unit)->toFloat();
+    public function floatValueIn(
+        Expr|string $unit,
+        FloatRangePolicy $rangePolicy = FloatRangePolicy::Strict,
+    ): float {
+        return $this->valueIn($unit)->toFloat($rangePolicy);
     }
 
     public function intValueIn(Expr|string $unit): int

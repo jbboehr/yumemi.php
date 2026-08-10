@@ -38,6 +38,7 @@ namespace jbboehr\Yumemi\Tests\Number;
 
 use jbboehr\Yumemi\Exception\NonExactRootException;
 use jbboehr\Yumemi\Number\DecimalNotation;
+use jbboehr\Yumemi\Number\FloatRangePolicy;
 use jbboehr\Yumemi\Number\Rational;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -660,5 +661,35 @@ final class RationalTest extends TestCase
         $this->expectException(\UnderflowException::class);
 
         (new Rational(1, gmp_pow(2, 1075)))->toFloat();
+    }
+
+    public function testFloatConversionCanReturnSignedInfinity(): void
+    {
+        $overflowMidpoint = gmp_mul(gmp_sub(gmp_pow(2, 54), 1), gmp_pow(2, 970));
+
+        $this->assertSame(INF, (new Rational(gmp_pow(2, 1024)))->toFloat(FloatRangePolicy::Ieee754));
+        $this->assertSame(-INF, (new Rational(gmp_neg(gmp_pow(2, 1024))))->toFloat(FloatRangePolicy::Ieee754));
+        $this->assertSame(INF, (new Rational($overflowMidpoint))->toFloat(FloatRangePolicy::Ieee754));
+        $this->assertSame(-INF, (new Rational(gmp_neg($overflowMidpoint)))->toFloat(FloatRangePolicy::Ieee754));
+    }
+
+    public function testFloatConversionCanReturnSignedZero(): void
+    {
+        $positiveZeros = [
+            (new Rational(1, gmp_pow(2, 1076)))->toFloat(FloatRangePolicy::Ieee754),
+            (new Rational(1, gmp_pow(2, 1075)))->toFloat(FloatRangePolicy::Ieee754),
+        ];
+        $negativeZeros = [
+            (new Rational(-1, gmp_pow(2, 1076)))->toFloat(FloatRangePolicy::Ieee754),
+            (new Rational(-1, gmp_pow(2, 1075)))->toFloat(FloatRangePolicy::Ieee754),
+        ];
+
+        foreach ($positiveZeros as $positiveZero) {
+            $this->assertSame(INF, fdiv(1.0, $positiveZero));
+        }
+
+        foreach ($negativeZeros as $negativeZero) {
+            $this->assertSame(-INF, fdiv(1.0, $negativeZero));
+        }
     }
 }

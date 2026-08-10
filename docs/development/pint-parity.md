@@ -121,7 +121,9 @@ Status: **Done** | Importance: **P0** | Remaining difficulty: **S/M**
 
 The runtime provides exact factors, exact value conversion, float conversion, dimensional compatibility, quantity
 conversion, and native helpers. Explicit conversion supports exact affine scale-and-offset transforms; factor APIs
-reject offset-dependent conversions.
+reject offset-dependent conversions. Exact `Rational`, `Quantity`, and `PointQuantity` outputs use strict binary64 range
+handling by default and can explicitly select signed infinity or signed zero through `FloatRangePolicy`; native-float
+helper paths remain strict.
 
 Affine point and difference semantics now build on the same conversion boundary.
 
@@ -153,9 +155,10 @@ Status: **Done for the exact core** | Importance: **P1** | Remaining difficulty:
 
 `Rational` supports exact integer and decimal construction, arithmetic, truncating and exact integer output, all PHP 8.4
 rounding modes for fixed-scale and significant-digit output, terminating-decimal output, plain and scientific notation,
-and correctly rounded binary64 conversion with strict overflow and underflow handling. Quantity and point extraction
-converts to the requested unit first. Approximate decimal arithmetic remains a separate potential model rather than
-replacing rational storage.
+and correctly rounded binary64 conversion. Exact float output uses strict overflow and underflow handling by default and
+can explicitly select signed infinity or signed zero through `FloatRangePolicy`. Quantity and point extraction converts
+to the requested unit first. Approximate decimal arithmetic remains a separate potential model rather than replacing
+rational storage.
 
 ### 11. Formatting And Display Units
 

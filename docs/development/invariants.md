@@ -113,13 +113,15 @@ denominator values. [`Quantity`](../../src/Quantity.php) and [`PointQuantity`](.
 `Rational` state. [`BinaryFloat`](../../src/Number/BinaryFloat.php) decodes finite binary64 inputs exactly, while named
 output methods expose integer, decimal, and float policies. `Rational::root()` and `Quantity::root()` throw
 `NonExactRootException` when the requested result cannot remain exact. Significant-decimal output computes one exact
-rounded coefficient and decimal exponent before rendering either plain or scientific notation.
-[`RationalTest`](../../tests/Number/RationalTest.php), [`BinaryFloatTest`](../../tests/Number/BinaryFloatTest.php), and
-[`QuantityTest`](../../tests/QuantityTest.php) cover roots, rounding, non-terminating decimals, overflow, and underflow.
+rounded coefficient and decimal exponent before rendering either plain or scientific notation. Exact float output is
+strict by default; an explicit `FloatRangePolicy` may instead select signed infinity or signed zero for binary64 range
+loss. [`RationalTest`](../../tests/Number/RationalTest.php),
+[`BinaryFloatTest`](../../tests/Number/BinaryFloatTest.php), and [`QuantityTest`](../../tests/QuantityTest.php) cover
+roots, rounding, non-terminating decimals, overflow, and underflow.
 
 **Invalid shortcut.** Storing a `Quantity` magnitude as `float`, approximating a non-exact root, returning an
-approximate decimal from an exact method, or silently mapping a nonzero exact value to zero or infinity at a native
-boundary.
+approximate decimal from an exact method, or mapping a nonzero exact value to zero or infinity at a native boundary
+without an explicit range policy.
 
 **Classification.** Silent precision loss is a correctness defect. Changing an explicitly documented output policy is a
 compatibility break. The native `unit_to()`, `unit_factor()`, and `convertFloat()` APIs are accepted approximate
