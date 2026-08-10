@@ -45,6 +45,32 @@ use PHPUnit\Framework\TestCase;
 
 final class RationalTest extends TestCase
 {
+    #[DataProvider('absoluteValueProvider')]
+    public function testReturnsExactAbsoluteValue(Rational $value, string $expected): void
+    {
+        $this->assertSame($expected, $value->abs()->toString());
+    }
+
+    /** @return iterable<string, array{Rational, string}> */
+    public static function absoluteValueProvider(): iterable
+    {
+        yield 'negative fraction' => [new Rational(-3, 2), '3/2'];
+        yield 'positive fraction' => [new Rational(3, 2), '3/2'];
+        yield 'zero' => [new Rational(0), '0'];
+        yield 'beyond native integer range' => [
+            new Rational(gmp_neg(gmp_pow(2, 128)), 3),
+            gmp_strval(gmp_pow(2, 128)) . '/3',
+        ];
+    }
+
+    public function testRecognizesExactZero(): void
+    {
+        $this->assertTrue((new Rational(0))->isZero());
+        $this->assertTrue((new Rational(0, 7))->isZero());
+        $this->assertFalse((new Rational(1, gmp_pow(10, 100)))->isZero());
+        $this->assertFalse((new Rational(-1))->isZero());
+    }
+
     public function testAddsRationals(): void
     {
         $this->assertSame('5/6', (new Rational(1, 2))->add(new Rational(1, 3))->toString());

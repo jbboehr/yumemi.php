@@ -138,8 +138,18 @@ function rootReceiverUnion(Quantity $quantity): void
     assertType("Quantity<'meter'>|Quantity<'second'>", $quantity->root(2));
 }
 
-// neg keeps the unit; add / sub convert compatible operands and keep the left unit
+// abs / neg keep the unit; zero testing returns an ordinary boolean
+assertType("Quantity<'meter'>", $m->abs());
 assertType("Quantity<'meter'>", $m->neg());
+assertType('bool', $m->isZero());
+
+/** @param Quantity<'meter'>|Quantity<'second'> $quantity */
+function absoluteReceiverUnion(Quantity $quantity): void
+{
+    assertType("Quantity<'meter'>|Quantity<'second'>", $quantity->abs());
+}
+
+// add / sub convert compatible operands and keep the left unit
 assertType("Quantity<'meter'>", $m->add($m));
 assertType("Quantity<'meter'>", $m->sub($m));
 assertType("Quantity<'meter'>", $m->add($units->quantity(1, 'foot')));

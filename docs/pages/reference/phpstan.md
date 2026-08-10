@@ -419,14 +419,17 @@ assert($speed->toString() === '10 * meter / second');
 
 The extension models current unit-sensitive methods, including:
 
-- arithmetic through `add()`, `sub()`, `addWithSameUnit()`, `subWithSameUnit()`, `mul()`, `div()`, `neg()`, `pow()`, and
-  exact `root()`;
+- arithmetic through `abs()`, `add()`, `sub()`, `addWithSameUnit()`, `subWithSameUnit()`, `mul()`, `div()`, `neg()`,
+  `pow()`, and exact `root()`;
 - conversion through `to()` and `valueIn()`;
 - native extraction through `intValueIn()`, `exactIntValueIn()`, `decimalValueIn()`, `significantDecimalValueIn()`,
   `exactDecimalValueIn()`, and `floatValueIn()`;
 - unit transformation through `normalize()` and `simplify()`;
 - comparisons through `compareTo()`, `equals()`, `lessThan()`, `lessThanOrEqualTo()`, `greaterThan()`, and
   `greaterThanOrEqualTo()`.
+
+`isZero()` returns an ordinary native `bool` from its declared signature and requires no unit-specific return-type
+inference.
 
 Known invalid arithmetic, construction, conversion, and comparison calls produce standalone diagnostics even when the
 method result is unused. A branded magnitude supplied to `Units::quantity()` must match the unit being assigned:

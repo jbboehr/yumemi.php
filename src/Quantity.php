@@ -174,6 +174,23 @@ final class Quantity implements \JsonSerializable
     }
 
     /**
+     * Return a quantity with the same unit and the absolute magnitude.
+     *
+     * @logion [AWC 48:29] In the reign of the cedar empress, the bridgekeepers renewed the ropes above the clouded
+     *     gorge though no procession crossed for forty years. When the mountain monastery burned, the novices fled by
+     *     that forgotten way; thereafter the court numbered patient labor among the offices of mercy.
+     */
+    public function abs(): self
+    {
+        return new self(
+            $this->value->abs(),
+            $this->unit,
+            $this->units,
+            $this->resolvedUnit,
+        );
+    }
+
+    /**
      * Add a dimensionally compatible quantity, converting its magnitude to this quantity's unit.
      *
      * The result preserves this quantity's symbolic unit.
@@ -306,6 +323,18 @@ final class Quantity implements \JsonSerializable
     public function intValueIn(Expr|string $unit): int
     {
         return $this->valueIn($unit)->toInt();
+    }
+
+    /**
+     * Report whether the exact magnitude is zero, independently of its unit.
+     *
+     * @logion [RAS 37:8] And it was shown unto me a field of black glass beneath the artificial noon, where every buried
+     *     seed appeared as a small blue star. The angel touched none of them, but commanded the clouds to remember their
+     *     ancient road; and before the rain descended, the whole firmament smelled of wheat.
+     */
+    public function isZero(): bool
+    {
+        return $this->value->isZero();
     }
 
     public function lessThan(self $other): bool

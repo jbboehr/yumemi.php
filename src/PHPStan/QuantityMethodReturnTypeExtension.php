@@ -57,7 +57,7 @@ use jbboehr\Yumemi\Util\Exponent;
  * When the receiver is a branded {@see QuantityType}, each unit-bearing method returns a new
  * QuantityType whose unit matches the runtime result (see the table in {@see Quantity}):
  * `mul`/`div` combine units via {@see UnitExpressionAlgebra}; `pow` raises and `root` extracts exact symbolic powers;
- * `neg` keeps the left unit; `add`/`sub` accept dimensionally compatible units and keep the left
+ * `abs`/`neg` keep the left unit; `add`/`sub` accept dimensionally compatible units and keep the left
  * unit; `addWithSameUnit`/`subWithSameUnit` additionally require normalized-equivalent units; comparison
  * methods require compatible dimensions while retaining their native int/bool return types; `to` rebrands
  * to each possible statically known target unit; `normalize` rebrands to the catalog-normalized form; and
@@ -84,7 +84,7 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
     public function isMethodSupported(MethodReflection $methodReflection): bool
     {
         return in_array($methodReflection->getName(), [
-            'mul', 'div', 'pow', 'root', 'neg', 'add', 'sub', 'addWithSameUnit', 'subWithSameUnit', 'to', 'valueIn',
+            'mul', 'div', 'pow', 'root', 'abs', 'neg', 'add', 'sub', 'addWithSameUnit', 'subWithSameUnit', 'to', 'valueIn',
             'intValueIn', 'exactIntValueIn', 'decimalValueIn', 'significantDecimalValueIn', 'exactDecimalValueIn',
             'floatValueIn', 'normalize',
             'simplify', 'compareTo', 'equals', 'lessThan', 'lessThanOrEqualTo', 'greaterThan', 'greaterThanOrEqualTo',
@@ -170,7 +170,7 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
         $unit = $receiver->getUnitExpression();
 
         return match ($methodName) {
-            'neg' => $receiver,
+            'abs', 'neg' => $receiver,
             'add', 'sub' => $this->addSub($receiver, $args, $scope, false, $methodName),
             'addWithSameUnit', 'subWithSameUnit' => $this->addSub($receiver, $args, $scope, true, $methodName),
             'compareTo', 'equals', 'lessThan', 'lessThanOrEqualTo', 'greaterThan', 'greaterThanOrEqualTo' => $this->compare(

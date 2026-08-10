@@ -29,6 +29,8 @@ needs arise.
 | Convert a native scalar                             | `unit_to()`                             |
 | Add compatible quantities                           | `Quantity::add()`                       |
 | Reject implicit unit conversion                     | `Quantity::addWithSameUnit()`           |
+| Take the exact absolute value of a quantity         | `Quantity::abs()`                       |
+| Test whether an exact quantity is zero              | `Quantity::isZero()`                    |
 | Select symbols or Unicode notation                  | `FormatOptions` and formatting methods  |
 
 `exactDecimalValueIn()` throws when the exact rational result has a non-terminating decimal expansion. Use
@@ -139,13 +141,14 @@ assert($scientific->toString() === '1/1000');
 assert($length->valueToString() === '5/4');
 ```
 
-`Rational` provides exact `add()`, `sub()`, `mul()`, `div()`, integer `pow()`, and integer-degree `root()` operations,
-together with `compareTo()` and `equals()`. A root succeeds only when the numerator and denominator both have exact
-integer roots; negative values therefore accept only odd degrees. `toString()` returns a fraction, `toDecimalExact()`
-requires a terminating decimal, and `toDecimal()` uses an explicit scale and `RoundingMode`. Conversion to native values
-remains explicit through `toInt()`, `toIntExact()`, and `toFloat()`. Integer powers, positive root degrees, and the
-effective decimal exponent accepted by `Rational::fromDecimalString()` are limited to `10000` in magnitude. Zero powers
-follow PHP's computing convention: every base, including zero, raised to zero returns one.
+`Rational` provides exact `abs()`, `add()`, `sub()`, `mul()`, `div()`, integer `pow()`, and integer-degree `root()`
+operations, together with `compareTo()`, `equals()`, and `isZero()`. A root succeeds only when the numerator and
+denominator both have exact integer roots; negative values therefore accept only odd degrees. `toString()` returns a
+fraction, `toDecimalExact()` requires a terminating decimal, and `toDecimal()` uses an explicit scale and
+`RoundingMode`. Conversion to native values remains explicit through `toInt()`, `toIntExact()`, and `toFloat()`. Integer
+powers, positive root degrees, and the effective decimal exponent accepted by `Rational::fromDecimalString()` are
+limited to `10000` in magnitude. Zero powers follow PHP's computing convention: every base, including zero, raised to
+zero returns one.
 
 ## Quantity Arithmetic
 
@@ -160,14 +163,18 @@ use jbboehr\Yumemi\Units;
 $units = Units::default();
 $distance = $units->quantity(2, 'meter / second')->mul($units->quantity(3, 'second'));
 $ratio = $units->quantity(3, 'meter')->div($units->quantity(2, 'foot'));
+$displacement = $units->quantity(-3, 'meter');
 
 assert($distance->toString() === '6 * meter');
 assert($ratio->toString() === '3/2 * meter / foot');
+assert($displacement->abs()->toString() === '3 * meter');
+assert(!$displacement->isZero());
+assert($units->quantity(0, 'meter')->isZero());
 ```
 
-`mul()` and `div()` also accept an `int` or `Rational` scalar. `neg()` changes only the magnitude. `pow()` raises both
-the magnitude and unit expression to an integer power. `pow(0)` returns dimensionless one, including when the original
-magnitude is zero.
+`mul()` and `div()` also accept an `int` or `Rational` scalar. `abs()` and `neg()` change only the magnitude, while
+`isZero()` tests that exact magnitude without converting or discarding the unit. `pow()` raises both the magnitude and
+unit expression to an integer power. `pow(0)` returns dimensionless one, including when the original magnitude is zero.
 
 `root()` is the exact inverse for a positive integer degree when both the rational magnitude and every reduced symbolic
 unit power have exact roots:

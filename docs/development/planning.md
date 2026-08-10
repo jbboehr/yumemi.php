@@ -179,8 +179,9 @@ Important design rule:
 
 Comparisons follow the same compatible-unit conversion rule but return only a scalar result, so strict same-unit
 comparison variants remain deferred. Multiplication and division reduce chosen symbolic syntax without silently
-substituting catalog definitions. `normalize()`, `simplify()`, and explicit target conversion remain distinct
-operations.
+substituting catalog definitions. `abs()` preserves the symbolic unit while making the exact magnitude nonnegative, and
+`isZero()` tests the exact magnitude independently of that unit. `normalize()`, `simplify()`, and explicit target
+conversion remain distinct operations.
 
 Affine coordinates use a separate `PointQuantity` model. Point subtraction returns a multiplicative `Quantity` in the
 left point's generated delta unit; adding or subtracting a compatible `Quantity` translates a point. Point-plus-point,

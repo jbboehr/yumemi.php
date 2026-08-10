@@ -113,6 +113,8 @@ value remains a string until an explicit integer or float cast moves it into num
 | Obtain an exact multiplicative factor                    | `Units::conversionFactor()`                          |
 | Obtain a native factor whose static units cancel         | `unit_factor()`                                      |
 | Take an exact root without implicit unit substitution    | `Quantity::root()`                                   |
+| Take an exact absolute value                             | `Quantity::abs()`                                    |
+| Test an exact magnitude for zero                         | `Quantity::isZero()`                                 |
 | Substitute definitions without changing stored magnitude | `Quantity::normalize()`                              |
 | Substitute definitions and fold scale into magnitude     | `Quantity::simplify()`                               |
 | Request a particular target unit                         | `Quantity::to()`                                     |

@@ -109,12 +109,13 @@ can be represented through `Rational::fromDecimalString()` or parsed quantity ex
 Status: **Done for multiplicative quantities** | Importance: **P0** | Remaining difficulty: **M**
 
 Yumemi supports exact compatible-unit addition and subtraction, strict same-unit variants, multiplication, division,
-integer powers, exact positive integer-degree roots, negation, comparisons, symbolic cancellation, and context checks.
-Addition and subtraction convert the right operand into the left unit; multiplication, division, and roots preserve
-caller-selected symbolic units unless the caller explicitly normalizes or simplifies first.
+integer powers, exact positive integer-degree roots, negation, absolute value, exact zero testing, comparisons, symbolic
+cancellation, and context checks. Addition and subtraction convert the right operand into the left unit; multiplication,
+division, roots, and absolute value preserve caller-selected symbolic units unless the caller explicitly normalizes or
+simplifies first.
 
-Absolute value and convenience predicates remain optional additions. Affine point-versus-difference arithmetic uses the
-separate `PointQuantity` model described below.
+Additional convenience predicates remain optional. Affine point-versus-difference arithmetic uses the separate
+`PointQuantity` model described below.
 
 ### 7. Explicit Conversion And Compatibility
 
@@ -247,8 +248,9 @@ Status: **Done for quantity and point ordering** | Importance: **P1** | Remainin
 `Quantity` and `PointQuantity` provide exact compatible-unit equality, three-way comparison, and all ordered predicates.
 Incompatible dimensions and registry contexts fail explicitly, and PHPStan diagnoses known invalid comparisons.
 
-Convenience predicates such as `isZero()` or `isCompatibleWith()` may be useful. Strict same-unit comparison variants
-remain low value because comparisons do not produce a unit-bearing result.
+`isZero()` tests the exact magnitude independently of its unit. A convenience predicate such as `isCompatibleWith()` may
+still be useful, but its behavior across different registry contexts needs an explicit contract. Strict same-unit
+comparison variants remain low value because comparisons do not produce a unit-bearing result.
 
 ### 20. Math Functions
 

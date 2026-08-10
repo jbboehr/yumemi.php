@@ -509,6 +509,25 @@ final class QuantityTest extends TestCase
         $this->assertSame('5', $quantity->neg()->valueToString());
     }
 
+    public function testReturnsAbsoluteQuantityWithoutChangingItsUnit(): void
+    {
+        $quantity = Units::default()->quantity(new Rational(-3, 2), 'meter')->abs();
+
+        $this->assertSame('3/2', $quantity->valueToString());
+        $this->assertSame('meter', $quantity->unitToString());
+        $this->assertSame('150', $quantity->valueIn('centimeter')->toString());
+    }
+
+    public function testRecognizesExactZeroIndependentlyOfUnit(): void
+    {
+        $units = Units::default();
+
+        $this->assertTrue($units->quantity(0, 'meter')->isZero());
+        $this->assertTrue($units->quantity(new Rational(0, 7), 'second')->isZero());
+        $this->assertFalse($units->quantity(new Rational(1, gmp_pow(10, 100)), 'meter')->isZero());
+        $this->assertFalse($units->quantity(-1, 'meter')->isZero());
+    }
+
     public function testRejectsMultiplicationAcrossDifferentUnitsContexts(): void
     {
         $this->expectException(IncompatibleQuantityContextException::class);
