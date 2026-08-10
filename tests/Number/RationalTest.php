@@ -89,6 +89,7 @@ final class RationalTest extends TestCase
         yield 'leading zero decimal' => ['0.9', '9/10'];
         yield 'negative leading zero decimal' => ['-0.25', '-1/4'];
         yield 'decimal exponent' => ['0.9972696', '1246587/1250000'];
+        yield 'uppercase decimal exponent' => ['1.25E2', '125'];
         yield 'zero decimal' => ['0.0', '0'];
     }
 
@@ -146,6 +147,7 @@ final class RationalTest extends TestCase
         yield 'integer square' => [new Rational(16), 2, '4'];
         yield 'fraction square' => [new Rational(16, 81), 2, '4/9'];
         yield 'negative fraction cube' => [new Rational(-8, 27), 3, '-2/3'];
+        yield 'zero square' => [new Rational(0), 2, '0'];
         yield 'zero' => [new Rational(0), 7, '0'];
         yield 'degree one' => [new Rational(-5, 7), 1, '-5/7'];
         yield 'maximum degree' => [new Rational(1), 10_000, '1'];
@@ -240,6 +242,14 @@ final class RationalTest extends TestCase
         $this->assertSame(-42, (new Rational(-42))->toIntExact());
     }
 
+    public function testConvertsNativeIntegerBoundaries(): void
+    {
+        $this->assertSame(PHP_INT_MAX, (new Rational(PHP_INT_MAX))->toInt());
+        $this->assertSame(PHP_INT_MIN, (new Rational(PHP_INT_MIN))->toInt());
+        $this->assertSame(PHP_INT_MAX, (new Rational(PHP_INT_MAX))->toIntExact());
+        $this->assertSame(PHP_INT_MIN, (new Rational(PHP_INT_MIN))->toIntExact());
+    }
+
     public function testExactIntegerConversionRejectsFraction(): void
     {
         $this->expectException(\UnexpectedValueException::class);
@@ -308,6 +318,7 @@ final class RationalTest extends TestCase
         yield 'towards zero negative' => [new Rational(-21, 10), 0, \RoundingMode::TowardsZero, '-2'];
         yield 'away from zero positive' => [new Rational(21, 10), 0, \RoundingMode::AwayFromZero, '3'];
         yield 'away from zero negative' => [new Rational(-21, 10), 0, \RoundingMode::AwayFromZero, '-3'];
+        yield 'away from zero exact value' => [new Rational(2), 0, \RoundingMode::AwayFromZero, '2'];
         yield 'positive infinity positive' => [new Rational(21, 10), 0, \RoundingMode::PositiveInfinity, '3'];
         yield 'positive infinity negative' => [new Rational(-21, 10), 0, \RoundingMode::PositiveInfinity, '-2'];
         yield 'negative infinity positive' => [new Rational(21, 10), 0, \RoundingMode::NegativeInfinity, '2'];
@@ -509,6 +520,20 @@ final class RationalTest extends TestCase
             DecimalNotation::Plain,
             '1.3',
         ];
+        yield 'away from zero exact value' => [
+            new Rational(6, 5),
+            2,
+            \RoundingMode::AwayFromZero,
+            DecimalNotation::Plain,
+            '1.2',
+        ];
+        yield 'significand carry retains requested precision' => [
+            new Rational(1999, 1000),
+            2,
+            \RoundingMode::HalfEven,
+            DecimalNotation::Plain,
+            '2.0',
+        ];
         yield 'positive infinity with negative value' => [
             new Rational(-129, 100),
             2,
@@ -617,10 +642,13 @@ final class RationalTest extends TestCase
         $largePower = gmp_pow(2, 2000);
         $maximumFiniteNumerator = gmp_mul(gmp_sub(gmp_pow(2, 53), 1), gmp_pow(2, 971));
         $overflowMidpoint = gmp_mul(gmp_sub(gmp_pow(2, 54), 1), gmp_pow(2, 970));
+        $normalCarryMidpoint = gmp_sub(gmp_pow(2, 1023), gmp_pow(2, 969));
 
         yield 'zero' => [new Rational(0), 0.0];
         yield 'positive exact' => [new Rational(3, 2), 1.5];
         yield 'negative exact' => [new Rational(-3, 2), -1.5];
+        yield 'positive exponent estimate boundary is corrected' => [new Rational(4, 3), 4 / 3];
+        yield 'negative exponent estimate boundary is corrected' => [new Rational(1, 3), 1 / 3];
         yield 'balanced operands beyond float range' => [
             new Rational(gmp_add($largePower, 1), $largePower),
             1.0,
@@ -632,6 +660,14 @@ final class RationalTest extends TestCase
         yield 'normal tie rounds up to even' => [
             new Rational(gmp_add(gmp_pow(2, 53), 3), gmp_pow(2, 53)),
             1.0 + (2.0 ** -51),
+        ];
+        yield 'next binary64 value above one' => [
+            new Rational(gmp_add(gmp_pow(2, 52), 1), gmp_pow(2, 52)),
+            1.0 + (2.0 ** -52),
+        ];
+        yield 'significand carry at exponent limit remains finite' => [
+            new Rational($normalCarryMidpoint),
+            2.0 ** 1023,
         ];
         yield 'maximum finite' => [new Rational($maximumFiniteNumerator), PHP_FLOAT_MAX];
         yield 'below overflow midpoint' => [new Rational(gmp_sub($overflowMidpoint, 1)), PHP_FLOAT_MAX];
@@ -661,6 +697,13 @@ final class RationalTest extends TestCase
         $this->expectException(\UnderflowException::class);
 
         (new Rational(1, gmp_pow(2, 1075)))->toFloat();
+    }
+
+    public function testFloatConversionRejectsValueBelowUnderflowMidpoint(): void
+    {
+        $this->expectException(\UnderflowException::class);
+
+        (new Rational(1, gmp_pow(2, 1076)))->toFloat();
     }
 
     public function testFloatConversionCanReturnSignedInfinity(): void

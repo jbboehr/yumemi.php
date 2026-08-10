@@ -504,7 +504,12 @@ repeat the implementation's assumptions:
 - Triage Infection's escaped and timed-out mutants periodically before raising the MSI floor. Add contract-level
   assertions for observable survivors, record or ignore behaviorally equivalent mutations, distinguish deliberately
   unreachable defensive branches, and confirm that timeouts are explained by removed termination guards rather than
-  ordinary performance failures.
+  ordinary performance failures. A focused 2026-08-09 `Rational` audit generated 547 mutants and reduced escaped mutants
+  from 80 to 66, raising covered MSI from 85% to 87%. The added contracts cover decimal parsing, native integer
+  boundaries, exact rounding, binary64 exponent-estimate correction, significand carry, binary64 boundaries, and strict
+  underflow. The remaining survivors are equivalent normalization and zero fast paths, scaling by one, sign guards,
+  casts, or exception prose. Four timeouts remove progress or termination from denominator reduction for terminating
+  decimals. The audit found no runtime defect.
 - After the first public release establishes a compatibility baseline, run an API compatibility checker such as Roave
   Backward Compatibility Check against the latest release tag. Treat intentional breaking changes through an explicit
   versioning policy instead of weakening or bypassing the check.
