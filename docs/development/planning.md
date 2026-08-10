@@ -119,15 +119,16 @@ Current verification:
 
 Yumemi intentionally has native and exact-object presentation layers over the same unit engine:
 
-| Layer                   | Magnitude model                           | Primary audience                               |
-| ----------------------- | ----------------------------------------- | ---------------------------------------------- |
-| Runtime `Quantity`      | Exact `Rational` magnitude                | Exact multiplicative conversion and arithmetic |
-| Runtime `PointQuantity` | Exact `Rational` coordinate               | Affine points, translation, and differences    |
-| PHPStan branded values  | Native PHP `int` / `float` plus an `Expr` | Existing application code using native data    |
+| Layer                   | Magnitude model                                             | Primary audience                               |
+| ----------------------- | ----------------------------------------------------------- | ---------------------------------------------- |
+| Runtime `Quantity`      | Exact `Rational` magnitude                                  | Exact multiplicative conversion and arithmetic |
+| Runtime `PointQuantity` | Exact `Rational` coordinate                                 | Affine points, translation, and differences    |
+| PHPStan branded scalars | Native PHP `int`, `float`, or numeric string plus an `Expr` | Existing application code using native data    |
 
-The native path introduces no runtime wrapper; the object paths retain exact `Rational` state. All reuse the runtime
-parser, resolver, registry, reducer, dimensions, formatter, and conversion engine. Multiplicative unit identity remains
-a reduced Yumemi `Expr`; point identity additionally retains a named coordinate origin and difference scale.
+The branded scalar paths introduce no runtime wrapper; numeric strings require an explicit numeric cast before entering
+unit-aware arithmetic. The object paths retain exact `Rational` state. All reuse the runtime parser, resolver, registry,
+reducer, dimensions, formatter, and conversion engine. Multiplicative unit identity remains a reduced Yumemi `Expr`;
+point identity additionally retains a named coordinate origin and difference scale.
 
 The current type behavior, helper inference, diagnostic identifiers, and limitations are maintained in the
 [PHPStan reference](../pages/reference/phpstan.md).
@@ -528,14 +529,16 @@ repeat the implementation's assumptions:
   consumers may legitimately have an older analyzer installed. Extension users require PHPStan 2.2.5 or later; automatic
   registration in a project with an older version remains an unsupported integration and should produce clear setup
   guidance rather than making the runtime package uninstallable.
-- Explicit integer/float casts and `abs()`, `ceil()`, `floor()`, and `round()` preserve native unit brands. Native
-  `min()` and `max()` preserve a common definitionally equivalent brand across direct, array, and unpacked candidates,
-  narrow known integer extrema, and report `yumemi.invalidUnitSelection` when a possible returning candidate is bare or
-  differently branded. Native `sqrt()` transforms exact symbolic square units and diagnoses branded units without an
-  exact symbolic root. Other casts and unsupported PHP built-ins can erase brands. Continue adding targeted integrations
-  only for demonstrated workflows; `intdiv()`, generalized native powers, and trigonometric functions remain deferred
-  because they require distinct unit, correlation, or exponent semantics. Exact runtime-object roots are supported
-  through `Quantity::root()`.
+- Explicit integer/float casts preserve native numeric brands and move a `unit_numeric_string` brand onto the resulting
+  number. Implicit arithmetic and weak numeric coercion do not preserve a numeric-string brand; comparisons still
+  require definitionally equivalent brands. `abs()`, `ceil()`, `floor()`, and `round()` preserve native numeric unit
+  brands. Native `min()` and `max()` preserve a common definitionally equivalent brand across direct, array, and
+  unpacked candidates, narrow known integer extrema, and report `yumemi.invalidUnitSelection` when a possible returning
+  candidate is bare or differently branded. Native `sqrt()` transforms exact symbolic square units and diagnoses branded
+  units without an exact symbolic root. Other casts and unsupported PHP built-ins can erase brands. Continue adding
+  targeted integrations only for demonstrated workflows; `intdiv()`, generalized native powers, and trigonometric
+  functions remain deferred because they require distinct unit, correlation, or exponent semantics. Exact runtime-object
+  roots are supported through `Quantity::root()`.
 - Native helpers accept finite alternatives only when every valid path produces one semantic result unit. Independent
   source and target alternatives lose value correlation, so conversion helpers validate the Cartesian product and fail
   closed if any pair is invalid. Quantity boundaries continue to preserve finite target unions.
