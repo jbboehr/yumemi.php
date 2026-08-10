@@ -428,9 +428,9 @@ The extension models current unit-sensitive methods, including:
 - comparisons through `compareTo()`, `equals()`, `lessThan()`, `lessThanOrEqualTo()`, `greaterThan()`, and
   `greaterThanOrEqualTo()`.
 
-`isZero()` and `isCompatibleWith()` return ordinary native `bool` values from their declared signatures and require no
-unit-specific return-type inference. A compatibility check remains valid when PHPStan knows the dimensions differ: its
-result is `false`, not a diagnostic.
+`Quantity::isZero()`, `Quantity::isCompatibleWith()`, and `PointQuantity::isCompatibleWith()` return ordinary native
+`bool` values from their declared signatures and require no unit-specific return-type inference. A compatibility check
+remains valid when PHPStan knows the dimensions differ: its result is `false`, not a diagnostic.
 
 Known invalid arithmetic, construction, conversion, and comparison calls produce standalone diagnostics even when the
 method result is unused. A branded magnitude supplied to `Units::quantity()` must match the unit being assigned:
@@ -452,6 +452,9 @@ even though their points can be converted and compared. PHPStan models the affin
 - `difference()` accepts a compatible point and returns `Quantity<'delta-unit'>` in the receiver's scale;
 - `to()` returns a point branded with the target coordinate scale;
 - point comparisons and numeric extraction validate constant targets and preserve their native return types.
+
+`PointQuantity::isCompatibleWith()` remains an ordinary `bool` predicate. Unlike an operation that combines points, it
+is valid to call with known incompatible point dimensions and returns `false` at runtime.
 
 Direct PHPDoc may use forms such as `PointQuantity<'celsius'>`. Dynamic coordinate strings fall back to unbranded
 `PointQuantity`, following the same policy as ordinary quantities.

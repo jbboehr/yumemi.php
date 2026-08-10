@@ -109,6 +109,7 @@ value remains a string until an explicit integer or float cast moves it into num
 | Construct a multiplicative coordinate difference           | `Units::deltaQuantity()`                             |
 | Check whether two units share a dimension                  | `Units::areCompatible()`                             |
 | Check whether two quantities share a context and dimension | `Quantity::isCompatibleWith()`                       |
+| Check whether two points share a context and dimension     | `PointQuantity::isCompatibleWith()`                  |
 | Convert an exact magnitude                                 | `Units::convert()` or `Quantity::to()` / `valueIn()` |
 | Convert a native scalar                                    | `unit_to()` or `Units::convertFloat()`               |
 | Obtain an exact multiplicative factor                      | `Units::conversionFactor()`                          |

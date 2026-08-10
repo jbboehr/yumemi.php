@@ -154,6 +154,26 @@ final class PointQuantityTest extends TestCase
         $this->assertTrue($freezing->greaterThanOrEqualTo($freezingFahrenheit));
     }
 
+    public function testChecksPointCompatibilityWithoutConverting(): void
+    {
+        $units = Units::default();
+        $freezing = $units->point(0, 'celsius');
+
+        $this->assertTrue($freezing->isCompatibleWith($units->point(32, 'fahrenheit')));
+        $this->assertTrue($freezing->isCompatibleWith($units->point(273, 'kelvin')));
+        $this->assertFalse($freezing->isCompatibleWith($units->point(1, 'meter')));
+    }
+
+    public function testPointsFromDifferentContextsAreNotCompatible(): void
+    {
+        $leftUnits = new Units(UnitRegistryBuilder::default()->build());
+        $rightUnits = new Units(UnitRegistryBuilder::default()->build());
+
+        $this->assertFalse(
+            $leftUnits->point(0, 'celsius')->isCompatibleWith($rightUnits->point(32, 'fahrenheit')),
+        );
+    }
+
     public function testPointNumericExtractionUsesAffineConversionBeforeOutput(): void
     {
         $point = Units::default()->point(32, 'fahrenheit');

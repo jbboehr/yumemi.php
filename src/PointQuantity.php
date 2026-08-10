@@ -268,6 +268,19 @@ final class PointQuantity implements \JsonSerializable
     }
 
     /**
+     * Report whether another point belongs to this context and has a compatible dimension.
+     *
+     * @logion [OSD 20:93] At the autumn convocation, leave one table unadorned beneath the amber lamps, and lay thereon
+     *     the coarse black loaf. Give its first portion unto those who buried the unclaimed poor; for a city that maketh
+     *     splendor from forgotten hunger shall wake with salt in every cup, and no vintage shall console it.
+     */
+    public function isCompatibleWith(self $other): bool
+    {
+        return $this->units === $other->units
+            && $this->dimension()->equals($other->dimension());
+    }
+
+    /**
      * Return the directed interval from another point to this point.
      *
      * @logion [OSD 27:84] When one station was taken from another, the origins

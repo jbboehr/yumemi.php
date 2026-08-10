@@ -32,6 +32,7 @@ needs arise.
 | Take the exact absolute value of a quantity         | `Quantity::abs()`                       |
 | Test whether an exact quantity is zero              | `Quantity::isZero()`                    |
 | Check whether two quantities are compatible         | `Quantity::isCompatibleWith()`          |
+| Check whether two coordinate points are compatible  | `PointQuantity::isCompatibleWith()`     |
 | Select symbols or Unicode notation                  | `FormatOptions` and formatting methods  |
 
 `exactDecimalValueIn()` throws when the exact rational result has a non-terminating decimal expansion. Use
@@ -346,6 +347,8 @@ $warmer = $freezing->add($rise);
 $interval = $units->point(100, 'celsius')->difference($freezing);
 
 assert($freezing->valueIn('kelvin')->toString() === '5463/20');
+assert($freezing->isCompatibleWith($units->point(32, 'fahrenheit')));
+assert(!$freezing->isCompatibleWith($units->point(1, 'meter')));
 assert($warmer->toString() === '10 * celsius');
 assert($interval->toString() === '100 * delta_celsius');
 assert($interval->valueIn('delta_fahrenheit')->toString() === '180');
@@ -354,7 +357,9 @@ assert($interval->valueIn('delta_fahrenheit')->toString() === '180');
 A `PointQuantity` retains an exact `Rational` coordinate and a named scale. `to()`, `valueIn()`, comparisons, and native
 numeric output apply full scale-and-offset conversion. `difference()` subtracts another compatible point and returns a
 `Quantity` in the receiver's delta unit. `add()` and `sub()` translate the point by a compatible `Quantity` while
-preserving the point's coordinate unit. All operands must belong to the same `Units` context.
+preserving the point's coordinate unit. `isCompatibleWith()` checks for the same `Units` context and compatible
+coordinate dimensions without converting either value; a different context or dimension returns `false`. Operations that
+combine points still throw for context or dimension incompatibility.
 
 The catalog provides explicit multiplicative difference units such as `delta_celsius`, `delta_fahrenheit`, `Δ°C`, and
 `Δ°F`. They participate in ordinary quantity and expression algebra, so `delta_celsius / second` is valid. Formatter

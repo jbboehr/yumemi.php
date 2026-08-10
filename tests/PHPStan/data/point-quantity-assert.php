@@ -46,6 +46,8 @@ assertType('bool', $freezing->lessThan($boilingFahrenheit));
 assertType('bool', $freezing->lessThanOrEqualTo($boilingFahrenheit));
 assertType('bool', $freezing->greaterThan($boilingFahrenheit));
 assertType('bool', $freezing->greaterThanOrEqualTo($boilingFahrenheit));
+assertType('bool', $freezing->isCompatibleWith($boilingFahrenheit));
+assertType('bool', $freezing->isCompatibleWith($units->point(1, 'meter')));
 
 assertType('*ERROR*', $freezing->add($units->quantity(1, 'meter')));
 assertType('*ERROR*', $freezing->difference($units->point(1, 'meter')));

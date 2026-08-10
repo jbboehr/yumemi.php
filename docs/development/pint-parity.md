@@ -243,16 +243,15 @@ decimal approximation of pi from mathematical pi.
 
 ### 19. Comparisons, Equality, And Predicates
 
-Status: **Done for quantity and point ordering and quantity compatibility** | Importance: **P1** | Remaining difficulty:
-**S**
+Status: **Done for quantity and point ordering and compatibility** | Importance: **P1** | Remaining difficulty: **S**
 
 `Quantity` and `PointQuantity` provide exact compatible-unit equality, three-way comparison, and all ordered predicates.
 Incompatible dimensions and registry contexts fail explicitly, and PHPStan diagnoses known invalid comparisons.
 
-`isZero()` tests the exact magnitude independently of its unit. `Quantity::isCompatibleWith()` returns `true` only for
-quantities in the same `Units` context with compatible dimensions; incompatible dimensions and different contexts return
-`false` without conversion. Strict same-unit comparison variants remain low value because comparisons do not produce a
-unit-bearing result.
+`isZero()` tests the exact magnitude independently of its unit. `Quantity::isCompatibleWith()` and
+`PointQuantity::isCompatibleWith()` return `true` only for values in the same `Units` context with compatible
+dimensions; incompatible dimensions and different contexts return `false` without conversion. Strict same-unit
+comparison variants remain low value because comparisons do not produce a unit-bearing result.
 
 ### 20. Math Functions
 

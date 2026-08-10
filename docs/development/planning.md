@@ -187,8 +187,9 @@ operands. `normalize()`, `simplify()`, and explicit target conversion remain dis
 Affine coordinates use a separate `PointQuantity` model. Point subtraction returns a multiplicative `Quantity` in the
 left point's generated delta unit; adding or subtracting a compatible `Quantity` translates a point. Point-plus-point,
 point multiplication, division, powers, negation, normalization, and simplification are intentionally absent. Generated
-`delta_*` and `Δ` catalog entries are ordinary multiplicative units. The runtime never rewrites an affine name inside
-algebra: callers must write `delta_celsius / second`, not `celsius / second`.
+`delta_*` and `Δ` catalog entries are ordinary multiplicative units. `PointQuantity::isCompatibleWith()` follows the
+quantity predicate's same-context and compatible-dimension contract without conversion. The runtime never rewrites an
+affine name inside algebra: callers must write `delta_celsius / second`, not `celsius / second`.
 
 ## Parser And Syntax Direction
 
