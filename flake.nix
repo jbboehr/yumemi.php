@@ -88,7 +88,7 @@
           inherit src;
 
           composerNoDev = false;
-          vendorHash = "sha256-PYBG4hZNc9WMLr+ygptF5P3jD4AEgxRnTHyt6id3nJc=";
+          vendorHash = "sha256-mlKaCX0tkpjC/lCd5CrIWJlRcLbukx4/NEFDUnxuaZ8=";
 
           nativeCheckInputs = [
             pkgs.bison
@@ -139,6 +139,9 @@
 
         treefmt = treefmt-nix.lib.evalModule pkgs {
           projectRootFile = "flake.nix";
+          settings.global.excludes = [
+            "docs/pages/assets/heliogenesis/**"
+          ];
           programs.nixfmt = {
             enable = true;
             package = pkgs.nixfmt;

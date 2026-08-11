@@ -1,5 +1,6 @@
 :root {
     --content-max-width: 900px;
+    --yumemi-heliogenesis-gutter: clamp(1.5rem, 3vw, 3rem);
     --yumemi-heading: var(--fg);
     --yumemi-rule: var(--quote-border);
     --yumemi-section: var(--sidebar-active);
@@ -153,12 +154,63 @@ main a:hover {
     top: 0 !important;
 }
 
-main img[alt^="Iudex Mensurarum"] {
+#mdbook-sidebar[data-heliogenesis-chrome] {
+    z-index: calc(var(--heliogenesis-layer) + 1);
+}
+
+:where([data-heliogenesis-state="dawning"], [data-heliogenesis-state="radiant"])
+    #mdbook-menu-bar[data-heliogenesis-chrome] {
+    background: var(--heliogenesis-chrome-event);
+}
+
+:where([data-heliogenesis-state="receding"]) #mdbook-menu-bar[data-heliogenesis-chrome] {
+    background: var(--bg);
+}
+
+html:is(:not([data-heliogenesis-state]), [data-heliogenesis-state="idle"])
+    :is(#mdbook-menu-bar, #mdbook-sidebar)[data-heliogenesis-chrome] {
+    transition-duration: 0s;
+}
+
+html:is(:not([data-heliogenesis-state]), [data-heliogenesis-state="idle"])
+    #mdbook-page-wrapper[data-heliogenesis-world] {
+    transition-property: margin-left, transform;
+    transition-duration: 0.3s, 0.3s;
+    transition-timing-function: ease, ease;
+}
+
+html[dir="rtl"]:is(:not([data-heliogenesis-state]), [data-heliogenesis-state="idle"])
+    #mdbook-page-wrapper[data-heliogenesis-world] {
+    transition-property: margin-right, transform;
+}
+
+#mdbook-content > main {
+    box-sizing: border-box;
+    max-width: calc(var(--content-max-width) + 2 * var(--yumemi-heliogenesis-gutter));
+    padding-right: var(--yumemi-heliogenesis-gutter);
+    padding-bottom: var(--yumemi-heliogenesis-gutter);
+    padding-left: var(--yumemi-heliogenesis-gutter);
+    color: var(--fg);
+    background: var(--bg);
+}
+
+#mdbook-content > main > img[alt^="Iudex Mensurarum"]:first-child {
     display: block;
-    width: 100%;
+    width: calc(100% + 2 * var(--yumemi-heliogenesis-gutter));
+    max-width: none;
     height: auto;
-    margin: 0 0 2rem;
+    margin: 0 calc(-1 * var(--yumemi-heliogenesis-gutter)) 2rem;
     border-bottom: 1px solid var(--yumemi-rule);
+}
+
+#yumemi-second-sun {
+    flex: 0 0 40px;
+    margin: 5px 4px;
+}
+
+#mdbook-menu-bar .right-buttons {
+    display: flex;
+    align-items: center;
 }
 
 .yumemi-page-outline {
@@ -170,6 +222,22 @@ main img[alt^="Iudex Mensurarum"] {
 }
 
 @media (min-width: 1081px) {
+    #mdbook-menu-bar .menu-title {
+        position: fixed;
+        top: 0;
+        left: 50%;
+        width: auto;
+        transform: translateX(-50%);
+    }
+
+    html.sidebar-visible #mdbook-menu-bar .menu-title {
+        left: calc(50% + var(--sidebar-width) / 2);
+    }
+
+    #mdbook-menu-bar .right-buttons {
+        margin-left: auto;
+    }
+
     .nav-wide-wrapper {
         position: fixed;
         top: 0;

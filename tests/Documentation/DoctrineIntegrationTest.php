@@ -69,6 +69,7 @@ final class DoctrineIntegrationTest extends TestCase
             'DOCTRINE-IMAGE-GUIDE.md',
             'DOCTRINE-GENERATION-GUIDE.md',
             'DOCTRINE-GOLD-EXEMPLARS.md',
+            'MEASURE-OF-WORDS.md',
             'RUINENWERT.md',
         ] as $filename) {
             yield $filename => [$filename];

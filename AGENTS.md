@@ -251,8 +251,8 @@ an entry.
 
 ## Yumemi Doctrine
 
-Yumemi adopts the literary, coding, image, generation, gold-exemplar, and Ruinenwert guidance supplied by the
-`jbboehr/doctrine-of-the-second-sun` Composer development dependency. The pinned guides live under
+Yumemi adopts the literary, coding, image, generation, gold-exemplar, technical-writing, and Ruinenwert guidance
+supplied by the `jbboehr/doctrine-of-the-second-sun` Composer development dependency. The pinned guides live under
 `vendor/jbboehr/doctrine-of-the-second-sun/`. This section remains authoritative for Yumemi-specific scope, placement,
 citation allocation, asset paths, and verification.
 
@@ -274,6 +274,10 @@ For the tool-neutral writer, reviewer, and insertion workflow, and for the posit
 
 - [`DOCTRINE-GENERATION-GUIDE.md`](vendor/jbboehr/doctrine-of-the-second-sun/DOCTRINE-GENERATION-GUIDE.md)
 - [`DOCTRINE-GOLD-EXEMPLARS.md`](vendor/jbboehr/doctrine-of-the-second-sun/DOCTRINE-GOLD-EXEMPLARS.md)
+
+Technical prose follows the concise, result-first guidance in
+[`MEASURE-OF-WORDS.md`](vendor/jbboehr/doctrine-of-the-second-sun/MEASURE-OF-WORDS.md). The more specific documentation
+standards in this file remain authoritative for Yumemi's public documentation.
 
 This file is authoritative for repository-specific scope and coverage.
 

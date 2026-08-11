@@ -1692,19 +1692,29 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/jbboehr/doctrine-of-the-second-sun.git",
-                "reference": "f3b65781760948594ce72d34e1bc1507c18d2065"
+                "reference": "5c2c843c4d0f898eb5792e94187a74b2ce585ad5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jbboehr/doctrine-of-the-second-sun/zipball/f3b65781760948594ce72d34e1bc1507c18d2065",
-                "reference": "f3b65781760948594ce72d34e1bc1507c18d2065",
+                "url": "https://api.github.com/repos/jbboehr/doctrine-of-the-second-sun/zipball/5c2c843c4d0f898eb5792e94187a74b2ce585ad5",
+                "reference": "5c2c843c4d0f898eb5792e94187a74b2ce585ad5",
                 "shasum": ""
+            },
+            "require-dev": {
+                "php-cs-fixer/shim": "^3.95",
+                "phpstan/phpstan": "^2.1",
+                "phpunit/phpunit": "^10.5 || ^11.5"
             },
             "default-branch": true,
             "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "DoctrineOfTheSecondSun\\PHPStan\\": "integrations/phpstan/src/"
+                }
+            },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "CC-BY-SA-4.0"
+                "(CC-BY-SA-4.0 AND AGPL-3.0-only WITH romic-exception)"
             ],
             "authors": [
                 {
@@ -1712,7 +1722,7 @@
                     "email": "jbboehr@mailbox.org"
                 }
             ],
-            "description": "Portable doctrine, visual, coding, and software-stewardship guides",
+            "description": "Portable literary, visual, coding, technical-writing, and software-stewardship guidance",
             "keywords": [
                 "doctrine",
                 "documentation",
@@ -1723,7 +1733,7 @@
                 "issues": "https://github.com/jbboehr/doctrine-of-the-second-sun/issues",
                 "source": "https://github.com/jbboehr/doctrine-of-the-second-sun"
             },
-            "time": "2026-08-08T20:03:39+00:00"
+            "time": "2026-08-11T00:58:36+00:00"
         },
         {
             "name": "jbboehr/phpbench-perfidious",

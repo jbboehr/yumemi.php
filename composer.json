@@ -51,6 +51,7 @@
             "/composer.lock",
             "/coverage",
             "/docs/book.toml",
+            "/docs/pages/assets/heliogenesis",
             "/docs/theme",
             "/flake.lock",
             "/flake.nix",

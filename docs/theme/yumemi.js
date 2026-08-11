@@ -133,6 +133,99 @@
         return list;
     }
 
+    function addHeliogenesisStylesheet(assetRoot, filename) {
+        const stylesheet = document.createElement("link");
+        stylesheet.rel = "stylesheet";
+        stylesheet.href = new URL(filename, assetRoot).href;
+
+        const loaded = new Promise(function (resolve, reject) {
+            stylesheet.addEventListener("load", resolve, { once: true });
+            stylesheet.addEventListener("error", reject, { once: true });
+        });
+
+        document.head.append(stylesheet);
+
+        return { element: stylesheet, loaded };
+    }
+
+    function markHeliogenesisShell() {
+        const addedAttributes = [];
+        const mark = function (element, attribute) {
+            if (element.hasAttribute(attribute)) {
+                return;
+            }
+
+            element.setAttribute(attribute, "");
+            addedAttributes.push([element, attribute]);
+        };
+
+        const world = document.querySelector("#mdbook-page-wrapper") ?? document.body;
+        mark(world, "data-heliogenesis-world");
+
+        for (const selector of ["#mdbook-menu-bar", "#mdbook-sidebar"]) {
+            const element = document.querySelector(selector);
+            if (element) {
+                mark(element, "data-heliogenesis-chrome");
+            }
+        }
+
+        return function () {
+            for (const [element, attribute] of addedAttributes) {
+                element.removeAttribute(attribute);
+            }
+        };
+    }
+
+    async function mountHeliogenesis() {
+        const controls = document.querySelector("#mdbook-menu-bar .right-buttons");
+        if (!controls) {
+            return;
+        }
+
+        const stylesheets = [];
+        let trigger = null;
+        let heliogenesis = null;
+        let unmarkShell = function () {};
+
+        try {
+            const assetRoot = new URL(path_to_root + "assets/heliogenesis/", document.location.href);
+            stylesheets.push(addHeliogenesisStylesheet(assetRoot, "heliogenesis.css"));
+            stylesheets.push(addHeliogenesisStylesheet(assetRoot, "heliogenesis-document.css"));
+            unmarkShell = markHeliogenesisShell();
+
+            trigger = document.createElement("button");
+            trigger.id = "yumemi-second-sun";
+            trigger.type = "button";
+            trigger.title = "Dawn the Second Sun";
+            trigger.setAttribute("aria-label", "Dawn the Second Sun");
+            trigger.hidden = true;
+            controls.prepend(trigger);
+
+            const moduleUrl = new URL("heliogenesis.js", assetRoot);
+            const [, , module] = await Promise.all([
+                stylesheets[0].loaded,
+                stylesheets[1].loaded,
+                import(moduleUrl.href),
+            ]);
+            heliogenesis = new module.Heliogenesis({ trigger });
+            heliogenesis.mount();
+            trigger.hidden = false;
+        } catch (error) {
+            try {
+                heliogenesis?.destroy();
+            } catch (disposalError) {
+                console.error("Unable to dispose of Heliogenesis after a mount failure.", disposalError);
+            }
+
+            trigger?.remove();
+            for (const stylesheet of stylesheets) {
+                stylesheet.element.remove();
+            }
+            unmarkShell();
+            console.error("Unable to mount Heliogenesis.", error);
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", function () {
         const chapterLinks = document.querySelectorAll("#mdbook-sidebar .chapter-item > .chapter-link-wrapper > a");
 
@@ -151,5 +244,7 @@
             container.append(createHeadingList(pageUrl.href, headings));
             chapterLink.parentElement.after(container);
         }
+
+        void mountHeliogenesis();
     });
 })();

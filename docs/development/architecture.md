@@ -260,6 +260,10 @@ Expected replacement boundaries are deliberately narrow:
 | Nix and CI              | Package expressions, actions, or hosted services  | Local commands and reproducible checks    |
 | Apocrypha integrations  | Third-party framework and package version changes | Generic promotion contract in core        |
 
+The [Heliogenesis integration](heliogenesis.md) records the copied browser-runtime boundary within the documentation
+toolchain. Its upstream runtime may be refreshed or replaced without changing Yumemi's Markdown sources or semantic
+core.
+
 Abstractions should be introduced only when one of these replacement scenarios requires a stable boundary. Core classes
 may remain `final`; forkability depends on source, tests, specifications, and licensing rather than universal
 subclassability.

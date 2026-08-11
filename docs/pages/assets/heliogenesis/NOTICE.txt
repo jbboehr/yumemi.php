@@ -1,0 +1,19 @@
+Heliogenesis runtime provenance
+
+The heliogenesis.js, heliogenesis-scene.js, heliogenesis.css, and
+heliogenesis-document.css files in this directory are unmodified copies from:
+
+  Doctrine of the Second Sun
+  John Boehr and contributors
+  https://github.com/jbboehr/doctrine-of-the-second-sun
+  revision 5c2c843c4d0f898eb5792e94187a74b2ce585ad5
+
+Those files are distributed under the Creative Commons Attribution-ShareAlike
+4.0 International License reproduced in DOCTRINE-LICENSE.txt.
+
+The files under vendor/ are unmodified copies of the pinned Three.js r185
+runtime distributed with Heliogenesis. They are licensed under the MIT License;
+the complete notice is reproduced in vendor/THREE-LICENSE.txt.
+
+Yumemi's mounting code and mdBook-specific presentation remain part of Yumemi
+and are not copied from the Heliogenesis example application.
