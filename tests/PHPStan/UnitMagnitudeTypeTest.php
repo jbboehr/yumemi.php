@@ -329,6 +329,9 @@ final class UnitMagnitudeTypeTest extends TestCase
         $equivalent = new UnitConstantFloatType(1.5, $equivalentMeters);
         $differentValue = new UnitConstantFloatType(2.5, $meters);
         $seconds = new UnitConstantFloatType(1.5, $this->unitFloat('second')->getUnitExpression());
+        $partlyMatching = new UnionType([$equivalent, $differentValue]);
+        $partlyWrongUnit = new UnionType([$equivalent, $seconds]);
+        $fullyRejected = new UnionType([$differentValue, $seconds]);
 
         $this->assertSame("1.5&unit_float<'meter'>", $constant->describe(VerbosityLevel::precise()));
         $this->assertTrue($constant->equals($equivalent));
@@ -338,11 +341,17 @@ final class UnitMagnitudeTypeTest extends TestCase
         $this->assertTrue($constant->accepts($differentValue, true)->no());
         $this->assertTrue($constant->accepts($seconds, true)->no());
         $this->assertTrue($constant->accepts($this->unitFloat('meter'), true)->maybe());
+        $this->assertTrue($constant->accepts($partlyMatching, true)->maybe());
+        $this->assertTrue($constant->accepts($partlyWrongUnit, true)->maybe());
+        $this->assertTrue($constant->accepts($fullyRejected, true)->no());
         $this->assertTrue($constant->accepts(new ConstantFloatType(1.5), true)->no());
         $this->assertTrue($this->unitFloat('meter')->accepts($constant, true)->yes());
         $this->assertTrue($this->unitFloat('meter')->isSuperTypeOf($constant)->yes());
         $this->assertTrue($constant->isSuperTypeOf($equivalent)->yes());
         $this->assertTrue($constant->isSuperTypeOf($differentValue)->no());
+        $this->assertTrue($constant->isSuperTypeOf($partlyMatching)->maybe());
+        $this->assertTrue($constant->isSuperTypeOf($partlyWrongUnit)->maybe());
+        $this->assertTrue($constant->isSuperTypeOf($fullyRejected)->no());
     }
 
     public function testConstantFloatPreservesBrandAcrossScalarTransforms(): void

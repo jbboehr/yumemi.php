@@ -39,10 +39,12 @@ namespace jbboehr\Yumemi\PHPStan;
 use PHPStan\Php\PhpVersion;
 use PHPStan\Type\AcceptsResult;
 use PHPStan\Type\Constant\ConstantIntegerType;
+use PHPStan\Type\CompoundType;
 use PHPStan\Type\GeneralizePrecision;
 use PHPStan\Type\IsSuperTypeOfResult;
 use PHPStan\Type\NeverType;
 use PHPStan\Type\Type;
+use PHPStan\Type\UnionType;
 use PHPStan\Type\VerbosityLevel;
 
 /**
@@ -132,6 +134,10 @@ final class UnitConstantIntegerType extends ConstantIntegerType
             return AcceptsResult::createMaybe();
         }
 
+        if ($type instanceof UnionType) {
+            return $type->isAcceptedBy($this, $strictTypes);
+        }
+
         if ($type->isInteger()->yes()) {
             return AcceptsResult::createNo([
                 sprintf(
@@ -139,6 +145,10 @@ final class UnitConstantIntegerType extends ConstantIntegerType
                     $this->describe(VerbosityLevel::precise()),
                 ),
             ]);
+        }
+
+        if ($type instanceof CompoundType) {
+            return $type->isAcceptedBy($this, $strictTypes);
         }
 
         return parent::accepts($type, $strictTypes);

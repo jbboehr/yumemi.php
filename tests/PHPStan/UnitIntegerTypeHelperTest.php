@@ -183,6 +183,18 @@ final class UnitIntegerTypeHelperTest extends TestCase
         $above = UnitIntegerTypeHelper::create($this->meters, 4, 5);
         $unboundedBelow = UnitIntegerTypeHelper::create($this->meters, null, 2);
         $unboundedAbove = UnitIntegerTypeHelper::create($this->meters, 4, null);
+        $partlyMatching = new UnionType([
+            $equivalentThreeMeters,
+            new UnitConstantIntegerType(4, $this->meters),
+        ]);
+        $partlyWrongUnit = new UnionType([
+            $equivalentThreeMeters,
+            new UnitConstantIntegerType(3, $this->seconds),
+        ]);
+        $fullyRejected = new UnionType([
+            new UnitConstantIntegerType(4, $this->meters),
+            new UnitConstantIntegerType(3, $this->seconds),
+        ]);
 
         self::assertSame(3, $threeMeters->getValue());
         self::assertTrue($threeMeters->equals($equivalentThreeMeters));
@@ -199,6 +211,9 @@ final class UnitIntegerTypeHelperTest extends TestCase
         self::assertTrue($threeMeters->accepts($above, true)->no());
         self::assertTrue($threeMeters->accepts($unboundedBelow, true)->no());
         self::assertTrue($threeMeters->accepts($unboundedAbove, true)->no());
+        self::assertTrue($threeMeters->accepts($partlyMatching, true)->maybe());
+        self::assertTrue($threeMeters->accepts($partlyWrongUnit, true)->maybe());
+        self::assertTrue($threeMeters->accepts($fullyRejected, true)->no());
 
         $wrongUnit = $threeMeters->accepts(new UnitConstantIntegerType(3, $this->seconds), true);
         $bareInteger = $threeMeters->accepts(new ConstantIntegerType(3), true);
@@ -213,6 +228,9 @@ final class UnitIntegerTypeHelperTest extends TestCase
         self::assertTrue($threeMeters->isSuperTypeOf($equivalentThreeMeters)->yes());
         self::assertTrue($threeMeters->isSuperTypeOf($contains)->maybe());
         self::assertTrue($threeMeters->isSuperTypeOf($below)->no());
+        self::assertTrue($threeMeters->isSuperTypeOf($partlyMatching)->maybe());
+        self::assertTrue($threeMeters->isSuperTypeOf($partlyWrongUnit)->maybe());
+        self::assertTrue($threeMeters->isSuperTypeOf($fullyRejected)->no());
         self::assertTrue((new UnitFloatType($this->meters))->accepts($threeMeters, true)->yes());
         self::assertTrue((new UnitFloatType($this->meters))->accepts(
             UnitIntegerTypeHelper::create($this->meters, 1, 5),

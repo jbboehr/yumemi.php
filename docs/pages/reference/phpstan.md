@@ -225,8 +225,8 @@ square root is exact:
 | `abs($unitInteger)`          | Branded integer bounds, with possible overflow promotion |
 | `ceil()` and `floor()`       | Same unit, retaining a known numeric constant            |
 | `round()`                    | `unit_float<'same unit'>`                                |
-| `min()` and `max()`          | Common brand, with narrowed branded integer bounds       |
-| `sqrt($unitNumber)`          | Rooted unit, retaining a known numeric constant          |
+| `min()` and `max()`          | Common brand, retaining known extrema or integer bounds  |
+| `sqrt($unitNumber)`          | Rooted unit, retaining a finite nonnegative constant     |
 
 For example, these transformations remain ordinary native PHP operations at runtime:
 
@@ -256,21 +256,23 @@ assert($platformWidth === 12.0);
 ```
 
 Crossing a known integer constant to a float retains both its value and unit. Integer ranges still generalize because
-PHPStan has no corresponding public float-range type. `abs()`, `ceil()`, `floor()`, and `sqrt()` retain a constant value
-when the input and result are known; `round()` currently preserves the unit but generalizes the magnitude because its
-optional precision and rounding-mode arguments are not part of this resolver.
+PHPStan has no corresponding public float-range type. `abs()`, `ceil()`, and `floor()` retain a constant value when the
+input and result are known. `sqrt()` does so for finite nonnegative inputs. `round()` currently preserves the unit but
+generalizes the magnitude because its optional precision and rounding-mode arguments are not part of this resolver.
 
 `min()` and `max()` preserve a unit when every value they can return is branded with one definitionally equivalent unit.
-This works with direct arguments, arrays, and unpacked arrays. Known integer constants and ranges are narrowed when
-every candidate is required; a general array keeps its declared branded range because its runtime members are not known
-individually. If a possible nonempty input contains an unbranded value or a different unit, Yumemi does not infer one
-brand for the result and reports `yumemi.invalidUnitSelection`. A possible empty-array input does not contribute a
-result because native `min()` and `max()` throw on that path.
+This works with direct arguments, arrays, and unpacked arrays. When every candidate is required and is a known finite
+constant, the selected integer or float value is retained. Known integer ranges are narrowed when every candidate is
+required; a general array keeps its declared branded range because its runtime members are not known individually. If a
+possible nonempty input contains an unbranded value or a different unit, Yumemi does not infer one brand for the result
+and reports `yumemi.invalidUnitSelection`. A possible empty-array input does not contribute a result because native
+`min()` and `max()` throw on that path.
 
 Unlike those preserving operations, `sqrt()` transforms the unit. It infers `unit_float<'meter'>` from either an integer
 or float branded as `meter^2`, because native `sqrt()` always returns a `float`. Every symbolic unit power must be
 divisible by two. A non-rootable brand such as `meter` produces `yumemi.invalidUnitRoot` instead of silently losing its
-unit.
+unit. A known negative or non-finite magnitude keeps the rooted unit but generalizes to `unit_float` rather than
+creating a branded `NAN` or infinite constant.
 
 The check uses the symbolic expression as written; it does not substitute catalog definitions before taking the root.
 For example, `kilometer * millimeter` is dimensionally an area but lacks an exact symbolic square root. Express the

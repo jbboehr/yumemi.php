@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
+use jbboehr\Yumemi\PHPStan\UnitConstantFloatType;
 use jbboehr\Yumemi\PHPStan\UnitFloatType;
 use jbboehr\Yumemi\PHPStan\UnitIntegerType;
 use jbboehr\Yumemi\PHPStan\UnitRootFunctionTypeResolverExtension;
@@ -52,6 +53,7 @@ use PHPStan\Type\BenevolentUnionType;
 use PHPStan\Type\FloatType;
 use PHPStan\Type\Type;
 use PHPStan\Type\UnionType;
+use PHPStan\Type\VerbosityLevel;
 use PHPUnit\Framework\TestCase;
 
 final class UnitRootFunctionTypeResolverExtensionTest extends TestCase
@@ -106,6 +108,32 @@ final class UnitRootFunctionTypeResolverExtensionTest extends TestCase
 
         self::assertInstanceOf(BenevolentUnionType::class, $analysis['type']);
         self::assertNull($analysis['message']);
+    }
+
+    public function testNegativeConstantRetainsOnlyTheRootedBrand(): void
+    {
+        $analysis = $this->analyse(new UnitConstantFloatType(-4.0, $this->unit('meter^2')));
+
+        self::assertSame("unit_float<'meter'>", $analysis['type']?->describe(VerbosityLevel::precise()));
+        self::assertNull($analysis['message']);
+    }
+
+    public function testZeroConstantRetainsItsValueAndRootedBrand(): void
+    {
+        $analysis = $this->analyse(new UnitConstantFloatType(0.0, $this->unit('meter^2')));
+
+        self::assertSame("0.0&unit_float<'meter'>", $analysis['type']?->describe(VerbosityLevel::precise()));
+        self::assertNull($analysis['message']);
+    }
+
+    public function testNonFiniteConstantsRetainOnlyTheRootedBrand(): void
+    {
+        foreach ([INF, NAN] as $value) {
+            $analysis = $this->analyse(new UnitConstantFloatType($value, $this->unit('meter^2')));
+
+            self::assertSame("unit_float<'meter'>", $analysis['type']?->describe(VerbosityLevel::precise()));
+            self::assertNull($analysis['message']);
+        }
     }
 
     /** @return array{type: Type|null, message: string|null} */

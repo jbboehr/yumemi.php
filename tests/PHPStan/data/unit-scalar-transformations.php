@@ -71,6 +71,10 @@ assertType("1&unit_int<'meter'>", min(value: unit(3, 'meter'), values: unit(1, '
 assertType("2&unit_int<'meter'>", max(value: unit(1, 'meter'), values: unit(2, 'meter')));
 assertType("1&unit_int<'meter'>", min(unit(1, 'meter'), unit(2, 'm')));
 assertType("2&unit_int<'meter'>", max(unit(1, 'meter'), unit(2, 'm')));
+assertType("1.5&unit_float<'meter'>", min(unit(3.5, 'meter'), unit(1.5, 'meter')));
+assertType("3.5&unit_float<'meter'>", max(unit(3.5, 'meter'), unit(1.5, 'meter')));
+assertType("1.5&unit_float<'meter'>", min(unit(2, 'meter'), unit(1.5, 'meter')));
+assertType("2&unit_int<'meter'>", max(unit(2, 'meter'), unit(1.5, 'meter')));
 
 /**
  * @param int<0, 20> $lower
@@ -93,6 +97,8 @@ function assertBrandedArrayExtrema(array $values): void
 
 assertType("1&unit_int<'meter'>", min([unit(3, 'meter'), unit(1, 'meter'), unit(2, 'meter')]));
 assertType("3&unit_int<'meter'>", max([unit(3, 'meter'), unit(1, 'meter'), unit(2, 'meter')]));
+assertType("1.5&unit_float<'meter'>", min([unit(3.5, 'meter'), unit(1.5, 'meter')]));
+assertType("3.5&unit_float<'meter'>", max([unit(3.5, 'meter'), unit(1.5, 'meter')]));
 
 /** @param list<unit_int<'meter'>> $values */
 function assertOptionallyUnpackedBrandedExtrema(array $values): void
@@ -145,6 +151,7 @@ assertType("2.0&unit_float<'meter / second'>", sqrt(unit(4.0, 'meter^2 / second^
 assertType("2.0&unit_float<'1 / meter'>", sqrt(unit(4.0, 'meter^-2')));
 assertType("2.0&unit_float<'1'>", sqrt(unit(4, '1')));
 assertType("2.0&unit_float<'meter'>", sqrt(num: unit(4, 'meter^2')));
+assertType("unit_float<'meter'>", sqrt(unit(-4.0, 'meter^2')));
 assertType('float', sqrt(unit(1, 'meter')));
 
 /** @param int<0, 100> $value */

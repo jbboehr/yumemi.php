@@ -61,7 +61,8 @@ use PHPStan\Type\UnionType;
  *     hasInteger: bool,
  *     hasFloat: bool,
  *     integerMin: ?int,
- *     integerMax: ?int
+ *     integerMax: ?int,
+ *     constantValues: list<int|float>|null
  * }
  * @phpstan-type CandidateAnalysis array{
  *     candidate: ?CandidateMetadata,
@@ -325,6 +326,13 @@ final class UnitMinMaxFunctionTypeResolverExtension implements ExpressionTypeRes
             return ['type' => null, 'units' => $units, 'hasBare' => $hasBare];
         }
 
+        if ($allCandidatesRequired) {
+            $constantExtrema = $this->constantExtrema($candidates, $functionName, $unit);
+            if ($constantExtrema !== null) {
+                return ['type' => $constantExtrema, 'units' => $units, 'hasBare' => $hasBare];
+            }
+        }
+
         $hasInteger = false;
         $hasFloat = false;
         $integerOnly = $allCandidatesRequired;
@@ -368,6 +376,8 @@ final class UnitMinMaxFunctionTypeResolverExtension implements ExpressionTypeRes
         $hasFloat = false;
         $integerMinimums = [];
         $integerMaximums = [];
+        $constantValues = [];
+        $allValuesConstant = true;
         foreach ($types as $innerType) {
             if ($innerType instanceof NeverType) {
                 continue;
@@ -377,10 +387,16 @@ final class UnitMinMaxFunctionTypeResolverExtension implements ExpressionTypeRes
             if ($float !== null) {
                 $innerUnit = $float['unit'];
                 $hasFloat = true;
+                if ($float['value'] === null || !is_finite($float['value'])) {
+                    $allValuesConstant = false;
+                } else {
+                    $constantValues[] = $float['value'];
+                }
             } else {
                 $integer = UnitIntegerTypeHelper::extract($innerType);
                 if ($integer === null) {
                     $hasBare = true;
+                    $allValuesConstant = false;
                     continue;
                 }
 
@@ -388,6 +404,11 @@ final class UnitMinMaxFunctionTypeResolverExtension implements ExpressionTypeRes
                 $hasInteger = true;
                 $integerMinimums[] = $integer['min'];
                 $integerMaximums[] = $integer['max'];
+                if ($integer['min'] === null || $integer['min'] !== $integer['max']) {
+                    $allValuesConstant = false;
+                } else {
+                    $constantValues[] = $integer['min'];
+                }
             }
 
             $units[] = $innerUnit;
@@ -405,10 +426,60 @@ final class UnitMinMaxFunctionTypeResolverExtension implements ExpressionTypeRes
                 'hasFloat' => $hasFloat,
                 'integerMin' => $hasInteger ? $this->minimumLowerBound($integerMinimums) : null,
                 'integerMax' => $hasInteger ? $this->maximumUpperBound($integerMaximums) : null,
+                'constantValues' => $allValuesConstant && $constantValues !== [] ? $constantValues : null,
             ] : null,
             'units' => $units,
             'hasBare' => $hasBare,
         ];
+    }
+
+    /**
+     * @logion [OSD 73:51] Before the pilgrims ascend the cobalt stair, bind
+     *     their sandals with thread from the widows' loom; for the mountain
+     *     receiveth no vow that hath forgotten the hands which preserved the
+     *     road.
+     *
+     * @param list<CandidateMetadata> $candidates
+     */
+    private function constantExtrema(array $candidates, string $functionName, UnitExpression $unit): ?Type
+    {
+        foreach ($candidates as $candidate) {
+            if ($candidate['constantValues'] === null) {
+                return null;
+            }
+        }
+
+        $possibleValues = [];
+        foreach ($candidates as $candidateIndex => $candidate) {
+            foreach ($candidate['constantValues'] as $value) {
+                foreach ($candidates as $otherIndex => $otherCandidate) {
+                    if ($candidateIndex === $otherIndex) {
+                        continue;
+                    }
+
+                    $canBeSelected = false;
+                    foreach ($otherCandidate['constantValues'] as $otherValue) {
+                        if (
+                            ($functionName === 'min' && $otherValue >= $value)
+                            || ($functionName === 'max' && $otherValue <= $value)
+                        ) {
+                            $canBeSelected = true;
+                            break;
+                        }
+                    }
+
+                    if (!$canBeSelected) {
+                        continue 2;
+                    }
+                }
+
+                $possibleValues[] = is_int($value)
+                    ? new UnitConstantIntegerType($value, $unit)
+                    : new UnitConstantFloatType($value, $unit);
+            }
+        }
+
+        return $possibleValues === [] ? null : TypeCombinator::union(...$possibleValues);
     }
 
     /**

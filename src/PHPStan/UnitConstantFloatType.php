@@ -39,9 +39,11 @@ namespace jbboehr\Yumemi\PHPStan;
 use PHPStan\Type\AcceptsResult;
 use PHPStan\Type\Constant\ConstantFloatType;
 use PHPStan\Type\Constant\ConstantIntegerType;
+use PHPStan\Type\CompoundType;
 use PHPStan\Type\GeneralizePrecision;
 use PHPStan\Type\IsSuperTypeOfResult;
 use PHPStan\Type\Type;
+use PHPStan\Type\UnionType;
 use PHPStan\Type\VerbosityLevel;
 
 /**
@@ -131,6 +133,10 @@ final class UnitConstantFloatType extends ConstantFloatType
                 : AcceptsResult::createNo();
         }
 
+        if ($type instanceof UnionType) {
+            return $type->isAcceptedBy($this, $strictTypes);
+        }
+
         if ($type->isFloat()->yes() || $type->isInteger()->yes()) {
             return AcceptsResult::createNo([
                 sprintf(
@@ -138,6 +144,10 @@ final class UnitConstantFloatType extends ConstantFloatType
                     $this->describe(VerbosityLevel::precise()),
                 ),
             ]);
+        }
+
+        if ($type instanceof CompoundType) {
+            return $type->isAcceptedBy($this, $strictTypes);
         }
 
         return parent::accepts($type, $strictTypes);

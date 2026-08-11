@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
 use jbboehr\Yumemi\PHPStan\UnitConstantIntegerType;
+use jbboehr\Yumemi\PHPStan\UnitConstantFloatType;
 use jbboehr\Yumemi\PHPStan\UnitExpression;
 use jbboehr\Yumemi\PHPStan\UnitExpressionParser;
 use jbboehr\Yumemi\PHPStan\UnitFloatType;
@@ -118,6 +119,127 @@ final class UnitMinMaxFunctionTypeResolverExtensionTest extends TestCase
         );
     }
 
+    public function testFiniteFloatConstantsRetainTheSelectedValue(): void
+    {
+        $meter = $this->unit('meter');
+        $types = [
+            new UnitConstantFloatType(3.5, $meter),
+            new UnitConstantFloatType(1.5, $meter),
+            new UnitConstantFloatType(2.5, $meter),
+        ];
+
+        self::assertSame(
+            "1.5&unit_float<'meter'>",
+            $this->resolve('min', $types)?->describe(VerbosityLevel::precise()),
+        );
+        self::assertSame(
+            "3.5&unit_float<'meter'>",
+            $this->resolve('max', $types)?->describe(VerbosityLevel::precise()),
+        );
+    }
+
+    public function testEqualFloatConstantsRemainConstant(): void
+    {
+        $meter = $this->unit('meter');
+        $types = [
+            new UnitConstantFloatType(1.5, $meter),
+            new UnitConstantFloatType(1.5, $meter),
+        ];
+
+        self::assertSame(
+            "1.5&unit_float<'meter'>",
+            $this->resolve('min', $types)?->describe(VerbosityLevel::precise()),
+        );
+        self::assertSame(
+            "1.5&unit_float<'meter'>",
+            $this->resolve('max', $types)?->describe(VerbosityLevel::precise()),
+        );
+    }
+
+    public function testMixedConstantCarriersRetainTheSelectedNativeType(): void
+    {
+        $meter = $this->unit('meter');
+        $types = [
+            new UnitConstantIntegerType(2, $meter),
+            new UnitConstantFloatType(1.5, $meter),
+        ];
+
+        self::assertSame(
+            "1.5&unit_float<'meter'>",
+            $this->resolve('min', $types)?->describe(VerbosityLevel::precise()),
+        );
+        self::assertSame(
+            "2&unit_int<'meter'>",
+            $this->resolve('max', $types)?->describe(VerbosityLevel::precise()),
+        );
+    }
+
+    public function testConstantUnionCandidatesRetainEveryPossibleExtremum(): void
+    {
+        $meter = $this->unit('meter');
+        $variable = TypeCombinator::union(
+            new UnitConstantFloatType(1.5, $meter),
+            new UnitConstantFloatType(4.5, $meter),
+        );
+        $middle = new UnitConstantFloatType(3.0, $meter);
+
+        self::assertSame(
+            "1.5&unit_float<'meter'>|3.0&unit_float<'meter'>",
+            $this->resolve('min', [$variable, $middle])?->describe(VerbosityLevel::precise()),
+        );
+        self::assertSame(
+            "3.0&unit_float<'meter'>|4.5&unit_float<'meter'>",
+            $this->resolve('max', [$variable, $middle])?->describe(VerbosityLevel::precise()),
+        );
+    }
+
+    public function testNonFiniteFloatConstantsUseTheGeneralFloatResult(): void
+    {
+        $meter = $this->unit('meter');
+
+        self::assertSame(
+            "unit_float<'meter'>",
+            $this->resolve('min', [
+                new UnitConstantFloatType(INF, $meter),
+                new UnitConstantFloatType(1.5, $meter),
+            ])?->describe(VerbosityLevel::precise()),
+        );
+    }
+
+    public function testPartlyNonFiniteFloatUnionUsesTheGeneralFloatResult(): void
+    {
+        $meter = $this->unit('meter');
+        $partlyNonFinite = new UnionType([
+            new UnitConstantFloatType(INF, $meter),
+            new UnitConstantFloatType(1.5, $meter),
+        ]);
+
+        self::assertSame(
+            "unit_float<'meter'>",
+            $this->resolve('min', [
+                $partlyNonFinite,
+                new UnitConstantFloatType(3.5, $meter),
+            ])?->describe(VerbosityLevel::precise()),
+        );
+    }
+
+    public function testPartlyBroadIntegerUnionUsesRangeInference(): void
+    {
+        $meter = $this->unit('meter');
+        $partlyBroad = new UnionType([
+            new UnitIntegerType($meter),
+            new UnitConstantIntegerType(1, $meter),
+        ]);
+
+        self::assertSame(
+            "unit_int<'meter'>&int<min, 3>",
+            $this->resolve('min', [
+                $partlyBroad,
+                new UnitConstantIntegerType(3, $meter),
+            ])?->describe(VerbosityLevel::precise()),
+        );
+    }
+
     public function testBareCandidatePreventsBrandInference(): void
     {
         self::assertNull($this->resolve('min', [
@@ -144,6 +266,19 @@ final class UnitMinMaxFunctionTypeResolverExtensionTest extends TestCase
         self::assertSame(
             "1&unit_int<'meter'>",
             $this->resolve('min', [$builder->getArray()], [false])?->describe(VerbosityLevel::precise()),
+        );
+    }
+
+    public function testConstantFloatArrayIsFoldedByTheYumemiExtension(): void
+    {
+        $meter = $this->unit('meter');
+        $builder = ConstantArrayTypeBuilder::createEmpty();
+        $builder->setOffsetValueType(null, new UnitConstantFloatType(3.5, $meter));
+        $builder->setOffsetValueType(null, new UnitConstantFloatType(1.5, $meter));
+
+        self::assertSame(
+            "3.5&unit_float<'meter'>",
+            $this->resolve('max', [$builder->getArray()], [false])?->describe(VerbosityLevel::precise()),
         );
     }
 

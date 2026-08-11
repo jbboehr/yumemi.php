@@ -193,7 +193,7 @@ final class UnitRootFunctionTypeResolverExtension implements ExpressionTypeResol
         try {
             return [
                 'branded' => true,
-                'type' => $value !== null
+                'type' => $value !== null && is_finite($value) && $value >= 0.0
                     ? new UnitConstantFloatType(sqrt($value), UnitExpressionAlgebra::root($unit, 2))
                     : new UnitFloatType(UnitExpressionAlgebra::root($unit, 2)),
                 'unit' => $symbolicUnit,
