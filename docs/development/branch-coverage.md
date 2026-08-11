@@ -88,6 +88,17 @@ These are point-in-time diagnostics, not enforced floors:
   survivors alter dominated guards or choose an equally valid excerpt boundary. The sole uncovered branch is
   `ParserUtils::parseString()`'s defensive `parse() === false` fallback: the generated parser either succeeds or invokes
   the throwing error handler.
+- The 2026-08-10 parser resource-budget follow-up covered 98.84% of 172 branches and 98.83% of 256 executable lines in
+  the handwritten `src/Parser` scope across 286 focused parser and integration tests. `Lexer` reached 100% of its 70
+  branches and 101 executable lines. Added contracts exercise eager lexer input rejection, nesting separated by other
+  tokens, depth recovery after balanced groups, and all four limit-message descriptors. The remaining parser outcomes
+  are the unknown-limit diagnostic fallback and the generated parser's defensive `parse() === false` fallback. A
+  separate focused analyzer run exercised both caller-span remapping paths for oversized catalog and prefix definitions;
+  its percentages are not an aggregate because only direct resolver and registry-builder tests were included. Focused
+  mutation testing across the lexer, parser utilities, limit exception, and unit resolver generated 239 mutants and
+  killed 205, improving covered MSI from 82% to 86%; 33 escaped and one timed out. The surviving changes are equivalent
+  cache and ranking mutations, unreachable defensive parser states, or exception-code and prose details, while the
+  timeout removes circular-resolution termination. No runtime defect was found.
 
 The subsequent cross-cutting verification added a machine-checked inventory of PHPStan diagnostic identifiers and their
 documented suppression boundaries. It validates both documentation lists, emitting implementation keys, and the set of

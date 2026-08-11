@@ -39,6 +39,7 @@ namespace jbboehr\Yumemi\Tests\Parser;
 use jbboehr\Yumemi\Parser\Ast;
 use jbboehr\Yumemi\Parser\AstNode;
 use jbboehr\Yumemi\Parser\ExpressionLimitExceededException;
+use jbboehr\Yumemi\Parser\Lexer;
 use jbboehr\Yumemi\Parser\Parser;
 use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\TestCase;
@@ -418,6 +419,14 @@ final class ParserTest extends TestCase
         );
     }
 
+    public function testLexerRejectsOversizedInputBeforeTokenization(): void
+    {
+        $this->expectException(ExpressionLimitExceededException::class);
+        $this->expectExceptionMessage('input byte length limit of 4096');
+
+        new Lexer(str_repeat(' ', 4097));
+    }
+
     public function testTokenCountLimitAcceptsItsBoundaryAndRejectsTheNextToken(): void
     {
         Parser::parseString(implode(' ', array_fill(0, 255, 'a')));
@@ -444,6 +453,24 @@ final class ParserTest extends TestCase
             65,
             [64, 65],
         );
+    }
+
+    public function testNestingDepthSurvivesTokensBetweenOpeningParentheses(): void
+    {
+        $this->assertLimit(
+            str_repeat('(a * ', 65) . 'a' . str_repeat(')', 65),
+            'nesting-depth',
+            64,
+            65,
+            [320, 321],
+        );
+    }
+
+    public function testNestingDepthReturnsToZeroAfterEachBalancedGroup(): void
+    {
+        $ast = Parser::parseString(implode(' ', array_fill(0, 65, '(a)')));
+
+        $this->assertSame(65, substr_count($ast->toString(), 'a'));
     }
 
     public function testTokenByteLimitAppliesToIdentifiersAndNumbers(): void
@@ -525,6 +552,14 @@ final class ParserTest extends TestCase
             Parser::parseString($input);
             self::fail('Expected the parser resource limit to be exceeded.');
         } catch (ExpressionLimitExceededException $exception) {
+            $description = match ($limit) {
+                'input-bytes' => 'input byte length',
+                'token-count' => 'token count',
+                'nesting-depth' => 'parenthesis nesting depth',
+                'token-bytes' => 'identifier or numeric token byte length',
+                default => $limit,
+            };
+
             $this->assertSame($limit, $exception->limit);
             $this->assertSame($maximum, $exception->maximum);
             $this->assertSame($observed, $exception->observed);
@@ -532,6 +567,7 @@ final class ParserTest extends TestCase
                 $span,
                 $exception->span === null ? null : [$exception->span->start, $exception->span->end],
             );
+            $this->assertStringContainsString('exceeds the ' . $description . ' limit', $exception->getMessage());
             $this->assertStringNotContainsString($input, $exception->getMessage());
         }
     }

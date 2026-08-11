@@ -503,8 +503,12 @@ repeat the implementation's assumptions:
   gate. The handwritten parser audit covered 99.31% of 145 branches and 98.91% of 183 executable lines across 330
   focused tests after excluding generated `Parser.php`. It found one diagnostic-excerpt off-by-one and killed 186 of 193
   focused mutants for 96% covered MSI. The remaining uncovered branch is the defensive `parse() === false` fallback
-  excluded by the generated parser's success-or-throw contract. Add tests only when an uncovered outcome is reachable
-  and observably meaningful. Path coverage remains informational because combinations grow rapidly;
+  excluded by the generated parser's success-or-throw contract. A 2026-08-10 parser resource-budget follow-up covered
+  98.84% of 172 handwritten parser branches, reached 100% branch and line coverage in `Lexer`, and raised focused
+  covered MSI from 82% to 86% by adding contracts for eager input rejection, separated nesting, depth recovery, and
+  limit diagnostics. No runtime defect was found; remaining survivors are equivalent or defensive states, apart from a
+  timeout that removes circular-resolution termination. Add tests only when an uncovered outcome is reachable and
+  observably meaningful. Path coverage remains informational because combinations grow rapidly;
   `PointQuantity::__unserialize()` alone exposes 4,096 paths through compound payload validation.
 - Triage Infection's escaped and timed-out mutants periodically before raising the MSI floor. Add contract-level
   assertions for observable survivors, record or ignore behaviorally equivalent mutations, distinguish deliberately
