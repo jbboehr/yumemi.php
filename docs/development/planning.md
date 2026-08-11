@@ -397,15 +397,53 @@ spellings unchanged.
 The multiplicative and affine-point runtimes and the PHPStan native/object paths are usable. Remaining work is mostly
 developer-experience improvement, selected API and formatting polish, and explicitly deferred advanced features.
 
-### Pre-Release Checklist
+### Release Milestones
 
-- Before creating the first release tag, remove `:dev-master` from the README and public installation instructions;
-  after Packagist imports the tag, verify that the unqualified command installs the tagged release.
-- Review the established [compatibility policy](compatibility.md) against the intended first release, then publish it
-  with the tag without broadening support beyond the documented and tested surface.
-- Follow the established [release and succession runbook](release-and-succession.md), including artifact verification,
-  signed-tag publication, service checks, tagged-package installation, and the documented response to partial
-  publication failures.
+The implemented feature set is already sufficient for an initial public release. Release readiness should now be based
+on contract clarity, clean-package verification, and experience upgrading tagged versions rather than completion of the
+deferred feature list.
+
+#### First Tagged Release: 0.1.0
+
+- State the pre-1.0 compatibility rule explicitly. Patch releases within one `0.x` minor line should preserve the
+  documented contract; a later `0.x` minor may deliberately break it when the changelog and migration guidance explain
+  the change.
+- Audit the intended supported surface before it acquires external users. Review documented declarations and named
+  parameters, exception categories and metadata, PHPStan pseudo-types and inference, configuration keys, diagnostic
+  identifiers, JSON representations, native serialization payloads, catalog behavior, and unit-language semantics.
+  Confirm which visible declarations are supported, provisionally public, or internal, and decide whether every
+  currently documented persistent format should enter the first-release contract.
+- Prepare a concise `0.1.0` changelog section describing the shipped capabilities. Remove `:dev-master` from the README
+  and public installation instructions, and update status prose without presenting `0.1.0` as a stable API.
+- Follow the established [release and succession runbook](release-and-succession.md) from a clean release commit. Run
+  the complete Composer and Nix checks, inspect the archive, require it through the isolated runtime and PHPStan
+  consumers, verify the exact GitHub Actions commit, create a signed tag, and confirm GitHub, Pages, Packagist, and a
+  fresh unqualified installation after publication.
+- Do not add another feature merely to make the first release appear larger. Fix correctness or contract problems found
+  by the surface audit, but otherwise use the `0.x` series to discover real workflow needs.
+
+#### Stable Release: 1.0.0
+
+- Accumulate real use across multiple `0.x` releases, including runtime conversion, PHPStan analysis, a custom registry,
+  and at least one maintained Apocrypha integration. Exercise upgrades, deprecations, release notes, and package
+  publication before promising long-term compatibility.
+- After `0.1.0` supplies a baseline tag, add API compatibility comparison against the latest release. Complement it with
+  release-produced serialization fixtures, retained JSON and conformance cases, PHPStan inference and diagnostic
+  fixtures, and explicit review of catalog changes; a PHP signature checker cannot cover those behavioral contracts.
+- Resolve avoidable ambiguity among supported, provisionally public, and internal declarations. Audit named arguments,
+  construction paths, exceptions, persistent formats, registry integration, and formatting policy as contracts intended
+  to survive for years rather than merely as useful current implementation.
+- Establish a demonstrated PHPStan support cadence across the documented minimum and current releases. Adapter internals
+  may change, but pseudo-types, diagnostics, configuration, automatic and manual registration, and optional tag behavior
+  must retain tested upgrade paths.
+- Perform one final cross-cutting semantic audit against the compatibility policy, invariants, conformance corpus,
+  public examples, and released behavior. Enter `1.0.0` with no known correctness defect in the supported surface, not
+  with every conceivable dimensional-analysis feature implemented.
+
+Logarithmic units, contexts, currency, localization, uncertainty, generalized rational powers, range-bearing native
+floats, formula interpolation, preferred-unit selection, source-spelling preservation, and broader third-party stubs do
+not block `1.0.0` without concrete user evidence to the contrary. They remain independent additions or future design
+decisions under [Deferred Features](#deferred-features).
 
 ### Preservation Roadmap
 
