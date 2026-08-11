@@ -566,10 +566,22 @@ assert($restored->valueToString() === '1/3');
 assert($restored->unitToString() === 'meter / second');
 ```
 
-`Rational` JSON contains `numerator` and `denominator` strings. Quantity JSON contains that exact `value` and a
-formatted `unit` string. Dimension JSON names all seven SI axes and adds `additionalPowers` when extension axes are
-present. Descriptor JSON follows its public constructor state, renders backed enums as strings, and nests dynamic prefix
-decomposition.
+The supported JSON keys are:
+
+- `Rational`: `numerator` and `denominator`, both decimal strings.
+- `Quantity` and `PointQuantity`: `value`, containing the nested `Rational` object, and `unit`, containing the formatted
+  unit string.
+- `Dimension`: `length`, `mass`, `time`, `electricCurrent`, `temperature`, `amountOfSubstance`, and `luminousIntensity`,
+  all integers, plus an `additionalPowers` object mapping names to integers when application-defined axes are present.
+- `PrefixDescriptor`: string values for `matchedName`, `canonicalName`, `matchedAs`, and `definitionExpression`.
+- `PrefixDecomposition`: `prefix` and `unit`, containing nested descriptor objects.
+- `UnitDescriptor`: `matchedName`, `canonicalName`, `matchedAs`, `kind`, `definitionExpression`, `documentation`,
+  `comment`, `aliases`, `symbols`, `explicitPlurals`, `generatedPlurals`, `semantics`, and `prefixDecomposition`. Names
+  and enum values are strings; definition and prose fields are strings or `null`; aliases, symbols, and plurals are
+  arrays of strings; and prefix decomposition is a nested object or `null`.
+
+Descriptor JSON follows these documented properties, renders backed enums as strings, and nests dynamic prefix
+decomposition. JSON object key order and insignificant whitespace are not compatibility guarantees.
 
 Compact `__debugInfo()` output follows the same representation. Quantities add only a short context identity; dumping a
 quantity does not recursively print its `Units` registry and catalog.
@@ -596,6 +608,10 @@ $restored = $units->deserialize($serialized);
 assert($restored->units() === $units);
 assert($restored->valueIn('meter')->toString() === '8509/2500');
 ```
+
+Serialization compatibility applies to values emitted by PHP's `serialize()` in tagged Yumemi releases. Direct calls to
+`__serialize()` and the returned PHP array layout are implementation details. Newly serialized bytes may change while
+previously released values remain readable.
 
 Raw `unserialize()` rejects a custom-context quantity with an exception directing the caller to `Units::deserialize()`.
 The scoped method restores its previous context in `finally`, including across nested calls, and forwards PHP's native

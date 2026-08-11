@@ -35,19 +35,23 @@ The principal supported surfaces are:
 - `unit()`, `unit_factor()`, and `unit_to()`;
 - `Units`, `Quantity`, `PointQuantity`, `Rational`, `Dimension`, and `FloatRangePolicy`;
 - `Expr` values obtained from supported `Units` and value-object methods;
-- `UnitRegistryBuilder`, the documented `UnitRegistry` views, `CompositeUnitRegistry`, and `Udunits2UnitRegistry`;
+- `UnitRegistryBuilder` and the immutable `UnitRegistry` snapshots it produces;
 - `FormatOptions`, `ExprFormatter`, `DecimalNotation`, and the formatting policy enums;
 - descriptors and backed enums returned by `describe()` and `describePrefix()`; and
 - `ExceptionInterface`, documented exception categories and metadata, `ParseException`,
   `ExpressionLimitExceededException`, and `SourceSpan`.
+
+The documented JSON representations and native serialization round trips of `Rational`, `Dimension`, `Quantity`,
+`PointQuantity`, and catalog descriptors are application persistence contracts under the constraints in
+[Persistent Data](#persistent-data).
 
 Only documented construction paths are supported. In particular:
 
 - construct quantities and points through `Units` rather than their `@internal` constructors;
 - obtain unit expressions through `Units::parse()`, `parseUnit()`, or `unit()` rather than depending on concrete
   `Expr\*` constructors or expression-tree layout;
-- construct registries through `UnitRegistryBuilder` unless a documented integration requires another registry class;
-  and
+- construct registries through `UnitRegistryBuilder`, treat the resulting `UnitRegistry` as an opaque snapshot, and use
+  `Units::describe()` and `Units::describePrefix()` for supported catalog introspection; and
 - treat descriptor constructors as implementation details even though descriptor values and documented properties are
   supported when returned by catalog introspection.
 
@@ -63,8 +67,7 @@ The following surfaces are supported specifically for integration rather than or
 - `yumemi-tags.neon` as the opt-in annotation-promotion entry point;
 - `PHPStan\UnitRegistryFactory` and its static `create(): UnitRegistry` contract;
 - the `parameters.yumemi.*` configuration keys documented below;
-- the PHPStan pseudo-types, optional annotation tags, and diagnostic identifiers documented below; and
-- the versioned native serialization payloads described under [Persistent Data](#persistent-data).
+- the PHPStan pseudo-types, optional annotation tags, and diagnostic identifiers documented below.
 
 An integration contract may remain stable while its implementation is replaced. PHPStan container service names,
 extension classes, parser wrappers, cache adapters, and internal type objects are not supported merely because the NEON
@@ -76,9 +79,10 @@ A PHP declaration that is publicly visible but is neither marked `@api` nor docu
 surface is provisionally public. It may be useful for testing or advanced experimentation, but it may change before a
 stable contract is assigned.
 
-Important examples include concrete expression-node constructors, low-level registry storage and lookup channels, raw
-catalog-record arrays, and undocumented methods or properties on otherwise supported classes. Depending on these
-surfaces should be an explicit, reviewed choice.
+Important examples include concrete expression-node constructors, concrete registry implementations, optional alternate
+generated-catalog file parameters, low-level registry storage and lookup channels, raw catalog-record arrays, and
+undocumented methods or properties on otherwise supported classes. Depending on these surfaces should be an explicit,
+reviewed choice.
 
 Provisionally public does not mean silently disposable. Changes should still be reviewed for known consumers and noted
 when they are likely to affect users, but they do not receive the same compatibility guarantee as supported surfaces.
@@ -236,13 +240,14 @@ from these arrays.
 
 ### Native Serialization
 
-The explicit versioned `__serialize()` payloads of the documented value objects are supported persistence formats within
-their stated registry constraints. Existing supported payload versions must continue to restore with the same semantics,
-or fail only for a documented safety reason such as registry semantic drift.
+Values emitted by PHP's `serialize()` for the documented value objects in a tagged release are supported persistence
+formats within their stated registry constraints. A later compatible release must continue to restore those values with
+the same semantics, or fail only for a documented safety reason such as registry semantic drift.
 
-Yumemi does not promise byte-identical output from `serialize()` for newly written values. It promises that supported
-historical payload versions remain readable and that semantic validation continues to fail closed. Introducing a new
-payload version is additive only when old supported versions remain readable.
+The direct return values of `__serialize()` and their PHP array layouts are implementation details, not application
+APIs. Yumemi does not promise byte-identical output from `serialize()` for newly written values. It promises that values
+emitted by supported tagged releases remain readable and that semantic validation continues to fail closed. Internal
+readers for payloads emitted before `0.1.0` are migration aids and do not create a historical release contract.
 
 Custom-context restoration through `Units::deserialize()` and its forwarding of `allowed_classes` and `max_depth` are
 supported. Native PHP serialization remains inappropriate for untrusted input.

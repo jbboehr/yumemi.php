@@ -19,8 +19,8 @@ under the project license described in the root README and license files.
 
 ## Default Catalog
 
-`Units::default()` layers the checked-in `data/yumemi.php` supplement over `Udunits2UnitRegistry` and the generated
-`data/udunits2.php` catalog. The generated UDUNITS2 data includes:
+`Units::default()` layers the checked-in `data/yumemi.php` supplement over the generated `data/udunits2.php` catalog.
+The generated UDUNITS2 data includes:
 
 - base, dimensionless, and derived units;
 - canonical names, aliases, symbols, explicit plurals, and unambiguous generated plurals;
@@ -57,11 +57,10 @@ Existing UDUNITS2 spellings retain their meanings: `pt` is the US liquid-pint sy
 printer's pica based on `printers_point`. Likewise, `dpi` and `ppi` remain prefix decompositions of `pi`, not density
 units. Use `typographic_point` and explicit density expressions rather than relying on those abbreviations.
 
-`Udunits2UnitRegistry` loads only UDUNITS2 data. `UnitRegistryBuilder::default($dataFile)` may compose the Yumemi
-supplement over another generated catalog from a readable local PHP file; that catalog must provide any upstream names
-used by the supplemental definitions. The file is executable trusted configuration: PHP evaluates it before Yumemi can
-validate the returned catalog shape. Never use an uploaded file, URL, or other untrusted path as a catalog. Prefer
-builder definitions and aliases when an application needs custom units rather than a replacement generated catalog.
+The supported application path for customization is `UnitRegistryBuilder`. Its optional alternate generated-catalog file
+parameters and the concrete registry implementations are lower-level generation and testing boundaries, not stable
+application APIs. The generated PHP array layout is likewise not an application data format. Use builder definitions and
+aliases when an application needs custom units.
 
 Lookup is case-sensitive. Exact names win before dynamic prefix decomposition, and prefixes apply only when the
 remaining suffix is an exact unit name. See the [unit syntax reference](unit-syntax.md#unit-names) for examples.
@@ -152,10 +151,10 @@ entry exists, it applies the same one-prefix-plus-exact-unit decomposition used 
 `Units::describePrefix()` describes one exact prefix name or symbol. Descriptors preserve whether the matched spelling
 was canonical, an alias, a symbol, an explicit plural, a generated plural, or dynamically prefixed.
 
-`describe()` does not accept compound expressions as lookup names, normalize definitions, or add dynamically prefixed
-spellings to `names()`. Generated affine-difference units are exact catalog entries and do appear in `names()`. To
-report truthful capabilities, introspection lazily resolves the complete canonical or dynamically prefixed spelling
-against the effective registry. A dynamically prefixed descriptor exposes its prefix and exact residual unit through
+`describe()` does not accept compound expressions as lookup names, normalize definitions, or materialize dynamically
+prefixed spellings as exact catalog entries. Generated affine-difference units are exact catalog entries. To report
+truthful capabilities, introspection lazily resolves the complete canonical or dynamically prefixed spelling against the
+effective registry. A dynamically prefixed descriptor exposes its prefix and exact residual unit through
 `prefixDecomposition`:
 
 ```php
@@ -211,10 +210,10 @@ canonical entry, and direct custom `@` or `lg(...)` definitions receive the same
 resolve and cache capabilities against the effective registry, so transitive definitions and overlays cannot leave
 capability methods out of sync with runtime behavior.
 
-Raw rows returned by `findCatalogRecord()` remain declaration metadata: they store direct or exact-name-inherited affine
-and logarithmic markers, but do not eagerly materialize `UnsupportedExpression` or transitive composite results.
-Generated delta rows are ordinary multiplicative declarations materialized during catalog import or immutable-registry
-build. This keeps catalog generation deterministic and avoids resolving the full catalog merely for introspection.
+Internal catalog records store direct or exact-name-inherited affine and logarithmic markers, but do not eagerly
+materialize `UnsupportedExpression` or transitive composite results. Generated delta records are ordinary multiplicative
+declarations materialized during catalog import or immutable-registry build. This keeps catalog generation deterministic
+and avoids resolving the full catalog merely for introspection.
 
 Affine classification means "unsupported by multiplicative `Expr` algebra," not "unsupported everywhere." See
 [Affine Conversion](runtime.md#affine-conversion) for executable boundaries and [Limitations](phpstan.md#limitations)
