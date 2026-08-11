@@ -28,6 +28,7 @@
         "exclude": [
             "/.claude",
             "/.codex",
+            "/.dvc",
             "/.direnv",
             "/.envrc",
             "/.github",
@@ -65,11 +66,13 @@
             "/phpunit.branch.xml.dist",
             "/phpunit.xml.dist",
             "/result*",
+            "/secrets",
             "/src/Catalog/PhpCatalogExporter.php",
             "/src/Catalog/Udunits2CatalogImporter.php",
             "/src/Command",
             "/tests",
             "/tmp",
+            "/tmp.md",
             "/vendor"
         ]
     },

@@ -18,8 +18,9 @@ Each invariant identifies the consequence of violating it:
 - **Accepted tradeoff:** a documented limitation or policy could change deliberately without contradicting the semantic
   core, although tests and public documentation may still require updates.
 
-One change may have more than one classification. Before the first release, compatibility classifications describe the
-intended surface defined by the [compatibility policy](compatibility.md), which must be reviewed before the first tag.
+One change may have more than one classification. Compatibility classifications follow the
+[compatibility policy](compatibility.md), which must be reviewed whenever a change affects a supported or provisional
+surface.
 
 ## One Runtime Semantic Authority
 

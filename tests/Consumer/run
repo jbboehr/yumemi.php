@@ -48,6 +48,7 @@ if [[ $PACKAGE_MODE == archive ]]; then
     done
 
     excluded_paths=(
+        .dvc
         .direnv
         .github
         .idea
@@ -56,7 +57,9 @@ if [[ $PACKAGE_MODE == archive ]]; then
         src/Catalog/PhpCatalogExporter.php
         src/Catalog/Udunits2CatalogImporter.php
         src/Command
+        secrets
         tests
+        tmp.md
         vendor
     )
     for path in "${excluded_paths[@]}"; do

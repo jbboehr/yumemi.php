@@ -419,9 +419,9 @@ versioned Yumemi Apocrypha project verifies curated upstream integrations withou
 maintenance surface to core. The normal matrix covers PHP 8.2 through PHP 8.5, and a PHP 8.2 lowest-dependency job
 verifies the declared lower bounds through `composer update --prefer-lowest --prefer-stable`.
 
-The project has a manual release and fork-first succession runbook, but still lacks a tagged release and automated
-publication workflow. A highest-dependency job may be useful after the first release establishes a compatibility
-promise.
+The project has an initial tagged 0.1 release and a manual release and fork-first succession runbook, but still lacks an
+automated publication workflow. A highest-dependency job may be useful now that the 0.1 release establishes a
+compatibility promise.
 
 ## Parity Matrix
 

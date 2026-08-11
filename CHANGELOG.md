@@ -19,4 +19,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Security
 
-[Unreleased]: https://github.com/jbboehr/yumemi.php/commits/master
+## [0.1.0] - 2026-08-11
+
+### Added
+
+- Initial PHPStan extension with unit-branded native integers, floats, and numeric strings; inferred arithmetic,
+  comparisons, selected scalar functions, stable diagnostics, custom registry configuration, and optional `@yumemi-*`
+  annotations.
+- Exact runtime arithmetic and conversion through `Rational`, `Units`, `Quantity`, and affine `PointQuantity` values,
+  with explicit integer, decimal, significant-digit, and binary floating-point output policies.
+- A shared bounded unit-expression language, generated UDUNITS2 catalog, authored image and document units, custom
+  registry builder, extension dimensions, affine difference units, and catalog introspection.
+- Configurable ASCII and Unicode formatting, exact JSON representations, compact debug output, and versioned native
+  serialization with custom-registry restoration.
+- Verified public documentation, portable runtime conformance fixtures, release-style consumer tests, and automatic or
+  manual PHPStan extension registration.
+
+[Unreleased]: https://github.com/jbboehr/yumemi.php/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/jbboehr/yumemi.php/releases/tag/v0.1.0

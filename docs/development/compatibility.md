@@ -10,14 +10,12 @@ state what must remain true, and the corpus records representative observable be
 
 ## Current Status
 
-Yumemi has no tagged release yet. There is therefore no previously released compatibility baseline. This document
-describes the intended contract for the first tagged release and may still be corrected deliberately while development
-continues. Such corrections must remain visible in review and update affected documentation, invariants, and conformance
-cases.
+Yumemi 0.1.0 establishes the initial public development contract described by this document. Before 1.0, patch releases
+within one `0.x` minor line preserve that documented contract. A later `0.x` minor release may deliberately introduce a
+breaking change when its changelog and migration guidance explain the change.
 
-Once tags exist, release notes and the changelog must identify user-visible changes. Tagged releases will follow
-semantic-versioning principles: incompatible changes to the supported contract require an appropriately breaking
-release, while patch releases may correct defects that never formed part of the documented contract.
+Release notes and the changelog identify user-visible changes. Patch releases may still correct defects that never
+formed part of the documented contract, subject to the defect policy under [Classifying Changes](#classifying-changes).
 
 Support means that a surface is intentionally documented, tested, and reviewed for compatibility. It does not promise
 that every implementation detail behind that surface remains unchanged.
@@ -295,9 +293,9 @@ A change is normally compatible when it:
 - adds a catalog name that does not alter resolution of any existing expression.
 
 Fixing a defect may change observed behavior. If the old behavior contradicted documented semantics or invariants, the
-fix is not required to preserve the defect, but it must include a focused regression test and a clear user-facing note
-once tagged releases exist. If users were explicitly promised the old behavior, changing it is a compatibility break
-even when the new behavior appears cleaner.
+fix is not required to preserve the defect, but it must include a focused regression test and, when correcting behavior
+present in a tagged release, a clear user-facing changelog note. If users were explicitly promised the old behavior,
+changing it is a compatibility break even when the new behavior appears cleaner.
 
 ## Change Procedure
 

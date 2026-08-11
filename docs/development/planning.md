@@ -405,16 +405,15 @@ deferred feature list.
 
 #### First Tagged Release: 0.1.0
 
-- State the pre-1.0 compatibility rule explicitly. Patch releases within one `0.x` minor line should preserve the
-  documented contract; a later `0.x` minor may deliberately break it when the changelog and migration guidance explain
-  the change.
-- Audit the intended supported surface before it acquires external users. Review documented declarations and named
-  parameters, exception categories and metadata, PHPStan pseudo-types and inference, configuration keys, diagnostic
-  identifiers, JSON representations, native serialization payloads, catalog behavior, and unit-language semantics.
-  Confirm which visible declarations are supported, provisionally public, or internal, and decide whether every
-  currently documented persistent format should enter the first-release contract.
-- Prepare a concise `0.1.0` changelog section describing the shipped capabilities. Remove `:dev-master` from the README
-  and public installation instructions, and update status prose without presenting `0.1.0` as a stable API.
+- **Prepared for 0.1.0:** the compatibility policy states that patch releases within one `0.x` minor line preserve the
+  documented contract, while a later `0.x` minor may deliberately break it with changelog and migration guidance.
+- **Completed 2026-08-11:** the pre-release public-surface audit reviewed documented declarations and named parameters,
+  exception categories and metadata, PHPStan pseudo-types and inference, configuration keys, diagnostic identifiers,
+  JSON representations, native serialization, catalog behavior, and unit-language semantics. It narrowed concrete
+  registries, alternate generated-catalog files, raw records, and direct serialization payload arrays to provisional or
+  internal surfaces. Recheck this audit if later user-facing changes enter the release candidate.
+- **Prepared for 0.1.0:** the changelog summarizes the shipped capabilities, public installation instructions use the
+  `^0.1` release line, and status prose identifies 0.1 as a development contract rather than a stable API.
 - Follow the established [release and succession runbook](release-and-succession.md) from a clean release commit. Run
   the complete Composer and Nix checks, inspect the archive, require it through the isolated runtime and PHPStan
   consumers, verify the exact GitHub Actions commit, create a signed tag, and confirm GitHub, Pages, Packagist, and a

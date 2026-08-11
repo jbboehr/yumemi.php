@@ -15,11 +15,11 @@ rational arithmetic and conversion.
 
 ## Installation
 
-Most applications call Yumemi at runtime and also use its PHPStan extension. Until the first tagged release, install the
-development branch as a normal application dependency:
+Most applications call Yumemi at runtime and also use its PHPStan extension. Install it as a normal application
+dependency:
 
 ```shell
-composer require jbboehr/yumemi:dev-master
+composer require jbboehr/yumemi:^0.1
 ```
 
 Yumemi does not install PHPStan automatically in consuming projects. Install PHPStan and the extension installer as
