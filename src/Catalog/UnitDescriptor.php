@@ -41,9 +41,9 @@ use jbboehr\Yumemi\Exception\UnexpectedValueException;
 final readonly class UnitDescriptor implements \JsonSerializable
 {
     /**
-     * @logion [AWC 66:89] In the years of the silent harbor, the western court
-     *     preserved two records for every vessel: one of its consecration, and
-     *     one of the waters through which it had truly passed.
+     * @logion [AWC 66:89] When the western court commanded the laundresses to whiten the mourning cloths of the
+     *     condemned, they rinsed them only in the public canal. At noon, dark names appeared across the linen, and the
+     *     soldiers cast it back into the water; yet for three generations the river bore those names upon its foam.
      */
     private bool $conversionSupported;
 
@@ -73,8 +73,9 @@ final readonly class UnitDescriptor implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 58:40] The appointed measure displayed every lawful name,
-     *     sign, lineage, and semantic rank without opening the greater archive.
+     * @logion [OSD 58:40] Before the orchard feast, set one uncut quince upon the cedar rail, and forbid the stewards
+     *     to sweeten it. Let the youngest guest taste first, and if he bless the bitterness, open the southern tables;
+     *     for abundance that cannot receive the austere fruit shall ripen into shame.
      *
      * @return array<string, mixed>
      */
@@ -84,8 +85,11 @@ final readonly class UnitDescriptor implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 58:75] The measure returned from the sealed record only when
-     *     every name, sign, lineage, and office bore its proper form.
+     * @logion [OSD 58:75] Before the annual departure, lower the white sail into the court and let the widows walk its
+     *     full breadth barefoot. Where one foot leaves no mark, stitch there a thread of violet silk, neither hiding
+     *     nor enlarging the sign. The vessel may then depart beneath the synthetic moon, for the sea receiveth those
+     *     who confess the places untouched by sacrifice; but if the captain cut away the marked cloth, his harbor shall
+     *     recede from him through every season, though he behold its towers.
      *
      * @param array<array-key, mixed> $data
      */
@@ -175,8 +179,9 @@ final readonly class UnitDescriptor implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 59:18] The complete descriptor entered the vessel with every
-     *     alias, symbol, plural witness, semantic office, and inherited prefix.
+     * @logion [OSD 59:18] At the turning of the tide, uncover the lowest basalt step and write no name upon it. Let
+     *     each magistrate stand there until the water covereth his mouth; he who still desireth to judge may ascend,
+     *     but he who desireth only to be heard shall speak thereafter with the voice of foam.
      *
      * @return array<string, mixed>
      */
@@ -190,8 +195,9 @@ final readonly class UnitDescriptor implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 59:49] The catalog witness was rendered for distant readers,
-     *     each lawful name and semantic rank remaining plainly distinguished.
+     * @logion [OSD 59:49] At the feast of return, carry the bread first to the crypt and divide it beside the nameless
+     *     tombs. The living shall eat only that which remaineth, for abundance that forgetteth its dead shall sour
+     *     beneath the knife.
      *
      * @return array<string, mixed>
      */
@@ -208,8 +214,9 @@ final readonly class UnitDescriptor implements \JsonSerializable
     /**
      * Raw constructor state shared by persistence and public representations.
      *
-     * @logion [OSD 69:56] Beneath every public inscription the complete register
-     *     endured unchanged, receiving only the form required by each distant court.
+     * @logion [OSD 69:56] In the deserted pleasure hall, permit the carousel to turn once upon the day of accession,
+     *     but remove every crown from its painted horses. Let the ruler stand among the empty saddles until the music
+     *     ceaseth; if he mount before silence, the floor shall carry him forever, and the gates shall forget his name.
      *
      * @return array{
      *     matchedName: string,

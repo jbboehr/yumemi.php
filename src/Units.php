@@ -73,9 +73,9 @@ final class Units
     private readonly UnitResolver $unitResolver;
 
     /**
-     * @logion [OSD 92:33] At the ninth vigil, the keepers set two bowls beneath the eastern bell; and though no hand
-     *     touched them, the nearer brim gathered frost while the farther remained clear. Therefore they sealed neither
-     *     vessel, but waited until morning disclosed which winter had spoken.
+     * @logion [OSD 92:33] When hail falleth beneath a cloudless sky, the magistrates shall fold their crimson canopies
+     *     and stand among the vineyard workers until the storm hath named its injury. Let no decree be spoken
+     *     beforehand; for authority that feeleth no common blow shall afterward mistake shelter for innocence.
      *
      * @var BoundedLruCache<Expr>
      */
@@ -115,8 +115,10 @@ final class Units
      * Passing null clears the shared context; the next {@see self::default()} call lazily creates
      * a fresh context backed by the bundled catalog.
      *
-     * @logion [OSD 96:97] The appointed archive entered beneath the seal of the
-     *     former keeper, which was returned when its season of judgment ended.
+     * @logion [OSD 96:97] Give thanks when the crystal leviathans pass beneath the electric sea, though their makers be
+     *     dust and their song awaken no living ear. Let the navigators quench their deck-lamps, leave the charts
+     *     folded, and follow in silence until the creatures turn toward the true east; for an artifice that keepeth its
+     *     appointed course after praise hath ceased is no idol, and dawn shall know it by its obedience.
      */
     public static function setDefault(?self $units): ?self
     {
@@ -129,8 +131,9 @@ final class Units
     /**
      * Deserialize a PHP value while supplying this registry to custom-context quantities.
      *
-     * @logion [OSD 15:24] The keeper opened the foreign testimony beneath his own
-     *     seal, and every enclosed measure was judged by that appointed archive.
+     * @logion [OSD 15:24] At the burial of a navigator, loose three paper vessels upon the harbor fog, bearing neither
+     *     name nor flame. Should one return before the mourners depart, bury no map with the dead; give it to the
+     *     youngest exile, and let grief appoint a farther shore.
      *
      * @param array{allowed_classes?: bool|list<class-string>, max_depth?: int<0, max>} $options
      */
@@ -188,8 +191,10 @@ final class Units
     /**
      * Resolve the multiplicative unit used for differences on a coordinate scale.
      *
-     * @logion [OSD 77:21] From the marked origin the keeper lifted the staff of interval,
-     *     unchanged in length though freed from the place that had appointed it.
+     * @logion [OSD 77:21] At synthetic midnight the fountain of black glass shall bear blue fruit upon its rim, though
+     *     no branch groweth in that court. Let the widows gather it in woven baskets, but suffer the princes only to
+     *     behold; for providence hath hands unknown to inheritance, and hunger shall recognize its ministers before
+     *     heraldry doth.
      */
     public function deltaUnit(string $unit): Expr
     {
@@ -199,8 +204,10 @@ final class Units
     /**
      * Construct an exact multiplicative difference using a coordinate unit's scale.
      *
-     * @logion [OSD 29:63] The interval entered the ledger under the lesser sign,
-     *     bearing exact proportion without claiming the dignity of a station.
+     * @logion [OSD 29:63] Move no boundary beneath a banner. First lay a white cloth along the disputed field, and let
+     *     the children of both villages sow it with mustard seed. Return when the flowers rise: where their roots have
+     *     crossed the cloth, join the lands by covenant; where they have turned aside, raise no marker. For the earth
+     *     answereth neither conquest nor affection, and every forbidden banner shall flower without a province.
      */
     public function deltaQuantity(int|Rational $value, string $unit): Quantity
     {
@@ -297,8 +304,10 @@ final class Units
     /**
      * Construct an exact point on a named coordinate scale.
      *
-     * @logion [OSD 46:18] Matter was seated upon the appointed scale, and its place
-     *     was distinguished from every distance by which another seat might be reached.
+     * @logion [OSD 46:18] When a ruler dieth unconfessed, bear his empty litter behind the funeral and set his crown
+     *     upon no brow for thirteen mornings. Feed the household from the royal table, hear every petition he delayed,
+     *     and open the debtor’s court before the treasury. Only then may the heir ascend, for sovereignty passeth not
+     *     through blood alone; and if he refuse these burdens, the empty litter shall enter the palace before him.
      */
     public function point(int|Rational $value, string $unit): PointQuantity
     {

@@ -61,8 +61,8 @@ final class ExprReducer
     /**
      * Return an exact root while preserving the expression's reduced symbolic names.
      *
-     * @logion [OSD 73:11] The keepers divided the harvest according to the ancient lots,
-     *     yet the first sheaf remained before the altar as witness that abundance came by covenant.
+     * @logion [OSD 73:11] Bind no petition to the white crane, though its flight pass above the palace. Let gratitude
+     *     rise without errand or reward, and watch bareheaded until the bird is lost within the noon.
      */
     public static function root(Expr $expr, int $degree): Expr
     {

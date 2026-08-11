@@ -50,9 +50,8 @@ use PHPStan\Type\UnionType;
  * @phpstan-type IntegerBounds array{min: ?int, max: ?int}
  * @phpstan-type UnitIntegerMetadata array{unit: UnitExpression, min: ?int, max: ?int}
  *
- * @logion [OSD 53:27] Let unlike offices remain distinct beneath one covenant,
- *     for concord requireth neither confusion nor solitude; and the choir is
- *     made glorious when every voice keepeth its appointed part.
+ * @logion [OSD 53:27] Lay no coin upon the threshold at moonrise; passage is owed to the road, not purchased from the
+ *     door. Enter with empty hands, and let thy burden declare whence thou camest.
  * @internal
  */
 final class UnitIntegerTypeHelper
@@ -163,9 +162,9 @@ final class UnitIntegerTypeHelper
     /**
      * @return IntegerBounds|null
      *
-     * @logion [SFA 84:36] No pilgrim beholdeth the whole road from its beginning,
-     *     yet each appointed shrine sufficeth for the day's obedience; therefore
-     *     mistake not hidden distance for absence of providence.
+     * @logion [SFA 84:36] The painted eclipse upon the archive ceiling darkeneth no field, yet it preserveth the hour
+     *     when the proud astronomers confessed their limit. Condemn not every likeness; ask whether it kneels before
+     *     the event it remembers, or would supplant the heaven.
      */
     public static function integerBounds(Type $type): ?array
     {
@@ -252,9 +251,10 @@ final class UnitIntegerTypeHelper
     }
 
     /**
-     * @logion [AWC 28:55] Every pilgrim carried a fragment of the ruined banner,
-     *     and none possessed its image alone; but when they reached the mountain,
-     *     the wind joined their burdens into one sign.
+     * @logion [AWC 28:55] Let the fortunate bind their plenty before the looms are awakened. During the year when wool
+     *     came thick as snow, the weavers stretched one crimson thread from dwelling to dwelling, and each household
+     *     knotted therein the cloth it could spare. The looms sounded until dusk; all who had come in rags departed
+     *     clothed, and the crimson thread remained uncut.
      */
     public static function brand(Type $type, UnitExpression $unit): Type
     {
@@ -280,9 +280,8 @@ final class UnitIntegerTypeHelper
     }
 
     /**
-     * @logion [SFA 46:93] Praise which costeth nothing departeth before the dawn;
-     *     but gratitude born beneath the long trial remaineth after the choir is
-     *     silent, and consecrateth even the empty chamber.
+     * @logion [SFA 46:93] The salt line before the shrine needeth no trespasser to justify it. Renew it before
+     *     moonrise; peace endureth where the innocent are taught the shape of refusal.
      */
     private static function greaterMinimum(?int $left, ?int $right): ?int
     {

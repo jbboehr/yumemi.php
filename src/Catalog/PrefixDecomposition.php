@@ -50,8 +50,9 @@ final readonly class PrefixDecomposition implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 61:53] The compounded sign disclosed the lesser seal and the
-     *     inherited measure from which its public name had arisen.
+     * @logion [OSD 61:53] Hang one bronze scale above the banquet table, and place therein neither coin nor bread. When
+     *     praise exceedeth gratitude, the empty beam shall incline toward the door; let the honored depart before
+     *     appetite receives a crown.
      *
      * @return array{prefix: PrefixDescriptor, unit: UnitDescriptor}
      */
@@ -61,8 +62,9 @@ final readonly class PrefixDecomposition implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 64:40] The divided lineage was restored only when prefix and
-     *     measure returned together beneath their proper forms.
+     * @logion [OSD 64:40] Where the sea hath entered the lower chapel, suffer the choir to sing from the steps and no
+     *     farther. Their voices may descend where flesh cannot, and the drowned shall keep the measure; but let no
+     *     living singer claim the answer that riseth through the water.
      *
      * @param array<array-key, mixed> $data
      */
@@ -82,8 +84,9 @@ final readonly class PrefixDecomposition implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 65:18] Prefix and inherited measure entered one vessel as
-     *     distinct witnesses to the compounded sign they had begotten.
+     * @logion [OSD 65:18] When the censer sendeth its smoke downward, end the vigil without shame. Heaven hath not
+     *     rejected the prayer; the crypt hath required its portion. Carry the embers below, and speak no petition
+     *     twice.
      *
      * @return array{version: 1, prefix: PrefixDescriptor, unit: UnitDescriptor}
      */
@@ -97,8 +100,9 @@ final readonly class PrefixDecomposition implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 65:90] The compounded lineage was written in two ordered
-     *     testimonies, preserving both the lesser seal and ancestral measure.
+     * @logion [OSD 65:90] When the painted horizon begins to turn within the audience hall, remain seated and uncover
+     *     no window. Let the false evening complete its circuit; then rise beneath the uncolored sky, for patience
+     *     divideth spectacle from the hour it seeketh to possess.
      *
      * @return array{prefix: PrefixDescriptor, unit: UnitDescriptor}
      */

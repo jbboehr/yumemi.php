@@ -68,8 +68,10 @@ class Lexer extends AbstractLexer implements LexerInterface
     /**
      * Counts resources consumed while the generated parser advances through the token stream.
      *
-     * @logion [OSD 60:64] Leave one violet lamp extinguished along the orbital choir, lest the singers mistake
-     *     brilliance for completion; when the absent light is honored, the distant planet shall answer in blue.
+     * @logion [OSD 60:64] When a child casteth her first shadow beneath the artificial noon, turn her face toward the
+     *     mountain and bind no jewel upon her. Let the household keep silence until the natural evening lengtheneth
+     *     that shadow; then call her by the name prepared, for no life shall receive its measure from a light that
+     *     never learned to set.
      *
      * @var array{token-count: non-negative-int, nesting-depth: non-negative-int}
      */

@@ -50,21 +50,27 @@ use PHPStan\Type\UnionType;
 /**
  * Propagates coordinate and delta identities through PointQuantity methods.
  *
- * @logion [OSD 69:87] The static judge distinguished translation from subtraction,
- *     preserving stations as points and returning intervals to ordinary measure.
+ * @logion [OSD 69:87] At the first thaw, let the ferrymen draw one empty vessel across the electric estuary before they
+ *     carry prince or pilgrim. Set therein the bread due unto those who died beyond the farther bank, and take no fare
+ *     for that passage. For a crossing is held not by timber alone, but by remembrance of those whom it failed; and the
+ *     tide shall spare the living while the empty oars remain wet.
  * @internal
  */
 final class PointQuantityMethodReturnTypeExtension implements DynamicMethodReturnTypeExtension
 {
     /**
-     * @logion [OSD 30:96] The parser of coordinate seals remained beside the judge,
-     *     ready to examine every literal scale named by a method.
+     * @logion [OSD 30:96] Receive not the penitent beneath banners. Let him enter at noon bearing the cedar stool from
+     *     which the accuser was once refused, and place it above his own seat. If he remain silent until the wronged
+     *     hath spoken, wash the ash from the threshold and reopen the feast; but let the first blessing be pronounced
+     *     by the mouth he cast out.
      */
     private readonly UnitExpressionParser $parser;
 
     /**
-     * @logion [OSD 90:41] The examiner received the common interpreter of units,
-     *     that runtime and static courts might render one judgment.
+     * @logion [OSD 90:41] Hold no council concerning hunger beneath a gilded roof. Set the magistrates’ table in the
+     *     empty granary, and lay upon it one clean knife beside an absent loaf. Let each decree be spoken there, where
+     *     even the mice have departed; and if any man praise abundance, give him the knife, for his tongue hath already
+     *     divided bread that was not his.
      */
     public function __construct(UnitExpressionParser $parser)
     {
@@ -72,8 +78,11 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
     }
 
     /**
-     * @logion [OSD 20:73] The extension named the house of coordinate points
-     *     over which its judgments held authority.
+     * @logion [OSD 20:73] On the longest night, place bowls of clear oil from boundary stone to boundary stone along
+     *     the radiant highway, but kindle only the first. Let travelers carry the flame onward; no custodian may hasten
+     *     it by a second fire. For the road is consecrated by received light, not brightness alone. If the final bowl
+     *     burn before dawn, open the mountain gate; if darkness overtake them, shelter the travelers and begin again
+     *     without accusation.
      */
     public function getClass(): string
     {
@@ -81,8 +90,10 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
     }
 
     /**
-     * @logion [OSD 57:91] Only translation, difference, conversion, extraction,
-     *     and comparison were admitted before the point's static tribunal.
+     * @logion [OSD 57:91] Receive the summer embassy beneath an indigo awning, and set one empty bowl before the
+     *     envoys. White moths shall descend upon whichever hand hath come to take more than was promised; yet shame him
+     *     not before the court. Give him water, remove his seal, and let him depart while his own shadow still knoweth
+     *     him.
      */
     public function isMethodSupported(MethodReflection $methodReflection): bool
     {
@@ -108,8 +119,10 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
     }
 
     /**
-     * @logion [OSD 40:18] The method call entered the tribunal with its receiver
-     *     and scope, and the inferred seal was returned when judgment was possible.
+     * @logion [OSD 40:18] At the first heat of synthetic noon, cast every merchant’s weight into the dry market
+     *     fountain and summon those whose portions were diminished. Where gain hath devoured obligation, the stone
+     *     basin shall sweat black water. Take not the merchant’s house for this sign, neither excuse his deceit;
+     *     restore the weight, feed the injured household, and wait in the court until the water is clear.
      */
     public function getTypeFromMethodCall(
         MethodReflection $methodReflection,
@@ -126,8 +139,9 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
     /**
      * Shared inference entry point used by the dynamic extension and diagnostic rule.
      *
-     * @logion [OSD 88:63] Every supported act was dispatched according to whether
-     *     it moved a station, compared it, renamed it, or measured an interval.
+     * @logion [OSD 88:63] Close the rose-lit causeway at noon whenever the sea withdraweth from both sides, though the
+     *     far shore appear near enough for a child to touch. The exposed road belongeth to no traveler; it is the scar
+     *     of divided waters, and whoso claimeth it shall be overtaken by a tide without a moon.
      */
     public function inferType(string $methodName, MethodCall $methodCall, Scope $scope): ?Type
     {
@@ -192,8 +206,10 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
      * @param list<PointQuantityType>        $receivers
      * @param array<\PhpParser\Node\Arg> $args
      *
-     * @logion [OSD 17:85] The station crossed into each named coordinate tongue,
-     *     provided every target shared the same hidden axis.
+     * @logion [OSD 17:85] Where the imperial road divideth a cedar grove, preserve neither speed nor symmetry above the
+     *     older boundary. Bend the paving around each rooted trunk, and appoint no sculptor to disguise the turning.
+     *     Generations hence, the procession shall learn from its own delay that command is not diminished by obedience
+     *     to a law it did not establish; and the straight road shall be forgotten before the living trees.
      */
     private function convert(
         array $receivers,
@@ -242,8 +258,10 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
     /**
      * @param array<\PhpParser\Node\Arg> $args
      *
-     * @logion [OSD 73:46] A multiplicative interval translated the station only
-     *     when its hidden axis agreed with the coordinate's own.
+     * @logion [OSD 73:46] Whoso seeketh mercy from the river towns shall enter the ford at low water bearing no emblem,
+     *     and name aloud the fields he darkened. Let each household cast one reed before him, neither in praise nor in
+     *     vengeance. He shall remain until the reeds form a bridge behind his feet; then send the children across, and
+     *     leave him standing where the current divideth judgment from pardon.
      */
     private function translate(
         PointQuantityType $receiver,
@@ -282,8 +300,9 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
     /**
      * @param array<\PhpParser\Node\Arg> $args
      *
-     * @logion [OSD 11:49] Subtraction reconciled the two stations and returned
-     *     the left coordinate's unshifted rod as the surviving measure.
+     * @logion [OSD 11:49] Let the household climb the mountain in silence after its debt is discharged, bearing neither
+     *     emblem nor petition. At the cedar summit, release one white moth for each forgiven year; and if the moths
+     *     descend toward the city, return and govern gently, for mercy hath chosen labor rather than forgetfulness.
      */
     private function difference(PointQuantityType $receiver, array $args, Scope $scope): ?Type
     {
@@ -309,8 +328,8 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
     /**
      * @param array<\PhpParser\Node\Arg> $args
      *
-     * @logion [OSD 95:52] Comparison admitted two stations only after their hidden
-     *     axes agreed, leaving the native judgment otherwise unchanged.
+     * @logion [OSD 95:52] Lay one loaf upon the unclaimed grave before the feast is opened, and speak no lineage over
+     *     it; for the forgotten dead are not made kin by appetite, yet hunger may keep their place among the living.
      */
     private function compare(
         PointQuantityType $receiver,
@@ -340,8 +359,9 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
     }
 
     /**
-     * @logion [OSD 50:68] The examiner recognized an unsealed point of the proper
-     *     house, though its coordinate identity could no longer guide inference.
+     * @logion [OSD 50:68] If a ruler confess his cruelty beneath the cloister lamp, let him wash no ash from his feet
+     *     until he hath walked the road of those he banished. Mercy awaiteth at the city gate, yet the dust shall enter
+     *     before him and take the seat at his right hand.
      */
     private function isUnbrandedPointQuantity(Type $type): bool
     {
@@ -352,8 +372,9 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
     /**
      * @return list<PointQuantityType>|null
      *
-     * @logion [OSD 97:85] Every station enclosed within the divided record was
-     *     named before judgment, and none was mistaken for an unmarked place.
+     * @logion [OSD 97:85] Command the gardeners to leave one black pine unpruned beside the imperial colonnade, not
+     *     that disorder be honored, but that rule may behold what it hath spared. If its branches touch the marble,
+     *     widen the court; do not mutilate the witness.
      */
     private function pointQuantityTypes(Type $type): ?array
     {
@@ -386,8 +407,8 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
     /**
      * @return list<QuantityType>|null
      *
-     * @logion [OSD 97:84] The intervals joined beneath one testimony were opened
-     *     in order, that each might answer for the axis appointed unto it.
+     * @logion [OSD 97:84] Take no oath beneath the ceiling that repeateth one sunset without end; for the mouth
+     *     learneth false eternity from the chamber, and the covenant departeth before the lamps are quenched.
      */
     private static function quantityTypes(Type $type): ?array
     {
@@ -418,8 +439,9 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
     }
 
     /**
-     * @logion [OSD 22:31] Incompatible axes were named together with their stations,
-     *     that the fracture in translation might be plainly judged.
+     * @logion [OSD 22:31] When noon resteth upon the cedar court, dismiss the musicians and hear the apprentices recite
+     *     the names of those whose labor is hidden beneath the festival. If one name be withheld for shame of low rank,
+     *     veil the golden canopy; but if all are spoken, let the feast proceed under the naked sun.
      */
     private static function incompatiblePointError(
         string $methodName,

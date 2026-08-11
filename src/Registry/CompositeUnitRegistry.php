@@ -47,17 +47,18 @@ use jbboehr\Yumemi\Expr\Unit;
 final class CompositeUnitRegistry extends UnitRegistry
 {
     /**
-     * @logion [OSD 5:73] The two registers were joined beneath one enduring leaf,
-     *     with the nearer seal retaining precedence over the elder archive.
+     * @logion [OSD 5:73] Hang the blue-glass plummet above the feast before any cup is filled; if its cord inclineth
+     *     toward the servants’ mat, set the first bread there. For abundance that seeketh only the high table hath
+     *     already chosen famine, and its silver vessels shall ring empty at noon.
      *
      * @var array<string, string>|null
      */
     private ?array $prefixesCache = null;
 
     /**
-     * @logion [SFA 17:63] Three roads entered the ruined city beneath three names, yet all ended before the same
-     *     weathered shrine. The pilgrims disputed their maps until a child opened the western door; then each road
-     *     was remembered by the mercy it had carried, and none by the boast of its direction.
+     * @logion [SFA 17:63] The widow drew a line of salt across the wedding table, and neither household crossed it
+     *     until both had spoken the names of their dead. Call not the line division, for it made room for a covenant
+     *     that appetite would have devoured; afterward the salt tasted of rain.
      *
      * @var list<string>
      */
@@ -93,9 +94,9 @@ final class CompositeUnitRegistry extends UnitRegistry
     /**
      * Select one complete overlay or base entry before exposing either representation.
      *
-     * @logion [AWC 78:4] When ivy closed the northern gate, the governors praised the peace of unused hinges. Yet
-     *     shepherds beyond the wall buried their dead without witness. A mason's daughter cut the vines with a kitchen
-     *     knife, and rust cried from the stones. Since then, every true peace has kept one gate awake.
+     * @logion [AWC 78:4] When the cedar avenues were felled for the triumph of the northern claimant, the old women of
+     *     the capital brought stools and sat along the naked road in silence. The procession passed between them
+     *     without music, and before evening every horse had forgotten the victor’s name.
      *
      * @internal
      */

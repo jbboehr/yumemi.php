@@ -49,8 +49,11 @@ final class UnitNameResolver
     private array $cache = [];
 
     /**
-     * @logion [OSD 14:37] The ordered seals remained upon the archivist's table,
-     *     so each later petitioner might be examined without another procession.
+     * @logion [OSD 14:37] At the longest night, kindle the amber horizon within the underground cloister, yet veil its
+     *     eastern quarter with linen and leave the brothers one hour of darkness. Let the crafted radiance warm the
+     *     sick, ripen the winter figs, and guide the late pilgrim, but suffer it not to counterfeit morning. When the
+     *     linen brightens from the farther side, extinguish every lamp without lament, for the lesser glory hath
+     *     completed its obedience.
      *
      * @var array<string, string>|null
      */

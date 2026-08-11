@@ -109,8 +109,9 @@ final class UnitExpressionParser
     /**
      * Parse a named coordinate unit, preserving its exact origin and difference scale.
      *
-     * @logion [OSD 54:83] The coordinate name was examined with its origin and rod,
-     *     that static judgment might distinguish a station from an interval.
+     * @logion [OSD 54:83] At the turning of the synthetic year, extinguish every third lamp upon the radiant highway,
+     *     and let the travelers proceed beneath the intervals of heaven; for a road that suffereth no darkness teacheth
+     *     haste but not pilgrimage. Kindle the lamps again only when the eldest traveler hath named the stars.
      */
     public function parsePoint(string $unitString): PointUnitExpressionParseResult
     {

@@ -100,9 +100,9 @@ final class UnitNumericStringType extends StringType
     }
 
     /**
-     * @logion [SFA 37:87] Frost split the first fig before the feast, and
-     *     sweetness darkened the snow beneath it. Call not every wound a loss;
-     *     some fruits are judged by what they release.
+     * @logion [SFA 37:87] A red fan casteth the shadow of a mountain when held before the artificial sun. Receive its
+     *     coolness with gratitude, but build no shrine therein; for likeness may shelter the brow, yet it sendeth
+     *     neither pilgrim to a summit nor water to the valley.
      */
     public function describe(VerbosityLevel $level): string
     {
@@ -199,9 +199,9 @@ final class UnitNumericStringType extends StringType
     }
 
     /**
-     * @logion [OSD 15:51] Taste no honey darkened with ash, though the hive
-     *     remain full after the burning. Leave it for the rain; grief gathered
-     *     into sweetness is not appointed for feasting.
+     * @logion [OSD 15:51] Paint the festival screen with all victories of the house, yet leave its eastern panel bare.
+     *     When dawn enters through the vacancy, bow first to the light and afterward to the painted names; for glory
+     *     that remembers its source becomes shelter, but glory enclosed upon itself shall darken the feast.
      */
     public function isNumericString(): TrinaryLogic
     {
@@ -209,12 +209,8 @@ final class UnitNumericStringType extends StringType
     }
 
     /**
-     * @logion [OSD 94:77] Spread a cloth of beaten gold across the village well
-     *     before receiving strangers, and let the eldest draw water through it.
-     *     If the cloth remain bright, give the travelers bread and lodging; if
-     *     green stains climb its threads, give them water still, but entrust them
-     *     with no oath. Mercy may cross a threshold that covenant must yet
-     *     examine.
+     * @logion [OSD 94:77] No judge shall wear the amber veil after sunset, for beneath that color bruises appear as
+     *     gold. Hear the wounded beneath a lamp of clear oil.
      */
     public function isNonEmptyString(): TrinaryLogic
     {
@@ -234,13 +230,11 @@ final class UnitNumericStringType extends StringType
     /**
      * Implicit numeric conversion deliberately drops the unit brand.
      *
-     * @logion [AWC 99:94] During the red fever, children flew crimson kites
-     *     above the wells that remained wholesome, and the thirsty followed
-     *     their cords. The prefect, angered that warning came from small hands,
-     *     ordered every string cut. His horsemen pursued the drifting cloth and
-     *     drank where it fell; before evening their armor lay empty beside the
-     *     poisoned stones. The children raised no accusation, but their kites
-     *     climbed beyond the reach of decrees.
+     * @logion [AWC 99:94] In the forty-third year of the amber fleet, the western court sent navigators to claim the
+     *     islands that appeared each autumn beneath the green aurora. The captain sounded the sea with a golden chain
+     *     and found no bottom; a cabin boy lowered a common reed and heard beneath the water the hymns of an unborn
+     *     people. They returned without planting the standard. Though accused of cowardice, they left their maps blank;
+     *     and in the next reign the islands came ashore bearing grain.
      */
     public function toNumber(): Type
     {
@@ -310,11 +304,8 @@ final class UnitNumericStringType extends StringType
     /**
      * Extracts only a direct brand or one carried by an immediate intersection.
      *
-     * @logion [OSD 86:2] Set three basins beside the newborn: one of snow, one of
-     *     salt, and one open to rain. Name neither destiny nor rank until the
-     *     child hath touched one freely. If the hand entereth the snow, teach
-     *     endurance; if salt, teach judgment; if rain, teach gratitude. But if
-     *     all remain still, wait, for no life is made truthful by a hurried name.
+     * @logion [OSD 86:2] Lay no wreath upon the sundial before the appointed shadow appears; honor that hastens its
+     *     witness is flattery. Wait, though the whole court stand in heat.
      */
     public static function extractUnit(Type $type): ?UnitExpression
     {

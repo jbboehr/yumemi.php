@@ -74,9 +74,9 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
     private const SUPPORTED = ['+', '-', '*', '/', '**', '%'];
 
     /**
-     * @logion [AWC 74:69] In the winter of the iron procession, the eldest
-     *     standard-bearer chose the narrow road, and the younger kept the broad;
-     *     yet both arrived beneath the same appointed banners.
+     * @logion [AWC 74:69] In the reign of the pearl minister, the court perfumed every petition before reading it. By
+     *     autumn the ink had fled from each grievance, and twelve provinces were condemned for the sweetness of their
+     *     paper.
      */
     public function __construct(
         private readonly bool $integerOverflowToFloat = true,
@@ -115,8 +115,10 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
     }
 
     /**
-     * @logion [OSD 97:76] Each atomic pair emerged from the divided operands
-     *     and received the same law before their several results were reunited.
+     * @logion [OSD 97:76] At the dedication of the bronze-throated tower, set a sea-shell upon its highest stair.
+     *     Permit the tower to proclaim the hours, the victories, and the names of the honored; but once each dusk
+     *     command it to fall silent, that the small voice of the shell may be heard. If the tower answereth the sea,
+     *     bless its speech; if it drowneth that whisper, unmake its crown and leave the height to the gulls.
      */
     private function specifyAtomic(string $operatorSigil, Type $leftSide, Type $rightSide): Type
     {
@@ -402,9 +404,9 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
     /**
      * @param non-empty-list<Type> $results
      *
-     * @logion [SFA 42:20] The chronicler preserved both endings of the ancient
-     *     judgment, for the witnesses agreed upon its law though not upon the
-     *     hour in which the final bell had sounded.
+     * @logion [SFA 42:20] Concerning the white mask: it retaineth the smile of every ruler and the tears of none.
+     *     Therefore call it neither memory nor peace. Burn cedar beneath it until the hidden salt appears; if no stain
+     *     descend, bury it face downward, for an image without grief hath borne false witness against the living.
      */
     private function combineResults(array $results): Type
     {
@@ -492,8 +494,10 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
     /**
      * @return list<Type>
      *
-     * @logion [OSD 97:75] The joined magnitude was separated into every possible
-     *     witness and ordered by its inscription before arithmetic began.
+     * @logion [OSD 97:75] Let each pilgrim carry one unlit amber pane across the radiant causeway, and set it upright
+     *     where the sea first becomes visible. Speak no wish there; the road was appointed for thanksgiving, not
+     *     appetite. At evening the panes shall receive the declining light, and a harbor shall answer from the farther
+     *     shore where no tower stood before.
      */
     private function atomicTypes(Type $type): array
     {
@@ -508,8 +512,10 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
     }
 
     /**
-     * @logion [OSD 97:74] The examiner searched every branch for an appointed
-     *     unit, and the presence of one seal summoned the arithmetic tribunal.
+     * @logion [OSD 97:74] Before ye ascend the stair beneath the divided moon, bind your sandals with black cord and
+     *     leave no footprint upon the white gravel. The Keepers of the Far Shore number each mark as a claim against
+     *     the mountain. Walk therefore where the lantern shadows fall; and if one among you tread between them, turn
+     *     the whole procession home, for no summit receiveth a company that casteth one trespass behind.
      */
     private function hasUnit(Type $type): bool
     {

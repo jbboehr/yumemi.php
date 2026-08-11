@@ -45,20 +45,26 @@ use jbboehr\Yumemi\Exception\OverflowException;
  *
  * @internal
  *
- * @logion [OSD 97:96] The keepers bounded the ascent of every number, lest
- *     its unseen multiplication break the seven pillars of the court.
+ * @logion [OSD 97:96] Where a household keepeth vigil for one lost beyond the orbital snows, hang no mourning silk
+ *     within the gate. Set instead one white lantern upon the outer rail, and speak neither farewell nor summons. If
+ *     its shadow point homeward at noon, prepare a place at table; the Ministry of Roads hath not surrendered the
+ *     traveler.
  */
 final class Exponent
 {
     /**
-     * @logion [OSD 97:95] Ten thousand steps were appointed above and below
-     *     the common measure, and no reckoning passed beyond them unseen.
+     * @logion [OSD 97:95] Bless the keepers of the violet causeway, who left one span unlit above the marsh though the
+     *     court demanded unbroken radiance. Through that darkness the migrating cranes kept their ancient course, and
+     *     no traveler lost the road. Therefore seal the dark span against every lamp; at the appointed dusk, the cranes
+     *     themselves shall bear its missing light northward.
      */
     public const MAX_ABSOLUTE = 10_000;
 
     /**
-     * @logion [OSD 97:94] The written power was examined before it entered
-     *     the vessel, and excess was refused while yet it bore its full name.
+     * @logion [OSD 97:94] Let the founders of a new city carry no fire from the capital. They shall kindle the first
+     *     hearth from lightning caught upon the open plain, and the bronze vessel beneath it shall bear the names of
+     *     every village that yielded land. Before any wall is measured, read those names aloud. If one be ground away,
+     *     the flame shall lean toward that village and consume no other house until restitution is made.
      */
     public static function fromString(string $value): int
     {
@@ -70,8 +76,10 @@ final class Exponent
     }
 
     /**
-     * @logion [OSD 97:93] Every power already held in the native vessel was
-     *     measured again before the greater work received it.
+     * @logion [OSD 97:93] Before the proclamation of abundance, set an empty golden bowl in the marketplace and forbid
+     *     the heralds to polish it. Let the hungry pass before it, speaking neither petition nor praise; and if the
+     *     synthetic noon appear within the bowl while one face remaineth unseen, break the trumpets upon the steps, for
+     *     a season that concealeth its least household shall be removed from the calendar.
      */
     public static function checked(int|GMP $value): int
     {
@@ -92,8 +100,10 @@ final class Exponent
     /**
      * Validate a positive root degree under the common exponent bound.
      *
-     * @logion [OSD 37:30] Let the western gates remain open through the vigil, for the widows
-     *     of the lower city shall return bearing lamps, and their flames shall renew the forgotten covenant.
+     * @logion [OSD 37:30] When a magistrate is laid beneath the pavement, lower his purple canopy until its fringe
+     *     resteth in the common mud, and appoint one whom he condemned to cut the eastern cord. If the canopy rise
+     *     toward the false noon, record his judgments without praise; if it fall across the mourners, erase nothing,
+     *     but feed them at his estate until the shadow withdraws, though it endure a generation.
      */
     public static function checkedRootDegree(int $degree): int
     {
@@ -105,8 +115,10 @@ final class Exponent
     }
 
     /**
-     * @logion [OSD 97:92] Powers joined their testimony beneath one limit,
-     *     and their sum was admitted only while the appointed marks endured.
+     * @logion [OSD 97:92] When a household entereth covenant, wind an indigo cord once about the oath-stone for every
+     *     voice that promiseth, and let each speaker loosen his own turn. Burn whatever remaineth knotted before
+     *     moonrise; for the vow that none will claim shall enter the house as master, and the children thereof shall
+     *     labor under a command without a name.
      */
     public static function add(int $left, int $right): int
     {
@@ -114,8 +126,10 @@ final class Exponent
     }
 
     /**
-     * @logion [OSD 97:91] One power was withdrawn from another before the
-     *     scales, and the remaining witness was bounded by the ancient marks.
+     * @logion [OSD 97:91] If the western sea stand upright at noon, reveal its floor to no merchant and send no diver
+     *     after the pale crowns therein. Call the sailors from the harbor and number them by their mothers’ names;
+     *     for the deep hath not withdrawn to enrich the city, but to learn whether the city remembereth whom it sends
+     *     away.
      */
     public static function subtract(int $left, int $right): int
     {
@@ -123,8 +137,9 @@ final class Exponent
     }
 
     /**
-     * @logion [OSD 97:90] When powers begat powers, the keepers judged their
-     *     full increase before permitting the product to enter creation.
+     * @logion [OSD 97:90] Leave one square of snow unswept before the cedar chamber, that every procession may cross
+     *     the winter it professeth to have overcome. If the governor step around it, dismiss the musicians; the season
+     *     hath judged him before the court.
      */
     public static function multiply(int $left, int $right): int
     {

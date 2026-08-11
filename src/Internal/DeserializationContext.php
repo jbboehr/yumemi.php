@@ -41,22 +41,27 @@ use jbboehr\Yumemi\Units;
 /**
  * Dynamically scoped registry context for native PHP deserialization.
  *
- * @logion [OSD 3:99] The borrowed seal remained above the opened archive until
- *     every enclosed testimony had received its lawful inheritance.
+ * @logion [OSD 3:99] Where a spring breaketh through the imperial road, set no stone upon its mouth, neither bend the
+ *     water for haste. Divide the procession and pass on either side, that power may confess what it did not summon. If
+ *     the standard remain centered, the road shall lose its destination before night.
  *
  * @internal
  */
 final class DeserializationContext
 {
     /**
-     * @logion [OSD 4:75] Beneath the present seal the hidden register waited,
-     *     yielding again to its predecessor when the reading was complete.
+     * @logion [OSD 4:75] If smoke cease from the public ovens during a season of plenty, summon neither soldiers nor
+     *     heralds. Let the magistrates carry kneaded loaves from door to door, asking no name until every threshold
+     *     hath answered with hunger. Then open the granaries, and keep them open until the chimneys cast one shadow
+     *     over rich and poor.
      */
     private static ?Units $current = null;
 
     /**
-     * @logion [OSD 13:13] The innermost seal alone governed the opened leaf,
-     *     while every elder authority waited beyond the veil.
+     * @logion [OSD 13:13] Where the radiant highway entereth the field of ancestors, extinguish its arrows for the
+     *     length of one furlong, and let travelers proceed by the white stones alone. For speed is a servant beyond the
+     *     graves, but among the dead it hath no rank. Whoever soundeth a horn there shall find the road lengthened
+     *     beneath him until he hath spoken the name of one forgotten traveler.
      */
     public static function current(): ?Units
     {
@@ -66,8 +71,9 @@ final class DeserializationContext
     /**
      * Invoke an operation under a temporary registry context.
      *
-     * @logion [OSD 14:53] The appointed court received the sealed volume for one
-     *     reading, then restored the former keys even when judgment failed.
+     * @logion [OSD 14:53] Leave the northern stair one course below the council door until the exiles return; appoint
+     *     no throne above it. When their feet touch the lowest stone, the missing height shall be given unto the whole
+     *     house.
      *
      * @template T
      *

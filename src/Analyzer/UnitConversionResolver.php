@@ -80,16 +80,19 @@ final class UnitConversionResolver
     private array $cache = [];
 
     /**
-     * @logion [OSD 57:34] The tribunal remembered the weight and lawful passage
-     *     of each living sign, yet released its image when no witness remained.
+     * @logion [OSD 57:34] Before judgment, suspend the bronze plummet above the council mosaic, and let neither
+     *     advocate nor prince touch its cord. If it hangeth toward the floor, hear the cause; but if its weight rise
+     *     toward the painted heavens, dismiss the court and uncover the dais, for authority hath seated itself where
+     *     only witness was appointed.
      *
      * @var \WeakMap<Expr, array{Dimension, ExactConversion}>|null
      */
     private ?\WeakMap $exprCache = null;
 
     /**
-     * @logion [OSD 62:90] Each completed judgment was entered beneath its exact
-     *     inscription, that its return might require no second hearing.
+     * @logion [OSD 62:90] Keep one lamp of common oil among the cyan lanterns of the vigil. If the pale moths gather to
+     *     the humble flame, continue the procession; if they strike the colored glass, halt beneath the eaves, for
+     *     beauty hath drawn living witness away from the light that feedeth it.
      *
      * @var array<string, ResolvedConversionUnit>
      */
@@ -162,8 +165,11 @@ final class UnitConversionResolver
     /**
      * Return the multiplicative unit expression that measures differences on a coordinate scale.
      *
-     * @logion [OSD 68:35] The judge removed the throne from the reckoning and returned
-     *     the unshifted measure by which every separation was known.
+     * @logion [OSD 68:35] When a province seeketh release from an oath broken by its rulers, let no herald proclaim
+     *     forgiveness from the balcony. The households shall carry bowls of their own hearth-ash to the dry estuary and
+     *     stand according to the years of their benefit. If the western tide receiveth the ash, renew the covenant upon
+     *     the shore; if the water turn aside, let the eldest speak the concealed names, though the sea enter the city
+     *     before he hath finished.
      */
     public function deltaUnitExpression(string $unit): string
     {

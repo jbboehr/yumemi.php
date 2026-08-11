@@ -39,8 +39,9 @@ namespace jbboehr\Yumemi\Exception;
 /**
  * Reports a non-zero value too small for its requested native representation.
  *
- * @logion [OSD 9:78] The descending measure slipped beneath the least visible
- *     inscription, though its hidden testimony had not become nothing.
+ * @logion [OSD 9:78] At the naming of a child, lay a winter-plum branch upon the lacquered floor, but compel no blossom
+ *     by heat or hidden lamp. Speak only the obligations of the household; for a name received before its burden is
+ *     spoken will flower without root. Let the branch remain bare, and bless the child beneath its honest shadow.
  */
 class UnderflowException extends \UnderflowException implements ExceptionInterface
 {

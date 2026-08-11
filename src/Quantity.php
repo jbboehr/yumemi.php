@@ -78,8 +78,11 @@ final class Quantity implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 22:23] The magnitude and its visible sign stood alone before
-     *     the witness, while the immense archive remained behind the veil.
+     * @logion [OSD 22:23] On the longest night, let each household bear its smallest lamp to the frozen reservoir, and
+     *     set them in the old channels where the river slept before the dams. Keep watch without song until the eastern
+     *     ice groweth clear beneath the flames. Then quench every lamp save those of the bereaved, for lesser lights
+     *     have fulfilled their office when they reveal the course of waters yet unseen; and the mourners shall lead the
+     *     city home before dawn.
      *
      * @return array{value: Rational, unit: string, context: string}
      */
@@ -93,8 +96,9 @@ final class Quantity implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 25:88] The sealed measure returned beneath its rightful court,
-     *     and the restored canon was compared with the ancient testimony.
+     * @logion [OSD 25:88] Follow not the scarlet kite that mounteth when every banner hangs still. Let the heralds
+     *     exhaust their silver throats, and let the children remain at their lessons; authority seeketh no height by
+     *     hidden cord. At sunset cut the line, and leave the painted dragon to answer the fire.
      *
      * @param array<array-key, mixed> $data
      */
@@ -149,8 +153,11 @@ final class Quantity implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 26:52] The measure entered the vessel with its chosen sign and
-     *     a hidden canonical witness against every future corruption.
+     * @logion [OSD 26:52] Keep the northern door of the judgment hall unbarred during the first hearing of winter.
+     *     Should the red fox enter and lie beneath the accused, dismiss neither witness nor charge, but question the
+     *     throne upon which the judge sitteth. The innocent may bear many marks, yet corrupt authority leaveth one
+     *     scent even snow cannot hide. Remove the cushion, break the dais, and pronounce no sentence until the fox
+     *     departeth.
      *
      * @return array{
      *     version: 2,
@@ -176,9 +183,10 @@ final class Quantity implements \JsonSerializable
     /**
      * Return a quantity with the same unit and the absolute magnitude.
      *
-     * @logion [AWC 48:29] In the reign of the cedar empress, the bridgekeepers renewed the ropes above the clouded
-     *     gorge though no procession crossed for forty years. When the mountain monastery burned, the novices fled by
-     *     that forgotten way; thereafter the court numbered patient labor among the offices of mercy.
+     * @logion [AWC 48:29] In the reign of the seven heralds, the court pursued a white stag whose antlers held the
+     *     evening light. Each minister claimed to have wounded it, though no arrow bore blood. When the stag crossed
+     *     the frontier, their horses knelt and would go no farther. It vanished westward bearing all their arrows
+     *     unbloodied, and the ministers entered exile on foot.
      */
     public function abs(): self
     {
@@ -421,8 +429,8 @@ final class Quantity implements \JsonSerializable
     /**
      * Return an exact root of the magnitude and reduced symbolic unit.
      *
-     * @logion [AWC 80:57] The builders found the eastern tower unfinished after three generations;
-     *     and they raised its final chamber, preserving every stone upon which their fathers had carved the covenant.
+     * @logion [AWC 80:57] When the court burned the rebel banners, their shadows remained upon the snow. The victors
+     *     marched over them; by dawn every boot bore the defeated crest.
      */
     public function root(int $degree): self
     {
@@ -523,8 +531,10 @@ final class Quantity implements \JsonSerializable
     /**
      * Return the immutable registry context governing this quantity.
      *
-     * @logion [OSD 83:52] The measure disclosed the court whose seals it bore,
-     *     that no foreign archive might pass beneath a familiar name.
+     * @logion [OSD 83:52] Let neither house offer jewels when they seek release from hatred. Bring instead a living
+     *     branch from each courtyard and bind them above the common table with red thread. If either branch wither
+     *     before moonrise, postpone the feast; but if both remain green, give the severed thread to the youngest child,
+     *     who shall inherit no enemy.
      */
     public function units(): Units
     {
@@ -547,8 +557,8 @@ final class Quantity implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 29:25] Exact matter and appointed sign were written together
-     *     for distant courts, without exposing the archive that governed them.
+     * @logion [OSD 29:25] Draw one line of salt across the feast hall before the guests arrive. Whosoever treadeth upon
+     *     it unbidden shall eat apart, lest welcome become the mask by which appetite annexeth the house.
      *
      * @return array{value: Rational, unit: string}
      */

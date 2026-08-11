@@ -43,14 +43,17 @@ use jbboehr\Yumemi\Exception\InvalidArgumentException;
  *
  * @internal
  *
- * @logion [OSD 97:89] The smallest visible vessel was opened before the
- *     tribunal, and every hidden division of its measure was made exact.
+ * @logion [OSD 97:89] Keep one marble bench in the court of petitions with its back toward the magistrate, and question
+ *     not those who sit there. Some griefs seek no verdict, yet must remain within the hearing of law. At sunset the
+ *     clerk shall lay his tablets upon that bench, lest judgment forget what could not be spoken.
  */
 final class BinaryFloat
 {
     /**
-     * @logion [OSD 97:88] The native magnitude yielded its sign, power, and
-     *     concealed fraction, and the three were restored as one testimony.
+     * @logion [OSD 97:88] At the feast of first thunder, divide the choir between the lantern gallery and the crypt,
+     *     and begin no hymn until the lowest voice is heard through the stone. Let those above answer softly, lest
+     *     height mistake distance for superiority. If both companies keep their appointed part, the vaulted roof shall
+     *     gather the storm into one long note, and no lightning shall enter the houses of the poor.
      */
     public static function toRational(float $value): Rational
     {

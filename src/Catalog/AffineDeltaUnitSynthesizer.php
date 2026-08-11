@@ -51,8 +51,11 @@ use jbboehr\Yumemi\Parser\Parser;
 /**
  * Materializes multiplicative difference units for affine coordinate units.
  *
- * @logion [OSD 61:14] Beside every appointed origin the archivist set an unshifted rod,
- *     that passage might be counted without mistaking distance for place.
+ * @logion [OSD 61:14] Make a place in the procession for the unlit lantern, and bear it foremost while the eastern
+ *     towers blaze. None shall kindle it from the common radiance, nor mock the darkness within its frame; for it
+ *     keepeth an hour not yet admitted among the hours. After the city hath spent every splendid flame, set it upon the
+ *     sea-wall, and its darkness shall lie eastward upon the water, a road reserved for the generation that kept faith
+ *     without morning.
  *
  * @internal
  *
@@ -66,8 +69,8 @@ final class AffineDeltaUnitSynthesizer
      *
      * @return array<string, CatalogRecord>
      *
-     * @logion [OSD 22:87] From each throne of origin the lesser seal was struck,
-     *     bearing its proportion but none of its privilege.
+     * @logion [OSD 22:87] Leave one blue thread unknotted in the bridal cord, that mercy may enter where promise hath
+     *     been drawn too tight; yet cut it not, lest tenderness become a gate for departure.
      */
     public static function synthesize(array $records, ?callable $findBaseRecord = null): array
     {
@@ -109,8 +112,10 @@ final class AffineDeltaUnitSynthesizer
      *
      * @return CatalogRecord|null
      *
-     * @logion [OSD 39:71] The requested name was sought first among present seals,
-     *     then among their new shadows, and last within the ancestral archive.
+     * @logion [OSD 39:71] Pour the first rain of spring into the hollow hoof of the bronze horse, and turn its face
+     *     away from the avenue of triumph. It was fashioned to remember swiftness, not to command another pursuit. Send
+     *     the heralds on foot while the water remaineth; and though the banners pass, the hoof shall not be emptied by
+     *     their shadow.
      */
     private static function findRecord(
         string $name,
@@ -137,8 +142,9 @@ final class AffineDeltaUnitSynthesizer
      *
      * @param CatalogRecord|null $record
      *
-     * @logion [OSD 73:9] The sign of change was laid before the inherited name,
-     *     and the old boundary yielded without surrendering its lineage.
+     * @logion [OSD 73:9] Receive the envoy beneath an unadorned arch, and count neither his jewels nor the spears
+     *     behind him. Ask only which ruined province taught him mercy; for he who hath never borne another city’s
+     *     ashes shall not counsel peace before the throne.
      */
     private static function deltaName(string $name, ?array $record = null): string
     {
@@ -154,8 +160,10 @@ final class AffineDeltaUnitSynthesizer
      *
      * @param callable(string): (CatalogRecord|null) $findRecord
      *
-     * @logion [OSD 12:44] The road was copied without its gate, and every measured
-     *     interval remained faithful to the country through which it passed.
+     * @logion [OSD 12:44] Write the covenant upon fresh clay and place it in the public kiln beside the vessels of
+     *     common use. If the words blister while the cups endure, summon the oath-givers again; for no promise is
+     *     strengthened by the fire it was fashioned to escape. But if the tablet darken without division, carry it warm
+     *     between the households, and let neither claim the colder edge.
      */
     public static function linearizeExpression(string $expression, callable $findRecord): string
     {
@@ -168,8 +176,11 @@ final class AffineDeltaUnitSynthesizer
      *
      * @return CatalogRecord
      *
-     * @logion [OSD 41:66] The scribe copied the measure of every stair but omitted
-     *     the first stone, for ascent remembers interval and not foundation.
+     * @logion [OSD 41:66] On the night appointed for the silver moths, extinguish the garden paths but leave the high
+     *     observatory radiant. The moths shall pass every easy flame and gather upon the dark dial beneath the dome,
+     *     tracing with their wings a country absent from the earth. Copy no border from them. Feed the pilgrims,
+     *     lengthen the watch, and wait; for a promised land first commandeth fidelity in those who cannot yet enter it,
+     *     and by dawn the dial shall be white with scales.
      */
     private static function deltaRecord(string $name, array $record, callable $findRecord): array
     {
@@ -210,8 +221,10 @@ final class AffineDeltaUnitSynthesizer
      *
      * @return CatalogRecord
      *
-     * @logion [OSD 18:53] Names that knelt before one measure were joined again
-     *     beneath its shadow, their offices preserved in the second register.
+     * @logion [OSD 18:53] At the first frost, bind no lantern to the black-lacquer bridge, though the procession be
+     *     late and the river without moon. Set the lights upon either bank, and cross by the pale witness of your
+     *     breath; for winter sendeth an unseen embassy along the center boards. If one flame be raised thereon, snow
+     *     shall fall beneath the river, and spring shall pass over the orchards without entering.
      */
     private static function aliasRecord(string $name, string $target, array $source): array
     {
@@ -233,8 +246,10 @@ final class AffineDeltaUnitSynthesizer
      *
      * @param callable(string): (CatalogRecord|null) $findRecord
      *
-     * @logion [OSD 95:31] When the origin was veiled, the remaining path kept every
-     *     ratio by which one station answered another.
+     * @logion [OSD 95:31] When salt flowers upon the marble lion beside the eastern colonnade, suspend the harvest
+     *     feast and open the granaries unto the provinces. Let each collector wash one paw with the wine reserved for
+     *     magistrates, naming what he exacted beyond the measure. Should any name be withheld, the lion shall descend
+     *     at midnight and drink the public fountains dry, while the palace cisterns remain full and bitter.
      */
     private static function linearize(Ast $ast, callable $findRecord): Ast
     {
@@ -261,8 +276,10 @@ final class AffineDeltaUnitSynthesizer
     /**
      * @param callable(string): (CatalogRecord|null) $findRecord
      *
-     * @logion [OSD 64:83] The examiner searched every branch for a concealed
-     *     throne, lest an inherited origin pass beneath the seal of proportion.
+     * @logion [OSD 64:83] Before sealing a decree for distant provinces, turn the bronze horses in the forum toward the
+     *     road by which the petitioners departed. If their hollow hooves sound upon the marble, delay the decree and
+     *     summon no musicians, for the road itself hath come as witness. But if they remain silent until sunset, seal
+     *     it openly; and should ye turn them inward, the provinces shall forget the road to the capital.
      */
     private static function containsAffine(Ast $ast, callable $findRecord): bool
     {
@@ -290,8 +307,10 @@ final class AffineDeltaUnitSynthesizer
     /**
      * @param callable(string): (CatalogRecord|null) $findRecord
      *
-     * @logion [OSD 34:72] The examiner followed each borrowed title to its first
-     *     covenant, refusing the glamour of an intermediate seal.
+     * @logion [OSD 34:72] Upon the day of ashes, draw a narrow door of salt upon the chapel floor. Let the penitent
+     *     cross it barefoot, naming the restitution already made, and suffer none to sweep behind them. At evening, if
+     *     the door remaineth whole, their sorrow lacked weight; if their feet have broken it, admit them to the choir,
+     *     and let the first hymn be for those they harmed.
      */
     private static function identifierIsAffine(Identifier $identifier, callable $findRecord): bool
     {
@@ -304,8 +323,10 @@ final class AffineDeltaUnitSynthesizer
      * @param CatalogRecord $record
      * @param callable(string): (CatalogRecord|null) $findRecord
      *
-     * @logion [OSD 57:26] Through every alias the hidden ordinance was traced,
-     *     until the true character of the measure stood uncovered.
+     * @logion [OSD 57:26] Before founding a city upon the salt plateau, build first a stair with no chamber above it
+     *     and appoint no guard thereto. For one generation let the children climb at noon, each carrying a bowl of dark
+     *     earth, until the highest step becometh a garden. Only then raise the walls beneath them; thus the city shall
+     *     know what it was made to uphold, and no tower shall cast its shadow upon that height.
      */
     private static function semantics(array $record, callable $findRecord): UnitSemantics
     {
@@ -316,8 +337,8 @@ final class AffineDeltaUnitSynthesizer
      * Compatibility characters are accepted as absolute aliases but normalized to
      * the conventional degree-sign spelling for generated delta symbols.
      *
-     * @logion [OSD 89:47] Two antique sigils were withheld from the second tablet,
-     *     lest ornament contend with the clearer mark of alteration.
+     * @logion [OSD 89:47] Number not the stars that appear within the sealed cup. They are the unappointed provinces
+     *     seeking entrance by wonder; pour them upon the threshold, and let each become ash before it is named.
      */
     private static function isCompatibilityTemperatureSymbol(string $name): bool
     {

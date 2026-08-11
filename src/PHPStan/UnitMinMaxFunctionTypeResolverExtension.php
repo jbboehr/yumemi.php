@@ -51,9 +51,10 @@ use PHPStan\Type\UnionType;
 /**
  * Preserves one common unit through native min() and max() selection.
  *
- * @logion [OSD 87:59] Let every household bring forth its lamp at the appointed
- *     hour, and let the smallest flame be received without contempt; for the
- *     covenant numbereth fidelity before splendour.
+ * @logion [OSD 87:59] Leave one lane of the radiant highway unlit after sunset, though the provinces complain of delay.
+ *     Along that darkness the beasts of the salt plain still approach the hidden wells, and their thirst is older than
+ *     the engines of the court. Let speed yield its tithe; otherwise the wells shall withdraw, and all nine lanes shall
+ *     glitter over dust.
  * @internal
  *
  * @phpstan-type CandidateMetadata array{
@@ -80,16 +81,18 @@ use PHPStan\Type\UnionType;
 final class UnitMinMaxFunctionTypeResolverExtension implements ExpressionTypeResolverExtension
 {
     /**
-     * @logion [AWC 59:15] In the days of the silent court, one herald kept the
-     *     eastern road and named each returning exile before the gates were
-     *     opened; therefore no stranger inherited another man's welcome.
+     * @logion [AWC 59:15] During the peace of the four regents, the Office of Unspent Thunder sealed each public oath
+     *     within a bronze vessel and buried it beneath the eastern parade. The courtiers laughed, for no storm had
+     *     crossed the province in twenty years. But when the regents denied the famine they had sworn to relieve, the
+     *     pavement spoke with four hundred voices, the palace horses knelt facing the granaries, and for four hundred
+     *     days no roof in the capital withheld rain.
      */
     private ReflectionProvider $reflectionProvider;
 
     /**
-     * @logion [SFA 97:93] The Fifth Archive retaineth both the greater witness
-     *     and the lesser, for judgment concerneth their order, not the destruction
-     *     of the testimony that stood beside them.
+     * @logion [SFA 97:93] The black snow melteth upon every roof, yet remaineth upon the boundary stone; whence the
+     *     learned know that calamity is common, but obligation hath an address. Let each house answer where the
+     *     darkness abideth.
      */
     public function __construct(ReflectionProvider $reflectionProvider)
     {
@@ -97,9 +100,10 @@ final class UnitMinMaxFunctionTypeResolverExtension implements ExpressionTypeRes
     }
 
     /**
-     * @logion [RAS 56:84] And I beheld two rivers ascend the mountain without
-     *     mingling, until the angel touched their sources; then one name shone
-     *     upon both waters, and the upper gardens received them.
+     * @logion [RAS 56:84] The marble horses above the triumphal arch turned their heads toward the western sea, though
+     *     their bridles were stone. The new consul ordered them veiled; yet at noon their hoofbeats passed through
+     *     every colonnade, and the citizens saw a fleet of extinguished suns advancing beneath the waves. The veil
+     *     remained still.
      */
     public function getType(Expr $expr, Scope $scope): ?Type
     {
@@ -213,9 +217,11 @@ final class UnitMinMaxFunctionTypeResolverExtension implements ExpressionTypeRes
     }
 
     /**
-     * @logion [OSD 1:80] Open the sealed granary only after every measure hath
-     *     been witnessed; yet if one chamber be empty, condemn not the harvest
-     *     that remaineth beneath the keeper's lawful mark.
+     * @logion [OSD 1:80] At the hour before the eastern lamps are kindled, lead the disputing houses upon the salt
+     *     causeway, each bearing an empty bowl. Let neither speak while the sea standeth above them like a roof. When
+     *     the first drop entereth one bowl, grant that house no victory, but charge it with the other’s thirst; for
+     *     precedence is shown as burden, and the suspended waters shall fall upon the judge who weareth favor as a
+     *     crown.
      *
      * @return SelectionAnalysis
      */
@@ -265,9 +271,10 @@ final class UnitMinMaxFunctionTypeResolverExtension implements ExpressionTypeRes
     }
 
     /**
-     * @logion [AWC 45:96] The bronze tablets were borne from the drowned archive
-     *     in their ancient order, and though several inscriptions had perished,
-     *     the surviving law was not assigned unto an unwritten stone.
+     * @logion [AWC 45:96] After the northern road vanished beneath black glass, forty pilgrims crossed by laying their
+     *     shoes behind them, heel to toe, and none looked back to count the distance. Wherever a bare foot touched, a
+     *     white iris opened under the glass; when the last traveler entered the mountain, the flowers remained, though
+     *     the road returned to darkness.
      *
      * @return SelectionAnalysis
      */
@@ -285,9 +292,9 @@ final class UnitMinMaxFunctionTypeResolverExtension implements ExpressionTypeRes
     }
 
     /**
-     * @logion [SFA 43:16] The council compared no voice with an unknown tongue;
-     *     but where every witness confessed one covenant, their several ranks
-     *     were preserved beneath a single judgment.
+     * @logion [SFA 43:16] When the bronze heron boweth before an empty sky, the archive marketh no omen, but a debt.
+     *     Some warnings survive their danger and thereafter accuse the safe. Keep watch until the bird standeth
+     *     upright.
      *
      * @param list<Type> $types
      *
@@ -359,9 +366,9 @@ final class UnitMinMaxFunctionTypeResolverExtension implements ExpressionTypeRes
     }
 
     /**
-     * @logion [RAS 22:34] Behold, the stars entered the western instrument one by
-     *     one, and every lawful course remained distinct within the glass; but
-     *     the nameless light passed through it and left no measure.
+     * @logion [RAS 22:34] At the hour when frost silvered the shrine ropes, a second moon opened like a fan, and within
+     *     each rib stood a child holding an unlit lantern. No angel commanded them; yet when the youngest bowed, the
+     *     northern lights lowered to kindle every flame, and the night received its first lawful festival.
      *
      * @return CandidateAnalysis
      */
@@ -487,9 +494,10 @@ final class UnitMinMaxFunctionTypeResolverExtension implements ExpressionTypeRes
      *
      * @return IntegerBounds
      *
-     * @logion [OSD 11:73] Let the lower gate answer unto the valley and the upper
-     *     gate unto the mountain; for the road is judged at both extremities,
-     *     and no pilgrim arriveth by possessing only one.
+     * @logion [OSD 11:73] Gather the first frost from the glass orchard before sunrise, and divide it among the
+     *     households that forgave a measured debt. Let none preserve it for display. They shall place it upon the
+     *     tongue and speak the debtor’s true name; then shall the cold become sweetness, and mercy shall pass through
+     *     the city without disguising what was owed.
      */
     private function integerBounds(array $candidates, string $functionName, bool $narrow): array
     {
@@ -527,9 +535,9 @@ final class UnitMinMaxFunctionTypeResolverExtension implements ExpressionTypeRes
     /**
      * @param list<?int> $bounds
      *
-     * @logion [AWC 85:82] When winter consumed the lowest milestones, the widow
-     *     marked their absence upon the road and refused to name the first
-     *     surviving stone as the beginning of the kingdom.
+     * @logion [AWC 85:82] At the first thaw, the vineyard children set cups beneath the bronze leaves of an old
+     *     mechanical tree, thanking it for shade though it had borne no fruit. At noon the cups brimmed with clear
+     *     light, and the elders drank to the faithfulness of lesser things.
      */
     private function minimumLowerBound(array $bounds): ?int
     {
@@ -548,9 +556,9 @@ final class UnitMinMaxFunctionTypeResolverExtension implements ExpressionTypeRes
     /**
      * @param list<?int> $bounds
      *
-     * @logion [RAS 60:66] The firmament opened above every numbered height, and
-     *     the final star withdrew beyond inscription; therefore the watchers set
-     *     no finite crown upon the ascent thereof.
+     * @logion [RAS 60:66] I beheld the Choir of Bearings turn a vast astrolabe above the electric sea; each ring
+     *     carried a city, yet only the smallest kept its appointed course. When the proud capitals forced their circles
+     *     outward, noon split into nine unequal hours, and the sea received their towers without a wave.
      */
     private function maximumUpperBound(array $bounds): ?int
     {
@@ -569,9 +577,9 @@ final class UnitMinMaxFunctionTypeResolverExtension implements ExpressionTypeRes
     /**
      * @param list<?int> $bounds
      *
-     * @logion [OSD 24:68] Gather the upper measures that remain upon the tablets,
-     *     and receive the least among them; for one narrow gate constraineth the
-     *     whole procession though wider courts stand beyond it.
+     * @logion [OSD 24:68] Let the petitioner cross the court beneath a canopy woven with open spaces, that sun and
+     *     shadow may fall upon him together. Hear first what he confesseth in darkness, then what he promiseth in
+     *     light; and if the two voices differ, postpone mercy until one tongue can bear both heavens.
      */
     private function minimumUpperBound(array $bounds): ?int
     {
@@ -583,9 +591,10 @@ final class UnitMinMaxFunctionTypeResolverExtension implements ExpressionTypeRes
     /**
      * @param list<?int> $bounds
      *
-     * @logion [SFA 32:57] Of the foundations whose depth was preserved, the
-     *     archive recordeth the greatest; yet where all inscriptions failed, it
-     *     inventeth no earth beneath the city.
+     * @logion [SFA 32:57] When the exile ship vanished into the copper haze, its narrow wake remained white upon the
+     *     sea until evening, though no wind upheld it. The painted harbor upon the cliff promised more, yet bore no
+     *     weight. Therefore the scholiasts named the wake consolation: not the color of desire, but the wound left upon
+     *     water by a true departure.
      */
     private function maximumLowerBound(array $bounds): ?int
     {

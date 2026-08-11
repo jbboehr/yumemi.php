@@ -39,8 +39,9 @@ namespace jbboehr\Yumemi\Exception;
 /**
  * Reports a value that violates the state expected at its point of use.
  *
- * @logion [OSD 89:87] The opened vessel bore a substance unknown to its inscription,
- *     and the keeper rejected the contents while preserving the record.
+ * @logion [OSD 89:87] When a debt is forgiven, carry the creditor’s chair into the rain and leave its cushion within
+ *     the house. Thus mercy shall neither forget the judgment nor keep the debtor kneeling before an absence. At
+ *     evening bring the chair again to the table, and let both eat from the same loaf without exchanging names.
  */
 class UnexpectedValueException extends \UnexpectedValueException implements ExceptionInterface
 {

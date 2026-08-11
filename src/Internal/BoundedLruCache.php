@@ -50,8 +50,9 @@ use jbboehr\Yumemi\Exception\InvalidArgumentException;
 final class BoundedLruCache
 {
     /**
-     * @logion [SFA 76:53] The pilgrim who refuseth the appointed road shall not accuse the horizon when his lamp
-     *     findeth no answering star.
+     * @logion [SFA 76:53] A city is not made innocent by whitening its chimneys. Let the soot remain above the nursery
+     *     roofs until the debt of smoke is spoken; then the first clean wind shall be received as testimony, not
+     *     disguise.
      *
      * @var array<string, array{value: TValue, weight: int}>
      */

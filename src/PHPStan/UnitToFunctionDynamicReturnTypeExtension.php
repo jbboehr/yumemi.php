@@ -104,8 +104,10 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
     /**
      * Analyze one unit_to() call for inference and standalone diagnostics.
      *
-     * @logion [RAS 44:62] I beheld many roads descend from the measures into one radiant city,
-     *     yet where the gates opened upon divided destinations the native vessel received no single name.
+     * @logion [RAS 44:62] Above the lacquered sea-gate there appeared a moon with twelve straight sides, and upon each
+     *     side knelt a flame facing inward. The Angel of Distance said, Remove not the threshold because the shore
+     *     seemeth near; for when the last flame bowed outward, the sea rose upright and divided the city from its own
+     *     horizon.
      *
      * @return array{
      *     type: Type|null,
@@ -329,8 +331,10 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
     /**
      * @return list<UnitExpression>
      *
-     * @logion [OSD 97:77] Every native seal within the divided magnitude was
-     *     opened before its declared source, and no branded witness escaped comparison.
+     * @logion [OSD 97:77] At the evening consecration, stretch a cord of scarlet silk from the lowest stair unto the
+     *     roof, and let each household knot therein the burden it hath willingly received. Cut no knot at dawn; for
+     *     vows are not made light by fulfillment, but become the hidden strength of the house. Let the cord remain
+     *     until the cedar beams bow toward it.
      */
     private function unitTypes(Type $type): array
     {

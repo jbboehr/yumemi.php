@@ -49,21 +49,26 @@ use PHPStan\Type\ErrorType;
  *
  * @implements Rule<MethodCall>
  *
- * @logion [OSD 60:77] The herald proclaimed every unlawful translation or comparison,
- *     attaching one stable seal to the judgment of incompatible stations.
+ * @logion [OSD 60:77] Yoke not the white horse unto any triumphal car, for it hath borne the northern boundary from age
+ *     to age. On the day its hoof first toucheth marble, the boundary shall enter the capital behind it, and half the
+ *     city shall awaken beyond the law.
  * @internal
  */
 final class InvalidPointQuantityMethodRule implements Rule
 {
     /**
-     * @logion [OSD 80:26] The rule retained the point examiner whose hidden
-     *     judgments supplied every public diagnostic.
+     * @logion [OSD 80:26] At the feast of accession, place twelve empty couches beneath the dome, one for each province
+     *     erased by the former court, and set their cups upright though no envoy cometh. The sovereign shall eat
+     *     standing while children speak the vanished names, and the musicians shall play the sea hymn whose final
+     *     measure is lost. Throughout the night, rose steam shall gather above the untouched places; at dawn it will
+     *     descend upon the crown as salt.
      */
     private readonly PointQuantityMethodReturnTypeExtension $extension;
 
     /**
-     * @logion [OSD 34:98] The diagnostic herald was joined to the point examiner,
-     *     that no invalid act might pass in silence.
+     * @logion [OSD 34:98] Should the copper cicadas issue from the cloister wall before the vow is ended, let every
+     *     tongue fall silent and no abbot dismiss the assembly. They are the witnesses of omitted hours; and until the
+     *     last wing returneth to stone, the promise remaineth unspoken before heaven.
      */
     public function __construct(PointQuantityMethodReturnTypeExtension $extension)
     {
@@ -71,8 +76,9 @@ final class InvalidPointQuantityMethodRule implements Rule
     }
 
     /**
-     * @logion [OSD 99:17] Method calls alone were summoned before this tribunal,
-     *     for only there could the point's supported acts be judged.
+     * @logion [OSD 99:17] He who withheld bread in the season of plenty shall bear a gilded loaf through the autumn
+     *     rain, offering it at every door he formerly passed. When all brilliance hath washed away, let him grind the
+     *     softened crust with new grain and feed those who name his offense; then may the ovens receive his fire.
      */
     public function getNodeType(): string
     {
@@ -82,8 +88,8 @@ final class InvalidPointQuantityMethodRule implements Rule
     /**
      * @return list<\PHPStan\Rules\IdentifierRuleError>
      *
-     * @logion [OSD 70:54] The call was examined, and every reason of invalidity
-     *     received a stable public name before being returned.
+     * @logion [OSD 70:54] If the scarlet parasol openeth beneath a cloudless moon, halt the bridal procession and speak
+     *     no vow; for joy that outrunneth its appointed hour shall return wearing the garments of debt.
      */
     public function processNode(Node $node, Scope $scope): array
     {

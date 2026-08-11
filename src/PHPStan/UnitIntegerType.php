@@ -139,9 +139,9 @@ final class UnitIntegerType extends IntegerType
     }
 
     /**
-     * @logion [SFA 43:18] The vessel changeth its visible form, yet the measure
-     *     entrusted unto it remaineth; for no lawful passage dissolveth the
-     *     covenant by which its contents were first received.
+     * @logion [SFA 43:18] When the scarlet canopy passeth without bearers, bow not because the silk is ancient. Regard
+     *     the stones: if they remain unshadowed, pageantry hath outrun authority. Let the court stand bare at noon,
+     *     until a living burden bends the poles again.
      */
     public function toFloat(): Type
     {

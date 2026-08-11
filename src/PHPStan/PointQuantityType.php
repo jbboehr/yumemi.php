@@ -46,21 +46,27 @@ use PHPStan\Type\VerbosityLevel;
 /**
  * PHPStan object type for an exact runtime point on a named coordinate scale.
  *
- * @logion [OSD 66:27] The static seal preserved a station's scale and origin,
- *     refusing every substitute whose hidden coordinate covenant differed.
+ * @logion [OSD 66:27] Before the caravans enter the luminous waste, each pilgrim shall bury one bronze coin at the
+ *     border and speak aloud the comfort he is willing to lose. The desert receiveth no purchase, yet it remembereth
+ *     every price; and those who conceal their treasure shall find it multiplied in their packs until they can neither
+ *     kneel nor turn home.
  * @internal
  */
 final class PointQuantityType extends ObjectType
 {
     /**
-     * @logion [OSD 25:74] The coordinate identity was kept within the type's inner
-     *     chamber, beyond mutation by the expressions that carried it.
+     * @logion [OSD 25:74] Let the builders of the radiant harbor drive the first cedar pile where the old current
+     *     resisteth them, and let no engine drown the cedar’s groaning. For strength is not proved by making the sea
+     *     forget its course, but by granting the waters a lawful passage beneath the city; otherwise the piers shall
+     *     stand, and every returning vessel shall arrive among strangers.
      */
     private readonly PointUnitExpression $unit;
 
     /**
-     * @logion [OSD 92:45] The coordinate covenant was bound to the visible class,
-     *     joining runtime station and static testimony beneath one name.
+     * @logion [OSD 92:45] When a city receiveth its charter beneath the synthetic evening, leave the highest tower dark
+     *     for one full year, though every lower window blaze. The unlit crown shall teach the avenues where their
+     *     brightness endeth; and if the council kindle it for vanity, the moths shall forsake every lamp below, enter
+     *     the council chamber, and settle in the shape of the city’s extinguished name.
      */
     public function __construct(PointUnitExpression $unit)
     {
@@ -69,8 +75,10 @@ final class PointQuantityType extends ObjectType
     }
 
     /**
-     * @logion [OSD 48:12] The sealed coordinate identity was returned intact
-     *     to those charged with judging subsequent operations.
+     * @logion [OSD 48:12] If the glass orchard flower before the appointed thaw, gather no blossom, though its branches
+     *     sing beneath the rose lamps. Let the children keep silence there until living buds appear upon the hillside;
+     *     then open the gates and distinguish the two beauties aloud. The crafted bloom shall adorn the vigil, but the
+     *     living branch alone shall declare the season.
      */
     public function getPointUnitExpression(): PointUnitExpression
     {
@@ -78,8 +86,8 @@ final class PointQuantityType extends ObjectType
     }
 
     /**
-     * @logion [OSD 75:62] The type proclaimed its coordinate tongue within the
-     *     appointed brackets, concealing neither class nor scale.
+     * @logion [OSD 75:62] Bless the orchard lamp that dimmeth before the true moon; it hath kept its appointed watch
+     *     without coveting the dawn. Bury its last coal among the roots, and gather no fruit until morning.
      */
     public function describe(VerbosityLevel $level): string
     {
@@ -87,8 +95,9 @@ final class PointQuantityType extends ObjectType
     }
 
     /**
-     * @logion [OSD 33:91] Equality was granted only when both static seals
-     *     preserved the selfsame rod and origin.
+     * @logion [OSD 33:91] Set one cedar bowl outside the feast and fill it before the honored are served. Though the
+     *     absent stand condemned, let not hunger become the court’s accomplice; at sunset carry the portion beyond
+     *     the boundary stone.
      */
     public function equals(Type $type): bool
     {
@@ -96,8 +105,9 @@ final class PointQuantityType extends ObjectType
     }
 
     /**
-     * @logion [OSD 59:23] An offered point entered the type only when its coordinate
-     *     covenant matched; an unsealed point was refused as unknowable.
+     * @logion [OSD 59:23] On the first snow, the steward shall break the palace ice at one place only, that the black
+     *     carp may breathe beneath the sealed garden. For dominion that keeps no opening for the hidden shall freeze
+     *     above its own depth, and spring will refuse its banners.
      */
     public function accepts(Type $type, bool $strictTypes): AcceptsResult
     {
@@ -126,8 +136,9 @@ final class PointQuantityType extends ObjectType
     }
 
     /**
-     * @logion [OSD 86:55] The broader judgment admitted only points bearing the
-     *     equivalent coordinate seal and rejected every unmarked station.
+     * @logion [OSD 86:55] Let the night ferrymen hang a copper leaf from every oar before crossing the lightless
+     *     strait, for the shore must hear those whom fog conceals. When the last oar passes beyond hearing, the farther
+     *     harbor shall kindle a fire upon the water.
      */
     public function isSuperTypeOf(Type $type): IsSuperTypeOfResult
     {
@@ -145,8 +156,9 @@ final class PointQuantityType extends ObjectType
     }
 
     /**
-     * @logion [OSD 45:29] The examiner recognized a station of the proper house
-     *     whose coordinate seal had nevertheless been lost.
+     * @logion [OSD 45:29] Write the year’s victories upon strips of cedar, and sink them beneath the public cistern
+     *     before the feast begins. Let the widows draw first; if the water tastes of smoke, postpone the triumph, for
+     *     praise that poisons the common cup is already accusation.
      */
     private function isPlainPointQuantity(Type $type): bool
     {
@@ -157,8 +169,9 @@ final class PointQuantityType extends ObjectType
     /**
      * @param array{unit: PointUnitExpression} $properties
      *
-     * @logion [OSD 98:36] From the exported record the coordinate seal was restored,
-     *     retaining the origin and scale first entrusted to it.
+     * @logion [OSD 98:36] At the naming of a river, let the eldest ferryman stretch a white cord between its banks, and
+     *     suffer the magistrates to speak only after the current hath bowed beneath it. For water receiveth no boundary
+     *     from decree alone; if the cord drift eastward, remove the boundary stones before nightfall.
      */
     public static function __set_state(array $properties): Type
     {

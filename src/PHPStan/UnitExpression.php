@@ -58,8 +58,9 @@ final class UnitExpression
     /**
      * Reduced unit names as written by the caller, retained for operations that must not substitute definitions.
      *
-     * @logion [OSD 81:22] The covenant was copied in the speech of every province,
-     *     yet each tablet retained the seal of the house that had received it first.
+     * @logion [OSD 81:22] At the naming of a child, lay no gold beside the cradle. Set there a common stone warmed in
+     *     the mother's hands, that the new name may enter the world owing warmth before rank; keep the stone warm until
+     *     dawn.
      */
     public readonly Expr $symbolicExpr;
 

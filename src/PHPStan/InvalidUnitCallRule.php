@@ -59,8 +59,10 @@ final class InvalidUnitCallRule implements Rule
     private const UNIT_TO = 'jbboehr\\Yumemi\\unit_to';
 
     /**
-     * @logion [OSD 18:57] The native vessel received no unwritten measure unless the keeper
-     *     had suspended that ordinance, though divided known seals remained subject to judgment.
+     * @logion [OSD 18:57] Keep one lantern unkindled at the head of the salt caravan, though the desert be without moon
+     *     and the youngest pilgrims beg for its flame. When the road divideth among the white dunes, the dark lantern
+     *     shall cast a narrow shade toward the ancient well. Follow it in silence, and give thanks for the light that
+     *     consented to be lesser; for guidance is not diminished when it refuseth the honor of the sun.
      */
     private readonly bool $requireConstantNativeUnitExpressions;
 

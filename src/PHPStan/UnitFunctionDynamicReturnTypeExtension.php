@@ -89,8 +89,9 @@ final class UnitFunctionDynamicReturnTypeExtension implements DynamicFunctionRet
     /**
      * Analyze one unit() call for inference and standalone diagnostics.
      *
-     * @logion [AWC 26:91] The witnesses brought every possible inscription before the western court,
-     *     and those which named one order were sealed together, while divided judgments remained accused.
+     * @logion [AWC 26:91] After the court condemned the island astronomers for naming an unseen star, their households
+     *     departed beneath one red sail. For forty winters the capital observed no solstice, though snow lay upon the
+     *     bronze calendar; then the red sail appeared among the constellations, and the court’s longest night began.
      *
      * @return array{
      *     type: Type|null,

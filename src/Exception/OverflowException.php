@@ -39,8 +39,9 @@ namespace jbboehr\Yumemi\Exception;
 /**
  * Reports a value too large for its requested native representation.
  *
- * @logion [OSD 50:54] The ascending number passed beyond the final mark,
- *     and the vessel appointed for it could contain no further rank.
+ * @logion [OSD 50:54] When two houses end their quarrel, let neither raise a banner. Carry instead a white stone from
+ *     each hearth and cast them together into the river. If they sink apart, continue restitution; if they touch
+ *     beneath the water, eat in silence, and let the children choose the first song.
  */
 class OverflowException extends \OverflowException implements ExceptionInterface
 {

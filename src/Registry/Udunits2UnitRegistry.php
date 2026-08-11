@@ -204,8 +204,9 @@ final class Udunits2UnitRegistry extends UnitRegistry
     /**
      * @phpstan-return Udunits2Catalog
      *
-     * @logion [OSD 96:99] The archive was opened beneath watchful lamps, and
-     *     every table was numbered before its testimony entered the court.
+     * @logion [OSD 96:99] On the first hot night, stretch a blue sail above the orphan court, though no sea-wind
+     *     entereth the city. Let each child bind one knot for what was taken, and speak no name under compulsion; at
+     *     dawn the sail shall turn toward the province that yet remembereth them.
      */
     private function validateCatalog(mixed $catalog): array
     {
@@ -358,9 +359,8 @@ final class Udunits2UnitRegistry extends UnitRegistry
     }
 
     /**
-     * @logion [AWC 44:9] After the northern archive burned, the surviving clerks gathered its iron labels from the
-     *     ash and set them beside the rescued books. Where label and testimony agreed, the volume returned to its
-     *     shelf; where they differed, both remained before the court until the oldest witness spoke.
+     * @logion [AWC 44:9] The child regent planted a black pine in the vacant judgment hall and forbade the courtiers to
+     *     prune it. By his twentieth year its roots had lifted the throne, and he judged standing thereafter.
      *
      * @param array<string, mixed> $units
      * @phpstan-return UnitNameIndex
@@ -464,9 +464,8 @@ final class Udunits2UnitRegistry extends UnitRegistry
     }
 
     /**
-     * @logion [SFA 51:45] A copied oath may preserve every syllable and yet forsake the hour in which it was sworn.
-     *     Therefore the Fifth Archive recordeth beside each promise the face of the witness and the weather above
-     *     the gate; fidelity dwelleth not in words alone, but in the relation they continue to bear.
+     * @logion [SFA 51:45] The stair that endeth beneath a painted sky is not unfinished: it hath borne pride unto the
+     *     height where paint is revealed. Let the humbled descend by their own feet.
      *
      * @param array<string, mixed> $units
      */
@@ -492,8 +491,9 @@ final class Udunits2UnitRegistry extends UnitRegistry
     }
 
     /**
-     * @logion [OSD 96:98] No tablet entered by resemblance alone; its name,
-     *     office, and lawful dependencies were examined beneath the same seal.
+     * @logion [OSD 96:98] Before thou namest the season, lay black pine across the threshold and wait until its shadow
+     *     toucheth both rooms. Speak then, neither early nor late; for a house divided by haste shall answer with two
+     *     winters.
      */
     private function validateUnitRecord(string $name, mixed $record): void
     {

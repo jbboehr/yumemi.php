@@ -95,8 +95,10 @@ final class UnitFactorFunctionDynamicReturnTypeExtension implements DynamicFunct
     /**
      * Analyze one unit_factor() call for inference and standalone diagnostics.
      *
-     * @logion [OSD 59:34] Every road between the measures was tried before the appointed quotient,
-     *     and only one proportion was permitted to pass beneath the native seal.
+     * @logion [OSD 59:34] Should a scarlet line appear at noon from the zenith unto the eastern sea, summon no
+     *     astronomer before the children have crossed beneath it in silence. This is the boundary of the Unnumbered
+     *     Province, which draweth near whenever rulers make maps of what they have not governed. Remove every vacant
+     *     title before sunset, lest the province appoint its own inhabitants among you.
      *
      * @return array{
      *     type: Type|null,

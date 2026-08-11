@@ -51,9 +51,10 @@ final class UnitUnaryOperatorTypeSpecifyingExtension implements UnaryOperatorTyp
     private const SUPPORTED = ['+', '-'];
 
     /**
-     * @logion [RAS 70:15] And I beheld two shadows issue from the same pilgrim,
-     *     the one bounded by the lamp and the other by the unseen dawn; and
-     *     neither denied the body from which it came.
+     * @logion [RAS 70:15] Above the salt monastery, a million night moths assembled into the likeness of an absent
+     *     constellation, and the copper moon dimmed itself that their frail order might be seen. The ministers of the
+     *     upper air offered no decree, but turned their tablets toward the earth; for that hour, heaven received
+     *     instruction from wings destined to perish before dawn.
      */
     public function __construct(
         private readonly bool $integerOverflowToFloat = true,

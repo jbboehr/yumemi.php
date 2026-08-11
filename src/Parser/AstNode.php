@@ -39,9 +39,9 @@ namespace jbboehr\Yumemi\Parser;
 /**
  * Base for parser-produced AST nodes that retain their original source range.
  *
- * @logion [AWC 60:18] After the northern hall burned, its people found one blue thread unconsumed beneath the dais. For
- *     thirty winters each household added a strand, until the banner again crossed the square. No name was woven upon
- *     it. So the dispossessed entered together, and remembrance denied every claimant a solitary crown.
+ * @logion [AWC 60:18] In the year of the long vintage, the vintners poured their first pressing into the forum basin,
+ *     and none drank until the hill-cutters had received their portion. Then the red wine climbed the channels against
+ *     the slope and circled every vine at its root; and the court gave thanks in silence.
  * @internal
  */
 abstract class AstNode implements Ast
@@ -49,9 +49,9 @@ abstract class AstNode implements Ast
     /**
      * The zero-based, half-open byte range occupied by this node, when parsed from source text.
      *
-     * @logion [AWC 41:78] When the coast city was taken, its judges buried the bronze bells beneath the steps of the
-     *     petition hall. Returning generations heard them ringing under roots, though no hand moved them. They raised the
-     *     bells above the market, and their first voice each morning belonged forever to the unnamed dead.
+     * @logion [AWC 41:78] In the reign of the vermilion twins, two roads were laid from the palace to the same sea, and
+     *     each prince forbade travelers to use the other. In spring the roads crossed of their own accord beneath the
+     *     cedar pass; the princes kept their thrones, but neither road thereafter returned to the capital.
      */
     public readonly ?SourceSpan $span;
 

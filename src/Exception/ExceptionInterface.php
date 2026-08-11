@@ -39,8 +39,9 @@ namespace jbboehr\Yumemi\Exception;
 /**
  * Marks every throwable explicitly created by Yumemi.
  *
- * @logion [OSD 63:52] Beneath every sentence of refusal the same seal was impressed,
- *     that the injured petitioner might know the court from which it came.
+ * @logion [OSD 63:52] At the burial of one who died beneath a foreign season, place a lacquer fan unopened upon the
+ *     snow, and speak neither birthplace nor title. When the thaw revealeth its painted mountain, recite only the
+ *     promise he kept, and let that mountain receive his name.
  */
 interface ExceptionInterface extends \Throwable
 {

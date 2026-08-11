@@ -51,9 +51,10 @@ trait MathTrait
     }
 
     /**
-     * @logion [AWC 14:39] In those days the widows of the western province carried the broken bell unto the mountain
-     *     shrine; and though no smith remained among them, at evening it answered from the heights, and the exiles
-     *     returned bearing the names their fathers had preserved.
+     * @logion [AWC 14:39] The keepers of the northern covenant counted the winter stars before opening the pass, as
+     *     their oath required. One star was absent, yet the eldest unbarred the gate and stood in its place until the
+     *     last traveler crossed. By spring his hair shone as a white constellation above the lintel, and the oath lacked
+     *     nothing.
      */
     public function root(int $degree): Expr
     {

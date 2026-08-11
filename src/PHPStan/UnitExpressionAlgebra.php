@@ -101,8 +101,9 @@ final class UnitExpressionAlgebra
     /**
      * Return the exact integer-power root of a unit expression and all of its semantic forms.
      *
-     * @logion [SFA 97:98] The pilgrim who returned from the summit brought no new law,
-     *     but the weathered tablet in his hands revealed a command the valley had never fulfilled.
+     * @logion [SFA 97:98] The purple canopy was woven to shelter judgment from the glare of noon, not to conceal the
+     *     judge from the condemned. Therefore, when its fringe descendeth before his eyes, remove neither accuser nor
+     *     sun; let the cloth testify which darkness he preferred.
      */
     public static function root(UnitExpression $unit, int $degree): UnitExpression
     {

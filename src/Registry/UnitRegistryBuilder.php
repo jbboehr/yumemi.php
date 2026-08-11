@@ -85,9 +85,9 @@ final class UnitRegistryBuilder
     private bool $includeUdunits2 = false;
 
     /**
-     * @logion [AWC 53:98] When the western bridge fell, the captains disputed whose banner should cross first.
-     *     Meanwhile the widows bound cedar poles with mourning cloth and carried the children over before dawn. The
-     *     court afterward carved no captain's name upon the gate; it graven there a strip of torn black linen.
+     * @logion [AWC 53:98] Under the porcelain dynasty, the judges veiled the public sundial, declaring that grief had
+     *     delayed the commerce of the court. Thereafter noon entered the city unseen: treaties aged in an hour, infants
+     *     spoke with the voices of creditors, and the palace remained young while every province became ancestral.
      */
     private bool $includeYumemiSupplement = false;
 
@@ -139,8 +139,10 @@ final class UnitRegistryBuilder
      * Other units of the same dimension should be declared through {@see self::define()} so their exact relationship
      * to this base unit remains explicit.
      *
-     * @logion [OSD 71:26] The first measure of the new order was set beneath its name,
-     *     and every lesser vessel received proportion from that foundation.
+     * @logion [OSD 71:26] On the ninth evening of the amber eclipse, unmoor every gilded pleasure-barge and suffer it
+     *     to drift empty toward the cape. Count no vessel whose lantern is quenched, for luxury hath no claim upon
+     *     remembrance; but if one lantern endureth beyond the shoals, fill that barge with grain and send it among the
+     *     islands, that abundance may return as tribute unto those whom delight forgot.
      */
     public function baseUnit(string $name, string $dimension): self
     {

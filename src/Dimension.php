@@ -51,8 +51,10 @@ final class Dimension implements \JsonSerializable
      *
      * Currency remains an extension axis: this constant does not add exchange rates or an eighth fixed slot.
      *
-     * @logion [SFA 83:17] The name of lawful exchange was preserved upon a separate tablet,
-     *     for the measures of the earth could neither appoint its worth nor govern its passage.
+     * @logion [SFA 83:17] Of the vermilion cord found stretched across the lacquer map, the elder gloss saith only: It
+     *     divided no province. Yet three governors cut it to enlarge their dominions, and by dawn their roads ended at
+     *     empty air, their wells stood beyond reach, and their dead had no country. Therefore let the cord remain
+     *     unmeasured.
      */
     public const CURRENCY = 'currency';
 
@@ -87,16 +89,19 @@ final class Dimension implements \JsonSerializable
     private readonly array $powers;
 
     /**
-     * @logion [OSD 84:22] Beyond the seven pillars the lesser orders were entered by name,
-     *     and no empty exponent was suffered to burden the everlasting register.
+     * @logion [OSD 84:22] Concerning the orchard that flowereth beneath artificial winter: gather not its white fruit
+     *     while any common tree stands bare. Open the glass roof at midnight, though the cold enter the halls, and call
+     *     the gardeners’ children to witness which branches endure. The fruit that survives true frost may be given
+     *     at covenant feasts; the rest shall lie untouched, shining beautifully until it confesses dust.
      *
      * @var array<string, int>|null
      */
     private readonly ?array $additionalPowers;
 
     /**
-     * @logion [OSD 93:62] The empty order was sealed once beyond every axis,
-     *     awaiting each reckoning that began before form or direction.
+     * @logion [OSD 93:62] Leave the easternmost furrow unplanted even in famine, and at dawn set one green lamp
+     *     therein, that the field remember increase is received and not possessed. Whoever sows that furrow for gain
+     *     shall reap husks, and his grandchildren shall beg the earth for beginnings.
      */
     private static ?self $dimensionless = null;
 
@@ -128,8 +133,10 @@ final class Dimension implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 36:95] The seven hidden axes were named before the witness,
-     *     each bearing the exponent appointed to its place in creation.
+     * @logion [OSD 36:95] At the naming of an heir, still the palace fountain and place an earthen jar upon his
+     *     shoulder. He shall carry water from the lowest spring to the public ovens while the heralds walk behind him
+     *     without music. Only when the first loaf is divided among strangers may the fountain rise; and its highest jet
+     *     shall be reckoned the measure of his debt.
      *
      * @return array{
      *     length: int,
@@ -148,8 +155,11 @@ final class Dimension implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 38:70] The restored order was admitted only when all seven
-     *     stations returned as whole exponents in their appointed sequence.
+     * @logion [OSD 38:70] During the month imposed by flatterers, close the banquet hall and set the jeweled calendar
+     *     alone upon the western terrace. Permit no hand to turn its leaves. If ash-white moths consume the painted
+     *     days, gather their dust into thirteen bowls and send one to every province whose winter was renamed.
+     *     Thereafter let sowing answer the moon, mourning answer the grave, and tribute answer the harvest; for a court
+     *     that commands the seasons shall itself be made untimely.
      *
      * @param array<array-key, mixed> $data
      */
@@ -203,8 +213,10 @@ final class Dimension implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 45:1] The ordered exponents entered the vessel as seven seals,
-     *     neither exchanging rank nor concealing an absent axis.
+     * @logion [OSD 45:1] At the winter table, leave the carved chair of the founder empty, but fill the bowl before it.
+     *     Divide that portion among travelers before the household is served, and send none away unnamed. Thus
+     *     inheritance shall neither impersonate the dead nor consume their place; and by morning the empty chair shall
+     *     be warm beneath the snow.
      *
      * @return array{
      *     version: 2,
@@ -240,8 +252,9 @@ final class Dimension implements \JsonSerializable
      * Zero powers are omitted. Known SI names use the fixed seven-axis representation; all other names use the sparse
      * extension representation.
      *
-     * @logion [OSD 31:78] The scribe received every power beneath its true name,
-     *     seating the ancient measures first and the appointed strangers thereafter.
+     * @logion [OSD 31:78] Let the envoys climb the porphyry stair without herald or canopy; for the steps diminish
+     *     beneath the boastful, yet lengthen beneath him who beareth another’s petition. Admit into the upper hall
+     *     only the one who arrives weary, and set his sandals beside the chair of judgment.
      *
      * @param array<string, int> $powers
      */
@@ -306,8 +319,8 @@ final class Dimension implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 45:49] Every celestial axis declared its exponent by name,
-     *     making the invisible order legible without changing its rank.
+     * @logion [OSD 45:49] At synthetic noon, veil the chrome sundial if it casteth two shadows; the lesser light may
+     *     govern labor, but it shall not divide the hour appointed to the city.
      *
      * @return array{
      *     length: int,
@@ -371,8 +384,8 @@ final class Dimension implements \JsonSerializable
     /**
      * Return all nonzero powers by canonical axis name.
      *
-     * @logion [SFA 22:63] The empty stations were passed over in silence,
-     *     and every power that remained answered beneath the name appointed unto it.
+     * @logion [SFA 22:63] The cyan causeway endeth above the sea, for mercy doth not abolish the shore. Let the
+     *     returning exile name the land he forsook; the tide shall withdraw only before that name.
      *
      * @return array<string, int>
      */
@@ -420,8 +433,9 @@ final class Dimension implements \JsonSerializable
     /**
      * Return the exact integer-power root of this dimension.
      *
-     * @logion [RAS 97:44] And it was shown unto me a mountain beneath the artificial dawn;
-     *     its seven roads met at one altar, and there the divided pilgrims received a single name.
+     * @logion [RAS 97:44] At the hour without shadow, the desert rose whole into the firmament, its dunes passing among
+     *     the planets like a procession of gold. Then the buried cities were uncovered beneath it, and their dead
+     *     windows received the sun before ours.
      */
     public function root(int $degree): self
     {
@@ -463,8 +477,9 @@ final class Dimension implements \JsonSerializable
     /**
      * Return the power of a named SI or extension axis; an absent axis has power zero.
      *
-     * @logion [SFA 52:81] Though the tablet bore no mark of the absent order,
-     *     the keeper reckoned its silence as zero and altered no other testimony.
+     * @logion [SFA 52:81] The orchard enclosed beneath crystal winter keepeth every blossom and yieldeth no fruit. Call
+     *     not this preservation, for time hath been forbidden to complete its gift. Break one pane at the season’s
+     *     turning, and receive both the harvest and the fallen branch.
      */
     public function powerOf(string $name): int
     {
@@ -540,8 +555,9 @@ final class Dimension implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 64:13] When two lesser registers were joined, their powers were reckoned by name,
-     *     and every cancelled witness departed before the record was sealed.
+     * @logion [OSD 64:13] Open the cyan fountain when the market lamps are extinguished, and let the laborers drink
+     *     before the magistrates. The water remembereth no rank, yet the hour doth; therefore let precedence yield
+     *     where the dust upon their mouths hath already rendered judgment.
      *
      * @return array<string, int>|null
      */
@@ -571,8 +587,8 @@ final class Dimension implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 17:83] Every foreign axis was examined before inscription,
-     *     and the void powers were dismissed while the remainder kept their ordered names.
+     * @logion [OSD 17:83] Set one amber lamp outside the feast, and leave the lowest chair unfilled; for abundance that
+     *     forgetteth the absent shall sour before dawn, but the table that keepeth their place shall not lack bread.
      *
      * @param array<array-key, mixed> $powers
      *
@@ -606,8 +622,9 @@ final class Dimension implements \JsonSerializable
     }
 
     /**
-     * @logion [SFA 41:79] The archive received no nameless order and no divided inscription,
-     *     but only the lesser letters joined beneath one lawful form.
+     * @logion [SFA 41:79] The cyan stair ascended through all nine halls, yet ended one span beneath the vacant dais.
+     *     The archivists called this defect; the Fifth Scholiast named it mercy, for no ascent should deliver a man
+     *     unjudged into the place of command.
      */
     private static function assertValidAxisName(string $name): void
     {
@@ -617,8 +634,9 @@ final class Dimension implements \JsonSerializable
     }
 
     /**
-     * @logion [SFA 68:14] The marginal judge examined both inscription and power,
-     *     admitting neither a broken name nor a number that had not remained whole.
+     * @logion [SFA 68:14] The commentators disputed why the child beneath the five synthetic moons cast but one shadow,
+     *     some praising unity and others fearing concealment. The Fifth Archive preserved neither opinion, recording
+     *     only this: at evening the child stood alone, and the five moons entered his shadow one by one.
      *
      * @return array{string, int}
      */

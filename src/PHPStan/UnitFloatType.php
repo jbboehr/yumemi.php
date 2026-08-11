@@ -86,8 +86,9 @@ final class UnitFloatType extends FloatType
     }
 
     /**
-     * @logion [AWC 59:30] After the glass cicada sang in the burial cedars, the old soldiers removed their medals, and
-     *     the forest kept the brighter music.
+     * @logion [AWC 59:30] Under the regent who forbade all omens, a black staircase appeared each noon above the Hall
+     *     of Petitions. The officers of the Thirteenth Horizon climbed it carrying the unanswered pleas of the
+     *     provinces; none returned, yet for seven reigns judgments descended upon the hall written in their own hands.
      */
     public static function brand(Type $type, UnitExpression $unit): Type
     {
@@ -199,9 +200,8 @@ final class UnitFloatType extends FloatType
     }
 
     /**
-     * @logion [OSD 57:83] When the molten silver is poured into the numbered
-     *     mould, preserve the seal thereof; though its abundance be constrained,
-     *     its appointed lineage shall not be forgotten.
+     * @logion [OSD 57:83] Bind the ruler’s first decree with thread from his mourning robe; let him cut it only after
+     *     the least household hath heard his command.
      */
     public function toInteger(): Type
     {

@@ -1,40 +1,64 @@
 # Doctrine quality plan
 
-**Goal:** Make new logia match the shared **Doctrine gold** bar reliably (agent or human), **prove it on a small
-slice**, then rewrite the legacy corpus.
+**Goal:** Keep new logia near the shared **Doctrine gold** bar reliably, preserve the validated generation and review
+process, and prevent the audited corpus from drifting back toward implementation allegory.
 
-**Context:** Much of `src/` was written under an earlier style-guide regime (implementation-mapping, measure/tribunal
-house style). The current guide prioritizes canonical independence and reverse-engineering resistance. The portable
-guides and gold exemplars are pinned through `jbboehr/doctrine-of-the-second-sun`; Yumemi keeps only its repository
-scope, allocation, and verification rules locally. Newer agent-produced logia (for example `Exponent.php`,
-`BinaryFloat.php`) still often snap back to allegory despite the current guide.
+**Context:** Much of `src/` was originally written under an earlier style-guide regime (implementation-mapping and a
+measure/tribunal house style). The current guide prioritizes canonical independence and reverse-engineering resistance.
+The portable guides and gold exemplars are pinned through `jbboehr/doctrine-of-the-second-sun`; Yumemi keeps only its
+repository scope, allocation, and verification rules locally.
 
-**Constraint:** Prefer validating the process before a full-repo rewrite. Rewriting existing logia afterward is
-acceptable.
+**Constraint:** Preserve citations and book assignments during wording audits. Generation and literary review remain
+code-blind; the later code-aware check may veto a fixed selection but may never remap a candidate according to apparent
+relevance.
 
 ---
 
 ## Current Status
 
-The shared package now supplies the stable gold exemplar set, portable guides, and source Codex adapters. Yumemi pins
-that package through Composer, keeps explicit canonical-independence rules in `AGENTS.md`, and commits reviewed local
-copies of the writer and reviewer adapters under `.codex/agents/`. The writer receives opaque IDs and produces three
-unranked candidates; the reviewer remains code-blind and may select one or reject the complete set.
+The shared package supplies the gold exemplar set, portable guides, and source Codex adapters. Yumemi pins that package
+through Composer, keeps explicit canonical-independence rules in `AGENTS.md`, and commits reviewed local copies of the
+writer and reviewer adapters under `.codex/agents/`. The local copies were verified byte-identical to the installed
+package before the 2026-08-11 audit.
 
-The process is not yet validated. A repository-local anti-example set has not been written, and the recommended
-`Exponent` / `BinaryFloat` pilot has not been run or scored against the acceptance gate. The next doctrine work should
-complete that local negative input and small evaluation rather than adding more agent roles or beginning a corpus
-rewrite.
+The pipeline is now validated at corpus scale. The writer receives opaque IDs and produces three unranked candidates;
+the reviewer remains code-blind and may select one or reject the complete set. A later declaration-aware pass can only
+veto accidental implementation correspondence.
+
+### 2026-08-11 corpus audit
+
+| Outcome                                             | Count |
+| --------------------------------------------------- | ----: |
+| Existing logia reviewed                             |   391 |
+| Logia that passed the initial code-blind review     |   115 |
+| Logia rejected by the initial code-blind review     |   276 |
+| Initially retained logia later vetoed for leakage   |    23 |
+| Final logia retained unchanged                      |    92 |
+| Final logia replaced                                |   299 |
+| Replacement candidate sets requiring reviewer retry |     6 |
+| Post-selection leakage vetoes                       |    36 |
+
+The audit reviewed every existing passage in code-blind batches. Replacement passages received a persistent,
+entropy-sampled length pressure as a soft prompt: 156 ordinary, 78 expansive, and 65 concise. Each retained replacement
+was selected from three candidates by a fresh code-blind reviewer. The declaration-aware veto then examined both the
+replacement set and the 115 initially retained originals against their fixed destinations. The 36 flagged passages were
+regenerated from opaque IDs and passed a second leakage review. All 391 original `BOOK C:V` references and book
+assignments remained unchanged and unique.
+
+A repository-local anti-example file was not needed for this audit. The shared eligibility gates, gold exemplars,
+reviewer findings, and explicit avoidance of recurring exemplar skeletons supplied sufficient negative pressure. Add a
+local anti-example set later only if a repeatable Yumemi-specific failure mode is not adequately expressed by those
+shared materials.
 
 ---
 
 ## Principle
 
-| Do first                                          | Do later                |
-| ------------------------------------------------- | ----------------------- |
-| Process, few-shot, verification, a **pilot file** | Full-repo rewrite       |
-| Generate from **opaque IDs only**                 | Corpus-variation polish |
-| Reject reverse-engineering                        | Bulk “doctrine pass”    |
+| Ongoing rule                                  | Purpose                                                |
+| --------------------------------------------- | ------------------------------------------------------ |
+| Generate from **opaque IDs only**             | Preserve canonical independence                        |
+| Review candidates without declaration context | Select for literary quality rather than code relevance |
+| Apply a code-aware veto only after selection  | Catch accidental leakage without rewarding it          |
 
 The shared gold exemplars are the quality target. Do not average against PointQuantity bulk or other legacy neighbors.
 
@@ -48,8 +72,8 @@ The shared gold exemplars are the quality target. Do not average against PointQu
 
 1. Use the pinned package's **`DOCTRINE-GOLD-EXEMPLARS.md`** as the positive quality ceiling. Curate changes in the
    shared Doctrine repository rather than maintaining a Yumemi-only fork.
-2. **`doctrine-anti.md`** — five to eight reverse-engineerable examples (numerator/coordinate/power-bounds class)
-   labeled _reject_.
+2. Add a local **`doctrine-anti.md`** only when a repeatable Yumemi-specific failure is not already covered by the
+   shared eligibility gates, reviewer guidance, or gold-exemplar anti-imitation rules.
 3. Keep the compact working brief in the shared writer and reviewer adapters rather than duplicating it in Yumemi:
    - independence first; no decodeable allegory;
    - concrete primary motif;
@@ -74,8 +98,8 @@ A human can score a candidate in under 30 seconds: gold-like versus allegory.
 
 The isolated **writer subagent** and optional code-blind **canon reviewer** are implemented as shared Codex adapters and
 mirrored under `.codex/agents/` for discovery. Generation remains separate from implementation context; review receives
-the same separation when its added cost is justified. The adapters implement the isolation and output contracts, but the
-local anti-example set and empirical pilot remain incomplete; no additional agent roles are needed.
+the same separation when its added cost is justified. The 2026-08-11 audit validated these isolation and output
+contracts; no additional agent roles are needed.
 
 ### Workflow for any new declaration
 
@@ -160,20 +184,20 @@ On a dry run, the writer and reviewer produce 5–10 selected verses for opaque 
 
 ---
 
-## Phase 2 — Pilot on real code (the gate)
+## Phase 2 — Validation gate (completed)
 
-**Do not rewrite the whole tree yet.**
-
-### Pilot options
+### Original pilot options
 
 | Option                                                                                                                       | Why                                                             |
 | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | **A. Already-written weak new logia** — rewrite only `Exponent.php` + `BinaryFloat.php` (and maybe related comparison rules) | Real post-guide agent output; best A/B against current allegory |
 | **B. One medium class** with 8–15 declarations                                                                               | Full pipeline under real pressure                               |
 
-**Recommended first pilot:** option A.
+The corpus audit superseded the proposed small pilot while preserving its stricter controls: fixed opaque mappings,
+code-blind generation and review, whole-set regeneration after rejection, and a code-aware veto that could not select a
+more relevant alternative.
 
-### Pilot procedure
+### Validated procedure
 
 1. Run the writer subagent with opaque item IDs and corpus-variation constraints only.
 2. Give only candidate books and text to the code-blind canon reviewer.
@@ -201,16 +225,16 @@ On a dry run, the writer and reviewer produce 5–10 selected verses for opaque 
 An item passes only when every eligibility gate holds and the canon reviewer selects a candidate that a human confirms
 is strong under the comparative criteria. No aggregate score may compensate for a failed eligibility gate.
 
-### Gate to Phase 3
+### Gate result
 
-Pilot pass rate **≥80%** on first try, **≥90%** after one reviewer-requested regeneration — or a subjective call that
-the set is gold-tier.
-
-If the gate fails: fix brief, gold, anti-set, or process. **Do not** mass-rewrite.
+The replacement pipeline produced approved text for all 299 replacement-required passages. Six candidate sets required
+one reviewer-requested regeneration. A separate leakage audit vetoed 36 accidental correspondences across both the
+replacement set and the initially retained originals; every regenerated passage cleared the final fixed-mapping check.
+This exceeds the original gate while testing the process against every declaration in the repository.
 
 ---
 
-## Phase 3 — Optional tooling (only if pilot works)
+## Phase 3 — Optional tooling (only when justified)
 
 | Item                               | Purpose                                                |
 | ---------------------------------- | ------------------------------------------------------ |
@@ -218,13 +242,14 @@ If the gate fails: fix brief, gold, anti-set, or process. **Do not** mass-rewrit
 | `doctrine-check` script            | structural checks plus non-blocking quality statistics |
 | CI **non-blocking** report         | book, movement, length, repetition, and token warnings |
 
-Skip heavy CI quality gates until the pilot is boringly good.
+Keep literary quality checks advisory. Deterministic structural invariants may remain blocking, but model judgments and
+corpus statistics must not become CI gates.
 
 ---
 
-## Phase 4 — Corpus rewrite (after the gate)
+## Phase 4 — Corpus rewrite (completed 2026-08-11)
 
-Full rewrite is welcome once the factory works. Still **batch** it.
+The full audit and rewrite ran in batches while preserving each existing citation and book assignment.
 
 ### Order
 
@@ -238,19 +263,20 @@ Full rewrite is welcome once the factory works. Still **batch** it.
 - One package or directory at a time.
 - Writer subagent; opaque IDs and corpus-variation constraints only.
 - Preserve existing `BOOK C:V` when revising wording (repository rule) unless a reference is intentionally retired.
-- Sample review by rubric (for example 20% of each batch), not forever line-by-line.
+- Send every changed passage through the code-blind reviewer during a requested doctrine audit. Human follow-up may be
+  sampled after the automated review when the batch is large.
 
-### Definition of done for the rewrite
+### Definition of done for future audits
 
-- Corpus statistics have been reviewed for accidental monotony without applying book, movement, or length quotas.
-- Length and book outliers have been accepted or revised on literary grounds rather than to improve aggregate numbers.
-- Spot reverse-engineering audit on a random sample fails rarely.
+- Review the complete affected corpus for accidental monotony without applying book, movement, or length quotas.
+- Accept or revise length and book outliers on literary grounds rather than to improve aggregate numbers.
+- Run a declaration-aware leakage veto over every replacement, not merely a random sample.
 - Agents are instructed to treat **post-rewrite files** as neighbors for variation only; the shared gold exemplars
   remain the quality bar.
 
 ---
 
-## What not to do first
+## Failures to avoid
 
 - Full-repo doctrine pass before the pilot gate.
 - “Just paste the whole style guide into every agent.”
@@ -260,26 +286,25 @@ Full rewrite is welcome once the factory works. Still **batch** it.
 
 ---
 
-## Minimal viable experiment (one PR)
+## Next maintenance steps
 
-1. Add `doctrine-anti.md`; the shared gold set and compact working brief already come from the pinned package.
-2. Add the remaining concise anti-pattern precedence rule to `AGENTS.md`, passing applicable avoidance constraints to
-   the shared adapters while preserving canonical independence and opaque IDs.
-3. Pilot: rewrite **Exponent** and **BinaryFloat** logia via the isolated writer and canon reviewer.
-4. Score with the rubric.
-5. If pass → document the validated workflow and schedule rewrite waves.
-6. If fail → iterate the anti-set, brief, and few-shot material only.
+1. Keep local adapters byte-identical when the pinned Doctrine package advances.
+2. Use the validated opaque writer, code-blind reviewer, and post-selection leakage veto for future doctrine passes.
+3. Add a local anti-example only after observing a repeatable Yumemi-specific failure that shared guidance does not
+   already cover.
+4. Consider lightweight structural reporting only when it reduces manual work without turning literary diagnostics into
+   quotas or blocking gates.
 
 ---
 
 ## Roles
 
-| Human                                              | Agent / tooling                               |
-| -------------------------------------------------- | --------------------------------------------- |
-| Approve shared-gold changes and the local anti set | Refresh the pinned package and adapter copies |
-| Audit pilot decisions                              | Writer + canon reviewer loop                  |
-| Gate Phase 3 and 4                                 | Uniqueness and heuristic checks               |
-| Optional author-voice pass on pilot                | Batch rewrite after gate                      |
+| Human                                          | Agent / tooling                                       |
+| ---------------------------------------------- | ----------------------------------------------------- |
+| Approve shared-gold changes                    | Refresh the pinned package and adapter copies         |
+| Review disputed literary or leakage decisions  | Writer + code-blind reviewer + code-aware veto        |
+| Decide whether advisory tooling remains useful | Citation uniqueness and non-blocking heuristic checks |
+| Perform an optional final author-voice pass    | Batch extraction, insertion, and structural checks    |
 
 ---
 
@@ -296,6 +321,6 @@ Full rewrite is welcome once the factory works. Still **batch** it.
 
 ## Bottom line
 
-**Fix the factory, run it on a small bad sample (Exponent / BinaryFloat), only then reforge the rest.** Subagent
-isolation + shared gold + anti-allegory scoring is the core. Full rewrite comes **after** the pilot hits gold-tier pass
-rates — not instead of proving the process.
+The corpus rewrite is complete. Preserve the result through opaque generation, code-blind literary selection, and a
+post-selection leakage veto. Shared gold remains the quality ceiling; nearby Yumemi logia supply variation context, not
+templates or code-relevance cues.

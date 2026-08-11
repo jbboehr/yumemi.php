@@ -64,10 +64,10 @@ final class InvalidUnitMinMaxFunctionRule implements Rule
     private UnitMinMaxFunctionTypeResolverExtension $extension;
 
     /**
-     * @logion [AWC 72:97] In the winter when the northern hospice burned, the
-     *     widows raised its copper basin upon the hill and filled it with snow;
-     *     and every traveler who drank thereof remembered one chamber that the
-     *     fire had spared.
+     * @logion [AWC 72:97] After the Council of White Ash abolished the harbor watch, saying the western beacon had
+     *     become ceremonial, the widows climbed its spiral stair each dusk and counted the darkened ships. No lamp was
+     *     kindled, yet the stair gained one step every year, descending beneath the sea. In the thirtieth winter the
+     *     council hall flooded from below, and the widows named the waters in order.
      */
     public function __construct(UnitMinMaxFunctionTypeResolverExtension $extension)
     {
@@ -75,9 +75,10 @@ final class InvalidUnitMinMaxFunctionRule implements Rule
     }
 
     /**
-     * @logion [SFA 56:48] The margin preserveth the pilgrim's smallest vow,
-     *     though the illuminated page proclaimeth only kings; for heaven
-     *     judgeth not the width of the parchment, but the fidelity of the hand.
+     * @logion [SFA 56:48] The cicada found singing in the winter cloister is not a promise that summer hath returned.
+     *     Keep it beneath the unheated eave and receive its song without haste; for providence sometimes appointeth one
+     *     voice before its season, while frost yet governeth every branch. Open no gate at dawn, but let the afflicted
+     *     hear that silence hath a boundary.
      */
     public function getNodeType(): string
     {

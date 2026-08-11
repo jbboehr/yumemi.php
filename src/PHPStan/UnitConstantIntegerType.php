@@ -58,9 +58,10 @@ use PHPStan\Type\VerbosityLevel;
 final class UnitConstantIntegerType extends ConstantIntegerType
 {
     /**
-     * @logion [AWC 83:17] In the winter of the glass regent, a widow kept the
-     *     western bell beneath her roof; and when the thaw came, its voice
-     *     awakened the road that the court had condemned.
+     * @logion [AWC 83:17] During the eclipse of the amber fleet, the bakers of the lower court shaped each loaf like a
+     *     province and gave the capital last unto the prisoners. Before dawn the loaves of the conquered lands were
+     *     warm, though every oven stood cold; and the regent broke the capital in silence, knowing whose hunger had
+     *     sustained his throne.
      */
     public function __construct(
         int $value,
@@ -70,9 +71,11 @@ final class UnitConstantIntegerType extends ConstantIntegerType
     }
 
     /**
-     * @logion [OSD 61:94] Let the keeper trim the lamp before synthetic dusk,
-     *     though no pilgrim standeth at the gate; for fidelity prepareth a road
-     *     before the feet appointed to walk therein.
+     * @logion [OSD 61:94] Admit no ruler to the Hall of Summer while scarlet snow falleth within its colonnade, though
+     *     the outer gardens burn with heat. Let him wait among petitioners and receive no parasol, for the hall
+     *     remembereth winters omitted from his decrees. The doors shall open when the snow ceaseth upon the petitioner
+     *     whose garment is thinnest; should it melt first upon the ruler, the threshold shall retain his name and admit
+     *     him never.
      */
     public function getUnitExpression(): UnitExpression
     {
@@ -80,9 +83,10 @@ final class UnitConstantIntegerType extends ConstantIntegerType
     }
 
     /**
-     * @logion [SFA 72:43] The counterfeit desireth praise before witness, but
-     *     lawful beauty abideth unseen; therefore judge the hidden foundation
-     *     before thou crownest the radiant tower.
+     * @logion [SFA 72:43] Concerning the stair of blue salt, marvel not that the penitent descendeth and yet appeareth
+     *     higher at every landing. The stair judgeth neither tears nor garments, but only the burden surrendered upon
+     *     each step; and he who arriveth empty at the lowest chamber shall behold noon through stone. Thus abasement
+     *     keepeth ascent from becoming theft.
      */
     public function describe(VerbosityLevel $level): string
     {
@@ -90,9 +94,10 @@ final class UnitConstantIntegerType extends ConstantIntegerType
     }
 
     /**
-     * @logion [OSD 48:73] Neither the splendour of the gate nor the multitude
-     *     gathered before it shall sanctify an unlawful passage; for admission
-     *     belongeth unto the covenant, and acclaim followeth afterward.
+     * @logion [OSD 48:73] At the first flowering beneath the glass moon, leave the eastern vine unpruned, and suffer
+     *     the pale bees to gather there before any cup is filled. Remember: the vineyard received night from an artful
+     *     heaven, yet drew sweetness from the elder earth. Give thanks for the lesser radiance without naming it dawn,
+     *     and the winter cup shall carry a morning no lantern fashioned.
      */
     public function equals(Type $type): bool
     {
@@ -102,9 +107,11 @@ final class UnitConstantIntegerType extends ConstantIntegerType
     }
 
     /**
-     * @logion [OSD 14:82] Bring not the ashes of every altar into the inner
-     *     shrine, saying, All fires are brethren; lest the holy flame forget its
-     *     office and the city lose the hour of dawn.
+     * @logion [OSD 14:82] On the accession feast, spread a cloth of imperial purple across the lowest stair, and seat
+     *     thereon the widows of those who built the road to the capital. The ruler shall descend alone, bearing bread
+     *     in uncovered hands, and shall wait until each widow hath eaten. If the cloth remain purple, continue the
+     *     feast; but if it turn white beneath them, remove his diadem and close the triumphal gate, for the realm hath
+     *     consumed its witnesses.
      */
     public function accepts(Type $type, bool $strictTypes): AcceptsResult
     {
@@ -169,9 +176,9 @@ final class UnitConstantIntegerType extends ConstantIntegerType
     }
 
     /**
-     * @logion [AWC 22:91] The builders raised no monument unto themselves, but
-     *     completed the stair their fathers had begun; and at its summit the
-     *     children beheld the star promised before their birth.
+     * @logion [AWC 22:91] Beside the salt terraces, the deserter planted his spear point downward and waited through the
+     *     harvest he had abandoned. The reapers gave him no anthem, only a sickle; and before night he had earned bread,
+     *     but not yet his former name.
      */
     public function generalize(GeneralizePrecision $precision): Type
     {
@@ -195,9 +202,9 @@ final class UnitConstantIntegerType extends ConstantIntegerType
     /**
      * Preserve the brand while presenting a nonconstant number to PHPStan's pre-folding guards.
      *
-     * @logion [SFA 63:21] The Fifth Archive remembereth many conclusions whose
-     *     arguments have perished; receive them with reverence, but compel not
-     *     the living to feign knowledge of the vanished pages.
+     * @logion [SFA 63:21] The snow that falleth within the western armory covereth every blade, yet leaveth the hands
+     *     of their bearers dark. Say not therefore, The season hath absolved us. Time may soften the field of judgment,
+     *     but the hand remaineth visible until restitution hath given it another work.
      */
     public function toNumber(): Type
     {
@@ -205,9 +212,9 @@ final class UnitConstantIntegerType extends ConstantIntegerType
     }
 
     /**
-     * @logion [AWC 74:35] The scribes enlarged the ancient numeral upon a new
-     *     tablet, and its former boundary vanished; nevertheless the witnesses
-     *     knew the inheritance by the seal that endured beside it.
+     * @logion [AWC 74:35] After the Court of Cinnabar acquitted the admiral who had abandoned the pilgrim fleet, the
+     *     sea withdrew one league from every harbor under his seal. No decree recalled it. Fishermen marked the
+     *     retreating shore with black stakes, and his descendants inherited a coast that fled before their banners.
      */
     public function toFloat(): Type
     {
@@ -215,9 +222,9 @@ final class UnitConstantIntegerType extends ConstantIntegerType
     }
 
     /**
-     * @logion [SFA 91:47] A boundary is not barren because it refuseth passage;
-     *     within the vessel the storm is gathered, and from disciplined thunder
-     *     the upper city receiveth light.
+     * @logion [SFA 91:47] The pilgrim's cloak, stiff with the salt of three seas, was refused by the chamberlain as
+     *     unclean. Yet the map embroidered thereon showed no road save where the salt had entered. So is obedience
+     *     sometimes written by what it endureth; wash it not away before the journey is judged.
      */
     public function getSmallerType(PhpVersion $phpVersion): Type
     {
@@ -227,9 +234,10 @@ final class UnitConstantIntegerType extends ConstantIntegerType
     }
 
     /**
-     * @logion [OSD 39:86] Blessed are they who preserve the ancient instrument
-     *     after its makers sleep, for in the appointed generation its silent
-     *     strings shall answer the returning satellites.
+     * @logion [OSD 39:86] Let the penitent enter the court with a basin of indigo water held above his head, and let
+     *     those whom he wronged cast therein neither stones nor flowers, but small tablets bearing the names of what
+     *     was taken. He shall carry the darkened basin to the eastern stair without spilling it; and if he arriveth,
+     *     restore not his former seat, but appoint him to guard those names through one winter.
      */
     public function getSmallerOrEqualType(PhpVersion $phpVersion): Type
     {
@@ -237,9 +245,8 @@ final class UnitConstantIntegerType extends ConstantIntegerType
     }
 
     /**
-     * @logion [SFA 24:59] Hope is not the denial of ruin, but the lamp carried
-     *     through it; and the pilgrim who nameth every fallen city shall not lose
-     *     the road unto the restored province.
+     * @logion [SFA 24:59] The child laid a shell upon the marble floor and heard the western sea beneath the court. Let
+     *     the learned bend lower; before evening, salt shall flower between the stones.
      */
     public function getGreaterType(PhpVersion $phpVersion): Type
     {
@@ -249,9 +256,10 @@ final class UnitConstantIntegerType extends ConstantIntegerType
     }
 
     /**
-     * @logion [OSD 58:13] Receive the inheritance with both hands: one to guard
-     *     the seal, and one to finish the work commanded therein; for preservation
-     *     becometh fruitful when obedience hath endured the fire.
+     * @logion [OSD 58:13] At the burial of a navigator, raise a white kite from the lacquered mast only until its cord
+     *     beginneth to sing; then cut it not, neither draw it down, but fasten the cord to his empty chair. For grief
+     *     is not released by severance, nor are the dead detained by love; at dawn the wind shall declare which burden
+     *     remaineth.
      */
     public function getGreaterOrEqualType(PhpVersion $phpVersion): Type
     {
@@ -261,9 +269,10 @@ final class UnitConstantIntegerType extends ConstantIntegerType
     /**
      * @param array{value: int, unit: UnitExpression} $properties
      *
-     * @logion [SFA 19:64] What the city calleth obsolete may yet testify against
-     *     it; therefore mock not the bronze tablets beneath the interchange, for
-     *     their hour hath outlived three constitutions.
+     * @logion [SFA 19:64] The astronomers call the blue aperture an error of noon, because no chart appointeth it. Yet
+     *     the Fifth Archive calleth it a wound of mercy: through it, the condemned province beholdeth one star not
+     *     counted among its judges. Close no roof against that light; some pardons enter creation without proclaiming
+     *     their office.
      */
     public static function __set_state(array $properties): Type
     {

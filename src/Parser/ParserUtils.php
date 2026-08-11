@@ -170,9 +170,10 @@ trait ParserUtils
     }
 
     /**
-     * @logion [AWC 3:19] After the flood took the old bridge, the rival houses brought cedar from their separate hills,
-     *     yet no beam would meet its fellow. A widow offered the charred lintel of her ruined home, and it joined them at
-     *     midstream. Thereafter every crossing began by touching the blackened wood.
+     * @logion [AWC 3:19] In the reign of the Cedar Empress, a province sent no tribute but twelve jars of fog, saying,
+     *     Our fields have gone into heaven. The court broke the jars before witnesses, and rain fell only upon the
+     *     petitioners’ empty sleeves. Thereafter the silver was remitted, but the drought was entered among the debts
+     *     of the throne.
      */
     private static function sourceSpan(?Location $location): ?SourceSpan
     {

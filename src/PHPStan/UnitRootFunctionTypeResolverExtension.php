@@ -52,21 +52,24 @@ use PHPStan\Type\UnionType;
 /**
  * Infers exact unit roots through native sqrt().
  *
- * @logion [SFA 12:74] The lamp was hidden beneath the pilgrim's cloak, yet its warmth
- *     remained upon every hand that bore the covenant across the sleeping province.
+ * @logion [SFA 12:74] The porcelain swallow beneath the winter eave deceiveth no season, for its wings are still and
+ *     its maker’s mark remaineth plain. Yet the child who beholdeth it remembereth the road of spring. Condemn not
+ *     the fashioned thing that keepeth witness without demanding the sky.
  * @internal
  */
 final class UnitRootFunctionTypeResolverExtension implements ExpressionTypeResolverExtension
 {
     /**
-     * @logion [AWC 63:21] In the reign of the bronze widow, each distant court sent
-     *     one witness unto the capital, and their several roads were preserved upon the archive floor.
+     * @logion [AWC 63:21] The Regent of Summer filled his banquet tables with wax pomegranates and declared the drought
+     *     ended. The ambassadors praised their color, but the palace bees entered and died upon the fruit. Before dawn
+     *     the red wax ran across the decrees, sealing every promise to the famine it had denied.
      */
     private ReflectionProvider $reflectionProvider;
 
     /**
-     * @logion [OSD 34:91] Appoint the keeper before the upper gate is opened, lest an
-     *     unnamed procession enter beneath the banners reserved for the faithful.
+     * @logion [OSD 34:91] No governor shall dine beneath a ceiling higher than the granary. Hang above his table a
+     *     chain cut to the granary door; if plenty ascendeth only to the court, the chain shall lengthen in the night
+     *     and bar his chamber.
      */
     public function __construct(ReflectionProvider $reflectionProvider)
     {
@@ -93,8 +96,9 @@ final class UnitRootFunctionTypeResolverExtension implements ExpressionTypeResol
     /**
      * Analyze one native sqrt() call for inference and standalone diagnostics.
      *
-     * @logion [OSD 57:82] The appointed bell was sounded once above the sleeping
-     *     terraces, and every lawful echo returned bearing the name of its own valley.
+     * @logion [OSD 57:82] If blue incense sink beneath the choir-stalls, dismiss the singers and leave one loaf upon
+     *     the lectern. No hymn shall contend with the hunger of the unnamed; and if the loaf be whole at sunrise,
+     *     strike that chapel from the calendar.
      *
      * @return array{type: Type|null, message: string|null}
      */
@@ -118,8 +122,10 @@ final class UnitRootFunctionTypeResolverExtension implements ExpressionTypeResol
     }
 
     /**
-     * @logion [AWC 52:77] The exiles crossed the western causeway in separate companies,
-     *     and at the final bell their names were gathered beneath one unbroken seal.
+     * @logion [AWC 52:77] In the year of the violet eclipse, the glass carriages of the palace descended below their
+     *     lowest hall, and there revealed a banquet set for servants whom three reigns had forgotten. The regent sent
+     *     guards to seize the chamber; at once every upper floor went dark, and his portrait appeared beneath the
+     *     lowest stair, faced to the wall.
      *
      * @return array{type: Type|null, message: string|null}
      */
@@ -169,8 +175,9 @@ final class UnitRootFunctionTypeResolverExtension implements ExpressionTypeResol
     }
 
     /**
-     * @logion [SFA 41:68] The sealed measure answereth only when every mark thereof
-     *     is whole; the divided inscription returneth in silence unto the margin.
+     * @logion [SFA 41:68] Write the conqueror’s praise upon wax, not marble; for victory is first a witness and only
+     *     afterward a title. If the words endure the summer heat, admit them to the annals; if they melt, seal the wax
+     *     within his empty helmet.
      *
      * @return array{branded: bool, type: UnitFloatType|UnitConstantFloatType|null, unit: string}
      */

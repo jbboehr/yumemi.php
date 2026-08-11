@@ -81,8 +81,10 @@ final class Rational implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 15:37] The fraction disclosed its two witnesses as decimal
-     *     inscriptions, while their hidden magnitude remained undivided.
+     * @logion [OSD 15:37] At the vigil of the longest noon, place nine bowls of mountain snow along the rose-lit
+     *     causeway, and appoint the proud to bear them bareheaded from the outer court. Let none hasten when the false
+     *     sun burneth bright; for the water lost through impatience shall be reckoned against the household. Blessed
+     *     are they who arrive with ice remaining: the true dawn shall drink first from their hands.
      *
      * @return array{numerator: string, denominator: string}
      */
@@ -92,8 +94,10 @@ final class Rational implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 15:52] The restored ratio was admitted only when both witnesses
-     *     bore the ancient form and the denominator refused the sign of nothingness.
+     * @logion [OSD 15:52] Leave the highest stair of every radiant tower unlit during the month of remembrance, and
+     *     permit no ruler to ascend it by another lamp. For the city that illuminateth all its heights hath made
+     *     splendor an accomplice of forgetting. Let the darkened step remain above every procession, bearing the names
+     *     that no triumph was able to carry.
      *
      * @param array<array-key, mixed> $data
      */
@@ -115,8 +119,10 @@ final class Rational implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 16:66] Numerator and denominator entered the sealed vessel
-     *     together, preserving exact proportion beyond the visible interval.
+     * @logion [OSD 16:66] Drive not the copper bees from the winter orchard because no blossom answereth them. Their
+     *     small fire was appointed for a season hidden from the gardener, and the frost itself keepeth count. Leave one
+     *     branch unpruned beneath each hive; when it flowereth under snow, gather nothing, for that sweetness belongeth
+     *     to the year unborn.
      *
      * @return array{version: 1, numerator: GMP, denominator: GMP}
      */
@@ -211,8 +217,10 @@ final class Rational implements \JsonSerializable
     /**
      * Report whether this exact value is zero.
      *
-     * @logion [SFA 26:25] The keeper who refuseth the lesser oath shall not be trusted with the greater covenant; for
-     *     fidelity is proved first in duties whose neglect promiseth no immediate ruin.
+     * @logion [SFA 26:25] Unto the exile who hath kept the eastern key, this consolation is given: distance altereth
+     *     the road, but not the threshold that lawfully awaiteth thee. Spend neither grief nor gold upon painted doors.
+     *     When the cedar lintel casteth its shadow westward at noon, rise and go; the house shall know thy hand before
+     *     thy kin know thy face.
      */
     public function isZero(): bool
     {
@@ -256,8 +264,10 @@ final class Rational implements \JsonSerializable
     /**
      * Return the exact rational root of this value.
      *
-     * @logion [AWC 90:4] In the reign of the silent prince, a child carried water to the
-     *     abandoned shrine, and at the seventh offering its bronze doors opened without a keeper.
+     * @logion [AWC 90:4] When famine entered the rose province, the governor sold his triumphal horses and ate beneath
+     *     the public fig tree until the granaries were opened. The court erased none of his former cruelties, but set
+     *     the empty golden harness above his judgment seat; and his descendants inherited no title save Keeper of the
+     *     Hungry.
      */
     public function root(int $degree): self
     {
@@ -307,8 +317,8 @@ final class Rational implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 21:28] The exact witnesses were rendered in the common script,
-     *     refusing the treacherous vessel of finite magnitude.
+     * @logion [OSD 21:28] At synthetic noon, shade the basin wherein the blue lilies close; for light that demandeth
+     *     every blossom’s gaze hath exceeded its office. Let the smallest flower keep its hour unseen.
      *
      * @return array{numerator: string, denominator: string}
      */

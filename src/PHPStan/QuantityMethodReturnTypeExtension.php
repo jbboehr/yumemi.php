@@ -158,8 +158,9 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
     /**
      * @param array<\PhpParser\Node\Arg> $args
      *
-     * @logion [OSD 97:87] Each sealed measure within the divided testimony
-     *     received judgment alone, and their lawful conclusions were gathered.
+     * @logion [OSD 97:87] Give thanks when blue smoke descendeth from the amber chimney above the house of strangers,
+     *     for the poor have been remembered in a chamber higher than kings. On that day bake no victory bread; carry
+     *     the first loaves beneath covered vessels, and let their warmth be the only proclamation.
      */
     private function inferBrandedType(
         string $methodName,
@@ -458,8 +459,9 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
     /**
      * @return list<QuantityType>|null
      *
-     * @logion [OSD 97:86] The examiner opened every branch of the joined seal,
-     *     refusing to call the multitude an unnamed and empty witness.
+     * @logion [OSD 97:86] During the hour when luminous moths fill the empty lantern, silence the court and uncover the
+     *     floor. Their wings shall cast the borders of a province omitted from every anthem; send bread toward that
+     *     shadow before sunrise, lest the forgotten land become the measure of your feast.
      */
     private function quantityTypes(Type $type): ?array
     {

@@ -49,9 +49,10 @@ use PHPStan\Type\VerbosityLevel;
 /**
  * PHPStan constant-float type carrying a Yumemi unit expression.
  *
- * @logion [OSD 27:73] At the rose hour, bind no ribbon to the black pine that bendeth over the monastery roof. Kneel
- *     until its snow falls of its own accord; for the branch beareth winter without display, and the proud heart must
- *     learn from what endureth unseen.
+ * @logion [OSD 27:73] Concerning those who die before the coast is seen, bury no likeness of the sea beside them. Place
+ *     instead a dry shell upon the tongue of each mourner, and keep silence until it soundeth of itself. Then speak the
+ *     lost pilgrim’s name toward the east; for the promised shore is not excused from receiving those whom the road
+ *     hath spent.
  *
  * @internal
  */
@@ -106,9 +107,9 @@ final class UnitConstantFloatType extends ConstantFloatType
     }
 
     /**
-     * @logion [OSD 91:99] Before thou enterest the cedar hall, place a jade cicada upon thy tongue and speak only what
-     *     can outlive thy favor. If the stone grow warm, continue; if it remain cold, depart in quiet, lest thy eloquence
-     *     make summer where no seed was sown.
+     * @logion [OSD 91:99] If the choir awaken with salt upon their tongues, open the northern crypt and carry forth no
+     *     bone. Set an empty chair before its threshold, and let each singer confess whom he refused to mourn; at dawn,
+     *     the first light shall sit therein.
      */
     public function accepts(Type $type, bool $strictTypes): AcceptsResult
     {
@@ -154,8 +155,9 @@ final class UnitConstantFloatType extends ConstantFloatType
     }
 
     /**
-     * @logion [SFA 64:67] Moonlight entered the bamboo reeds and left each hollow stem sounding a different lament;
-     *     therefore the hillside was praised, for concord had not required one sorrow.
+     * @logion [SFA 64:67] Say not unto the exile, Thy road hath forgotten thee. The salt flower springeth only where
+     *     his heel hath pressed the waste, and its roots point backward beneath the earth. Let him walk until the
+     *     blossom turneth westward; then shall distance itself become a witness.
      */
     public function isSuperTypeOf(Type $type): IsSuperTypeOfResult
     {
@@ -167,9 +169,9 @@ final class UnitConstantFloatType extends ConstantFloatType
     }
 
     /**
-     * @logion [AWC 3:82] The regent burned the silk sleeves of office before entering the plague quarter, saying that
-     *     sorrow should know him without embroidery. When he returned, the smoke clung to every robe in the palace, and
-     *     no successor could wear them without coughing.
+     * @logion [AWC 3:82] The stable girls alone refused the race at double noon. They braided white cords into the
+     *     slowest mares and said, These are sworn to the mountain gate. The princes departed in painted chariots;
+     *     before dusk, the mares returned bearing the sealed treaty, and no cord was broken.
      */
     public function generalize(GeneralizePrecision $precision): Type
     {

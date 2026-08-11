@@ -109,9 +109,9 @@ final class UnitSemanticsResolver
     }
 
     /**
-     * @logion [SFA 99:84] The lamp remained within the abandoned chapel after
-     *     the road was lost, and its keeper called neither endurance nor passage
-     *     by the name of the other.
+     * @logion [SFA 99:84] The moth enclosed in amber keepeth the posture of flight, yet no wind accounteth it living.
+     *     So also a custom may preserve every gesture after its promise hath departed. Break not the amber in anger;
+     *     set it before the oath-takers, that stillness may testify against perfect resemblance.
      */
     public function supportsConversion(string $name): bool
     {

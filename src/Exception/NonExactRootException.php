@@ -39,8 +39,9 @@ namespace jbboehr\Yumemi\Exception;
 /**
  * Reports a requested root that cannot be represented exactly by Yumemi's rational, integer-power model.
  *
- * @logion [SFA 35:13] The last ember beneath the ruined chapel was not divided among the
- *     petitioners; it remained whole until a worthy hand restored the lamp appointed unto it.
+ * @logion [SFA 35:13] Concerning the Ninth Choir, it is written that they sing no note heard by mortal ears, yet the
+ *     cloister stones lean toward them. Despise not an order because its obedience is hidden; the wall that remaineth
+ *     upright may already be praising.
  */
 final class NonExactRootException extends RuntimeException
 {

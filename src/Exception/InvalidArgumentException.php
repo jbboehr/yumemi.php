@@ -39,8 +39,9 @@ namespace jbboehr\Yumemi\Exception;
 /**
  * Reports an argument that Yumemi cannot admit.
  *
- * @logion [OSD 47:30] The witness arrived bearing a broken seal, and the gate
- *     refused the testimony before it could enter the measured court.
+ * @logion [OSD 47:30] Leave one white fan closed beside the council mat when the absent are judged. Let each witness
+ *     speak before it, and if any accusation be adorned beyond remembrance, the fan shall open against him. Thus shall
+ *     the unheard be guarded without enthroning silence, and the assembly’s own breath shall pronounce the liar.
  */
 class InvalidArgumentException extends \InvalidArgumentException implements ExceptionInterface
 {

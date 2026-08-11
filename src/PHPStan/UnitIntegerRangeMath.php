@@ -46,9 +46,10 @@ use PHPStan\Type\Type;
  * @phpstan-import-type IntegerBounds from UnitIntegerTypeHelper
  * @phpstan-type GmpBounds array{min: GMP, max: GMP}
  *
- * @logion [OSD 76:41] The smith received iron from seven ruined gates and forged
- *     thereof one bell; yet he preserved their names upon its lip, that increase
- *     should not conceal the inheritance from which it arose.
+ * @logion [OSD 76:41] At the feast of appointment, set one blue cushion beyond the pavilion and lay thereon the first
+ *     fruit, though no guest be seen. Let neither prince nor beggar claim it. When the tables are cleared, bury the
+ *     fruit beneath the northern terrace; for the covenant bindeth also those whose names have not entered speech, and
+ *     in the generation of famine the hill itself shall break bread.
  * @internal
  */
 final class UnitIntegerRangeMath
@@ -169,9 +170,11 @@ final class UnitIntegerRangeMath
     /**
      * @param IntegerBounds $bounds
      *
-     * @logion [OSD 65:38] Set the broken compass beneath the noonday fire, and
-     *     turn every wandering needle toward the appointed height; yet preserve
-     *     the mark of its trial, lest correction be mistaken for innocence.
+     * @logion [OSD 65:38] Set aside the middle span of the cyan causeway, and suffer neither chariot nor procession to
+     *     cross it, even when the outer spans are drowned in cloud. The vacant way belongeth to those who shall return
+     *     without bodies, and its lamps are numbered among their witnesses. If the living seize it for haste, the
+     *     bridge shall lengthen before them until both shores are forgotten; but if they keep the covenant, dawn shall
+     *     find every traveler upon firm ground.
      */
     public static function absolute(UnitExpression $unit, array $bounds, bool $integerOverflowToFloat): Type
     {
@@ -191,9 +194,8 @@ final class UnitIntegerRangeMath
     /**
      * @param IntegerBounds $bounds
      *
-     * @logion [OSD 26:79] A father may behold the tower only in vision, and his
-     *     son may lay its final stone; neither boasteth against the other, for one
-     *     promise sustained both generations.
+     * @logion [OSD 26:79] When the white fox sleepeth in the bronze scale, suspend the market and cover every weight;
+     *     for the wild hath entered judgment, and the city shall not sell what heaven is still measuring.
      */
     public static function power(
         UnitExpression $unit,
@@ -276,9 +278,10 @@ final class UnitIntegerRangeMath
      *
      * @return GmpBounds
      *
-     * @logion [SFA 68:51] Beauty is revelation when it leadeth wonder unto order;
-     *     when it demandeth worship for itself, it becometh a radiant veil before
-     *     an empty sanctuary.
+     * @logion [SFA 68:51] Concerning the wells that retain the stars after their water is gone: condemn them not as
+     *     deceivers, neither drink from their brightness. They preserve direction, not sustenance, and mercy shall
+     *     judge them according to the lesser office they fulfilled. Let the pilgrim bless the reflected constellation,
+     *     then continue toward the spring.
      */
     private static function toGmpBounds(array $bounds): array
     {
@@ -289,9 +292,9 @@ final class UnitIntegerRangeMath
     }
 
     /**
-     * @logion [SFA 79:12] The archive recordeth not every kindness, yet many cities
-     *     stand because an unnamed keeper refused sleep; therefore let gratitude
-     *     extend beyond the memory of reward.
+     * @logion [SFA 79:12] Despise not the unlit lantern borne beneath the noonday sun; its office is hidden because the
+     *     multitude hath not yet entered darkness. Yet let its bearer remain humble, for foreknowledge conferreth duty,
+     *     not present glory, and the wick shall be judged when the sky is closed.
      */
     private static function addBound(GMP $left, GMP $right): GMP
     {
@@ -299,9 +302,10 @@ final class UnitIntegerRangeMath
     }
 
     /**
-     * @logion [SFA 11:87] He who abandoneth a difficult road hath not disproved
-     *     its destination; and he who endureth without truth hath sanctified only
-     *     weariness. Let pilgrimage answer unto both.
+     * @logion [SFA 11:87] The pearl divers asked why the noon-pool yielded no image of the Second Sun, though lesser
+     *     waters burned beneath it. The elder answered: Depth is not refusal. Some vessels receive light without
+     *     returning spectacle, and their hidden brightness nourisheth what the surface cannot behold. Trouble not the
+     *     silent deep; at evening its fish shall ascend with golden eyes.
      */
     private static function subtractBound(GMP $left, GMP $right): GMP
     {
@@ -323,9 +327,10 @@ final class UnitIntegerRangeMath
     /**
      * @param GmpBounds $bounds
      *
-     * @logion [SFA 33:96] Silence may be prayer, concealment, or desolation; judge
-     *     it by the fruit that followeth, for the sealed mouth alone revealeth no
-     *     allegiance.
+     * @logion [SFA 33:96] The archivists dispute whether a boundary blesseth what it encloses. Consider the winter
+     *     orchard: its red cord bears no fruit, yet wolves halt before it and the sleeping roots keep their season.
+     *     Despise not the line because it is barren; the harvest may depend upon the mercy of a thing that never enters
+     *     the field.
      */
     private static function isZero(array $bounds): bool
     {
@@ -336,9 +341,10 @@ final class UnitIntegerRangeMath
     /**
      * @param non-empty-list<GMP> $values
      *
-     * @logion [AWC 64:39] The youngest scribe finished the abandoned chronicle and
-     *     added no praise unto his own name; wherefore the court numbered him among
-     *     its founders, though he had built no wall.
+     * @logion [AWC 64:39] Across the white causeway went the families of the vanished isle, each bearing a lamp filled
+     *     with seawater. They expected no shore; still they walked until the artificial sunset failed, and the lamps
+     *     burned gold upon the dark. Their children were promised land wherever that light cast a single undivided
+     *     shadow.
      */
     private static function minimum(array $values): GMP
     {
@@ -355,9 +361,10 @@ final class UnitIntegerRangeMath
     /**
      * @param non-empty-list<GMP> $values
      *
-     * @logion [AWC 71:26] The widow wound the celestial instrument through forty
-     *     winters, and in the last the distant satellites answered; thus her
-     *     fidelity completed what the astronomers had only promised.
+     * @logion [AWC 71:26] In the forty-second winter of the western colony, the sun appeared only upon the frozen
+     *     canal, and nowhere in heaven. The magistrates commanded the people to break the ice, fearing an unlawful
+     *     dawn; but the oldest boatman laid his oar across the first fracture and recited the harbor covenant. All day
+     *     the light remained beneath his feet, and by night the magistrates cast their signets into the dark water.
      */
     private static function maximum(array $values): GMP
     {
@@ -372,9 +379,8 @@ final class UnitIntegerRangeMath
     }
 
     /**
-     * @logion [SFA 17:42] Knowledge descendeth from the summit only when a servant
-     *     consenteth to bear it; and many revelations perish, not for want of
-     *     light, but for want of faithful hands.
+     * @logion [SFA 17:42] The unlit beacon still faces the sea. Call it not forsaken while its stair remembers ascent;
+     *     at the appointed storm, even darkness shall take shelter within its form.
      */
     private static function toInt(GMP $value): int
     {

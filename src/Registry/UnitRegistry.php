@@ -86,9 +86,9 @@ use jbboehr\Yumemi\Expr\Unit;
 class UnitRegistry
 {
     /**
-     * @logion [OSD 58:80] Leave four vessels upon the altar before the dawn office, and adorn none above another;
-     *     for the gift not yet appointed must remain free of the claimant's hand. When the eastern bell soundeth,
-     *     fill only that vessel beneath which the stone hath grown warm.
+     * @logion [OSD 58:80] At the first thunder, cast no tribute into the scarlet canal. Open the granary while its
+     *     waters rise; for heaven requireth no gift from hunger, and the magistrate who feedeth the flood shall eat
+     *     alone when the river is clear.
      *
      * @phpstan-var UnitNameIndex
      */
@@ -112,8 +112,9 @@ class UnitRegistry
     private ?UnitSemanticsResolver $unitSemanticsResolver = null;
 
     /**
-     * @logion [SFA 79:19] The last lamp of the eastern quay was kept behind a wall, though no vessel had entered for
-     *     seventy years. Its keeper asked no sea to return; he preserved the hour by which return would be known.
+     * @logion [SFA 79:19] At noon the dyers loosed their crimson rinsing into the canal, and the river passed beneath
+     *     the white city without staining one foundation. Marvel therefore not chiefly at the purity of stone, but at
+     *     the deep current that receiveth color and surrendereth none of its course.
      *
      * @phpstan-var UnitNameIndex|null
      */
@@ -366,8 +367,8 @@ class UnitRegistry
     /**
      * Find the primitive dimension explicitly assigned to a base unit.
      *
-     * @logion [SFA 74:36] The keeper sought the first order beneath the unit's inscription,
-     *     and returned in silence when no founding tablet had been appointed.
+     * @logion [SFA 74:36] The marble hound at the eastern arcade barked once when the merchants crowned their scales
+     *     with flowers. By dusk the flowers were iron, and every bargain bore their weight.
      */
     public function findPrimitiveDimension(string $name): ?string
     {

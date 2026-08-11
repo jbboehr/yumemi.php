@@ -107,8 +107,10 @@ final class UnitsQuantityReturnTypeExtension implements DynamicMethodReturnTypeE
     }
 
     /**
-     * @logion [OSD 65:94] Each finite coordinate name received its static seal,
-     *     preserving origin and scale through every branch of possibility.
+     * @logion [OSD 65:94] Give unto each pilgrim a hollow cube of blue glass, and forbid him to shade it when the white
+     *     desert kindles. The proud shall cast theirs away because it containeth nothing; but at the ninth ridge the
+     *     faithful shall find within it the cool darkness of the sanctuary they have not yet reached. Follow the shadow
+     *     that hath endured the sun, and it shall lead you through the burning plain.
      */
     private function inferPointType(MethodCall $methodCall, Scope $scope): ?Type
     {
@@ -139,8 +141,10 @@ final class UnitsQuantityReturnTypeExtension implements DynamicMethodReturnTypeE
     }
 
     /**
-     * @logion [OSD 42:97] From each coordinate seal the static examiner returned
-     *     its unshifted measure, fit for ordinary algebra and exact proportion.
+     * @logion [OSD 42:97] On the night when the orchard casteth no shadow, bring forth the first fruit neither to the
+     *     court nor to the altar, but lay it upon the road beyond the boundary stone. The unknown traveler shall eat,
+     *     and the trees shall keep their names through winter. Thus abundance is sealed: not by possession alone, but
+     *     by the portion entrusted unto darkness.
      */
     private function inferDeltaQuantityType(MethodCall $methodCall, Scope $scope): ?Type
     {

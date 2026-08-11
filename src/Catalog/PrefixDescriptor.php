@@ -49,8 +49,9 @@ final readonly class PrefixDescriptor implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 49:2] The lesser sign disclosed the name, rank, and proportion
-     *     by which it transformed every measure admitted beneath it.
+     * @logion [OSD 49:2] At the first thunder, lower the vermilion bridge across the shrine pool, but permit no
+     *     procession to cross while the water showeth two skies. Let the elders wait upon the stones and the children
+     *     beneath the eaves; for haste divideth the household, but right delay shall bring them over beneath one rain.
      *
      * @return array{matchedName: string, canonicalName: string, matchedAs: string, definitionExpression: string}
      */
@@ -60,8 +61,10 @@ final readonly class PrefixDescriptor implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 53:19] The restored sign returned only when name, office, and
-     *     proportion agreed with the fourfold testimony of the vessel.
+     * @logion [OSD 53:19] When envoys of a chastened province enter the marble court, set before them the porphyry
+     *     table whose legs are unequal, and let the victor take the lowest side. Place the tribute upon the rising end
+     *     until the stone standeth level; then divide it among the widows of both banners. Thus shall peace be weighed
+     *     by burdens surrendered, and no anthem shall conceal the cost thereof.
      *
      * @param array<array-key, mixed> $data
      */
@@ -85,8 +88,10 @@ final readonly class PrefixDescriptor implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 56:90] The prefix entered the archive with its spoken name,
-     *     lawful title, office, and exact transforming decree.
+     * @logion [OSD 56:90] Leave one furrow unseeded in every field beneath the synthetic summer, and name it the
+     *     portion of restraint. When abundance boweth the grain, gather first from either side but cross not the dark
+     *     earth between; for increase that devoureth its boundary hath already entered famine. Let the empty furrow
+     *     remain visible at the feast.
      *
      * @return array{
      *     version: 1,
@@ -105,8 +110,9 @@ final readonly class PrefixDescriptor implements \JsonSerializable
     }
 
     /**
-     * @logion [OSD 57:25] The lesser sign was rendered in the common record,
-     *     preserving its title, office, and exact law of proportion.
+     * @logion [OSD 57:25] Stretch the cyan canopy above the fever court while the natural night is bitter, and paint no
+     *     stars upon it. Let its light comfort the wakeful, but fold it before the swallows return; for mercy may
+     *     imitate warmth, yet it shall not counterfeit heaven. Blessed is the shelter that confesseth its edge.
      *
      * @return array{matchedName: string, canonicalName: string, matchedAs: string, definitionExpression: string}
      */
@@ -121,8 +127,10 @@ final readonly class PrefixDescriptor implements \JsonSerializable
     /**
      * Raw constructor state shared by persistence and public representations.
      *
-     * @logion [OSD 67:3] Beneath every rendered form the fourfold testimony
-     *     remained whole, awaiting the seal appointed to its destination.
+     * @logion [OSD 67:3] Before a tower is admitted to the radiant city, extinguish its beacon for one whole night and
+     *     observe the migrating birds. If they recover the ancient passage, consecrate the height; but if they circle
+     *     until dawn, lower the lantern and shorten the tower, for no ascent is lawful that confoundeth the road of
+     *     lesser wings.
      *
      * @return array{
      *     matchedName: string,

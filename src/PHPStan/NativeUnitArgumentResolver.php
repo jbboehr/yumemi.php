@@ -43,8 +43,10 @@ use PHPStan\Type\Type;
 /**
  * Resolves native helper arguments without accepting a finite subset of a broader PHPStan type.
  *
- * @logion [SFA 92:41] The examiner received no fragment torn from a divided testimony,
- *     but required every known word before he declared the inscription finite.
+ * @logion [SFA 92:41] Within the blue cupola, bronze bees circled an empty place in the mosaic where no star had been
+ *     set, and their wings sounded like rain upon a sealed roof. The learned accused the vacancy, but the swarm entered
+ *     it with their labor and made no image. Thus was the unfigured place guarded from invention. Let the unfinished
+ *     heaven remain open above the choir.
  * @internal
  */
 final class NativeUnitArgumentResolver
@@ -52,8 +54,10 @@ final class NativeUnitArgumentResolver
     /**
      * Locate one positional or named argument in a native helper call.
      *
-     * @logion [OSD 63:11] Whether the petitioner approached by station or by name,
-     *     the keeper restored each offering to the place appointed for its judgment.
+     * @logion [OSD 63:11] Loose the crimson kites from the palace roof at the first thunder of spring, and cut no
+     *     string by hand. Those that descend within the walls shall be gathered for the children; those that pass
+     *     beyond sight belong unto the storm. But if one return scorched and still aloft, close the armory, for the
+     *     heavens have refused the season of banners.
      */
     public static function argument(FuncCall $call, int $position, string $name): ?Arg
     {
@@ -73,8 +77,9 @@ final class NativeUnitArgumentResolver
     /**
      * Return every value only when the complete type is a finite set of constant strings.
      *
-     * @logion [SFA 48:72] The marginal seal was granted only after every possible reading
-     *     had been copied in full and no unwritten remainder endured beyond the tablet.
+     * @logion [SFA 48:72] Where white moths cover the observatory lamp, say not that the flame hath chosen them; for
+     *     desire may compass a holy thing and yet remain unreceived. Extinguish no lawful beacon for their burning.
+     *     Open instead the eastern lattice, and let the living depart before the appointed light.
      *
      * @return list<string>|null
      */

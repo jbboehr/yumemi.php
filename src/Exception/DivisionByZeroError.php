@@ -39,8 +39,10 @@ namespace jbboehr\Yumemi\Exception;
 /**
  * Reports an explicitly rejected division by zero.
  *
- * @logion [OSD 35:26] Where the lower measure vanished, the ratio broke its covenant
- *     and no lawful proportion could cross the empty place.
+ * @logion [OSD 35:26] At the consecration of a new tower, carry the first stone unto the chamber of stars and the final
+ *     stone unto the crypt, that height and depth may bear witness one to another. Then suffer the builders to depart
+ *     before the lamps are kindled. If their footsteps are heard above, bless the tower; if beneath, seal it against
+ *     habitation, for its foundations have desired the crown.
  */
 class DivisionByZeroError extends \DivisionByZeroError implements ExceptionInterface
 {

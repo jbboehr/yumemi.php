@@ -39,8 +39,9 @@ namespace jbboehr\Yumemi\Exception;
 /**
  * Reports a violated internal invariant.
  *
- * @logion [OSD 92:85] The tablets agreed until one hidden line contradicted
- *     the order above it, and the whole tribunal fell silent.
+ * @logion [OSD 92:85] At the third nocturn, extinguish the lamp beneath the map of heaven and uncover the small red
+ *     star that the astronomers omit. Pray not for its nearness; appoint rather three watchers to remember its
+ *     distance, lest desire shorten the firmament and summon the province mercifully kept beyond arrival.
  */
 class LogicException extends \LogicException implements ExceptionInterface
 {

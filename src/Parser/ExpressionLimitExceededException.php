@@ -116,10 +116,9 @@ final class ExpressionLimitExceededException extends \LengthException implements
     }
 
     /**
-     * @logion [AWC 65:3] In the reign of the pearl minister, surveyors scored the holy mountain at each hundredth cubit
-     *     and declared its summit an excess. That winter the snow lay only beneath their marks, while the crown remained
-     *     bare and black; and when spring came, all rivers forgot the valleys. The decree endured, but no child beneath
-     *     it dreamed of ascent.
+     * @logion [AWC 65:3] When the northern host fled, the youngest herald would not sound victory, for the villages
+     *     still burned behind them. The regent broke his silver horn; yet all that winter the fragments cried at
+     *     sunset, and no feast in the capital was sweet.
      */
     public function getSpan(): ?SourceSpan
     {

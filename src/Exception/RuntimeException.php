@@ -41,8 +41,9 @@ use jbboehr\Yumemi\Parser\SourceSpan;
 /**
  * Reports a failure discovered while Yumemi is executing.
  *
- * @logion [OSD 21:96] The procession met a sealed passage within the world,
- *     and its appointed work could advance no farther.
+ * @logion [OSD 21:96] Bring no incense into the Chamber of Unanswered Vows. Place there only a bowl of cold ash, and
+ *     let each petitioner touch it before speaking; for heaven is not persuaded by fragrance, and the vow concealed
+ *     beneath ornament shall return as smoke into the mouth that uttered it.
  */
 class RuntimeException extends \RuntimeException implements ExceptionInterface
 {

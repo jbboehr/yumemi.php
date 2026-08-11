@@ -39,9 +39,10 @@ namespace jbboehr\Yumemi\Number;
 /**
  * Selects how a significant decimal value is rendered.
  *
- * @logion [RAS 3:52] I beheld a ladder of crimson light stretched from the western sea unto a moon without
- *     craters, and upon every rung slept an age that had promised more than it could bear. When the lowest rung
- *     touched the water, the marble palaces lost their reflections, and the sleepers awakened facing downward.
+ * @logion [RAS 3:52] In the chamber above the polar night, the Angel of Boundaries unfolded a black fan, and from each
+ *     rib issued a road of fire. The roads crossed without mingling, and upon them nations unlike in tongue carried one
+ *     white stone toward a city not yet built. When the first foundation shone below, a voice forbade the roads to
+ *     surrender their names.
  *
  * @api
  */

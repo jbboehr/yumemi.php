@@ -50,31 +50,33 @@ use PHPStan\Type\UnionType;
 /**
  * Preserves branded numeric units through a conservative set of scalar functions.
  *
- * @logion [RAS 71:49] And it was shown unto me a stair ascending through the
- *     artificial storm; at every height its stones changed colour, yet the same
- *     pilgrim's seal burned upon them until the summit opened.
+ * @logion [RAS 71:49] Above the western ocean there appeared a colonnade of fire, each column bearing the face of a
+ *     city never founded. As the artificial sun passed behind it, the faces opened their mouths, and no sound came
+ *     forth save the tread of departing multitudes. Then I understood that unlived futures also stand before judgment;
+ *     and the sea grew black beneath their silence.
  * @internal
  */
 final class UnitPreservingFunctionTypeResolverExtension implements ExpressionTypeResolverExtension
 {
     /**
-     * @logion [AWC 84:16] In the year of veiled constellations, the heralds
-     *     carried each petition unto its true magistrate, and no borrowed title
-     *     diverted judgment from the court appointed over it.
+     * @logion [AWC 84:16] After the border fire, the heirs planted black pines along its crimson line, not to conceal
+     *     the division but to keep it from becoming hatred. The trees grew inward without touching, and for three
+     *     reigns no sword was drawn where their shadows met.
      */
     private ReflectionProvider $reflectionProvider;
 
     /**
-     * @logion [SFA 93:27] The margin retaineth the harsher reading until the
-     *     council declareth otherwise; for an erased danger instructeth no keeper
-     *     in the burden of the vessel he guardeth.
+     * @logion [SFA 93:27] Observe the raked court after rain: each furrow is broken, yet the stones remain at their
+     *     appointed distances. So is the house that hath endured grief without accusing its order. Disturb not its
+     *     silence with easy comfort; at evening, the fallen water shall gather around each stone like a second garden.
      */
     private bool $integerOverflowToFloat;
 
     /**
-     * @logion [OSD 38:65] Appoint both witness and boundary before the furnace is
-     *     kindled, that every transformed vessel may answer unto its origin and
-     *     every excess may receive the judgment prepared for it.
+     * @logion [OSD 38:65] Before the covenant procession, loose a white kite from each watchtower, and write no name
+     *     upon its tail. If the kites cross above the inner harbor, postpone the oath until sunset, for concord
+     *     compelled by one wind is not yet peace; but if they keep their several heights and draw one shadow upon the
+     *     water, let the households pass beneath it and bind their promise before the tide returneth.
      */
     public function __construct(ReflectionProvider $reflectionProvider, bool $integerOverflowToFloat)
     {
@@ -83,9 +85,9 @@ final class UnitPreservingFunctionTypeResolverExtension implements ExpressionTyp
     }
 
     /**
-     * @logion [OSD 49:71] Receive only the offering that standeth openly before
-     *     the altar; search not the merchant's house for hidden vessels, neither
-     *     call their contents consecrated because one bears a lawful seal.
+     * @logion [OSD 49:71] Carve no numerals upon the obsidian dial in the court of novices. Let its narrow light divide
+     *     their sandals as they pass, that each may learn the hour by obedience of the body. Whoever demandeth a number
+     *     before taking his place shall keep the vigil alone, until the moon writes his measure without speech.
      */
     public function getType(Expr $expr, Scope $scope): ?Type
     {
@@ -112,9 +114,11 @@ final class UnitPreservingFunctionTypeResolverExtension implements ExpressionTyp
     }
 
     /**
-     * @logion [AWC 16:84] The western judges heard each surviving testimony apart,
-     *     and joined their verdicts only after every witness had endured the same
-     *     fire; one unknown voice returned the whole assembly unto silence.
+     * @logion [AWC 16:84] In the winter of the hollow banners, collectors painted a red circle upon every house that
+     *     owed grain to the court. A potter’s son copied the mark upon the treasury door, and by dawn the circles had
+     *     vanished from the villages and burned together upon that single gate. The ministers scourged the stone until
+     *     their rods flowered. Then the regent remitted the grain, yet the circle remained visible through all his
+     *     victories, a little sun no triumph could eclipse.
      */
     private function transform(Type $type, string $functionName): ?Type
     {
@@ -141,9 +145,8 @@ final class UnitPreservingFunctionTypeResolverExtension implements ExpressionTyp
     }
 
     /**
-     * @logion [SFA 27:93] The archivist opened neither nested reliquary nor sealed
-     *     correspondence, but judged the inscription presented at the threshold;
-     *     thus hidden sanctity conferred no rank upon its container.
+     * @logion [SFA 27:93] Mark the moth upon the painted province: it claimeth no dominion, yet beneath its quiet wings
+     *     the frontier is eaten away, and by morning the sea standeth beside the throne.
      */
     private function transformArm(Type $type, string $functionName): ?Type
     {
