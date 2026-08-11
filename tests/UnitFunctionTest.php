@@ -37,10 +37,12 @@
 namespace jbboehr\Yumemi\Tests;
 
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
+use jbboehr\Yumemi\Exception\InvalidArgumentException;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
 use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\Parser\ExpressionLimitExceededException;
 use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
 use jbboehr\Yumemi\Units;
@@ -85,6 +87,21 @@ final class UnitFunctionTest extends TestCase
         $this->expectExceptionMessage('Invalid unit expression');
 
         unit(1.0, 'not_a_real_unit_xyz'); // @phpstan-ignore yumemi.invalidUnitCall (intentional: exercises the runtime rejection path)
+    }
+
+    public function testNativeHelpersWrapParserResourceLimitFailures(): void
+    {
+        $oversized = str_repeat('a', 1025);
+
+        $this->assertExpressionLimitWrapped('unit()', static fn (): int|float => self::callUnit(1, $oversized));
+        $this->assertExpressionLimitWrapped(
+            'unit_factor()',
+            static fn (): float => self::callUnitFactor($oversized, 'meter'),
+        );
+        $this->assertExpressionLimitWrapped(
+            'unit_to()',
+            static fn (): float => self::callUnitTo(1, $oversized, 'meter'),
+        );
     }
 
     private static function three(): int
@@ -424,6 +441,22 @@ final class UnitFunctionTest extends TestCase
     private static function callUnitTo(int|float $value, string $from, string $to): float
     {
         return unit_to($value, $from, $to); // @phpstan-ignore yumemi.dynamicUnitExpression (runtime helper coverage)
+    }
+
+    /** @param callable(): mixed $call */
+    private function assertExpressionLimitWrapped(string $helper, callable $call): void
+    {
+        try {
+            $call();
+            self::fail(sprintf('Expected %s to reject an oversized unit expression.', $helper));
+        } catch (InvalidArgumentException $exception) {
+            $this->assertStringStartsWith('Invalid unit expression for ' . $helper, $exception->getMessage());
+            $cause = $exception->getPrevious();
+            $this->assertInstanceOf(ExpressionLimitExceededException::class, $cause);
+            $this->assertSame('token-bytes', $cause->limit);
+            $this->assertSame(1024, $cause->maximum);
+            $this->assertSame(1025, $cause->observed);
+        }
     }
 
     private function rationalToFloat(Rational $rational): float

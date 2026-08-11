@@ -70,6 +70,7 @@
             { id: "parsing-resolution-and-formatting", title: "Parsing, Resolution, And Formatting" },
             { id: "unicode-syntax", title: "Unicode Syntax" },
             { id: "semantic-capabilities", title: "Semantic Capabilities" },
+            { id: "resource-limits", title: "Resource Limits" },
             { id: "errors-and-source-locations", title: "Errors And Source Locations" },
         ],
         "reference/runtime.html": [

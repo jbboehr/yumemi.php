@@ -45,6 +45,8 @@ use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
 use jbboehr\Yumemi\Exception\UnresolvableUnitDimensionException;
 use jbboehr\Yumemi\Formatter\ExprRenderer;
+use jbboehr\Yumemi\Parser\ExpressionLimitExceededException;
+use jbboehr\Yumemi\Parser\Lexer;
 use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Parser\Parser;
 use jbboehr\Yumemi\Units;
@@ -67,11 +69,12 @@ final class UnitExpressionParser
 
     public function parse(string $unitString): UnitExpressionParseResult
     {
-        if (trim($unitString) === '') {
-            return UnitExpressionParseResult::invalid('Unit expression must not be empty.');
-        }
-
         return $this->guardParse(function () use ($unitString): UnitExpressionParseResult {
+            Lexer::assertInputLength($unitString);
+            if (trim($unitString) === '') {
+                return UnitExpressionParseResult::invalid('Unit expression must not be empty.');
+            }
+
             $expr = $this->units->parse($unitString);
             $dimension = $this->units->dimension($expr);
             $normalized = $this->units->normalize($expr);
@@ -91,11 +94,12 @@ final class UnitExpressionParser
 
     public function parseQuantityUnit(string $quantityString): UnitExpressionParseResult
     {
-        if (trim($quantityString) === '') {
-            return UnitExpressionParseResult::invalid('Quantity expression must not be empty.');
-        }
-
         return $this->guardParse(function () use ($quantityString): UnitExpressionParseResult {
+            Lexer::assertInputLength($quantityString);
+            if (trim($quantityString) === '') {
+                return UnitExpressionParseResult::invalid('Quantity expression must not be empty.');
+            }
+
             $quantity = $this->units->parseQuantity($quantityString);
 
             return $this->parse(ExprRenderer::format($quantity->unit()));
@@ -110,11 +114,12 @@ final class UnitExpressionParser
      */
     public function parsePoint(string $unitString): PointUnitExpressionParseResult
     {
-        if (trim($unitString) === '') {
-            return PointUnitExpressionParseResult::invalid('Point unit must not be empty.');
-        }
-
         try {
+            Lexer::assertInputLength($unitString);
+            if (trim($unitString) === '') {
+                return PointUnitExpressionParseResult::invalid('Point unit must not be empty.');
+            }
+
             $point = $this->units->point(0, $unitString);
             $deltaQuantity = $this->units->deltaQuantity(1, $unitString);
             $deltaResult = $this->parse(ExprRenderer::format($deltaQuantity->unit()));
@@ -141,6 +146,8 @@ final class UnitExpressionParser
             | UnsupportedUnitConversionException
             | UnresolvableUnitDimensionException $exception
         ) {
+            return PointUnitExpressionParseResult::invalid($exception->getMessage(), $exception->span);
+        } catch (ExpressionLimitExceededException $exception) {
             return PointUnitExpressionParseResult::invalid($exception->getMessage(), $exception->span);
         } catch (\InvalidArgumentException $exception) {
             return PointUnitExpressionParseResult::invalid($exception->getMessage());
@@ -170,6 +177,8 @@ final class UnitExpressionParser
             | UnsupportedUnitConversionException
             | UnresolvableUnitDimensionException $exception
         ) {
+            return UnitExpressionParseResult::invalid($exception->getMessage(), $exception->span);
+        } catch (ExpressionLimitExceededException $exception) {
             return UnitExpressionParseResult::invalid($exception->getMessage(), $exception->span);
         } catch (ParseException $exception) {
             $message = $exception->getMessage();

@@ -215,7 +215,10 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
 
         $this->assertStringContainsString('yumemi.dynamicUnitExpression', $output, $output);
         $this->assertStringContainsString('yumemi.ambiguousUnitExpression', $output, $output);
-        $this->assertStringContainsString('Found 4 errors', $output, $output);
+        $this->assertStringContainsString('yumemi.invalidUnitCall', $output, $output);
+        $this->assertStringContainsString('identifier or numeric token byte length', $output, $output);
+        $this->assertStringContainsString('(observed 1025)', $output, $output);
+        $this->assertStringContainsString('Found 5 errors', $output, $output);
     }
 
     public function testNativeDynamicUnitExpressionDiagnosticCanBeDisabled(): void
@@ -227,7 +230,8 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
 
         $this->assertStringNotContainsString('yumemi.dynamicUnitExpression', $output, $output);
         $this->assertStringContainsString('yumemi.ambiguousUnitExpression', $output, $output);
-        $this->assertStringContainsString('Found 1 error', $output, $output);
+        $this->assertStringContainsString('yumemi.invalidUnitCall', $output, $output);
+        $this->assertStringContainsString('Found 2 errors', $output, $output);
     }
 
     private function analyse(

@@ -41,7 +41,10 @@ needs arise.
 Every throwable explicitly created by Yumemi implements `jbboehr\Yumemi\Exception\ExceptionInterface`. Yumemi's wrappers
 also extend their corresponding native PHP classes, so callers may catch the common interface, a specific Yumemi
 exception, or a native parent such as `InvalidArgumentException`. Errors raised directly by PHP or a dependency are not
-covered by this marker.
+covered by this marker. Direct parser-backed APIs report the shared
+[parser resource limits](unit-syntax.md#resource-limits) with `Parser\ExpressionLimitExceededException`, a
+`LengthException` subtype. The native helpers retain their existing `InvalidArgumentException` boundary and chain the
+limit exception as the cause.
 
 ## Contexts And Construction
 

@@ -38,7 +38,8 @@ The principal supported surfaces are:
 - `UnitRegistryBuilder`, the documented `UnitRegistry` views, `CompositeUnitRegistry`, and `Udunits2UnitRegistry`;
 - `FormatOptions`, `ExprFormatter`, `DecimalNotation`, and the formatting policy enums;
 - descriptors and backed enums returned by `describe()` and `describePrefix()`; and
-- `ExceptionInterface`, documented exception categories and metadata, `ParseException`, and `SourceSpan`.
+- `ExceptionInterface`, documented exception categories and metadata, `ParseException`,
+  `ExpressionLimitExceededException`, and `SourceSpan`.
 
 Only documented construction paths are supported. In particular:
 
@@ -128,7 +129,7 @@ The following changes are compatibility-sensitive:
 
 - rejecting syntax previously documented and accepted;
 - accepting existing text with a different grouping or meaning;
-- changing exponent limits, source-span conventions, or exact numeric interpretation;
+- changing parser resource or exponent limits, source-span conventions, or exact numeric interpretation;
 - changing reduction or normalization results represented by the conformance corpus; and
 - changing documented parser-compatible formatter output so that it no longer round-trips.
 

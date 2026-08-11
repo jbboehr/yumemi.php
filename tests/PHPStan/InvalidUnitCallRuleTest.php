@@ -255,4 +255,22 @@ final class InvalidUnitCallRuleTest extends RuleTestCase
             ],
         ]);
     }
+
+    public function testExpressionLimitIsReportedAsAnInvalidUnitCall(): void
+    {
+        $this->analyse([__DIR__ . '/Fixtures/ExpressionLimitExceeded.php'], [
+            [
+                'Unit expression exceeds the identifier or numeric token byte length limit of 1024 (observed 1025).',
+                11,
+            ],
+            [
+                'Unit expression exceeds the identifier or numeric token byte length limit of 1024 (observed 1025).',
+                12,
+            ],
+            [
+                'Unit expression exceeds the identifier or numeric token byte length limit of 1024 (observed 1025).',
+                13,
+            ],
+        ]);
+    }
 }

@@ -137,6 +137,37 @@ exponents and explicit approximate powers remain deferred, and a `float` exponen
 exponents are limited to the inclusive range `-10000` through `10000`, including powers formed by reducing nested
 expressions; root degrees are limited to `1` through `10000`.
 
+## Resource Limits
+
+Every unit-expression entry point uses the same fixed parser budget:
+
+| Resource                        | `$limit` key    |     Maximum |
+| ------------------------------- | --------------- | ----------: |
+| Complete input                  | `input-bytes`   | 4,096 bytes |
+| Non-whitespace lexical tokens   | `token-count`   |         256 |
+| Parenthesis nesting             | `nesting-depth` |          64 |
+| One identifier or numeric token | `token-bytes`   | 1,024 bytes |
+
+The `$limit` keys in the table are the stable discriminator values emitted by Yumemi.
+
+Source bytes include whitespace and multibyte UTF-8 encoding. Operators and parentheses count as tokens. The token limit
+also bounds the size and depth of the resulting expression tree.
+
+The shared parser reports an exceeded limit with `Parser\ExpressionLimitExceededException`, which extends PHP's
+`LengthException` and implements Yumemi's common `ExceptionInterface`. Its `limit`, `maximum`, and `observed` properties
+identify the failed budget. A token-level failure also provides a `span`; an input-length failure occurs before
+tokenization and has no source span. The span is available through both the `span` property and `getSpan()`. Direct
+parser-backed APIs such as `Units::parse()` throw this exception. The native `unit()`, `unit_factor()`, and `unit_to()`
+helpers preserve their `InvalidArgumentException` boundary and retain the limit exception as the previous exception.
+
+When a limit is exceeded inside a catalog or custom definition while resolving a parsed outer expression, the outer
+exception's span identifies the unit name supplied by the caller. The definition-local limit failure remains available
+as the previous exception.
+
+These limits apply to bundled and custom unit definitions as well as direct runtime and PHPStan parsing. They are
+defense in depth, not a sandbox. An application accepting unit expressions from an external boundary should still apply
+the smaller input and complexity policy appropriate to that boundary.
+
 ## Errors And Source Locations
 
 Malformed syntax throws `Parser\ParseException`. When available, its `SourceSpan` is a zero-based, half-open byte range

@@ -53,6 +53,7 @@ use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
 use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\Parser\ExpressionLimitExceededException;
 use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Parser\Parser;
 use jbboehr\Yumemi\PHPStan\ConfiguredUnitRegistryProvider;
@@ -117,6 +118,7 @@ final class ExceptionInterfaceTest extends TestCase
         yield 'unsupported unit conversion' => [UnsupportedUnitConversionException::class, \RuntimeException::class];
 
         yield 'parse exception' => [ParseException::class, \Exception::class];
+        yield 'expression limit exceeded' => [ExpressionLimitExceededException::class, \LengthException::class];
     }
 
     /**
@@ -185,6 +187,13 @@ final class ExceptionInterfaceTest extends TestCase
                 Parser::parseString('meter /');
             },
             ParseException::class,
+        ];
+
+        yield 'expression limit exceeded' => [
+            static function (): void {
+                Parser::parseString(str_repeat('a', 1025));
+            },
+            ExpressionLimitExceededException::class,
         ];
     }
 }

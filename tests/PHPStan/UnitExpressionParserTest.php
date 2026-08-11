@@ -209,6 +209,24 @@ final class UnitExpressionParserTest extends TestCase
         $this->assertStringContainsString('empty', strtolower($result->errorMessage() ?? ''));
     }
 
+    public function testResourceLimitsBecomeExpectedParseResults(): void
+    {
+        $parser = new UnitExpressionParser();
+
+        foreach ([
+            $parser->parse(str_repeat(' ', 4097)),
+            $parser->parseQuantityUnit(str_repeat(' ', 4097)),
+            $parser->parsePoint(str_repeat(' ', 4097)),
+        ] as $result) {
+            $this->assertFalse($result->isOk());
+            $this->assertSame(
+                'Unit expression exceeds the input byte length limit of 4096 (observed 4097).',
+                $result->errorMessage(),
+            );
+            $this->assertNull($result->errorSpan());
+        }
+    }
+
     public function testParsesReorderedFactorsAsEqual(): void
     {
         $parser = new UnitExpressionParser();

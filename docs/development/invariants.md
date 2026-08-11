@@ -200,6 +200,30 @@ the source span while resolving a unit name or unsupported operation.
 **Classification.** Incorrect attribution is a correctness defect. Changing the public byte-range convention is also a
 compatibility break.
 
+## Unit Expression Work Is Bounded
+
+**Invariant.** Every unit-expression entry point enforces one shared parser budget before admitting an expression to
+runtime resolution or PHPStan analysis. Inputs are limited to 4,096 bytes, 256 non-whitespace lexical tokens, 64 nested
+parentheses, and 1,024 bytes in one identifier or numeric token. Successful parser-cache entries have already passed
+that budget; failures never enter the cache.
+
+**Reason.** Doctrine Lexer materializes its token stream before the generated parser consumes it, while later expression
+processing traverses the resulting tree. Explicit byte, token, token-size, and nesting limits bound those costs without
+requiring an application to know which public API eventually invokes the shared parser.
+
+**Representative enforcement.** The handwritten [`Lexer`](../../src/Parser/Lexer.php) owns the limits and counters,
+while [`ParserUtils`](../../src/Parser/ParserUtils.php) checks input size before consulting the process-wide AST cache.
+[`ParserTest`](../../tests/Parser/ParserTest.php),
+[`UnitRegistryBuilderTest`](../../tests/Registry/UnitRegistryBuilderTest.php),
+[`UnitExpressionParserTest`](../../tests/PHPStan/UnitExpressionParserTest.php), and the versioned conformance corpus
+cover direct parsing, custom definitions, PHPStan adaptation, cache behavior, exact boundaries, and multibyte inputs.
+
+**Invalid shortcut.** Applying limits only in a controller, checking after tokenization, allowing cached input to bypass
+the policy, or maintaining a separate PHPStan budget that can disagree with runtime parsing.
+
+**Classification.** Unbounded work through a documented parser path is a correctness defect. Changing a documented limit
+or its failure category is a compatibility-sensitive runtime policy change.
+
 ## Native Helper Expressions Must Be Statically Definite
 
 **Invariant.** By default, each native `unit()`, `unit_factor()`, and `unit_to()` argument that controls inferred unit

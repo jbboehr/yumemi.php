@@ -43,6 +43,8 @@ use jbboehr\Yumemi\Catalog\UnitSemantics;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
 use jbboehr\Yumemi\Expr\Unit;
+use jbboehr\Yumemi\Parser\ExpressionLimitExceededException;
+use jbboehr\Yumemi\Parser\SourceSpan;
 use jbboehr\Yumemi\Registry\CompositeUnitRegistry;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistry;
@@ -65,6 +67,36 @@ final class UnitResolverTest extends TestCase
 
         $this->assertSame('1000 * meter', $resolver->resolveOrFail('kilometer')->toString());
         $this->assertSame('1/100 * meter', $resolver->resolveOrFail('centimeter')->toString());
+    }
+
+    public function testPrefixDefinitionLimitsRetainTheCallerAndDefinitionSpans(): void
+    {
+        $registry = new class () extends UnitRegistry {
+            public function __construct()
+            {
+                parent::__construct([new Unit('meter')]);
+            }
+
+            public function prefixes(): array
+            {
+                return ['x' => str_repeat('1', 1025)];
+            }
+        };
+        $callerSpan = new SourceSpan(4, 10);
+
+        try {
+            (new UnitResolver($registry))->resolveOrFail('xmeter', $callerSpan);
+            self::fail('Expected the prefix definition to exceed the shared expression limits.');
+        } catch (ExpressionLimitExceededException $exception) {
+            $this->assertSame($callerSpan, $exception->getSpan());
+
+            $definitionFailure = $exception->getPrevious();
+            $this->assertInstanceOf(ExpressionLimitExceededException::class, $definitionFailure);
+            $definitionSpan = $definitionFailure->getSpan();
+            $this->assertNotNull($definitionSpan);
+            $this->assertSame(0, $definitionSpan->start);
+            $this->assertSame(1025, $definitionSpan->end);
+        }
     }
 
     public function testUnitNameResolverSortsImmutableRegistryPrefixesOnce(): void

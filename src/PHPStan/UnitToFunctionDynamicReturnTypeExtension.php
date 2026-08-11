@@ -41,6 +41,7 @@ use jbboehr\Yumemi\Exception\UnderflowException;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
+use jbboehr\Yumemi\Parser\ExpressionLimitExceededException;
 use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Units;
 use PhpParser\Node\Expr\FuncCall;
@@ -170,6 +171,7 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
                     UnitNotFoundException
                     | UnsupportedSyntaxException
                     | UnsupportedUnitConversionException
+                    | ExpressionLimitExceededException
                     | ParseException
                     | \InvalidArgumentException $exception
                 ) {

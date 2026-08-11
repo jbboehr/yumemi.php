@@ -564,10 +564,12 @@ repeat the implementation's assumptions:
   remain accepted while `Pa` is pascal; Yumemi does not special-case these catalog-valid ambiguities.
 - Unit, dimension, and scientific-decimal exponents are bounded to `-10000` through `10000`; checked composition rejects
   larger effective powers before native integer overflow or unbounded GMP exponentiation.
-- Dynamic runtime parsing currently has no library-level expression-length, token-count, nesting-depth, or numeric-size
-  budget beyond exponent bounds and ordinary process limits. Use replayable “probator” findings and focused stress cases
-  to determine whether explicit limits are necessary before selecting arbitrary thresholds; applications accepting
-  untrusted expressions should impose appropriate input limits in the meantime.
+- Dynamic runtime parsing now enforces one shared fixed budget before resolution: 4,096 input bytes, 256 non-whitespace
+  lexical tokens, 64 nested parentheses, and 1,024 bytes in one identifier or numeric token. The input check precedes
+  Doctrine Lexer's eager token allocation and the successful AST cache; token count bounds subsequent expression-tree
+  work. Runtime, custom-registry, catalog, and PHPStan paths share the same policy and
+  `ExpressionLimitExceededException` category. These bounds are defense in depth rather than a substitute for smaller
+  application-specific limits at external boundaries.
 - The UDUNITS2 importer still special-cases `cm2` syntax, and generated `prefixRegex` metadata is currently unused by
   resolution.
 - Expression arithmetic reduces eagerly. The benchmark suite measures representative reduction and normalization, but no

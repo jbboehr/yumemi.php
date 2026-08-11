@@ -408,6 +408,11 @@ Ambiguous finite alternatives remain errors because no one output unit applies; 
 `Units::parse()` and the `Quantity` methods remain the intentional dynamic path and are not affected by this option.
 Their constant and finite-union inference remains described below.
 
+Statically known expressions are also subject to the shared [parser resource limits](unit-syntax.md#resource-limits). An
+oversized constant helper argument reports `yumemi.invalidUnitCall`. If the native helper executes, it throws its usual
+`InvalidArgumentException` and retains `Parser\ExpressionLimitExceededException` as the previous exception. Suppressing
+the PHPStan diagnostic does not relax the runtime budget.
+
 ## Quantity Types
 
 Runtime quantities have the generic PHPStan forms `Quantity<'unit'>` and `PointQuantity<'coordinate'>`.

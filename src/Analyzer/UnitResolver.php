@@ -46,6 +46,7 @@ use jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Unit;
+use jbboehr\Yumemi\Parser\ExpressionLimitExceededException;
 use jbboehr\Yumemi\Parser\Parser;
 use jbboehr\Yumemi\Parser\SourceSpan;
 use jbboehr\Yumemi\Registry\UnitRegistry;
@@ -252,26 +253,64 @@ final class UnitResolver
             );
         }
 
+        if ($record['type'] === 'unit') {
+            $definition = $record['def'] ?? throw new UnexpectedValueException(
+                'Catalog unit is missing definition: ' . $record['name'],
+            );
+
+            try {
+                $ast = Parser::parseString($definition);
+            } catch (ExpressionLimitExceededException $exception) {
+                if ($sourceSpan === null) {
+                    throw $exception;
+                }
+
+                throw new ExpressionLimitExceededException(
+                    $exception->limit,
+                    $exception->maximum,
+                    $exception->observed,
+                    $sourceSpan,
+                    $exception,
+                );
+            }
+
+            return new Unit(
+                $record['name'],
+                $this->astConverter->convert($ast, $sourceSpan),
+            );
+        }
+
         return match ($record['type']) {
             'alias' => $this->resolve($record['def'] ?? throw new UnexpectedValueException(
                 'Catalog alias is missing target: ' . $record['name'],
             ), $sourceSpan) ?? throw UnitNotFoundException::create($record['def'], span: $sourceSpan),
             'base' => new Unit($record['name']),
             'dimensionless' => new Unit($record['name'], new Constant(1)),
-            'unit' => new Unit(
-                $record['name'],
-                $this->astConverter->convert(Parser::parseString(
-                    $record['def'] ?? throw new UnexpectedValueException(
-                        'Catalog unit is missing definition: ' . $record['name'],
-                    ),
-                ), $sourceSpan),
-            ),
         };
     }
 
     private function prefixToExpr(string $definition, ?SourceSpan $sourceSpan): Expr
     {
-        return $this->prefixCache[$definition]
-            ??= $this->astConverter->convert(Parser::parseString($definition), $sourceSpan);
+        if (isset($this->prefixCache[$definition])) {
+            return $this->prefixCache[$definition];
+        }
+
+        try {
+            $ast = Parser::parseString($definition);
+        } catch (ExpressionLimitExceededException $exception) {
+            if ($sourceSpan === null) {
+                throw $exception;
+            }
+
+            throw new ExpressionLimitExceededException(
+                $exception->limit,
+                $exception->maximum,
+                $exception->observed,
+                $sourceSpan,
+                $exception,
+            );
+        }
+
+        return $this->prefixCache[$definition] = $this->astConverter->convert($ast, $sourceSpan);
     }
 }

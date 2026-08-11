@@ -38,7 +38,9 @@ namespace jbboehr\Yumemi\Tests\Parser;
 
 use jbboehr\Yumemi\Parser\Ast;
 use jbboehr\Yumemi\Parser\AstNode;
+use jbboehr\Yumemi\Parser\ExpressionLimitExceededException;
 use jbboehr\Yumemi\Parser\Parser;
+use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\TestCase;
 
 final class ParserTest extends TestCase
@@ -402,6 +404,102 @@ final class ParserTest extends TestCase
         $this->assertSame($anchor, Parser::parseString('cache_oversized_anchor'));
     }
 
+    public function testInputByteLimitAcceptsItsBoundaryAndRejectsTheNextByte(): void
+    {
+        Parser::parseString('meter' . str_repeat(' ', 4090));
+        Parser::parseString('meter' . str_repeat(' ', 4091));
+
+        $this->assertLimit(
+            'meter' . str_repeat(' ', 4092),
+            'input-bytes',
+            4096,
+            4097,
+            null,
+        );
+    }
+
+    public function testTokenCountLimitAcceptsItsBoundaryAndRejectsTheNextToken(): void
+    {
+        Parser::parseString(implode(' ', array_fill(0, 255, 'a')));
+        Parser::parseString(implode(' ', array_fill(0, 256, 'a')));
+
+        $this->assertLimit(
+            implode(' ', array_fill(0, 257, 'a')),
+            'token-count',
+            256,
+            257,
+            [512, 513],
+        );
+    }
+
+    public function testNestingLimitAcceptsItsBoundaryAndRejectsTheNextParenthesis(): void
+    {
+        Parser::parseString(str_repeat('(', 63) . 'meter' . str_repeat(')', 63));
+        Parser::parseString(str_repeat('(', 64) . 'meter' . str_repeat(')', 64));
+
+        $this->assertLimit(
+            str_repeat('(', 65) . 'meter' . str_repeat(')', 65),
+            'nesting-depth',
+            64,
+            65,
+            [64, 65],
+        );
+    }
+
+    public function testTokenByteLimitAppliesToIdentifiersAndNumbers(): void
+    {
+        Parser::parseString(str_repeat('a', 1023));
+        Parser::parseString(str_repeat('a', 1024));
+        Parser::parseString(str_repeat('9', 1023));
+        Parser::parseString(str_repeat('9', 1024));
+
+        $this->assertLimit(str_repeat('a', 1025), 'token-bytes', 1024, 1025, [0, 1025]);
+        $this->assertLimit(str_repeat('9', 1025), 'token-bytes', 1024, 1025, [0, 1025]);
+    }
+
+    public function testTokenByteLimitCountsMultibyteSourceBytes(): void
+    {
+        Parser::parseString(str_repeat('α', 512));
+
+        $this->assertLimit(str_repeat('α', 513), 'token-bytes', 1024, 1026, [0, 1026]);
+    }
+
+    public function testPublicRuntimeParsingExposesTheLimitException(): void
+    {
+        $this->expectException(ExpressionLimitExceededException::class);
+        $this->expectExceptionMessage('identifier or numeric token byte length limit of 1024');
+
+        Units::default()->parse(str_repeat('a', 1025));
+    }
+
+    public function testLimitFailuresDoNotEvictSuccessfulCacheEntries(): void
+    {
+        $anchor = Parser::parseString('limit_failure_cache_anchor');
+
+        for ($index = 0; $index < 255; ++$index) {
+            Parser::parseString('limit_failure_cache_' . $index);
+        }
+
+        $this->assertLimit(str_repeat('a', 1025), 'token-bytes', 1024, 1025, [0, 1025]);
+        $this->assertSame($anchor, Parser::parseString('limit_failure_cache_anchor'));
+    }
+
+    public function testBundledCatalogDefinitionsRemainWithinTheParserBudget(): void
+    {
+        /** @var array{units: array<string, array<string, mixed>>} $catalog */
+        $catalog = require __DIR__ . '/../../data/udunits2.php';
+        $parsed = 0;
+
+        foreach ($catalog['units'] as $record) {
+            if (isset($record['def']) && is_string($record['def'])) {
+                Parser::parseString($record['def']);
+                ++$parsed;
+            }
+        }
+
+        $this->assertGreaterThan(0, $parsed);
+    }
+
     private function assertAstEquals(Ast $expected, Ast $actual): void
     {
         $this->assertSame($expected::class, $actual::class);
@@ -413,5 +511,28 @@ final class ParserTest extends TestCase
         $this->assertNotNull($ast->span);
         $this->assertSame($start, $ast->span->start);
         $this->assertSame($end, $ast->span->end);
+    }
+
+    /** @param array{int, int}|null $span */
+    private function assertLimit(
+        string $input,
+        string $limit,
+        int $maximum,
+        int $observed,
+        ?array $span,
+    ): void {
+        try {
+            Parser::parseString($input);
+            self::fail('Expected the parser resource limit to be exceeded.');
+        } catch (ExpressionLimitExceededException $exception) {
+            $this->assertSame($limit, $exception->limit);
+            $this->assertSame($maximum, $exception->maximum);
+            $this->assertSame($observed, $exception->observed);
+            $this->assertSame(
+                $span,
+                $exception->span === null ? null : [$exception->span->start, $exception->span->end],
+            );
+            $this->assertStringNotContainsString($input, $exception->getMessage());
+        }
     }
 }

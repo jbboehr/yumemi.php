@@ -46,6 +46,7 @@ use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
 use jbboehr\Yumemi\Number\DecimalNotation;
 use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\Parser\ExpressionLimitExceededException;
 use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Parser\SourceSpan;
 use jbboehr\Yumemi\PointQuantity;
@@ -82,6 +83,7 @@ final class RuntimeConformanceTest extends TestCase
 
     /** @var array<string, class-string<\Throwable>> */
     private const ERROR_CLASSES = [
+        'expression-limit' => ExpressionLimitExceededException::class,
         'syntax-error' => ParseException::class,
         'unknown-unit' => UnitNotFoundException::class,
         'incompatible-unit' => IncompatibleUnitException::class,
@@ -766,6 +768,7 @@ final class RuntimeConformanceTest extends TestCase
     private static function exceptionSpan(\Throwable $exception): ?SourceSpan
     {
         return match (true) {
+            $exception instanceof ExpressionLimitExceededException => $exception->span,
             $exception instanceof ParseException => $exception->span,
             $exception instanceof RuntimeException => $exception->span,
             default => null,

@@ -67,10 +67,13 @@ trait ParserUtils
     ];
 
     /**
+     * @throws ExpressionLimitExceededException
      * @throws ParseException
      */
     public static function parseString(string $input): Ast
     {
+        Lexer::assertInputLength($input);
+
         /** @var BoundedLruCache<Ast>|null $cache */
         static $cache;
 

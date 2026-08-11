@@ -48,6 +48,7 @@ use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
 use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Unit;
+use jbboehr\Yumemi\Parser\ExpressionLimitExceededException;
 use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Registry\CompositeUnitRegistry;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
@@ -720,6 +721,33 @@ final class UnitRegistryBuilderTest extends TestCase
         $this->expectExceptionMessage('Unit definition must not be empty.');
 
         UnitRegistryBuilder::empty()->define(" \n\t ");
+    }
+
+    public function testCustomDefinitionResolutionUsesTheSharedExpressionLimits(): void
+    {
+        $units = new Units(UnitRegistryBuilder::empty()
+            ->define('widget = ' . str_repeat('a', 1025))
+            ->build());
+
+        try {
+            $units->parse('2 * widget');
+            self::fail('Expected the custom definition to exceed the shared expression limits.');
+        } catch (ExpressionLimitExceededException $exception) {
+            $this->assertSame('token-bytes', $exception->limit);
+            $this->assertSame(1024, $exception->maximum);
+            $this->assertSame(1025, $exception->observed);
+            $callerSpan = $exception->getSpan();
+            $this->assertNotNull($callerSpan);
+            $this->assertSame(4, $callerSpan->start);
+            $this->assertSame(10, $callerSpan->end);
+
+            $definitionFailure = $exception->getPrevious();
+            $this->assertInstanceOf(ExpressionLimitExceededException::class, $definitionFailure);
+            $definitionSpan = $definitionFailure->getSpan();
+            $this->assertNotNull($definitionSpan);
+            $this->assertSame(0, $definitionSpan->start);
+            $this->assertSame(1025, $definitionSpan->end);
+        }
     }
 
     public function testUnitRegistryBuilderDelegatesToEmpty(): void
