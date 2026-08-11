@@ -1,5 +1,15 @@
 # Regenerating the UDUNITS2 Catalog
 
+<figure class="logion" data-logion="AWC 65:48">
+<div class="logion-text">
+<blockquote>
+<p>In the year of the dim harvest, the western gate was shut with chains, yet a child found wheat springing between its hinges. The elders preserved neither chain nor lock; they carried the green blades through every street, and the city remembered that inheritance returns first in a frail and living sign.</p>
+</blockquote>
+<p class="logion-citation">— <cite>Acts of the Western Court 65:48</cite></p>
+</div>
+<img src="../images/logia/AWC-65_48.webp" alt="Green wheat springing through the hinges of a chained western gate at rose-gold dawn" width="960" height="540" loading="eager" fetchpriority="high">
+</figure>
+
 The checked-in `data/udunits2.php` file is generated from the UDUNITS2 XML distribution. This procedure is for
 contributors changing the importer, exporter, source package, or generated catalog; applications using Yumemi do not
 need to run it.

@@ -1,5 +1,15 @@
 # Core Concepts
 
+<figure class="logion" data-logion="RAS 3:52">
+<div class="logion-text">
+<blockquote>
+<p>In the chamber above the polar night, the Angel of Boundaries unfolded a black fan, and from each rib issued a road of fire. The roads crossed without mingling, and upon them nations unlike in tongue carried one white stone toward a city not yet built. When the first foundation shone below, a voice forbade the roads to surrender their names.</p>
+</blockquote>
+<p class="logion-citation">— <cite>Revelation of the Artificial Sun 3:52</cite></p>
+</div>
+<img src="images/logia/RAS-3_52.webp" alt="An angel unfolding a black fan above separate luminous roads leading toward an unbuilt city" width="960" height="540" loading="eager" fetchpriority="high">
+</figure>
+
 Yumemi exposes native values and exact runtime objects over the same unit engine. Use native values when existing PHP
 numbers primarily need PHPStan protection. Use `Quantity` when the program must retain a multiplicative unit, perform
 conversions, or preserve exact fractions. Use `PointQuantity` for a position on a coordinate scale, such as a

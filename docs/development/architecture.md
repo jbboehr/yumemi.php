@@ -262,7 +262,9 @@ Expected replacement boundaries are deliberately narrow:
 
 The [Heliogenesis integration](heliogenesis.md) records the copied browser-runtime boundary within the documentation
 toolchain. Its upstream runtime may be refreshed or replaced without changing Yumemi's Markdown sources or semantic
-core.
+core. Public documentation plates embed delivery-sized illustrations while retaining archival masters and allocation
+provenance in the [plate ledger](logion-plates.md); `LogionPlateTest` verifies the page, citation, source-text, and
+asset boundary.
 
 Abstractions should be introduced only when one of these replacement scenarios requires a stable boundary. Core classes
 may remain `final`; forkability depends on source, tests, specifications, and licensing rather than universal

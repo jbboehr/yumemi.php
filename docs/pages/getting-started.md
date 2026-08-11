@@ -1,5 +1,15 @@
 # Getting Started
 
+<figure class="logion" data-logion="OSD 34:72">
+<div class="logion-text">
+<blockquote>
+<p>Upon the day of ashes, draw a narrow door of salt upon the chapel floor. Let the penitent cross it barefoot, naming the restitution already made, and suffer none to sweep behind them. At evening, if the door remaineth whole, their sorrow lacked weight; if their feet have broken it, admit them to the choir, and let the first hymn be for those they harmed.</p>
+</blockquote>
+<p class="logion-citation">— <cite>Ordinances of the Synthetic Dawn 34:72</cite></p>
+</div>
+<img src="images/logia/OSD-34_72.webp" alt="A barefoot penitent crossing a broken salt threshold in a cobalt-lit chapel" width="960" height="540" loading="eager" fetchpriority="high">
+</figure>
+
 Yumemi requires PHP 8.2 or later and the GMP extension, which provides the arbitrary-precision integers used for exact
 rational arithmetic and conversion.
 

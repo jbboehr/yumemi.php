@@ -1,5 +1,15 @@
 # Runtime Reference
 
+<figure class="logion" data-logion="OSD 14:37">
+<div class="logion-text">
+<blockquote>
+<p>At the longest night, kindle the amber horizon within the underground cloister, yet veil its eastern quarter with linen and leave the brothers one hour of darkness. Let the crafted radiance warm the sick, ripen the winter figs, and guide the late pilgrim, but suffer it not to counterfeit morning. When the linen brightens from the farther side, extinguish every lamp without lament, for the lesser glory hath completed its obedience.</p>
+</blockquote>
+<p class="logion-citation">— <cite>Ordinances of the Synthetic Dawn 14:37</cite></p>
+</div>
+<img src="../images/logia/OSD-14_37.webp" alt="A linen veil dividing an amber horizon within a cobalt-lit underground cloister" width="960" height="540" loading="eager" fetchpriority="high">
+</figure>
+
 Yumemi's runtime API provides exact unit conversion and quantity arithmetic. `Rational` is the authoritative magnitude
 type; conversion to native integers, decimals, or floats is always explicit.
 

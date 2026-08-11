@@ -15,6 +15,7 @@ AGENTS.md export-ignore
 benchmarks export-ignore
 composer.lock export-ignore
 docs/development export-ignore
+docs/development/images/logia/*-hq* export-ignore
 docs/pages/assets/heliogenesis export-ignore
 docs/pages/assets/heliogenesis/** export-ignore
 docs/pages/images/logia export-ignore

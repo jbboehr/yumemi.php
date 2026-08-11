@@ -1,5 +1,15 @@
 # PHPStan Reference
 
+<figure class="logion" data-logion="OSD 57:34">
+<div class="logion-text">
+<blockquote>
+<p>Before judgment, suspend the bronze plummet above the council mosaic, and let neither advocate nor prince touch its cord. If it hangeth toward the floor, hear the cause; but if its weight rise toward the painted heavens, dismiss the court and uncover the dais, for authority hath seated itself where only witness was appointed.</p>
+</blockquote>
+<p class="logion-citation">— <cite>Ordinances of the Synthetic Dawn 57:34</cite></p>
+</div>
+<img src="../images/logia/OSD-57_34.webp" alt="A bronze plummet suspended above a wet council mosaic before an empty dais" width="960" height="540" loading="eager" fetchpriority="high">
+</figure>
+
 Yumemi's PHPStan extension attaches units to ordinary PHP `int` and `float` values and propagates them through supported
 operations. It can also brand a `numeric-string` at a string-oriented boundary. The runtime values remain native
 scalars; the additional unit identity exists only during static analysis.

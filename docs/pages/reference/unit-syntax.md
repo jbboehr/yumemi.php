@@ -1,5 +1,15 @@
 # Unit Syntax Reference
 
+<figure class="logion" data-logion="SFA 92:41">
+<div class="logion-text">
+<blockquote>
+<p>Within the blue cupola, bronze bees circled an empty place in the mosaic where no star had been set, and their wings sounded like rain upon a sealed roof. The learned accused the vacancy, but the swarm entered it with their labor and made no image. Thus was the unfigured place guarded from invention. Let the unfinished heaven remain open above the choir.</p>
+</blockquote>
+<p class="logion-citation">— <cite>Scholia of the Fifth Archive 92:41</cite></p>
+</div>
+<img src="../images/logia/SFA-92_41.webp" alt="Bronze bees circling an unfilled star-shaped place in a blue cupola mosaic" width="960" height="540" loading="eager" fetchpriority="high">
+</figure>
+
 Unit strings can be simple names such as `meter`, products such as `kilogram * meter / second^2`, or exact constants
 such as `100 centimeter`. Yumemi uses the same parser and catalog resolver at runtime and in its PHPStan extension, so
 these strings have the same meaning in `Units::parse()`, `Quantity`, `unit_int<'...'>`, `unit_float<'...'>`, and

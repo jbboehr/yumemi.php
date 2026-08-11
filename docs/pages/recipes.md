@@ -1,5 +1,15 @@
 # Recipes
 
+<figure class="logion" data-logion="OSD 12:44">
+<div class="logion-text">
+<blockquote>
+<p>Write the covenant upon fresh clay and place it in the public kiln beside the vessels of common use. If the words blister while the cups endure, summon the oath-givers again; for no promise is strengthened by the fire it was fashioned to escape. But if the tablet darken without division, carry it warm between the households, and let neither claim the colder edge.</p>
+</blockquote>
+<p class="logion-citation">— <cite>Ordinances of the Synthetic Dawn 12:44</cite></p>
+</div>
+<img src="images/logia/OSD-12_44.webp" alt="A clay covenant tablet enduring a public kiln among household vessels beneath cyan stormlight" width="960" height="540" loading="eager" fetchpriority="high">
+</figure>
+
 These short examples show common application tasks. They assume the Composer autoloader and PHPStan extension are
 already configured as described in [Getting Started](getting-started.md). Follow the links after each recipe for the
 complete semantics and limitations.

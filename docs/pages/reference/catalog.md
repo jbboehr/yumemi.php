@@ -1,5 +1,15 @@
 # Built-In and Custom Units
 
+<figure class="logion" data-logion="SFA 84:36">
+<div class="logion-text">
+<blockquote>
+<p>The painted eclipse upon the archive ceiling darkeneth no field, yet it preserveth the hour when the proud astronomers confessed their limit. Condemn not every likeness; ask whether it kneels before the event it remembers, or would supplant the heaven.</p>
+</blockquote>
+<p class="logion-citation">— <cite>Scholia of the Fifth Archive 84:36</cite></p>
+</div>
+<img src="../images/logia/SFA-84_36.webp" alt="Astronomers beneath a painted eclipse and an open rose-gold heaven in an imperial archive" width="960" height="540" loading="eager" fetchpriority="high">
+</figure>
+
 Yumemi combines a generated unit catalog derived from UDUNITS2 with a small authored supplement. The same composed
 catalog drives runtime name resolution, conversion, formatting, and PHPStan analysis.
 
