@@ -1,0 +1,72 @@
+<?php
+
+namespace Location;
+
+class Coordinate
+{
+    /**
+     * @param float $lat
+     * @param float $lng
+     * @yumemi-param unit_float<'degree'> $lat
+     * @yumemi-param unit_float<'degree'> $lng
+     */
+    public function __construct(float $lat, float $lng, Ellipsoid|null $ellipsoid = null)
+    {
+    }
+
+    /**
+     * @return float
+     * @yumemi-return unit_float<'degree'>
+     */
+    public function getLat(): float
+    {
+    }
+
+    /**
+     * @return float
+     * @yumemi-return unit_float<'degree'>
+     */
+    public function getLng(): float
+    {
+    }
+}
+
+namespace Location\Distance;
+
+use Location\Coordinate;
+
+class Vincenty
+{
+    /**
+     * @return float
+     * @yumemi-return unit_float<'meter'>
+     */
+    public function getDistance(Coordinate $point1, Coordinate $point2): float
+    {
+    }
+}
+
+namespace Location\Bearing;
+
+use Location\Coordinate;
+
+class BearingSpherical
+{
+    /**
+     * @return float
+     * @yumemi-return unit_float<'degree'>
+     */
+    public function calculateBearing(Coordinate $point1, Coordinate $point2): float
+    {
+    }
+
+    /**
+     * @param float $bearing
+     * @param float $distance
+     * @yumemi-param unit_float<'degree'> $bearing
+     * @yumemi-param unit_float<'meter'> $distance
+     */
+    public function calculateDestination(Coordinate $point, float $bearing, float $distance): Coordinate
+    {
+    }
+}

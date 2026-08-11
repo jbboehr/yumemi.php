@@ -276,8 +276,13 @@ The architecture is supported by several independent forms of evidence:
 - Eris property tests for branded integer ranges;
 - differential conversion tests against the independent UDUNITS2 executable;
 - mutation campaigns for handwritten runtime and in-process PHPStan code;
-- release-style consumer archives with automatic and manual extension registration; and
+- release-style consumer archives with automatic and manual extension registration;
+- an isolated phpgeo 6.0.4 project proving consumer-owned unit annotations against real degree and meter APIs; and
 - local Nix, Composer, and Make entry points used by CI.
+
+The phpgeo fixture validates the generic annotation and package-integration contract. It is evidence that downstream
+projects can apply Yumemi to native scalar APIs, not a curated compatibility promise or a transfer of third-party stub
+ownership from Apocrypha into core.
 
 No one layer is the complete specification. Public behavior, [invariants](invariants.md), the
 [conformance corpus](../../tests/Conformance/README.md), and implementation must be reviewed together when they

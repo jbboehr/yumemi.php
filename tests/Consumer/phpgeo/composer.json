@@ -1,0 +1,21 @@
+{
+    "name": "jbboehr/yumemi-consumer-phpgeo",
+    "description": "Isolated phpgeo integration fixture for Yumemi's generic annotation support.",
+    "type": "project",
+    "license": "AGPL-3.0-only WITH romic-exception",
+    "require": {
+        "jbboehr/yumemi": "dev-consumer",
+        "mjaschen/phpgeo": "6.0.4"
+    },
+    "require-dev": {
+        "phpstan/extension-installer": "^1.4",
+        "phpstan/phpstan": "^2.1"
+    },
+    "config": {
+        "allow-plugins": {
+            "phpstan/extension-installer": true
+        },
+        "sort-packages": true
+    },
+    "prefer-stable": true
+}

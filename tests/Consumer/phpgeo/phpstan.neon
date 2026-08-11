@@ -1,0 +1,6 @@
+includes:
+    - vendor/jbboehr/yumemi/yumemi-tags.neon
+
+parameters:
+    stubFiles:
+        - phpgeo.stub

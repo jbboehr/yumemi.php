@@ -126,6 +126,53 @@ run_core() {
     run_core_fixture manual
 }
 
+run_phpgeo() {
+    local diagnostic_count
+    local expected
+    local project_dir=$WORK_DIR/phpgeo
+    local output
+    local phpstan=(vendor/bin/phpstan analyse --no-progress --error-format=raw --level=max --configuration=phpstan.neon)
+
+    mkdir -p -- "$project_dir"
+    cp -R -- "$FIXTURES_DIR/phpgeo/." "$project_dir/"
+
+    composer --working-dir="$project_dir" repo add yumemi "$repository_json" --no-interaction
+    composer --working-dir="$project_dir" update --prefer-dist --no-interaction --no-progress
+
+    (
+        cd -- "$project_dir"
+        "${phpstan[@]}" cases/valid.php
+        php runtime.php
+    )
+
+    if output=$(
+        cd -- "$project_dir"
+        "${phpstan[@]}" cases/invalid.php 2>&1
+    ); then
+        printf 'phpgeo consumer PHPStan fixture unexpectedly accepted invalid units.\n' >&2
+        exit 1
+    fi
+
+    diagnostic_count=$(grep -Ec '/cases/invalid\.php:[[:digit:]]+:' <<< "$output" || true)
+    if [[ $diagnostic_count -ne 4 ]]; then
+        printf 'phpgeo consumer PHPStan fixture reported unexpected diagnostics:\n%s\n' "$output" >&2
+        exit 1
+    fi
+
+    for expected in \
+        "Parameter #1 \$lat of class Location\\Coordinate constructor expects unit_float<'arc_degree'>, 0.0&unit_float<'meter'> given." \
+        "Parameter #1 \$duration of function savePhpGeoDuration expects unit_float<'second'>, unit_float<'meter'> given." \
+        "Parameter #2 \$bearing of method Location\\Bearing\\BearingSpherical::calculateDestination() expects unit_float<'arc_degree'>, 90.0&unit_float<'meter'> given." \
+        "Parameter #3 \$distance of method Location\\Bearing\\BearingSpherical::calculateDestination() expects unit_float<'meter'>, 1000.0&unit_float<'arc_degree'> given."; do
+        if [[ $output != *"$expected"* ]]; then
+            printf 'phpgeo consumer PHPStan fixture omitted an expected diagnostic:\n%s\n\nActual output:\n%s\n' \
+                "$expected" "$output" >&2
+            exit 1
+        fi
+    done
+}
+
 run_core
+run_phpgeo
 
 printf 'Consumer package smoke tests passed using the %s package.\n' "$PACKAGE_MODE"

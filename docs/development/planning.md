@@ -112,9 +112,10 @@ Current verification:
   with respective total and covered MSI floors of 86% and 85%; the generated parser remains excluded
 - a separate Xdebug development shell supports [focused, local branch and path coverage audits](branch-coverage.md)
   without adding their cost to CI or `nix flake check`; branch and path percentages currently have no enforced floor
-- isolated consumer fixtures install a mirrored Composer package, verify automatic and manual PHPStan registration, and
-  run against release-style `composer archive` output in CI; Apocrypha owns the separate upstream-package matrices and
-  release-style verification for curated integrations
+- isolated consumer fixtures install a mirrored Composer package, verify automatic and manual PHPStan registration,
+  exercise consumer-owned degree and meter annotations against phpgeo 6.0.4, and run against release-style
+  `composer archive` output in CI; the phpgeo fixture proves the generic downstream integration contract, while
+  Apocrypha owns upstream-package matrices and release-style verification for curated integrations
 
 ## PHPStan Model And Status
 
@@ -638,6 +639,12 @@ repeat the implementation's assumptions:
 - GNU Units import
 - Formula interpolation
 - Preferred/compact unit selection and broader formatting presets
+- Investigate whether user-chosen unit spellings can be retained as presentation metadata for diagnostics and display
+  without changing canonical unit identity, equivalence, arithmetic, or cache behavior. This is distinct from choosing
+  preferred or compact units: an input such as `degree` could remain semantically canonicalized as `arc_degree` while
+  diagnostics preserve the spelling the user supplied where one unambiguous source expression still exists. Any design
+  must define fail-safe behavior for unions, derived expressions, and operations with multiple source spellings rather
+  than implying that original syntax can always be recovered.
 - Additional convenience units only when a concrete integration establishes their semantics. A modern
   `typographic_pica`, basis points, frames, audio samples, voxels, and printer dots remain deferred rather than
   acquiring speculative bundled definitions.
