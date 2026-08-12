@@ -1,0 +1,119 @@
+name: portability
+
+on:
+    push:
+        branches:
+            - master
+    pull_request:
+        branches:
+            - master
+        paths:
+            - .github/workflows/portability.yml
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: portability-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    php:
+        name: ${{ matrix.name }} / PHP 8.2 (advisory)
+        runs-on: ${{ matrix.os }}
+        timeout-minutes: 30
+        defaults:
+            run:
+                shell: bash
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - name: macOS
+                      os: macos-latest
+                    - name: Windows
+                      os: windows-latest
+        steps:
+            - name: Configure Git line endings
+              if: runner.os == 'Windows'
+              run: |
+                  git config --global core.autocrlf false
+                  git config --global core.eol lf
+
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Install PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  coverage: none
+                  extensions: dom, gmp
+                  php-version: "8.2"
+                  tools: composer:v2
+
+            - name: Get Composer cache directory
+              id: composer-cache
+              run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+            - name: Cache Composer packages
+              uses: actions/cache@v6
+              with:
+                  path: ${{ steps.composer-cache.outputs.dir }}
+                  key: ${{ runner.os }}-php-8.2-composer-${{ hashFiles('composer.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-php-8.2-composer-
+                      ${{ runner.os }}-php-composer-
+
+            - name: Validate Composer files
+              run: composer validate --strict
+
+            - name: Install dependencies
+              run: composer install --prefer-dist --no-interaction --no-progress
+
+            - name: Check whitespace
+              run: git diff --check
+
+            - name: Run PHPStan
+              if: runner.os != 'Windows'
+              run: composer analyse -- --error-format=raw
+
+            # PHPStan's first container-compilation pass can redeclare its Parser
+            # interface on native Windows while still leaving a valid cache. Retry
+            # only that known failure; preserve every other analysis failure.
+            - name: Run PHPStan on Windows
+              if: runner.os == 'Windows'
+              run: |
+                  set +e
+                  composer analyse -- --error-format=raw > phpstan-output.log 2>&1
+                  status=$?
+                  set -e
+
+                  cat phpstan-output.log
+
+                  if [ "$status" -eq 255 ] && grep -Fq 'Cannot declare interface PHPStan\Parser\Parser' phpstan-output.log; then
+                      echo 'Retrying after PHPStan generated its Windows container cache.'
+                      composer analyse -- --error-format=raw
+                      exit 0
+                  fi
+
+                  exit "$status"
+
+            - name: Run PHPUnit
+              run: |
+                  set +e
+                  composer test 2>&1 | tee phpunit-output.log
+                  status=${PIPESTATUS[0]}
+                  if [ "$status" -ne 0 ]; then
+                      output=$(tail -c 60000 phpunit-output.log)
+                      output=${output//'%'/'%25'}
+                      output=${output//$'\r'/'%0D'}
+                      output=${output//$'\n'/'%0A'}
+                      echo "::error title=PHPUnit failure::$output"
+                  fi
+
+                  exit "$status"
+
+            - name: Smoke-test packaged consumers
+              if: ${{ !cancelled() }}
+              run: bash tests/Consumer/run archive

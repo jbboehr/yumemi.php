@@ -106,6 +106,9 @@ Current verification:
 - Composer validation passes
 - Nix flake checks pass
 - GitHub Actions tests PHP 8.2 through PHP 8.5, plus a PHP 8.2 lowest-dependency installation
+- a separate master-focused, manually dispatchable advisory workflow exercises PHP 8.2 on macOS and Windows, including
+  the release-style package consumers; it remains outside ordinary pull-request gates and does not weaken the required
+  Linux matrix
 - PHPBench covers representative cold and warm runtime workflows; CI smoke-tests benchmark discovery without timing
   floors, while an optional Linux Perfidious profile captures local `perf_events` counters
 - Infection runs separate CI campaigns against all handwritten runtime source and the in-process PHPStan adapter tests,

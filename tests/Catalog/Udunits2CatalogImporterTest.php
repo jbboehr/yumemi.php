@@ -847,6 +847,16 @@ final class Udunits2CatalogImporterTest extends TestCase
         $this->assertSame($withHeader . "\n", $exporter->export(['answer' => 42], '// generated'));
     }
 
+    public function testExporterPreservesLineEndingsInsideCatalogValues(): void
+    {
+        $catalog = ['value' => "first\r\nsecond\rthird\nfourth"];
+        $file = $this->tempFile();
+
+        file_put_contents($file, (new PhpCatalogExporter())->export($catalog));
+
+        $this->assertSame($catalog, require $file);
+    }
+
     /**
      * @phpstan-return Udunits2Catalog
      */

@@ -164,14 +164,46 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
 
     public function testNumericStringBrandsRequireMatchingUnitsAndExplicitNumericCasts(): void
     {
-        $output = $this->analyse('unit-numeric-string-invalid.php');
+        $output = $this->analyse('unit-numeric-string-invalid.php', errorFormat: 'json');
+        $analysis = json_decode($output, true, flags: JSON_THROW_ON_ERROR);
+        $this->assertIsArray($analysis);
 
-        $this->assertStringContainsString('[ERROR] Found 3 errors', $output, $output);
-        $this->assertStringContainsString("unit_numeric_string<'second'>", $output, $output);
-        $this->assertStringContainsString("unit_numeric_string<'meter'>", $output, $output);
-        $this->assertStringContainsString('Bare numeric string is not assignable', $output, $output);
-        $this->assertStringContainsString('normalized forms differ', $output, $output);
-        $this->assertStringContainsString('must be explicitly cast', $output, $output);
+        $totals = $analysis['totals'] ?? null;
+        $this->assertIsArray($totals);
+        $this->assertSame(3, $totals['file_errors'] ?? null);
+
+        $files = $analysis['files'] ?? null;
+        $this->assertIsArray($files);
+        $this->assertCount(1, $files);
+
+        $file = reset($files);
+        $this->assertIsArray($file);
+        $messages = $file['messages'] ?? null;
+        $this->assertIsArray($messages);
+        $this->assertCount(3, $messages);
+
+        $this->assertPhpStanJsonDiagnostic(
+            $messages[0] ?? null,
+            12,
+            "Parameter #1 \$duration of function acceptNumericDuration expects unit_numeric_string<'second'>, "
+                . 'string given.',
+            "Bare numeric string is not assignable to unit_numeric_string<'second'>; keep the unit annotation.",
+        );
+        $this->assertPhpStanJsonDiagnostic(
+            $messages[1] ?? null,
+            16,
+            "Parameter #1 \$duration of function acceptNumericDuration expects unit_numeric_string<'second'>, "
+                . "unit_numeric_string<'meter'> given.",
+            "Unit unit_numeric_string<'meter'> is not assignable to unit_numeric_string<'second'> "
+                . '(normalized forms differ).',
+        );
+        $this->assertPhpStanJsonDiagnostic(
+            $messages[2] ?? null,
+            27,
+            "Parameter #1 \$seconds of function acceptIntegerDuration expects unit_int<'second'>, "
+                . "unit_numeric_string<'second'> given.",
+            "Unit unit_numeric_string<'second'> must be explicitly cast before assignment to unit_int<'second'>.",
+        );
     }
 
     public function testWeakCoercionStillRequiresAnExplicitNumericCast(): void
@@ -239,6 +271,7 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         ?string $registryFactory = null,
         ?bool $integerOverflowToFloat = null,
         ?bool $requireConstantNativeUnitExpressions = null,
+        string $errorFormat = 'table',
     ): string {
         $fixturePath = __DIR__ . '/data/' . $fixture;
         $this->assertFileExists($fixturePath);
@@ -246,6 +279,7 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $temporaryFile = tempnam(sys_get_temp_dir(), 'yumemi-phpstan-');
         $this->assertNotFalse($temporaryFile);
         $config = $temporaryFile . '.neon';
+        $stderr = $temporaryFile . '.stderr';
 
         try {
             $this->assertTrue(rename($temporaryFile, $config));
@@ -285,16 +319,42 @@ NEON;
             $this->assertNotFalse($phpstan);
 
             $command = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($phpstan)
-                . ' analyse --no-progress --memory-limit=512M --error-format=table '
+                . ' analyse --no-ansi --no-progress --memory-limit=512M --error-format '
+                . escapeshellarg($errorFormat) . ' '
                 . escapeshellarg('-c') . ' ' . escapeshellarg($config)
-                . ' 2>&1';
+                . ($errorFormat === 'json' ? ' 2>' . escapeshellarg($stderr) : ' 2>&1');
 
-            $output = shell_exec($command);
+            $githubActions = getenv('GITHUB_ACTIONS');
+            putenv('GITHUB_ACTIONS');
+
+            try {
+                $output = shell_exec($command);
+            } finally {
+                if ($githubActions === false) {
+                    putenv('GITHUB_ACTIONS');
+                } else {
+                    putenv('GITHUB_ACTIONS=' . $githubActions);
+                }
+            }
 
             return is_string($output) ? $output : '';
         } finally {
             @unlink($config);
+            @unlink($stderr);
             @unlink($temporaryFile);
         }
+    }
+
+    private function assertPhpStanJsonDiagnostic(
+        mixed $diagnostic,
+        int $line,
+        string $message,
+        string $tip,
+    ): void {
+        $this->assertIsArray($diagnostic);
+        $this->assertSame($line, $diagnostic['line'] ?? null);
+        $this->assertSame('argument.type', $diagnostic['identifier'] ?? null);
+        $this->assertSame($message, $diagnostic['message'] ?? null);
+        $this->assertSame($tip, $diagnostic['tip'] ?? null);
     }
 }

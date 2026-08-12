@@ -48,10 +48,29 @@ final class PhpCatalogExporter
      */
     public function export(array $catalog, string $header = ''): string
     {
+        $header = str_replace(["\r\n", "\r"], "\n", $header);
+
         if ($header !== '') {
             $header = "\n" . $header . "\n";
         }
 
-        return "<?php\n" . $header . "\nreturn " . VarExporter::export($catalog) . ";\n";
+        $tokens = token_get_all('<?php ' . VarExporter::export($catalog));
+        array_shift($tokens);
+
+        $export = '';
+        foreach ($tokens as $token) {
+            if (is_array($token)) {
+                [$id, $text] = $token;
+                if ($id === T_WHITESPACE || $id === T_COMMENT || $id === T_DOC_COMMENT) {
+                    $text = str_replace(["\r\n", "\r"], "\n", $text);
+                }
+            } else {
+                $text = $token;
+            }
+
+            $export .= $text;
+        }
+
+        return "<?php\n" . $header . "\nreturn " . $export . ";\n";
     }
 }

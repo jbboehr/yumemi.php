@@ -172,11 +172,22 @@ NEON;
             $this->assertNotFalse($phpstan);
 
             $command = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($phpstan)
-                . ' analyse --no-progress --memory-limit=512M --error-format=table '
+                . ' analyse --no-ansi --no-progress --memory-limit=512M --error-format=table '
                 . escapeshellarg('-c') . ' ' . escapeshellarg($config)
                 . ' 2>&1';
 
-            $output = shell_exec($command);
+            $githubActions = getenv('GITHUB_ACTIONS');
+            putenv('GITHUB_ACTIONS');
+
+            try {
+                $output = shell_exec($command);
+            } finally {
+                if ($githubActions === false) {
+                    putenv('GITHUB_ACTIONS');
+                } else {
+                    putenv('GITHUB_ACTIONS=' . $githubActions);
+                }
+            }
 
             return is_string($output) ? $output : '';
         } finally {

@@ -156,7 +156,7 @@ run_phpgeo() {
         exit 1
     fi
 
-    diagnostic_count=$(grep -Ec '/cases/invalid\.php:[[:digit:]]+:' <<< "$output" || true)
+    diagnostic_count=$(grep -Ec '[/\\]cases[/\\]invalid\.php:[[:digit:]]+:' <<< "$output" || true)
     if [[ $diagnostic_count -ne 4 ]]; then
         printf 'phpgeo consumer PHPStan fixture reported unexpected diagnostics:\n%s\n' "$output" >&2
         exit 1
