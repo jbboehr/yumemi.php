@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+mode=${1:-}
+composer_bin=${COMPOSER_BIN:-composer}
+
+case "$mode" in
+    lowest)
+        preference=(--prefer-lowest --prefer-stable)
+        ;;
+    highest)
+        preference=(--prefer-stable)
+        ;;
+    *)
+        printf 'Usage: %s lowest|highest\n' "$0" >&2
+        exit 64
+        ;;
+esac
+
+# Moving development tools supply copied and directly tested artifacts. Keep
+# their lock-file revisions fixed while varying released dependencies.
+mapfile -t released_root_requirements < <(
+    # The embedded PHP must not undergo shell expansion.
+    # shellcheck disable=SC2016
+    php -r '
+        $root = json_decode(file_get_contents("composer.json"), true, 512, JSON_THROW_ON_ERROR);
+        $lock = json_decode(file_get_contents("composer.lock"), true, 512, JSON_THROW_ON_ERROR);
+        $lockedVersions = [];
+
+        foreach (array_merge($lock["packages"] ?? [], $lock["packages-dev"] ?? []) as $package) {
+            $lockedVersions[$package["name"]] = $package["version"];
+        }
+
+        foreach (array_merge($root["require"] ?? [], $root["require-dev"] ?? []) as $name => $constraint) {
+            if ($name === "php" || str_starts_with($name, "ext-")) {
+                continue;
+            }
+
+            if (str_starts_with($lockedVersions[$name] ?? "", "dev-")) {
+                continue;
+            }
+
+            fwrite(STDOUT, $name . "\n");
+        }
+    '
+)
+
+"$composer_bin" update \
+    "${released_root_requirements[@]}" \
+    --with-dependencies \
+    "${preference[@]}" \
+    --prefer-dist \
+    --no-interaction \
+    --no-progress

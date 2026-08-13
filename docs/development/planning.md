@@ -105,7 +105,9 @@ Current verification:
 - PHP-CS-Fixer passes
 - Composer validation passes
 - Nix flake checks pass
-- GitHub Actions tests PHP 8.2 through PHP 8.5, plus a PHP 8.2 lowest-dependency installation
+- GitHub Actions tests PHP 8.2 through PHP 8.5, plus fresh lowest-dependency and highest-dependency solves for released
+  requirements on PHP 8.2 and PHP 8.5, respectively; direct development-branch tools remain pinned to revisions used by
+  generated or copied integrations
 - a separate master-focused, manually dispatchable advisory workflow exercises PHP 8.2 on macOS and Windows, including
   the release-style package consumers; it remains outside ordinary pull-request gates and does not weaken the required
   Linux matrix
@@ -533,9 +535,12 @@ repeat the implementation's assumptions:
   mandatory CI and promote every genuine finding into a focused deterministic regression test. The first campaign
   exposed canonical rendering that changed the precedence of negative numeric power bases; `Pow::toString()` now
   parenthesizes those bases, with integer and decimal regressions in `ParserTest`.
-- Maintain the PHP 8.2 lowest-dependency CI job, which uses `composer update --prefer-lowest --prefer-stable` followed
-  by PHPStan and PHPUnit. Ordinary lock-file jobs verify only one dependency snapshot and do not prove the lower bounds
-  declared in `composer.json`.
+- Maintain the PHP 8.2 lowest-dependency and PHP 8.5 highest-dependency CI jobs. Both perform fresh Composer solves for
+  released requirements and run PHPStan plus PHPUnit: the lowest job proves their declared lower bounds, while the
+  highest job detects incompatibility with newly available releases inside those constraints. Direct requirements
+  locked to development branches remain at their committed revisions because copied or generated integrations are
+  tested against those exact inputs. Ordinary lock-file jobs verify one reproducible dependency snapshot and do not
+  cover either released edge.
 - Continue focused Xdebug branch audits rather than enforcing a global path-coverage floor. The focused `src/Registry`
   audit reached 98.95% branch and 98.65% line coverage after adding contract tests for malformed catalog shapes,
   transactional builder batches, and resilient introspection; the remaining outcomes are structurally unreachable under

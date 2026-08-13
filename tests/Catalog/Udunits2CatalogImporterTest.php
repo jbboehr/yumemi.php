@@ -750,6 +750,16 @@ final class Udunits2CatalogImporterTest extends TestCase
         (new Udunits2CatalogImporter())->importFiles([$file]);
     }
 
+    public function testEmptyXmlIsRejectedWithoutLeakingANativeWarning(): void
+    {
+        $file = $this->tempFile();
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Could not parse UDUNITS2 XML file: ' . $file);
+
+        (new Udunits2CatalogImporter())->importFiles([$file]);
+    }
+
     public function testMalformedXmlIsRejectedWithoutLeakingANativeWarning(): void
     {
         $file = $this->tempFile();

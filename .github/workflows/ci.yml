@@ -132,7 +132,49 @@ jobs:
                       ${{ runner.os }}-php-composer-
 
             - name: Install lowest supported dependencies
-              run: composer update --prefer-lowest --prefer-stable --prefer-dist --no-interaction --no-progress
+              run: .github/scripts/update-supported-dependencies lowest
+
+            - name: Run PHPStan
+              run: composer analyse -- --error-format=raw
+
+            - name: Run PHPUnit
+              run: composer test -- --colors=never
+
+    highest-dependencies:
+        name: Highest dependencies / PHP 8.5
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Install PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  coverage: none
+                  extensions: dom, gmp
+                  ini-values: memory_limit=512M
+                  php-version: "8.5"
+                  tools: composer:v2
+
+            - name: Validate Composer files
+              run: composer validate --strict
+
+            - name: Get Composer cache directory
+              id: composer-cache
+              run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+            - name: Cache Composer packages
+              uses: actions/cache@v6
+              with:
+                  path: ${{ steps.composer-cache.outputs.dir }}
+                  key: ${{ runner.os }}-php-8.5-composer-highest-${{ hashFiles('composer.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-php-8.5-composer-highest-
+                      ${{ runner.os }}-php-8.5-composer-
+                      ${{ runner.os }}-php-composer-
+
+            - name: Install highest supported dependencies
+              run: .github/scripts/update-supported-dependencies highest
 
             - name: Run PHPStan
               run: composer analyse -- --error-format=raw

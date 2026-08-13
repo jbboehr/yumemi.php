@@ -416,12 +416,12 @@ Nix-backed differential suite compares representative conversions against the `u
 generative suite exercises bounded expression, quantity, and point identities. An isolated consumer smoke test verifies
 runtime use plus automatic and manual PHPStan registration from a release-style Composer archive. The separately
 versioned Yumemi Apocrypha project verifies curated upstream integrations without adding their dependencies or
-maintenance surface to core. The normal matrix covers PHP 8.2 through PHP 8.5, and a PHP 8.2 lowest-dependency job
-verifies the declared lower bounds through `composer update --prefer-lowest --prefer-stable`.
+maintenance surface to core. The normal matrix covers PHP 8.2 through PHP 8.5. Fresh Composer solves on PHP 8.2 and PHP
+8.5 verify the declared lower bounds and newest permitted releases, respectively. Direct development-branch tools remain
+at their lock-file revisions because committed generated or copied integrations are verified against those exact inputs.
 
 The project has an initial tagged 0.1 release and a manual release and fork-first succession runbook, but still lacks an
-automated publication workflow. A highest-dependency job may be useful now that the 0.1 release establishes a
-compatibility promise.
+automated publication workflow.
 
 ## Parity Matrix
 

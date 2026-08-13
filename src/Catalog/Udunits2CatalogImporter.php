@@ -111,7 +111,7 @@ final class Udunits2CatalogImporter
         }
 
         $document = new DOMDocument();
-        if (!@$document->loadXML($contents)) {
+        if ($contents === '' || !@$document->loadXML($contents)) {
             throw new RuntimeException('Could not parse UDUNITS2 XML file: ' . $file);
         }
 

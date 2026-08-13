@@ -186,7 +186,7 @@ final class GeneratedDocumentationLinkChecker
     {
         $document = new \DOMDocument();
 
-        if (@$document->loadHTMLFile($file, LIBXML_NONET) === false) {
+        if ($file === '' || @$document->loadHTMLFile($file, LIBXML_NONET) === false) {
             throw new \RuntimeException('Unable to parse generated documentation file ' . $file);
         }
 
