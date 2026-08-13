@@ -184,6 +184,7 @@ assertType("Quantity<'international_foot'>", $m->to('foot'));
 $displayUnits = $units->preferredUnitProfile(['foot']);
 assertType(PreferredUnitProfile::class, $displayUnits);
 assertType(Quantity::class, $m->toPreferred($displayUnits));
+assertType(Quantity::class, $m->toCompact('meter'));
 
 // Conversion targets must share the receiver's dimension. Integer extractions carry the target unit.
 assertType("unit_int<'international_foot'>", $m->intValueIn('foot'));

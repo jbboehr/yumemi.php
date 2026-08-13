@@ -115,6 +115,15 @@ final class InvalidQuantityConversionRuleTest extends RuleTestCase
                     . 'and foot (length).',
                 57,
             ],
+            [
+                'Cannot call Quantity::toCompact() with dimensionally incompatible units meter (length) '
+                    . 'and second (time).',
+                63,
+            ],
+            [
+                'Unit compaction requires one named unit as its family root; got meter / second.',
+                64,
+            ],
         ]);
     }
 }

@@ -31,6 +31,7 @@ needs arise.
 | Parse a value and unit together                     | `Units::parseQuantity()`                |
 | Convert a quantity                                  | `Quantity::to()`                        |
 | Apply application-preferred units                   | `Quantity::toPreferred()`               |
+| Choose an engineering prefix in a named unit family | `Quantity::toCompact()`                 |
 | Convert a coordinate point                          | `PointQuantity::to()`                   |
 | Preserve the exact rational result after conversion | `Quantity::valueIn()`                   |
 | Obtain a minimal exact terminating decimal          | `Quantity::exactDecimalValueIn()`       |
@@ -304,6 +305,45 @@ The profile is application configuration and is intentionally not serializable. 
 PHPStan infers an unbranded `Quantity` from `toPreferred()`. Use explicit `to('target')` conversion when subsequent
 statically checked arithmetic needs to retain one known unit brand.
 
+### Compact Unit Selection
+
+Use `toCompact()` near an output boundary when the unit family is known but its engineering prefix should follow the
+exact magnitude:
+
+```php
+<?php
+
+use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\Units;
+
+$units = Units::default();
+$distance = $units->quantity(12_500, 'meter')->toCompact('meter');
+$mass = $units->quantity(new Rational(1, 100), 'kilogram')->toCompact('gram');
+
+assert($distance->valueToString() === '25/2');
+assert($distance->unitToString() === 'kilometer');
+assert($mass->valueToString() === '10');
+assert($mass->unitToString() === 'gram');
+```
+
+The argument names one multiplicative unit family. Yumemi considers the unprefixed unit and registry prefixes whose
+exact scales are powers of 1000, then chooses a magnitude in the half-open interval `[1, 1000)` when an eligible family
+member exists in that range. Selection and conversion use `Rational`; no floating-point logarithm or approximation is
+involved. Negative values use their absolute magnitude for selection and retain their sign. Zero uses the unprefixed
+base.
+
+At the registry's prefix limits, the smallest or largest available candidate is used. A candidate name that already
+exists in the catalog is accepted only when its exact conversion matches the expected prefix scale. This admits
+`kilogram` into the `gram` family without mistaking an unrelated exact-name collision for a valid prefixed unit. Results
+use canonical prefix and unit names; formatting may render symbols afterward. If an invalid collision leaves a gap, the
+selector uses the greatest available scale not exceeding the magnitude; the result may therefore remain at or above
+`1000` rather than crossing into a falsely prefixed unit.
+
+The family root must reduce to one named unit. Compound expressions, powers, and explicit numeric multipliers throw
+`UnsupportedUnitCompactionException`; use a preferred-unit profile for a compound target. The caller must choose the
+family because dimensional compatibility cannot decide among meter, foot, nautical-mile, or application-specific
+policies. PHPStan returns an unbranded `Quantity` because the result depends on the runtime magnitude.
+
 ## Native Numeric Output
 
 Exact `Rational` values can be extracted after conversion:
@@ -444,8 +484,8 @@ assert($simplified->valueToString() === '1/50');
 assert($simplified->unitToString() === 'meter');
 ```
 
-Neither operation chooses a preferred human-scale unit. Use `to()` for one explicit target or `toPreferred()` for an
-application profile.
+Neither operation chooses a preferred human-scale unit. Use `to()` for one explicit target, `toPreferred()` for an
+application profile, or `toCompact()` for a caller-selected engineering-prefix family.
 
 ## Expression Operations
 

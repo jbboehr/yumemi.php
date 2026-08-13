@@ -453,7 +453,7 @@ The extension models current unit-sensitive methods, including:
 
 - arithmetic through `abs()`, `add()`, `sub()`, `addWithSameUnit()`, `subWithSameUnit()`, `mul()`, `div()`, `neg()`,
   `pow()`, and exact `root()`;
-- conversion through `to()`, `toPreferred()`, and `valueIn()`;
+- conversion through `to()`, `toPreferred()`, `toCompact()`, and `valueIn()`;
 - native extraction through `intValueIn()`, `exactIntValueIn()`, `decimalValueIn()`, `significantDecimalValueIn()`,
   `exactDecimalValueIn()`, and `floatValueIn()`;
 - unit transformation through `normalize()` and `simplify()`;
@@ -476,8 +476,9 @@ An explicit target can also brand conversion and extraction results from an unbr
 the unknown source dimension in that case, but it can represent the requested result. A genuinely dynamic target falls
 back to an unbranded return type.
 
-`toPreferred()` also returns an unbranded `Quantity` because the selected target depends on the runtime contents of a
-`PreferredUnitProfile`. Use `to('target')` when subsequent static analysis needs one exact quantity brand.
+`toPreferred()` and `toCompact()` also return an unbranded `Quantity`: the former depends on the runtime contents of a
+`PreferredUnitProfile`, while the latter depends on the runtime magnitude. Use `to('target')` when subsequent static
+analysis needs one exact quantity brand.
 
 `PointQuantity<'celsius'>` carries both the coordinate origin and its difference scale. Coordinate aliases are
 definitionally equivalent, but different scales such as Celsius, Fahrenheit, and Kelvin remain distinct generic types

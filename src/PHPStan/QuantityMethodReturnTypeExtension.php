@@ -38,6 +38,8 @@ namespace jbboehr\Yumemi\PHPStan;
 
 use jbboehr\Yumemi\Analyzer\NormalizedExpr;
 use jbboehr\Yumemi\Exception\ExceptionInterface;
+use jbboehr\Yumemi\Exception\UnsupportedUnitCompactionException;
+use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Quantity;
 use PhpParser\Node\Expr\MethodCall;
 use PHPStan\Analyser\Scope;
@@ -60,9 +62,9 @@ use jbboehr\Yumemi\Util\Exponent;
  * `abs`/`neg` keep the left unit; `add`/`sub` accept dimensionally compatible units and keep the left
  * unit; `addWithSameUnit`/`subWithSameUnit` additionally require normalized-equivalent units; comparison
  * methods require compatible dimensions while retaining their native int/bool return types; `to` rebrands
- * to each possible statically known target unit; `toPreferred` deliberately returns an unbranded Quantity because its
- * target comes from runtime application policy; `normalize` rebrands to the catalog-normalized form; and `simplify`
- * moves the normalized scale into the magnitude, leaving the normalized unit factors on the type.
+ * to each possible statically known target unit; `toPreferred` and `toCompact` deliberately return an unbranded
+ * Quantity because their targets depend on runtime application state; `normalize` rebrands to the catalog-normalized
+ * form; and `simplify` moves the normalized scale into the magnitude, leaving the normalized unit factors on the type.
  *
  * An explicit finite target also brands results from an unbranded {@see Quantity}; without a source
  * brand, only the target can be inferred and source compatibility cannot be checked. The configured
@@ -86,8 +88,8 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
     {
         return in_array($methodReflection->getName(), [
             'mul', 'div', 'pow', 'root', 'abs', 'neg', 'add', 'sub', 'addWithSameUnit', 'subWithSameUnit', 'to',
-            'toPreferred', 'valueIn', 'intValueIn', 'exactIntValueIn', 'decimalValueIn', 'significantDecimalValueIn',
-            'exactDecimalValueIn', 'floatValueIn', 'normalize',
+            'toPreferred', 'toCompact', 'valueIn', 'intValueIn', 'exactIntValueIn', 'decimalValueIn',
+            'significantDecimalValueIn', 'exactDecimalValueIn', 'floatValueIn', 'normalize',
             'simplify', 'compareTo', 'equals', 'lessThan', 'lessThanOrEqualTo', 'greaterThan', 'greaterThanOrEqualTo',
         ], true);
     }
@@ -119,6 +121,7 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
 
         if (in_array($methodName, [
             'to',
+            'toCompact',
             'valueIn',
             'intValueIn',
             'exactIntValueIn',
@@ -393,6 +396,14 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
             $targetUnits[] = $parsed->expression();
         }
 
+        if ($methodName === 'toCompact') {
+            foreach ($targetUnits as $targetUnit) {
+                if (!$targetUnit->symbolicExpr instanceof Unit) {
+                    return new ErrorType((new UnsupportedUnitCompactionException($targetUnit->symbolicExpr))->getMessage());
+                }
+            }
+        }
+
         foreach ($receivers as $receiver) {
             $sourceUnit = $receiver->getUnitExpression();
             foreach ($targetUnits as $targetUnit) {
@@ -414,6 +425,7 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
                 static fn (UnitExpression $targetUnit): QuantityType => new QuantityType($targetUnit),
                 $targetUnits,
             )),
+            'toCompact' => new ObjectType(Quantity::class),
             'intValueIn', 'exactIntValueIn' => TypeCombinator::union(...array_map(
                 static fn (UnitExpression $targetUnit): UnitIntegerType => new UnitIntegerType($targetUnit),
                 $targetUnits,

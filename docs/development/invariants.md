@@ -178,6 +178,33 @@ order-dependent results, applying a profile from another context, or making `For
 **Classification.** Incorrect target selection, inexact conversion, or cross-context interpretation is a correctness
 defect. Changing the documented selection behavior is a compatibility break.
 
+## Compact Units Use Explicit Families And Exact Prefixes
+
+**Invariant.** Compact selection operates within one caller-selected named multiplicative unit family. Eligible prefixes
+come from the quantity's immutable registry, have an exact scale of `10^(3n)`, and are validated by exact conversion to
+the unprefixed base. Selection compares exact rational magnitudes, uses the unprefixed base for zero, and preserves the
+sign. It does not infer a unit system or perform presentation formatting.
+
+**Reason.** Dimensional compatibility cannot choose among metric, imperial, nautical, or application-specific policy.
+Floating-point logarithms would also introduce avoidable approximation and boundary instability into an exact runtime
+model. Exact conversion validation distinguishes a legitimate catalog collision such as `kilogram` from an unrelated
+unit whose name only resembles a prefixed candidate.
+
+**Representative enforcement.** [`Units::compactQuantity()`](../../src/Units.php) builds and caches validated candidate
+families, while [`Quantity::toCompact()`](../../src/Quantity.php) exposes the supported value operation.
+[`QuantityCompactionTest`](../../tests/QuantityCompactionTest.php) covers boundaries, saturation, collisions, custom
+registries, and unsupported roots; [`RuntimeConformanceTest`](../../tests/Conformance/RuntimeConformanceTest.php)
+preserves representative public results. PHPStan returns an unbranded `Quantity` because selection depends on runtime
+magnitude.
+
+**Invalid shortcut.** Scanning the whole catalog for an aesthetically preferable unit, using binary logarithms,
+compacting a structural compound without an explicit policy, treating every concatenated name as a valid prefix, or
+moving selection into `FormatOptions`.
+
+**Classification.** Inexact or nondeterministic selection, accepting a false prefix collision, or crossing unit-family
+or registry boundaries silently is a correctness defect. Changing documented boundary selection is a compatibility
+break.
+
 ## Affine Points and Multiplicative Differences Stay Distinct
 
 **Invariant.** A coordinate on an affine scale is a `PointQuantity`; a difference on that scale is an ordinary

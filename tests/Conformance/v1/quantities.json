@@ -108,6 +108,44 @@
             }
         }
     ],
+    "compactConversions": [
+        {
+            "id": "engineering-prefix-upper-boundary",
+            "quantity": {
+                "value": { "numerator": "1000", "denominator": "1" },
+                "unit": "meter"
+            },
+            "baseUnit": "meter",
+            "expected": {
+                "value": { "numerator": "1", "denominator": "1" },
+                "unit": "kilometer"
+            }
+        },
+        {
+            "id": "negative-value-uses-absolute-magnitude",
+            "quantity": {
+                "value": { "numerator": "-1250", "denominator": "1" },
+                "unit": "meter"
+            },
+            "baseUnit": "meter",
+            "expected": {
+                "value": { "numerator": "-5", "denominator": "4" },
+                "unit": "kilometer"
+            }
+        },
+        {
+            "id": "kilogram-is-valid-member-of-gram-family",
+            "quantity": {
+                "value": { "numerator": "1", "denominator": "1" },
+                "unit": "kilogram"
+            },
+            "baseUnit": "gram",
+            "expected": {
+                "value": { "numerator": "1", "denominator": "1" },
+                "unit": "kilogram"
+            }
+        }
+    ],
     "pointConversions": [
         {
             "id": "celsius-point-to-fahrenheit",

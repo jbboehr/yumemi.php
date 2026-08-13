@@ -44,9 +44,13 @@ use jbboehr\Yumemi\Analyzer\UnitNormalizer;
 use jbboehr\Yumemi\Analyzer\UnitResolver;
 use jbboehr\Yumemi\Catalog\PrefixDescriptor;
 use jbboehr\Yumemi\Catalog\UnitDescriptor;
+use jbboehr\Yumemi\Exception\ExceptionInterface;
+use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
 use jbboehr\Yumemi\Exception\InvalidArgumentException;
 use jbboehr\Yumemi\Exception\OverflowException;
 use jbboehr\Yumemi\Exception\UnderflowException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitCompactionException;
+use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
@@ -71,6 +75,16 @@ final class Units
     private readonly ExprFormatter $defaultFormatter;
     private readonly UnitNormalizer $unitNormalizer;
     private readonly UnitResolver $unitResolver;
+
+    /**
+     * @logion [OSD 42:62] At the first thunder beneath the synthetic moon, carry the reed screens into the courtyard
+     *     and turn their painted cranes toward the earth. Let no lamp shine through them, for the storm seeketh images
+     *     willing to ascend in place of living wings. When silence returneth, burn the brightest screen and leave its
+     *     ashes to the rain.
+     *
+     * @var array<string, list<array{scale: Rational, unit: string}>>
+     */
+    private array $compactUnitFamilyCache = [];
 
     /**
      * @logion [OSD 92:33] When hail falleth beneath a cloudless sky, the magistrates shall fold their crimson canopies
@@ -299,6 +313,154 @@ final class Units
     public function quantity(int|Rational $value, Expr|string $unit): Quantity
     {
         return new Quantity($value, $unit, $this);
+    }
+
+    /**
+     * Select and apply one engineering-prefixed member of a named unit family.
+     *
+     * @logion [AWC 1:48] In the reign of the jade magistrate, the city paved its river with luminous glass. That winter
+     *     the carp swam through the streets, and no judgment pronounced above the buried water reached its hearer.
+     *
+     * @internal Applications should call Quantity::toCompact().
+     */
+    public function compactQuantity(Quantity $quantity, Expr|string $baseUnit): Quantity
+    {
+        if ($quantity->units() !== $this) {
+            throw IncompatibleQuantityContextException::create($quantity->units(), $this);
+        }
+
+        $symbolicBase = ExprReducer::reduce(is_string($baseUnit)
+            ? AstConverter::symbolic()->convert(Parser::parseString($baseUnit))
+            : $baseUnit);
+
+        if (!$symbolicBase instanceof Unit) {
+            throw new UnsupportedUnitCompactionException($symbolicBase);
+        }
+
+        // Resolve once before introspection so unknown, affine, logarithmic, and otherwise unsupported roots retain
+        // their established semantic exceptions.
+        $this->parse($symbolicBase->name);
+        $baseDescriptor = $this->unitRegistry->describe($symbolicBase->name);
+        if ($baseDescriptor === null) {
+            throw new UnsupportedUnitCompactionException($symbolicBase);
+        }
+
+        $baseName = $baseDescriptor->canonicalName;
+        $resolvedBase = $this->parse($baseName);
+        $baseValue = $quantity->valueIn($resolvedBase);
+
+        if (!isset($this->compactUnitFamilyCache[$baseName])) {
+            $engineeringPower = static function (Rational $scale): ?int {
+                if (gmp_sign($scale->numerator) <= 0) {
+                    return null;
+                }
+
+                if (gmp_cmp($scale->denominator, 1) === 0) {
+                    $remaining = $scale->numerator;
+                    $direction = 1;
+                } elseif (gmp_cmp($scale->numerator, 1) === 0) {
+                    $remaining = $scale->denominator;
+                    $direction = -1;
+                } else {
+                    return null;
+                }
+
+                $power = 0;
+                while (gmp_cmp($remaining, 1) > 0) {
+                    if (gmp_cmp(gmp_mod($remaining, 1000), 0) !== 0) {
+                        return null;
+                    }
+
+                    $remaining = gmp_div_q($remaining, 1000);
+                    $power += $direction;
+                }
+
+                return $power;
+            };
+
+            /** @var array<int, array{scale: Rational, unit: string}> $candidates */
+            $candidates = [
+                0 => ['scale' => new Rational(1), 'unit' => $baseName],
+            ];
+            $seenPrefixes = [];
+
+            foreach (array_keys($this->unitRegistry->prefixes()) as $prefixName) {
+                $prefix = $this->unitRegistry->describePrefix($prefixName);
+                if ($prefix === null || isset($seenPrefixes[$prefix->canonicalName])) {
+                    continue;
+                }
+
+                $seenPrefixes[$prefix->canonicalName] = true;
+
+                try {
+                    $prefixExpr = ExprReducer::reduce(
+                        AstConverter::symbolic()->convert(Parser::parseString($prefix->definitionExpression)),
+                    );
+                } catch (ExceptionInterface) {
+                    continue;
+                }
+
+                if (!$prefixExpr instanceof Constant) {
+                    continue;
+                }
+
+                $power = $engineeringPower($prefixExpr->value);
+                if ($power === null || $power === 0) {
+                    continue;
+                }
+
+                $candidate = $this->unitRegistry->describe($prefix->canonicalName . $baseName);
+                if ($candidate === null) {
+                    continue;
+                }
+
+                try {
+                    $scale = $this->conversionFactor($candidate->canonicalName, $resolvedBase);
+                } catch (ExceptionInterface) {
+                    continue;
+                }
+
+                if (!$scale->equals($prefixExpr->value)) {
+                    continue;
+                }
+
+                $existing = $candidates[$power] ?? null;
+                if ($existing === null || strcmp($candidate->canonicalName, $existing['unit']) < 0) {
+                    $candidates[$power] = [
+                        'scale' => $scale,
+                        'unit' => $candidate->canonicalName,
+                    ];
+                }
+            }
+
+            ksort($candidates, SORT_NUMERIC);
+            $this->compactUnitFamilyCache[$baseName] = array_values($candidates);
+        }
+
+        $family = $this->compactUnitFamilyCache[$baseName];
+        $selected = $family[0];
+
+        if ($baseValue->isZero()) {
+            foreach ($family as $candidate) {
+                if ($candidate['scale']->isOne()) {
+                    $selected = $candidate;
+
+                    break;
+                }
+            }
+        } else {
+            $magnitude = $baseValue->abs();
+
+            foreach ($family as $candidate) {
+                if ($magnitude->compareTo($candidate['scale']) < 0) {
+                    break;
+                }
+
+                $selected = $candidate;
+            }
+        }
+
+        return $quantity->to($selected['unit']);
     }
 
     /**

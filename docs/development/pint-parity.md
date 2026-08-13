@@ -137,10 +137,10 @@ Status: **Done for explicit definition substitution** | Importance: **P1** | Rem
 scale into the magnitude. Explicit `to()` conversion requests a caller-selected target. These semantics are documented
 and intentionally distinct.
 
-Preferred-unit profiles now apply explicit application targets by dimension. Compact-unit selection remains absent.
-Yumemi should not alias `simplify()` to a system-specific base-unit operation. The
-[selection design](preferred-compact-unit-selection.md) keeps application preferences and magnitude-based prefix
-compaction separate without requiring a unit-system model.
+Preferred-unit profiles apply explicit application targets by dimension, while `toCompact()` selects an engineering
+prefix within one named unit family. Yumemi does not alias `simplify()` to a system-specific base-unit operation. The
+[selection design](preferred-compact-unit-selection.md) keeps both operations separate without requiring a unit-system
+model.
 
 ### 9. Dimensionality API
 
@@ -230,10 +230,10 @@ System-aware base-unit or preferred-unit conversion would require explicit syste
 Status: **Partial** | Importance: **P2** | Remaining difficulty: **M/L**
 
 Yumemi implements explicit dimension-matched application preferences through `PreferredUnitProfile` and
-`Quantity::toPreferred()`. Exact engineering-prefix compaction remains designed but unimplemented. The
-[design spike](preferred-compact-unit-selection.md) deliberately avoids catalog-wide scoring, a general preferred-basis
-optimizer, and implicit system selection. Explicit `to()` conversion remains the predictable choice when one static
-target is known.
+`Quantity::toPreferred()`, plus exact engineering-prefix compaction through `Quantity::toCompact()`. The
+[design record](preferred-compact-unit-selection.md) deliberately limits compaction to one caller-selected named family
+and avoids catalog-wide scoring, a general preferred-basis optimizer, and implicit system selection. Explicit `to()`
+conversion remains the predictable choice when one static target is known.
 
 ### 18. Constants
 
@@ -447,7 +447,7 @@ automated publication workflow.
 | Logarithmic units                | Recognized, not evaluable          | P3         | XL                   |
 | Pint contexts                    | Absent                             | P2         | XL                   |
 | Unit systems                     | Absent                             | P2         | L                    |
-| Preferred and compact units      | Partial; preferred profiles done   | P2         | M/L                  |
+| Preferred and compact units      | Partial; explicit operations done  | P2         | M/L                  |
 | Constants                        | Partial                            | P2         | M                    |
 | Comparisons                      | Done for quantities and points     | P1         | S/M                  |
 | Math functions                   | Integer powers and exact roots     | P2         | L                    |

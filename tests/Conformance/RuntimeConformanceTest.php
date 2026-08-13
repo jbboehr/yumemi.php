@@ -69,6 +69,7 @@ final class RuntimeConformanceTest extends TestCase
             'quantityRoots',
             'quantityForms',
             'preferredConversions',
+            'compactConversions',
             'pointConversions',
             'pointDifferences',
             'pointTranslations',
@@ -252,6 +253,21 @@ final class RuntimeConformanceTest extends TestCase
         /** @var list<string> $targets */
         $profile = Units::default()->preferredUnitProfile($targets);
         $actual = self::quantity($case['quantity'] ?? null, $context . '.quantity')->toPreferred($profile);
+
+        self::assertQuantity($case['expected'] ?? null, $actual, $context . '.expected');
+    }
+
+    /**
+     * @param array<string, mixed> $case
+     */
+    #[DataProvider('compactConversionProvider')]
+    public function testCompactConversionConformance(array $case): void
+    {
+        $context = self::context('quantities.json', $case);
+        self::assertKeys($case, ['id', 'quantity', 'baseUnit', 'expected'], $context);
+        $baseUnit = self::string($case, 'baseUnit', $context);
+
+        $actual = self::quantity($case['quantity'] ?? null, $context . '.quantity')->toCompact($baseUnit);
 
         self::assertQuantity($case['expected'] ?? null, $actual, $context . '.expected');
     }
@@ -510,6 +526,12 @@ final class RuntimeConformanceTest extends TestCase
     public static function preferredConversionProvider(): iterable
     {
         yield from self::provider('quantities.json', 'preferredConversions');
+    }
+
+    /** @return iterable<string, array{array<string, mixed>}> */
+    public static function compactConversionProvider(): iterable
+    {
+        yield from self::provider('quantities.json', 'compactConversions');
     }
 
     /** @return iterable<string, array{array<string, mixed>}> */

@@ -1,15 +1,15 @@
 # Preferred And Compact Unit Selection Design Spike
 
-Status: **Preferred-unit profiles implemented; compact selection proposed**
+Status: **Preferred-unit profiles and named-family compaction implemented**
 
-Reviewed against the working tree on 2026-08-12.
+Reviewed against the working tree on 2026-08-13.
 
-This spike defines a deliberately narrow path for preferred-unit and compact-unit conversion. The preferred-profile
-slice now forms part of the runtime and PHPStan contract; compact selection remains a proposal.
+This record defines the deliberately narrow preferred-unit and compact-unit conversion boundary now implemented by the
+runtime and PHPStan adapter.
 
 ## Decision Summary
 
-Preferred-unit selection and compact-unit selection should remain separate operations:
+Preferred-unit selection and compact-unit selection remain separate operations:
 
 - **Preferred-unit selection** applies an explicit application policy to a quantity's dimension. It answers questions
   such as "display speeds in kilometers per hour" or "display energy in kilowatt hours."
@@ -19,12 +19,12 @@ Preferred-unit selection and compact-unit selection should remain separate opera
 - **Formatting** continues to choose spelling, symbols, typography, and expression layout after a unit has been chosen.
   `FormatOptions` must not acquire conversion policy or inspect magnitudes.
 
-The first implementation should use explicit preferred target expressions and exact prefix arithmetic. It should not
-introduce unit systems, catalog-wide scoring, approximate logarithms, or a general optimizer.
+The implementation uses explicit preferred target expressions and exact prefix arithmetic. It does not introduce unit
+systems, catalog-wide scoring, approximate logarithms, or a general optimizer.
 
-## Proposed API
+## API
 
-Preferred targets should be collected in an immutable profile bound to one `Units` context:
+Preferred targets are collected in an immutable profile bound to one `Units` context:
 
 ```php
 $displayUnits = $units->preferredUnitProfile([
@@ -43,7 +43,7 @@ Units::preferredUnitProfile(iterable $targets): PreferredUnitProfile;
 Quantity::toPreferred(PreferredUnitProfile $profile): Quantity;
 ```
 
-Compact selection should require the caller to name the unit family in the initial API:
+Compact selection requires the caller to name the unit family:
 
 ```php
 $distance = $units->quantity(12_500, 'meter')->toCompact('meter');
@@ -53,7 +53,7 @@ $mass = $units->quantity(new Rational(1, 100), 'kilogram')->toCompact('gram');
 // exact value: 10 gram
 ```
 
-The corresponding public surface would be:
+The implemented public surface is:
 
 ```php
 Quantity::toCompact(Expr|string $baseUnit): Quantity;
@@ -87,7 +87,7 @@ Catalog definitions may contain scale factors. The restriction on explicit numer
 named units such as `percent`, whose scale appears only after catalog resolution.
 
 `toPreferred()` requires object-identical `Units` contexts, as quantity arithmetic already does. A profile built for
-another context should throw `IncompatibleQuantityContextException`, even if the registries happen to contain equivalent
+another context throws `IncompatibleQuantityContextException`, even if the registries happen to contain equivalent
 definitions. This makes custom units deterministic and prevents a profile from being silently reinterpreted after
 crossing a registry boundary.
 
@@ -106,11 +106,11 @@ require the same custom-registry context problem already handled explicitly for 
 
 ## Compact Selection
 
-The first compactor should support one named, multiplicative unit family. A named derived unit such as `watt` or
-`newton` is eligible; a structural compound such as `meter / second` is not. Applications can use a named custom unit or
-a preferred profile when a compound expression needs a stable display target.
+The compactor supports one named, multiplicative unit family. A named derived unit such as `watt` or `newton` is
+eligible; a structural compound such as `meter / second` is not. Applications can use a named custom unit or a preferred
+profile when a compound expression needs a stable display target.
 
-The algorithm should be deterministic and exact:
+The algorithm is deterministic and exact:
 
 1. Parse the requested base unit and require one named unit after symbolic reduction.
 2. Resolve its canonical name and verify multiplicative conversion support.
@@ -124,15 +124,19 @@ The algorithm should be deterministic and exact:
    notation.
 8. Convert to the selected candidate with the existing exact conversion path.
 
+If a rejected exact-name collision leaves an internal gap, selection uses the greatest available scale not exceeding the
+absolute magnitude. This preserves the lower bound and may leave the output at or above `1000` rather than admitting a
+false candidate.
+
 No binary floating-point logarithm is necessary. Prefix scales and interval comparisons can use `Rational`, preserving
 determinism for very large and very small values.
 
-For duplicate prefix spellings with the same scale, use the registry's canonical prefix name. The result should carry a
+For duplicate prefix spellings with the same scale, the registry's canonical prefix name is used. The result carries a
 canonical unit name; `FormatOptions` may subsequently render its symbol. This keeps semantic selection independent of
 presentation.
 
-Zero has no meaningful scale. `toCompact()` should convert zero to the unprefixed base selected by the caller. Negative
-values use their absolute magnitude for prefix selection and retain their sign. Exact boundaries are intentional:
+Zero has no meaningful scale. `toCompact()` converts zero to the unprefixed base selected by the caller. Negative values
+use their absolute magnitude for prefix selection and retain their sign. Exact boundaries are intentional:
 
 ```text
 999 meter  -> 999 meter
@@ -142,21 +146,20 @@ values use their absolute magnitude for prefix selection and retain their sign. 
 ```
 
 If no eligible engineering prefix exists, the unprefixed base remains a valid one-candidate family. Structurally invalid
-base expressions should fail explicitly rather than returning an unchanged quantity and concealing a caller mistake. A
-dedicated `UnsupportedUnitCompactionException` would make that failure clearer than overloading an unrelated conversion
-exception.
+base expressions fail explicitly with `UnsupportedUnitCompactionException` rather than returning an unchanged quantity
+and concealing a caller mistake.
 
 ## Custom Registries
 
 Profiles work with custom registries without special handling because their targets are parsed by the bound `Units`
 context. A profile may therefore select application-defined dimensions and compound custom units.
 
-Compaction must likewise use prefixes from the quantity's registry, not a hard-coded SI table. A default-derived custom
+Compaction likewise uses prefixes from the quantity's registry, not a hard-coded SI table. A default-derived custom
 registry inherits the generated UDUNITS2 prefixes, so application-defined units can participate when the synthesized
 candidate names resolve correctly. An empty custom registry currently exposes no prefixes and therefore produces only
 the unprefixed candidate.
 
-The first implementation should not add prefix mutation to `UnitRegistryBuilder`. A later `prefix()` builder method is
+The implementation does not add prefix mutation to `UnitRegistryBuilder`. A later `prefix()` builder method is
 compatible with this design because the compactor consumes the registry's existing prefix interface. It should be added
 only when a custom-registry use case needs independently authored prefixes.
 
@@ -172,9 +175,9 @@ explicitly return unbranded `Quantity` for these methods rather than incorrectly
 is a deliberate loss of static unit identity at a presentation boundary, not a union of every possible same-carrier
 unit.
 
-Public guidance should recommend these operations near output boundaries. Code that needs continued statically known
-unit arithmetic should use explicit `to('target')` conversion instead. A future static refinement is appropriate only if
-an API makes one target expression statically recoverable; the initial profile and magnitude-based compactor do not.
+Public guidance recommends these operations near output boundaries. Code that needs continued statically known unit
+arithmetic uses explicit `to('target')` conversion instead. A future static refinement is appropriate only if an API
+makes one target expression statically recoverable; the initial profile and magnitude-based compactor do not.
 
 ## Point Quantities And Other Non-Goals
 
@@ -228,9 +231,9 @@ Implement and review this feature in separate working commits:
 
 1. **Preferred targets (implemented):** add `PreferredUnitProfile`, the `Units` factory, `Quantity::toPreferred()`,
    context and validation tests, unbranded PHPStan fallback, public documentation, changelog, and conformance cases.
-2. **Named-unit compaction:** add the internal exact prefix selector, `Quantity::toCompact()`, the dedicated exception,
-   boundary and custom-registry tests, unbranded PHPStan fallback, public documentation, changelog, and conformance
-   cases.
+2. **Named-unit compaction (implemented):** add the internal exact prefix selector, `Quantity::toCompact()`, the
+   dedicated exception, boundary and custom-registry tests, unbranded PHPStan fallback, public documentation, changelog,
+   and conformance cases.
 3. **Evidence-driven extensions:** consider compound compaction, authored custom prefixes, or static refinements only
    after the first two slices have real consumers.
 
@@ -242,14 +245,14 @@ semantics and does not require a new selection algorithm.
 Preferred-profile coverage includes exact compound conversion, custom dimensions, dimensionless targets,
 duplicate-dimension rejection, unsupported semantics, context mismatch, a missing-profile no-op, and source spelling.
 
-Compaction coverage should include positive, negative, and zero values; exact lower and upper interval boundaries;
+Compaction coverage includes positive, negative, and zero values; exact lower and upper interval boundaries;
 available-prefix saturation; canonical prefix aliases; exact-name collisions; kilogram through an explicit `gram` base;
 named derived and custom units; registries without prefixes; unsupported compound and affine targets; and exact rational
 preservation.
 
-Both slices should add PHPStan tests proving that the result becomes an unbranded `Quantity` and that no same-carrier
-union is invented. Runtime behavior should enter the conformance corpus because target selection and exact output are
-observable public semantics.
+Both slices add PHPStan tests proving that the result becomes an unbranded `Quantity` and that no same-carrier union is
+invented. Runtime behavior is part of the conformance corpus because target selection and exact output are observable
+public semantics.
 
 ## External Reference
 

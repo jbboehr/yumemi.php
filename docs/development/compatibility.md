@@ -66,7 +66,7 @@ Only documented construction paths are supported. In particular:
 - treat descriptor constructors as implementation details even though descriptor values and documented properties are
   supported when returned by catalog introspection.
 
-Documented exactness, conversion, preferred-unit selection, reduction, normalization, affine point/delta,
+Documented exactness, conversion, preferred- and compact-unit selection, reduction, normalization, affine point/delta,
 registry-context, numeric-output, and formatting semantics are part of this contract. The
 [semantic invariants](invariants.md) state these obligations more precisely.
 
@@ -126,6 +126,7 @@ preserving:
 - the distinction among symbolic reduction, definition substitution, and display formatting;
 - the distinction among structural equality, definitional equivalence, and dimensional compatibility;
 - exact preferred-unit conversion through an explicit application profile bound to the same registry context;
+- exact engineering-prefix compaction within a caller-selected named unit family;
 - affine points, multiplicative differences, and their permitted operations;
 - immutable registry snapshots and rejection of cross-context quantity operations;
 - deterministic canonical behavior represented by the conformance corpus; and

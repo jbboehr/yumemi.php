@@ -59,3 +59,9 @@ function convertReceiverUnion(Quantity $quantity): void
 
 // @phpstan-ignore yumemi.invalidQuantityConversion (exercise identifier-specific suppression)
 $meters->to('second');
+
+$meters->toCompact('second');
+$meters->toCompact('meter / second');
+
+// Valid: compaction stays within one compatible named unit family.
+$meters->toCompact('meter');

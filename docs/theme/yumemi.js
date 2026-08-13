@@ -84,7 +84,10 @@
             {
                 id: "conversion-and-comparison",
                 title: "Conversion And Comparison",
-                children: [{ id: "preferred-unit-profiles", title: "Preferred Unit Profiles" }],
+                children: [
+                    { id: "preferred-unit-profiles", title: "Preferred Unit Profiles" },
+                    { id: "compact-unit-selection", title: "Compact Unit Selection" },
+                ],
             },
             { id: "native-numeric-output", title: "Native Numeric Output" },
             { id: "affine-conversion", title: "Affine Conversion" },

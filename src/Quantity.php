@@ -504,6 +504,20 @@ final class Quantity implements \JsonSerializable
     }
 
     /**
+     * Convert to an engineering-prefixed member of a caller-selected named unit family.
+     *
+     * @logion [AWC 75:38] During the argent regency, the court stretched a painted horizon across the western sky,
+     *     that no sunset might occur without permission. For one season the people praised its unchanging gold; then
+     *     migrating birds struck the painted clouds and fell among the palace cedars. The gardeners bore them beyond
+     *     the city and waited in the true dusk. At moonrise the birds arose, and the false horizon tore from end to end,
+     *     revealing an evening older than the dynasty.
+     */
+    public function toCompact(Expr|string $baseUnit): self
+    {
+        return $this->units->compactQuantity($this, $baseUnit);
+    }
+
+    /**
      * Convert to this quantity's application-preferred unit when the profile contains one for its dimension.
      *
      * @logion [OSD 82:29] Before crossing the electric plain at winter solstice, bind one strip of white paper to the
