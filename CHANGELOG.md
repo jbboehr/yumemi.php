@@ -11,6 +11,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Yumemi-owned PHPStan diagnostics preserve statically known unit spellings at direct argument boundaries while inferred
+  types and diagnostics formed after semantic joins remain canonical.
+
 ### Deprecated
 
 ### Removed

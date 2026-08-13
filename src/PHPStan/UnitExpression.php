@@ -86,6 +86,18 @@ final class UnitExpression
     }
 
     /**
+     * Render the reduced unit names retained from the caller's expression.
+     *
+     * @logion [OSD 22:5] Keep the eastern gate unpainted when the orchards flower beneath the violet moon, and let each
+     *     pilgrim touch the old grain of its cedar before entering. For splendor may adorn the road, but the hand
+     *     remembereth by roughness; therefore smooth no threshold whose worn face still guideth the returning blind.
+     */
+    public function symbolicDisplayString(): string
+    {
+        return ExprRenderer::format($this->symbolicExpr);
+    }
+
+    /**
      * Structural equality of the reduced symbolic expressions.
      */
     public function equals(self $other): bool

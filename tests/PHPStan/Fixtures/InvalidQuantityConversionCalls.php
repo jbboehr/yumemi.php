@@ -7,19 +7,19 @@ use jbboehr\Yumemi\Units;
 
 $meters = Units::default()->quantity(1, 'meter');
 
-$meters->to('second');
-$meters->valueIn('second');
-$meters->intValueIn('second');
-$meters->exactIntValueIn('second');
-$meters->decimalValueIn('second', 2, \RoundingMode::HalfEven);
-$meters->significantDecimalValueIn('second', 3, \RoundingMode::HalfEven);
-$meters->exactDecimalValueIn('second');
-$meters->floatValueIn('second');
+$meters->to('seconds');
+$meters->valueIn('seconds');
+$meters->intValueIn('seconds');
+$meters->exactIntValueIn('seconds');
+$meters->decimalValueIn('seconds', 2, \RoundingMode::HalfEven);
+$meters->significantDecimalValueIn('seconds', 3, \RoundingMode::HalfEven);
+$meters->exactDecimalValueIn('seconds');
+$meters->floatValueIn('seconds');
 $meters->to('not_a_real_unit_xyz');
 
 /**
  * @param Quantity<'meter'> $meters
- * @param 'meter'|'second'  $unit
+ * @param 'metres'|'seconds' $unit
  */
 function convertToPossibleDimension(Quantity $meters, string $unit): void
 {

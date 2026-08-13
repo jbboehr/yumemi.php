@@ -172,10 +172,13 @@ final class UnitFactorFunctionDynamicReturnTypeExtension implements DynamicFunct
 
         $resultTypes = [];
         $resultUnits = [];
-        foreach ($fromUnits as $fromUnit) {
-            foreach ($toUnits as $toUnit) {
+        foreach ($fromUnits as $fromIndex => $fromUnit) {
+            foreach ($toUnits as $toIndex => $toUnit) {
                 try {
-                    $factor = $this->units->conversionFactor($fromUnit->expr, $toUnit->expr);
+                    $factor = $this->units->conversionFactor(
+                        count($fromStrings) === 1 ? $fromStrings[$fromIndex] : $fromUnit->expr,
+                        count($toStrings) === 1 ? $toStrings[$toIndex] : $toUnit->expr,
+                    );
                 } catch (IncompatibleUnitException|NonMultiplicativeConversionException $exception) {
                     $message = 'Cannot calculate unit_factor(): ' . $exception->getMessage();
 

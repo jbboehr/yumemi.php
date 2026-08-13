@@ -287,7 +287,7 @@ final class NativeUnitCallAnalysisTest extends TestCase
         self::assertInstanceOf(ErrorType::class, $analysis['type']);
         self::assertSame('invalid', $analysis['issue']);
         self::assertSame(
-            'unit_to() value unit meter does not match from unit international_foot (normalized forms differ).',
+            'unit_to() value unit meter does not match from unit foot (normalized forms differ).',
             $analysis['message'],
         );
     }

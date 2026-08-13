@@ -16,13 +16,13 @@ unit_to(1.0, 'meter', 'not_a_real_unit_xyz');
 unit_to(1.0, 'not_a_real_unit_xyz', 'meter');
 
 // unit_to(): dimensionally incompatible units.
-unit_to(1.0, 'meter', 'second');
+unit_to(1.0, 'meters / seconds', 'seconds');
 
 // unit_to(): branded value unit does not match the "from" unit.
-unit_to(unit(3.0, 'foot'), 'meter', 'foot');
+unit_to(unit(3.0, 'foot'), 'metres', 'foot');
 
 // unit_factor(): incompatible dimensions and unsupported multiplicative semantics.
-unit_factor('meter', 'second');
+unit_factor('metres', 'second');
 unit_factor('celsius', 'kelvin');
 unit_factor('celsius', 'celsius');
 unit_factor('B', 'B');
@@ -69,25 +69,25 @@ function partlyInvalidFiniteUnit(string $u): void
 // Logarithmic conversion is a distinct unsupported operation.
 unit_to(1.0, 'B', '1');
 
-/** @param 'meter'|'second' $from */
+/** @param 'metres'|'seconds' $from */
 function invalidFiniteFactorSource(string $from): void
 {
     unit_factor($from, 'meter');
 }
 
-/** @param 'meter'|'second' $to */
+/** @param 'metres'|'seconds' $to */
 function invalidFiniteFactorTarget(string $to): void
 {
     unit_factor('meter', $to);
 }
 
-/** @param 'meter'|'second' $from */
+/** @param 'metres'|'seconds' $from */
 function invalidFiniteConversionSource(string $from): void
 {
     unit_to(1.0, $from, 'meter');
 }
 
-/** @param 'meter'|'second' $to */
+/** @param 'metres'|'seconds' $to */
 function invalidFiniteConversionTarget(string $to): void
 {
     unit_to(1.0, 'meter', $to);

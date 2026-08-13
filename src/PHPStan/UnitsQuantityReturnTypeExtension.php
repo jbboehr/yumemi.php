@@ -206,7 +206,9 @@ final class UnitsQuantityReturnTypeExtension implements DynamicMethodReturnTypeE
                     return new ErrorType(sprintf(
                         'Units::quantity() value unit %s does not match target unit %s (normalized forms differ).',
                         $valueUnit->displayString,
-                        $targetUnit->displayString,
+                        count($constantStrings) === 1
+                            ? $targetUnit->symbolicDisplayString()
+                            : $targetUnit->displayString,
                     ));
                 }
             }

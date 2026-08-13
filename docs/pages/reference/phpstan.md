@@ -628,6 +628,10 @@ scope:
 Call and operation diagnostics apply even when an invalid call's result is unused. Syntax diagnostics preserve the
 runtime parser's bounded caret excerpt while PHPStan anchors the error to the containing PHP or PHPDoc line.
 
+When a Yumemi-owned diagnostic still has one exact constant unit argument, it uses the caller's reduced symbolic
+spelling, such as `metres` rather than `meter`. Inferred types and diagnostics formed after unions, arithmetic, or other
+semantic joins remain canonical because no single source spelling necessarily survives those operations.
+
 Use the identifier to choose the first corrective step:
 
 - For `binaryOp.invalid` or `yumemi.invalidUnitComparison`, remember that native PHP does not convert either operand.

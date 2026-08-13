@@ -395,7 +395,12 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
                     continue;
                 }
 
-                return self::incompatibleDimensionError($methodName, $sourceUnit, $targetUnit);
+                return self::incompatibleDimensionError(
+                    $methodName,
+                    $sourceUnit,
+                    $targetUnit,
+                    count($constantStrings) === 1 ? $targetUnit->symbolicDisplayString() : null,
+                );
             }
         }
 
@@ -439,13 +444,14 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
         string $methodName,
         UnitExpression $left,
         UnitExpression $right,
+        ?string $rightDisplayString = null,
     ): ErrorType {
         return new ErrorType(sprintf(
             'Cannot call Quantity::%s() with dimensionally incompatible units %s (%s) and %s (%s).',
             $methodName,
             $left->displayString,
             $left->dimension->toString(),
-            $right->displayString,
+            $rightDisplayString ?? $right->displayString,
             $right->dimension->toString(),
         ));
     }

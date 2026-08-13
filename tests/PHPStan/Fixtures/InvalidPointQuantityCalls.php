@@ -12,7 +12,7 @@ $meters = $units->point(0, 'meter');
 $celsius->add($units->quantity(1, 'meter'));
 $celsius->sub($units->quantity(1, 'second'));
 $celsius->difference($meters);
-$celsius->to('meter');
+$celsius->to('meters');
 $celsius->valueIn('second');
 $celsius->significantDecimalValueIn('second', 3, \RoundingMode::HalfEven);
 $celsius->compareTo($meters);

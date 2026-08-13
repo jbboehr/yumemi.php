@@ -61,35 +61,35 @@ final class InvalidQuantityConversionRuleTest extends RuleTestCase
     {
         $this->analyse([__DIR__ . '/Fixtures/InvalidQuantityConversionCalls.php'], [
             [
-                'Cannot call Quantity::to() with dimensionally incompatible units meter (length) and second (time).',
+                'Cannot call Quantity::to() with dimensionally incompatible units meter (length) and seconds (time).',
                 10,
             ],
             [
-                'Cannot call Quantity::valueIn() with dimensionally incompatible units meter (length) and second (time).',
+                'Cannot call Quantity::valueIn() with dimensionally incompatible units meter (length) and seconds (time).',
                 11,
             ],
             [
-                'Cannot call Quantity::intValueIn() with dimensionally incompatible units meter (length) and second (time).',
+                'Cannot call Quantity::intValueIn() with dimensionally incompatible units meter (length) and seconds (time).',
                 12,
             ],
             [
-                'Cannot call Quantity::exactIntValueIn() with dimensionally incompatible units meter (length) and second (time).',
+                'Cannot call Quantity::exactIntValueIn() with dimensionally incompatible units meter (length) and seconds (time).',
                 13,
             ],
             [
-                'Cannot call Quantity::decimalValueIn() with dimensionally incompatible units meter (length) and second (time).',
+                'Cannot call Quantity::decimalValueIn() with dimensionally incompatible units meter (length) and seconds (time).',
                 14,
             ],
             [
-                'Cannot call Quantity::significantDecimalValueIn() with dimensionally incompatible units meter (length) and second (time).',
+                'Cannot call Quantity::significantDecimalValueIn() with dimensionally incompatible units meter (length) and seconds (time).',
                 15,
             ],
             [
-                'Cannot call Quantity::exactDecimalValueIn() with dimensionally incompatible units meter (length) and second (time).',
+                'Cannot call Quantity::exactDecimalValueIn() with dimensionally incompatible units meter (length) and seconds (time).',
                 16,
             ],
             [
-                'Cannot call Quantity::floatValueIn() with dimensionally incompatible units meter (length) and second (time).',
+                'Cannot call Quantity::floatValueIn() with dimensionally incompatible units meter (length) and seconds (time).',
                 17,
             ],
             [
@@ -112,7 +112,7 @@ final class InvalidQuantityConversionRuleTest extends RuleTestCase
             ],
             [
                 'Cannot call Quantity::to() with dimensionally incompatible units second (time) '
-                    . 'and international_foot (length).',
+                    . 'and foot (length).',
                 57,
             ],
         ]);

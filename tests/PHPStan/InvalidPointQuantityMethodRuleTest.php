@@ -75,7 +75,7 @@ final class InvalidPointQuantityMethodRuleTest extends RuleTestCase
             ],
             [
                 'Cannot call PointQuantity::to() with dimensionally incompatible point units celsius '
-                    . '(temperature) and meter (length).',
+                    . '(temperature) and meters (length).',
                 15,
             ],
             [

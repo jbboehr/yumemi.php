@@ -75,15 +75,15 @@ final class InvalidUnitCallRuleTest extends RuleTestCase
                 16,
             ],
             [
-                'Cannot convert with unit_to(): units meter and second are not dimensionally compatible.',
+                'Cannot convert with unit_to(): units meters / seconds and seconds are not dimensionally compatible.',
                 19,
             ],
             [
-                'unit_to() value unit international_foot does not match from unit meter (normalized forms differ).',
+                'unit_to() value unit international_foot does not match from unit metres (normalized forms differ).',
                 22,
             ],
             [
-                'Cannot calculate unit_factor(): Incompatible unit expressions: meter and second. '
+                'Cannot calculate unit_factor(): Incompatible unit expressions: metres and second. '
                     . 'Dimensions: length vs time.',
                 25,
             ],
@@ -230,7 +230,7 @@ final class InvalidUnitCallRuleTest extends RuleTestCase
                 158,
             ],
             [
-                'unit_to() value unit meter does not match from unit international_foot (normalized forms differ).',
+                'unit_to() value unit meter does not match from unit foot (normalized forms differ).',
                 185,
             ],
             [
@@ -246,7 +246,7 @@ final class InvalidUnitCallRuleTest extends RuleTestCase
                 203,
             ],
             [
-                'Cannot convert with unit_to(): units second and meter are not dimensionally compatible.',
+                'Cannot convert with unit_to(): units second and metres are not dimensionally compatible.',
                 206,
             ],
             [

@@ -295,6 +295,28 @@ The string form can represent compound units without requiring a PHP class for e
 The PHPStan extension makes `Quantity<'meter / second'>` meaningful statically, while runtime application code continues
 to use ordinary `Units` and `Quantity` objects.
 
+## Source Spelling And Semantic Identity
+
+The runtime already preserves a caller's reduced symbolic unit spelling where one value has one unambiguous presentation
+choice. `Units::format()` parses string input symbolically, `Quantity` retains a symbolic expression, `PointQuantity`
+retains its named coordinate scale, and conversion and addition preserve the documented target or left-hand unit. JSON
+and native serialization retain those value-object spellings. This preserves identifiers and their symbolic algebra, not
+original source bytes: whitespace, parentheses, explicit factors of one, and factor order may be reduced or formatted
+canonically.
+
+Resolved `Expr` values from `Units::parse()` and `Units::unit()` deliberately represent semantic expressions rather than
+source provenance. Their registry resolution and shared caches must not acquire presentation-dependent identity. A
+caller that needs to retain a display choice should keep the original string or construct a `Quantity` or
+`PointQuantity`; formatting a string remains the direct presentation-only path.
+
+PHPStan's `UnitExpression` similarly keeps a symbolic expression for unit algebra, but its type description remains
+canonical. Definitionally equivalent alternatives such as `'foot'|'international_foot'` or `'100 * centimeter'|'meter'`
+collapse to one semantic type, so no unique source spelling survives the join. Canonical type display avoids making
+diagnostics and result-cache output depend on union enumeration or whichever equivalent arm PHPStan retains.
+Yumemi-owned diagnostics quote the reduced symbolic spelling of an exact unit argument while it remains directly
+available, but fall back to canonical presentation after unions, derived operations, or other joins make provenance
+ambiguous. Do not add general source metadata to semantic `Expr` identity, equality, or cache keys.
+
 ## Compatibility And Conversion
 
 The runtime comparer remains the source of truth for definitional equivalence and dimensional compatibility. Native
@@ -701,12 +723,6 @@ repeat the implementation's assumptions:
 - GNU Units import
 - Formula interpolation
 - Preferred/compact unit selection and broader formatting presets
-- Investigate whether user-chosen unit spellings can be retained as presentation metadata for diagnostics and display
-  without changing canonical unit identity, equivalence, arithmetic, or cache behavior. This is distinct from choosing
-  preferred or compact units: an input such as `degree` could remain semantically canonicalized as `arc_degree` while
-  diagnostics preserve the spelling the user supplied where one unambiguous source expression still exists. Any design
-  must define fail-safe behavior for unions, derived expressions, and operations with multiple source spellings rather
-  than implying that original syntax can always be recovered.
 - Additional convenience units only when a concrete integration establishes their semantics. A modern
   `typographic_pica`, basis points, frames, audio samples, voxels, and printer dots remain deferred rather than
   acquiring speculative bundled definitions.

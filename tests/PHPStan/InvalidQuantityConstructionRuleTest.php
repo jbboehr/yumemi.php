@@ -61,7 +61,7 @@ final class InvalidQuantityConstructionRuleTest extends RuleTestCase
     {
         $this->analyse([__DIR__ . '/Fixtures/InvalidQuantityConstructionCalls.php'], [
             [
-                'Units::quantity() value unit international_foot does not match target unit meter (normalized forms differ).',
+                'Units::quantity() value unit international_foot does not match target unit metres (normalized forms differ).',
                 14,
             ],
             [

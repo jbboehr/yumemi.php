@@ -189,8 +189,16 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
                 if (!$compatible) {
                     $message = sprintf(
                         'Cannot convert with unit_to(): units %s and %s are not dimensionally compatible.',
-                        isset($fromUnits[$fromString]) ? $fromUnits[$fromString]->displayString : $fromString,
-                        isset($toUnits[$toString]) ? $toUnits[$toString]->displayString : $toString,
+                        isset($fromUnits[$fromString])
+                            ? (count($fromStrings) === 1
+                                ? $fromUnits[$fromString]->symbolicDisplayString()
+                                : $fromUnits[$fromString]->displayString)
+                            : $fromString,
+                        isset($toUnits[$toString])
+                            ? (count($toStrings) === 1
+                                ? $toUnits[$toString]->symbolicDisplayString()
+                                : $toUnits[$toString]->displayString)
+                            : $toString,
                     );
 
                     return [
@@ -222,7 +230,9 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
                     $message = sprintf(
                         "unit_to() value unit %s does not match from unit %s (normalized forms differ).",
                         $valueUnit->displayString,
-                        $fromUnit->displayString,
+                        count($fromStrings) === 1
+                            ? $fromUnit->symbolicDisplayString()
+                            : $fromUnit->displayString,
                     );
 
                     return [

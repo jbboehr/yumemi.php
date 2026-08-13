@@ -11,11 +11,11 @@ $feet = unit(3, 'foot');
 $seconds = unit(3, 'second');
 
 // quantity() treats the magnitude as already expressed in the target unit; it does not convert.
-$units->quantity($feet, 'meter');
+$units->quantity($feet, 'metres');
 $units->quantity($seconds, 'meter');
 $units->quantity(1, 'not_a_real_unit_xyz');
 
-/** @param 'meter'|'foot' $unit */
+/** @param 'metres'|'feet' $unit */
 function constructWithPossibleMismatch(Units $units, string $unit): void
 {
     $units->quantity(unit(1, 'meter'), $unit);

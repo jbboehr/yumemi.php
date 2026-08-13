@@ -273,6 +273,7 @@ final class UnitExpressionParserTest extends TestCase
 
         $this->assertTrue($meters->isOk());
         $this->assertSame('meter', $meters->expression()->displayString);
+        $this->assertSame('meters', $meters->expression()->symbolicDisplayString());
         $this->assertFalse($suppressed->isOk());
         $this->assertStringContainsString('Unit not found', $suppressed->errorMessage() ?? '');
     }
