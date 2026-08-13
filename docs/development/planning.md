@@ -474,9 +474,9 @@ deferred feature list.
   with every conceivable dimensional-analysis feature implemented.
 
 Logarithmic units, contexts, currency, localization, uncertainty, generalized rational powers, range-bearing native
-floats, formula interpolation, preferred-unit selection, source-spelling preservation, and broader third-party stubs do
-not block `1.0.0` without concrete user evidence to the contrary. They remain independent additions or future design
-decisions under [Deferred Features](#deferred-features).
+floats, formula interpolation, preferred-unit selection, and broader third-party stubs do not block `1.0.0` without
+concrete user evidence to the contrary. They remain independent additions or future design decisions under
+[Deferred Features](#deferred-features).
 
 ### Preservation Roadmap
 
@@ -722,7 +722,9 @@ repeat the implementation's assumptions:
   strict pending a separate input-and-intermediate-value contract
 - GNU Units import
 - Formula interpolation
-- Preferred/compact unit selection and broader formatting presets
+- Preferred/compact unit selection remains deferred for implementation. The
+  [design spike](preferred-compact-unit-selection.md) separates explicit dimension-matched preferred targets from exact
+  engineering-prefix compaction and keeps both operations outside presentation-only formatting.
 - Additional convenience units only when a concrete integration establishes their semantics. A modern
   `typographic_pica`, basis points, frames, audio samples, voxels, and printer dots remain deferred rather than
   acquiring speculative bundled definitions.
