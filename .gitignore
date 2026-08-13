@@ -13,6 +13,7 @@ result*
 /coverage/
 /build/
 /tmp/
+/tools/*/vendor/
 /vendor/
 
 # agent-badge:gitignore:start

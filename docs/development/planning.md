@@ -429,9 +429,11 @@ deferred feature list.
 - Accumulate real use across multiple `0.x` releases, including runtime conversion, PHPStan analysis, a custom registry,
   and at least one maintained Apocrypha integration. Exercise upgrades, deprecations, release notes, and package
   publication before promising long-term compatibility.
-- After `0.1.0` supplies a baseline tag, add API compatibility comparison against the latest release. Complement it with
-  release-produced serialization fixtures, retained JSON and conformance cases, PHPStan inference and diagnostic
-  fixtures, and explicit review of catalog changes; a PHP signature checker cannot cover those behavioral contracts.
+- **Established after 0.1.0:** run the isolated Roave Backward Compatibility Check through `composer check:bc` and a
+  full-history CI job, comparing committed `HEAD` with the latest stable tag. Treat it as a conservative class-like PHP
+  signature safety net: global helper signatures, release-produced serialization fixtures, retained JSON and conformance
+  cases, PHPStan inference and diagnostic fixtures, and explicit catalog review must continue to cover contracts it
+  cannot see.
 - Resolve avoidable ambiguity among supported, provisionally public, and internal declarations. Audit named arguments,
   construction paths, exceptions, persistent formats, registry integration, and formatting policy as contracts intended
   to survive for years rather than merely as useful current implementation.
@@ -565,9 +567,10 @@ repeat the implementation's assumptions:
   first-party keys. Focused rule tests own the behavioral proof that each ignore suppresses the identifier it names.
   Configuration keys, result-cache metadata, and human-readable diagnostic prose remain outside the public diagnostic
   inventory.
-- After the first public release establishes a compatibility baseline, run an API compatibility checker such as Roave
-  Backward Compatibility Check against the latest release tag. Treat intentional breaking changes through an explicit
-  versioning policy instead of weakening or bypassing the check.
+- Maintain the isolated Roave Backward Compatibility Check against the latest stable tag. Its full-history CI checkout
+  and `composer check:bc` entry point protect committed PHP signatures without constraining the main PHP 8.2-8.5
+  dependency matrix. Classify findings through the compatibility policy, and require migration guidance plus narrow,
+  temporary acknowledgement for a deliberate later-`0.x` break instead of disabling or broadly bypassing the check.
 
 ### Known Limitations And Risks
 

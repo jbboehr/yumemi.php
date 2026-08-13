@@ -20,6 +20,19 @@ formed part of the documented contract, subject to the defect policy under [Clas
 Support means that a surface is intentionally documented, tested, and reviewed for compatibility. It does not promise
 that every implementation detail behind that surface remains unchanged.
 
+Roave Backward Compatibility Check provides an automated, conservative comparison of class-like PHP declarations and
+their members against the most recent stable tag. Run it with `composer check:bc`; the command installs its isolated
+tool dependencies and requires the repository's release tags and committed `HEAD` to be available. CI fetches the
+complete Git history before running the same comparison. Because the checker examines public declarations under
+Composer's production autoload paths, it can report changes to provisionally public declarations that this policy does
+not classify as supported. Every report must therefore be classified against the stability rules below rather than
+accepted or ignored mechanically.
+
+The signature check does not cover global helper-function signatures, runtime semantics, PHPStan inference, diagnostics,
+configuration, catalog behavior, JSON or serialization compatibility, or persistent conformance fixtures. Those
+contracts remain protected by the invariants, focused tests, documentation, and conformance evidence described in this
+policy.
+
 ## Stability Classes
 
 ### Supported Application API
@@ -308,6 +321,12 @@ Before changing a supported or provisional surface:
 5. update public documentation and the changelog when required;
 6. preserve stable diagnostic identifiers and serialized readers unless the release permits a break; and
 7. report any deliberate contract change separately from internal refactoring.
+
+A deliberate breaking change for a later `0.x` minor release must remain explicit: document the migration and changelog
+entry, identify why the current release-line contract permits the break, and narrowly acknowledge only the reported
+signature changes with exact `ignored-regex` entries in `.roave-backward-compatibility-check.xml` while that release is
+prepared. Do not disable the compatibility job or add broad exclusions merely to make it pass. Remove temporary
+acknowledgements after the new minor tag becomes the comparison baseline.
 
 Do not broaden compatibility accidentally by documenting internal classes as recommended extension points. Conversely,
 do not remove a documented contract merely because its current implementation lacks an `@api` marker.

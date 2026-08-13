@@ -1,0 +1,16 @@
+{
+    "name": "jbboehr/yumemi-api-compatibility-tool",
+    "description": "Isolated API compatibility tooling for Yumemi development.",
+    "type": "project",
+    "license": "AGPL-3.0-only WITH romic-exception",
+    "require": {
+        "php": "~8.2.0 || ~8.3.0 || ~8.4.0"
+    },
+    "require-dev": {
+        "roave/backward-compatibility-check": "~8.14.0"
+    },
+    "config": {
+        "allow-plugins": false,
+        "sort-packages": true
+    }
+}

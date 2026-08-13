@@ -135,6 +135,11 @@
             "@analyse",
             "@test"
         ],
+        "check:bc": [
+            "Composer\\Config::disableProcessTimeout",
+            "composer --working-dir=tools/api-compatibility install --no-interaction --no-progress",
+            "tools/api-compatibility/vendor/bin/roave-backward-compatibility-check"
+        ],
         "check:full": [
             "@check",
             "@docs:check",

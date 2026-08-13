@@ -33,3 +33,4 @@ src/Catalog/PhpCatalogExporter.php export-ignore
 src/Catalog/Udunits2CatalogImporter.php export-ignore
 src/Command export-ignore
 tests export-ignore
+tools export-ignore

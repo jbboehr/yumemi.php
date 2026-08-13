@@ -140,6 +140,45 @@ jobs:
             - name: Run PHPUnit
               run: composer test -- --colors=never
 
+    api-compatibility:
+        name: API compatibility
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+
+            - name: Install PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  coverage: none
+                  extensions: bcmath, dom, intl, mbstring, simplexml, sodium
+                  php-version: "8.2"
+                  tools: composer:v2
+
+            - name: Get Composer cache directory
+              id: composer-cache
+              run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+            - name: Cache Composer packages
+              uses: actions/cache@v6
+              with:
+                  path: ${{ steps.composer-cache.outputs.dir }}
+                  key:
+                      ${{ runner.os }}-php-8.2-composer-api-compatibility-${{
+                      hashFiles('tools/api-compatibility/composer.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-php-8.2-composer-api-compatibility-
+                      ${{ runner.os }}-php-8.2-composer-
+                      ${{ runner.os }}-php-composer-
+
+            - name: Install API compatibility tool
+              run: composer --working-dir=tools/api-compatibility install --prefer-dist --no-interaction --no-progress
+
+            - name: Check API compatibility
+              run: tools/api-compatibility/vendor/bin/roave-backward-compatibility-check --format=github-actions
+
     mutation:
         name: Mutation testing
         runs-on: ubuntu-latest
