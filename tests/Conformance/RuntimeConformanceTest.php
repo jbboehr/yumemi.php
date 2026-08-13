@@ -68,6 +68,7 @@ final class RuntimeConformanceTest extends TestCase
             'quantityOperations',
             'quantityRoots',
             'quantityForms',
+            'preferredConversions',
             'pointConversions',
             'pointDifferences',
             'pointTranslations',
@@ -230,6 +231,29 @@ final class RuntimeConformanceTest extends TestCase
 
         self::assertQuantity($case['normalized'] ?? null, $quantity->normalize(), $context . '.normalized');
         self::assertQuantity($case['simplified'] ?? null, $quantity->simplify(), $context . '.simplified');
+    }
+
+    /**
+     * @param array<string, mixed> $case
+     */
+    #[DataProvider('preferredConversionProvider')]
+    public function testPreferredConversionConformance(array $case): void
+    {
+        $context = self::context('quantities.json', $case);
+        self::assertKeys($case, ['id', 'targets', 'quantity', 'expected'], $context);
+        $targets = self::list($case['targets'] ?? null, $context . '.targets');
+
+        foreach ($targets as $index => $target) {
+            if (!is_string($target)) {
+                throw new \UnexpectedValueException(sprintf('%s.targets[%d] must be a string', $context, $index));
+            }
+        }
+
+        /** @var list<string> $targets */
+        $profile = Units::default()->preferredUnitProfile($targets);
+        $actual = self::quantity($case['quantity'] ?? null, $context . '.quantity')->toPreferred($profile);
+
+        self::assertQuantity($case['expected'] ?? null, $actual, $context . '.expected');
     }
 
     /**
@@ -480,6 +504,12 @@ final class RuntimeConformanceTest extends TestCase
     public static function quantityFormProvider(): iterable
     {
         yield from self::provider('quantities.json', 'quantityForms');
+    }
+
+    /** @return iterable<string, array{array<string, mixed>}> */
+    public static function preferredConversionProvider(): iterable
+    {
+        yield from self::provider('quantities.json', 'preferredConversions');
     }
 
     /** @return iterable<string, array{array<string, mixed>}> */

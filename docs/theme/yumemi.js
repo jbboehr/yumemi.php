@@ -81,7 +81,11 @@
                 children: [{ id: "exact-rational-values", title: "Exact Rational Values" }],
             },
             { id: "quantity-arithmetic", title: "Quantity Arithmetic" },
-            { id: "conversion-and-comparison", title: "Conversion And Comparison" },
+            {
+                id: "conversion-and-comparison",
+                title: "Conversion And Comparison",
+                children: [{ id: "preferred-unit-profiles", title: "Preferred Unit Profiles" }],
+            },
             { id: "native-numeric-output", title: "Native Numeric Output" },
             { id: "affine-conversion", title: "Affine Conversion" },
             { id: "normalization-and-simplification", title: "Normalization And Simplification" },

@@ -302,6 +302,20 @@ final class Units
     }
 
     /**
+     * Construct an application-specific preferred-unit policy bound to this context.
+     *
+     * @logion [RAS 44:43] I saw the Province of Ash borne in a silver bowl by the Minister of Unfinished Mercies. He
+     *     breathed once; the fields returned not, but a green road appeared through the desolation, wide enough for the
+     *     penitent and no army.
+     *
+     * @param iterable<string> $targets
+     */
+    public function preferredUnitProfile(iterable $targets): PreferredUnitProfile
+    {
+        return new PreferredUnitProfile($this, $targets);
+    }
+
+    /**
      * Construct an exact point on a named coordinate scale.
      *
      * @logion [OSD 46:18] When a ruler dieth unconfessed, bear his empty litter behind the funeral and set his crown

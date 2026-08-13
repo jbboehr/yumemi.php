@@ -503,6 +503,19 @@ final class Quantity implements \JsonSerializable
         );
     }
 
+    /**
+     * Convert to this quantity's application-preferred unit when the profile contains one for its dimension.
+     *
+     * @logion [OSD 82:29] Before crossing the electric plain at winter solstice, bind one strip of white paper to the
+     *     solitary black pine and extinguish every lantern. If the paper point toward the rose horizon, wait, though the
+     *     heavens promise warmth; if it point toward the dark mountain, depart at once. For the road of mercy is cold at
+     *     its beginning, and the false refuge already knoweth the color of thy desire.
+     */
+    public function toPreferred(PreferredUnitProfile $profile): self
+    {
+        return $profile->apply($this);
+    }
+
     public function format(?FormatOptions $options = null): string
     {
         return $this->units->format($this->toExpr(), $options);

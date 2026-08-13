@@ -78,6 +78,7 @@ The implemented foundation now includes:
 - exact multiplicative and affine scale-and-offset conversion, synthesized affine-difference units, and point
   coordinates;
 - exact `Quantity` construction, parsing, arithmetic, comparison, conversion, normalization, simplification, and output;
+- context-bound preferred-unit profiles for exact application-selected `Quantity` conversion by dimension;
 - exact `PointQuantity` conversion, translation, difference, comparison, and output;
 - versioned native serialization, exact JSON representations, compact debug output, and scoped custom-registry
   deserialization for runtime value objects;
@@ -474,7 +475,7 @@ deferred feature list.
   with every conceivable dimensional-analysis feature implemented.
 
 Logarithmic units, contexts, currency, localization, uncertainty, generalized rational powers, range-bearing native
-floats, formula interpolation, preferred-unit selection, and broader third-party stubs do not block `1.0.0` without
+floats, formula interpolation, compact-unit selection, and broader third-party stubs do not block `1.0.0` without
 concrete user evidence to the contrary. They remain independent additions or future design decisions under
 [Deferred Features](#deferred-features).
 
@@ -722,9 +723,9 @@ repeat the implementation's assumptions:
   strict pending a separate input-and-intermediate-value contract
 - GNU Units import
 - Formula interpolation
-- Preferred/compact unit selection remains deferred for implementation. The
-  [design spike](preferred-compact-unit-selection.md) separates explicit dimension-matched preferred targets from exact
-  engineering-prefix compaction and keeps both operations outside presentation-only formatting.
+- Preferred-unit profiles are implemented as exact, dimension-matched application policy. Engineering-prefix compaction
+  remains deferred; the [selection design](preferred-compact-unit-selection.md) keeps it separate from preferred targets
+  and presentation-only formatting.
 - Additional convenience units only when a concrete integration establishes their semantics. A modern
   `typographic_pica`, basis points, frames, audio samples, voxels, and printer dots remain deferred rather than
   acquiring speculative bundled definitions.

@@ -154,6 +154,30 @@ depends on map insertion order.
 **Classification.** A semantic or round-trip change is a correctness defect. An intentional change to exposed canonical
 or default display text may also be a compatibility break even when the represented unit remains equivalent.
 
+## Preferred Units Remain Explicit Application Policy
+
+**Invariant.** A preferred-unit profile maps each represented dimension to at most one complete target expression,
+performs exact conversion, and applies only to quantities from its object-identical `Units` context. A missing target
+leaves the immutable quantity unchanged. Preferred selection remains separate from normalization, simplification, and
+formatting.
+
+**Reason.** A registry can establish dimensional compatibility but cannot infer whether an application wants meters,
+feet, nautical miles, or a domain-specific unit. Dimensions also do not encode quantity kind: gray and sievert share a
+dimension, and distinct dimensionless quantities can require different presentation. The application boundary must own
+that policy.
+
+**Representative enforcement.** [`PreferredUnitProfile`](../../src/PreferredUnitProfile.php) validates and binds
+targets, while [`Quantity::toPreferred()`](../../src/Quantity.php) applies them. Runtime behavior is covered by
+[`PreferredUnitProfileTest`](../../tests/PreferredUnitProfileTest.php) and the versioned
+[`RuntimeConformanceTest`](../../tests/Conformance/RuntimeConformanceTest.php); PHPStan deliberately returns an
+unbranded `Quantity` because a profile's contents are runtime state.
+
+**Invalid shortcut.** Choosing a catalog-wide “best” unit, permitting duplicate same-dimension targets with
+order-dependent results, applying a profile from another context, or making `FormatOptions` convert magnitudes.
+
+**Classification.** Incorrect target selection, inexact conversion, or cross-context interpretation is a correctness
+defect. Changing the documented selection behavior is a compatibility break.
+
 ## Affine Points and Multiplicative Differences Stay Distinct
 
 **Invariant.** A coordinate on an affine scale is a `PointQuantity`; a difference on that scale is an ordinary

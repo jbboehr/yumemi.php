@@ -7,6 +7,7 @@
  */
 
 use jbboehr\Yumemi\Number\FloatRangePolicy;
+use jbboehr\Yumemi\PreferredUnitProfile;
 use jbboehr\Yumemi\Quantity;
 use jbboehr\Yumemi\Units;
 use function jbboehr\Yumemi\unit;
@@ -178,6 +179,11 @@ assertType("Quantity<'meter'>", $m->subWithSameUnit($m));
 
 // to() rebrands to the target unit (catalog spelling)
 assertType("Quantity<'international_foot'>", $m->to('foot'));
+
+// Preferred profiles depend on runtime application policy, so the result deliberately loses its exact static brand.
+$displayUnits = $units->preferredUnitProfile(['foot']);
+assertType(PreferredUnitProfile::class, $displayUnits);
+assertType(Quantity::class, $m->toPreferred($displayUnits));
 
 // Conversion targets must share the receiver's dimension. Integer extractions carry the target unit.
 assertType("unit_int<'international_foot'>", $m->intValueIn('foot'));

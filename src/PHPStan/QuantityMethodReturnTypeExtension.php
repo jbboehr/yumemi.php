@@ -60,8 +60,9 @@ use jbboehr\Yumemi\Util\Exponent;
  * `abs`/`neg` keep the left unit; `add`/`sub` accept dimensionally compatible units and keep the left
  * unit; `addWithSameUnit`/`subWithSameUnit` additionally require normalized-equivalent units; comparison
  * methods require compatible dimensions while retaining their native int/bool return types; `to` rebrands
- * to each possible statically known target unit; `normalize` rebrands to the catalog-normalized form; and
- * `simplify` moves the normalized scale into the magnitude, leaving the normalized unit factors on the type.
+ * to each possible statically known target unit; `toPreferred` deliberately returns an unbranded Quantity because its
+ * target comes from runtime application policy; `normalize` rebrands to the catalog-normalized form; and `simplify`
+ * moves the normalized scale into the magnitude, leaving the normalized unit factors on the type.
  *
  * An explicit finite target also brands results from an unbranded {@see Quantity}; without a source
  * brand, only the target can be inferred and source compatibility cannot be checked. The configured
@@ -84,9 +85,9 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
     public function isMethodSupported(MethodReflection $methodReflection): bool
     {
         return in_array($methodReflection->getName(), [
-            'mul', 'div', 'pow', 'root', 'abs', 'neg', 'add', 'sub', 'addWithSameUnit', 'subWithSameUnit', 'to', 'valueIn',
-            'intValueIn', 'exactIntValueIn', 'decimalValueIn', 'significantDecimalValueIn', 'exactDecimalValueIn',
-            'floatValueIn', 'normalize',
+            'mul', 'div', 'pow', 'root', 'abs', 'neg', 'add', 'sub', 'addWithSameUnit', 'subWithSameUnit', 'to',
+            'toPreferred', 'valueIn', 'intValueIn', 'exactIntValueIn', 'decimalValueIn', 'significantDecimalValueIn',
+            'exactDecimalValueIn', 'floatValueIn', 'normalize',
             'simplify', 'compareTo', 'equals', 'lessThan', 'lessThanOrEqualTo', 'greaterThan', 'greaterThanOrEqualTo',
         ], true);
     }
@@ -111,6 +112,10 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
     {
         $receiver = $scope->getType($methodCall->var);
         $args = $methodCall->getArgs();
+
+        if ($methodName === 'toPreferred') {
+            return new ObjectType(Quantity::class);
+        }
 
         if (in_array($methodName, [
             'to',

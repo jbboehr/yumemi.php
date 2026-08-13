@@ -1,11 +1,11 @@
 # Preferred And Compact Unit Selection Design Spike
 
-Status: **Proposed design; not implemented**
+Status: **Preferred-unit profiles implemented; compact selection proposed**
 
 Reviewed against the working tree on 2026-08-12.
 
-This spike defines a deliberately narrow path for preferred-unit and compact-unit conversion. It does not change the
-runtime or PHPStan contract. The purpose is to settle the boundary and edge cases before adding public API.
+This spike defines a deliberately narrow path for preferred-unit and compact-unit conversion. The preferred-profile
+slice now forms part of the runtime and PHPStan contract; compact selection remains a proposal.
 
 ## Decision Summary
 
@@ -36,7 +36,7 @@ $displayUnits = $units->preferredUnitProfile([
 $displaySpeed = $speed->toPreferred($displayUnits);
 ```
 
-The corresponding public surface would be:
+The implemented public surface is:
 
 ```php
 Units::preferredUnitProfile(iterable $targets): PreferredUnitProfile;
@@ -74,7 +74,7 @@ mass * length^2 / time^2 -> kilowatt * hour
 mass / (length * time^2) -> millibar
 ```
 
-Profile construction should parse and validate every target once through its `Units` context. The profile should:
+Profile construction parses and validates every target once through its `Units` context. The profile:
 
 - accept multiplicative unit expressions, including named and compound units;
 - require a symbolic unit expression without an explicit numeric multiplier after symbolic reduction;
@@ -86,14 +86,14 @@ Profile construction should parse and validate every target once through its `Un
 Catalog definitions may contain scale factors. The restriction on explicit numeric multipliers must not reject ordinary
 named units such as `percent`, whose scale appears only after catalog resolution.
 
-`toPreferred()` should require object-identical `Units` contexts, as quantity arithmetic already does. A profile built
-for another context should throw `IncompatibleQuantityContextException`, even if the registries happen to contain
-equivalent definitions. This makes custom units deterministic and prevents a profile from being silently reinterpreted
-after crossing a registry boundary.
+`toPreferred()` requires object-identical `Units` contexts, as quantity arithmetic already does. A profile built for
+another context should throw `IncompatibleQuantityContextException`, even if the registries happen to contain equivalent
+definitions. This makes custom units deterministic and prevents a profile from being silently reinterpreted after
+crossing a registry boundary.
 
-When the profile contains a target for the quantity's dimension, `toPreferred()` should delegate to exact `to()`
-conversion. When no target exists, it should return the immutable quantity unchanged. This best-effort behavior lets one
-profile format heterogeneous result sets without requiring entries for every dimension.
+When the profile contains a target for the quantity's dimension, `toPreferred()` performs the same exact conversion as
+`to()`. When no target exists, it returns the immutable quantity unchanged. This best-effort behavior lets one profile
+format heterogeneous result sets without requiring entries for every dimension.
 
 A dimension is not a quantity kind. Gray and sievert intentionally share dimensions, and the bundled information units
 are dimensionless, so a data rate and a frequency can both have dimension `1 / time`. A profile must therefore be scoped
@@ -101,8 +101,8 @@ to an application boundary where its dimension-to-target choices are meaningful;
 When that distinction matters within one boundary, use separate profiles or explicit `to()` calls. Preferred selection
 must not claim to infer semantic intent that the current model does not represent.
 
-The initial profile should not be serializable. Application configuration is its authority, and restoring a profile
-would otherwise require the same custom-registry context problem already handled explicitly for quantities.
+The profile is not serializable. Application configuration is its authority, and restoring a profile would otherwise
+require the same custom-registry context problem already handled explicitly for quantities.
 
 ## Compact Selection
 
@@ -226,8 +226,8 @@ an unambiguous prefix root. Requiring the root avoids hidden catalog heuristics 
 
 Implement and review this feature in separate working commits:
 
-1. **Preferred targets:** add `PreferredUnitProfile`, the `Units` factory, `Quantity::toPreferred()`, context and
-   validation tests, unbranded PHPStan fallback, public documentation, changelog, and conformance cases.
+1. **Preferred targets (implemented):** add `PreferredUnitProfile`, the `Units` factory, `Quantity::toPreferred()`,
+   context and validation tests, unbranded PHPStan fallback, public documentation, changelog, and conformance cases.
 2. **Named-unit compaction:** add the internal exact prefix selector, `Quantity::toCompact()`, the dedicated exception,
    boundary and custom-registry tests, unbranded PHPStan fallback, public documentation, changelog, and conformance
    cases.
@@ -239,7 +239,7 @@ semantics and does not require a new selection algorithm.
 
 ## Required Verification For Implementation
 
-Preferred-profile coverage should include exact compound conversion, custom dimensions, dimensionless targets,
+Preferred-profile coverage includes exact compound conversion, custom dimensions, dimensionless targets,
 duplicate-dimension rejection, unsupported semantics, context mismatch, a missing-profile no-op, and source spelling.
 
 Compaction coverage should include positive, negative, and zero values; exact lower and upper interval boundaries;

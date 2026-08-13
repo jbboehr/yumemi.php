@@ -94,6 +94,20 @@
             }
         }
     ],
+    "preferredConversions": [
+        {
+            "id": "application-profile-selects-compound-speed-unit",
+            "targets": ["kilometer / hour", "millibar"],
+            "quantity": {
+                "value": { "numerator": "25", "denominator": "1" },
+                "unit": "meter / second"
+            },
+            "expected": {
+                "value": { "numerator": "90", "denominator": "1" },
+                "unit": "kilometer / hour"
+            }
+        }
+    ],
     "pointConversions": [
         {
             "id": "celsius-point-to-fahrenheit",

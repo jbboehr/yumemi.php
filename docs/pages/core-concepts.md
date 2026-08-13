@@ -130,6 +130,7 @@ value remains a string until an explicit integer or float cast moves it into num
 | Substitute definitions without changing stored magnitude   | `Quantity::normalize()`                              |
 | Substitute definitions and fold scale into magnitude       | `Quantity::simplify()`                               |
 | Request a particular target unit                           | `Quantity::to()`                                     |
+| Apply an application profile at an output boundary         | `Quantity::toPreferred()`                            |
 | Change names, symbols, typography, or division layout      | Formatting APIs                                      |
 
 The important semantic boundaries are documented once in the references:
@@ -142,6 +143,8 @@ The important semantic boundaries are documented once in the references:
   differences.
 - [Normalization and simplification](reference/runtime.md#normalization-and-simplification) distinguishes definition
   substitution from magnitude changes.
+- [Preferred unit profiles](reference/runtime.md#preferred-unit-profiles) apply explicit application policy without
+  making formatting choose units.
 - [Native numeric output](reference/runtime.md#native-numeric-output) defines exact and approximate extraction.
 - [Custom registries](reference/catalog.md#custom-registries) defines catalog and context ownership.
 

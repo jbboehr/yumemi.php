@@ -30,6 +30,7 @@ needs arise.
 | Construct a difference for a coordinate scale       | `Units::deltaQuantity()`                |
 | Parse a value and unit together                     | `Units::parseQuantity()`                |
 | Convert a quantity                                  | `Quantity::to()`                        |
+| Apply application-preferred units                   | `Quantity::toPreferred()`               |
 | Convert a coordinate point                          | `PointQuantity::to()`                   |
 | Preserve the exact rational result after conversion | `Quantity::valueIn()`                   |
 | Obtain a minimal exact terminating decimal          | `Quantity::exactDecimalValueIn()`       |
@@ -266,6 +267,43 @@ assert($rate->toString() === '2/3 * centimeter / (foot * second)');
 assert($rate->valueIn('1 / second')->toString() === '25/1143');
 ```
 
+### Preferred Unit Profiles
+
+Use a preferred-unit profile when one application boundary should consistently select explicit output units for several
+dimensions:
+
+```php
+<?php
+
+use jbboehr\Yumemi\Units;
+
+$units = Units::default();
+$displayUnits = $units->preferredUnitProfile([
+    'kilometer / hour',
+    'kilowatt * hour',
+]);
+
+$speed = $units->quantity(25, 'meter / second')->toPreferred($displayUnits);
+$duration = $units->quantity(5, 'second')->toPreferred($displayUnits);
+
+assert($speed->valueToString() === '90');
+assert($speed->unitToString() === 'kilometer / hour');
+assert($duration->toPreferred($displayUnits) === $duration);
+```
+
+Each target expression determines its own dimension, and a profile accepts at most one target per dimension. Conversion
+is exact. When no target matches, `toPreferred()` returns the same immutable quantity unchanged. The profile and
+quantity must belong to the same `Units` instance so custom definitions cannot be silently reinterpreted in another
+context.
+
+A dimension does not identify a quantity's purpose. Gray and sievert share dimensions, while information units are
+dimensionless. Scope each profile to an application boundary where its dimension-to-target choices make sense; use
+separate profiles or explicit `to()` calls when the same dimension has several meanings.
+
+The profile is application configuration and is intentionally not serializable. Because its contents are runtime state,
+PHPStan infers an unbranded `Quantity` from `toPreferred()`. Use explicit `to('target')` conversion when subsequent
+statically checked arithmetic needs to retain one known unit brand.
+
 ## Native Numeric Output
 
 Exact `Rational` values can be extracted after conversion:
@@ -406,8 +444,8 @@ assert($simplified->valueToString() === '1/50');
 assert($simplified->unitToString() === 'meter');
 ```
 
-Neither operation chooses a preferred human-scale unit. Explicit conversion through `to()` is the operation for
-requesting a particular display unit.
+Neither operation chooses a preferred human-scale unit. Use `to()` for one explicit target or `toPreferred()` for an
+application profile.
 
 ## Expression Operations
 
@@ -495,8 +533,8 @@ model rather than another dimension subclass.
 - `DimensionlessStyle::One`, `Word`, or `Empty` output;
 - `DivisionStyle::Fraction` or `NegativePowers` layout.
 
-Formatting changes presentation only. It does not normalize derived definitions, convert magnitudes, or choose compact
-units. `Units::formatter()` returns a reusable formatter for repeated calls with the same options.
+Formatting changes presentation only. It does not normalize derived definitions, convert magnitudes, or choose preferred
+or compact units. `Units::formatter()` returns a reusable formatter for repeated calls with the same options.
 
 The default format preserves supplied names, uses parser-compatible ASCII, renders dimensionless expressions as `1`, and
 uses fraction layout. Unicode output with numeric dimensionless style is also parser-compatible.

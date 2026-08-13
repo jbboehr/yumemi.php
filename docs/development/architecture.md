@@ -89,6 +89,8 @@ The runtime surface presents the semantic core to applications:
 - [`Units`](../../src/Units.php) binds one registry context to parsing, resolution, conversion, formatting, and value
   construction.
 - [`Quantity`](../../src/Quantity.php) retains an exact multiplicative magnitude and unit.
+- [`PreferredUnitProfile`](../../src/PreferredUnitProfile.php) binds explicit dimension-to-unit application policy to
+  one `Units` context.
 - [`PointQuantity`](../../src/PointQuantity.php) retains an exact coordinate and named affine scale.
 - [`functions.php`](../../src/functions.php) exposes native-scalar boundary helpers.
 - [`Formatter`](../../src/Formatter) contains configurable rendering policy and catalog-aware presentation.

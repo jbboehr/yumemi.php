@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Context-bound preferred-unit profiles for exact application-selected `Quantity` conversion by dimension.
+
 ### Changed
 
 - Yumemi-owned PHPStan diagnostics preserve statically known unit spellings at direct argument boundaries while inferred
