@@ -434,6 +434,11 @@ deferred feature list.
   signature safety net: global helper signatures, release-produced serialization fixtures, retained JSON and conformance
   cases, PHPStan inference and diagnostic fixtures, and explicit catalog review must continue to cover contracts it
   cannot see.
+- **Established after 0.1.0:** maintain the PHP-specific
+  [release persistence corpus](../../tests/Compatibility/README.md). Its initial `v0.1.0` directory was produced from an
+  isolated installation of the tagged package and covers exact rationals, fixed and application-defined dimensions,
+  default and custom-registry quantities, affine points, named-dimension values, and catalog descriptors. Each future
+  tagged release should add immutable native-serialization and JSON evidence without rewriting earlier release bytes.
 - Resolve avoidable ambiguity among supported, provisionally public, and internal declarations. Audit named arguments,
   construction paths, exceptions, persistent formats, registry integration, and formatting policy as contracts intended
   to survive for years rather than merely as useful current implementation.
@@ -468,7 +473,10 @@ than create documentation or abstractions for their own sake:
    [`RuntimeConformanceTest`](../../tests/Conformance/RuntimeConformanceTest.php) validates the fixture schema and
    executes every case through public runtime APIs without freezing exception prose. Keep PHPStan-specific behavior in
    PHP tests where its native type system is part of the contract, and add cases only for representative semantic
-   obligations rather than migrating implementation tests to satisfy the directory shape.
+   obligations rather than migrating implementation tests to satisfy the directory shape. Maintain the separate
+   [release persistence corpus](../../tests/Compatibility/README.md) for PHP-specific native serialization and
+   documented JSON shapes emitted by real tagged packages; do not mix implementation-dependent PHP bytes into the
+   portable corpus.
 4. **Established:** maintain the [compatibility policy](compatibility.md) as the classification of supported runtime
    APIs, PHPStan pseudo-types, diagnostics, configuration, grammar, persistent formats, integration contracts,
    provisional surfaces, and internal or generated details. Review it before each release and whenever a change alters

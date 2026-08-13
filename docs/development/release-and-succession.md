@@ -106,6 +106,11 @@ After pushing the tag:
    and PHPStan smoke test.
 5. Verify the GitHub Release, tag signature, Packagist metadata, and installation from a machine or checkout that does
    not depend on the releaser's working tree.
+6. Capture the tagged package's supported persistent values in a new immutable directory under
+   [`tests/Compatibility/fixtures/`](../../tests/Compatibility/fixtures/). Run its guarded producer against a clean
+   Composer installation of the published version, verify the recorded source commit, register its directory and exact
+   case inventory in the compatibility test, and commit the resulting native serialization, JSON, and manifest evidence
+   on `develop`. Never regenerate an older release directory from a newer checkout.
 
 If publication fails partway through, preserve the tag and repair the missing service state. Publish a new version only
 when released code itself must change.

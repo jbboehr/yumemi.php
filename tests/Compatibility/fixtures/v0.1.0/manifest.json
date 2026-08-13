@@ -1,0 +1,65 @@
+{
+    "schema": "yumemi.release-persistence/v1",
+    "release": "0.1.0",
+    "sourceReference": "80d022de4ee0b5d5f7a9656ad307c09602d85452",
+    "producer": {
+        "php": "8.2.32",
+        "gmp": "6.3.0"
+    },
+    "cases": [
+        {
+            "id": "rational-large-negative",
+            "kind": "rational",
+            "serialized": "serialized/rational-large-negative.b64",
+            "json": "json/rational-large-negative.json"
+        },
+        {
+            "id": "dimension-fixed-and-custom",
+            "kind": "dimension",
+            "serialized": "serialized/dimension-fixed-and-custom.b64",
+            "json": "json/dimension-fixed-and-custom.json"
+        },
+        {
+            "id": "quantity-default",
+            "kind": "quantity",
+            "serialized": "serialized/quantity-default.b64",
+            "json": "json/quantity-default.json"
+        },
+        {
+            "id": "quantity-named-dimension",
+            "kind": "quantity",
+            "serialized": "serialized/quantity-named-dimension.b64",
+            "json": "json/quantity-named-dimension.json"
+        },
+        {
+            "id": "point-default-affine",
+            "kind": "point-quantity",
+            "serialized": "serialized/point-default-affine.b64",
+            "json": "json/point-default-affine.json"
+        },
+        {
+            "id": "custom-registry-graph",
+            "kind": "custom-registry-graph",
+            "serialized": "serialized/custom-registry-graph.b64",
+            "json": "json/custom-registry-graph.json"
+        },
+        {
+            "id": "prefix-descriptor-milli",
+            "kind": "prefix-descriptor",
+            "serialized": "serialized/prefix-descriptor-milli.b64",
+            "json": "json/prefix-descriptor-milli.json"
+        },
+        {
+            "id": "unit-descriptor-millifoot",
+            "kind": "unit-descriptor",
+            "serialized": "serialized/unit-descriptor-millifoot.b64",
+            "json": "json/unit-descriptor-millifoot.json"
+        },
+        {
+            "id": "prefix-decomposition-millifoot",
+            "kind": "prefix-decomposition",
+            "serialized": "serialized/prefix-decomposition-millifoot.b64",
+            "json": "json/prefix-decomposition-millifoot.json"
+        }
+    ]
+}

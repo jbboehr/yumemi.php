@@ -139,6 +139,9 @@
           projectRootFile = "flake.nix";
           settings.global.excludes = [
             "docs/pages/assets/heliogenesis/**"
+            "tests/Compatibility/fixtures/**/json/**"
+            "tests/Compatibility/fixtures/**/manifest.json"
+            "tests/Compatibility/fixtures/**/serialized/**"
           ];
           programs.nixfmt = {
             enable = true;

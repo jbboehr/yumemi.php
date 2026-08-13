@@ -255,6 +255,11 @@ Values emitted by PHP's `serialize()` for the documented value objects in a tagg
 formats within their stated registry constraints. A later compatible release must continue to restore those values with
 the same semantics, or fail only for a documented safety reason such as registry semantic drift.
 
+The versioned [release persistence corpus](../../tests/Compatibility/README.md) records native payloads produced by an
+isolated installation of each tagged release, together with the release commit and producer environment. Current code
+must restore those historical bytes and preserve their observable semantics. These PHP-specific fixtures are separate
+from the language-neutral runtime conformance corpus.
+
 The direct return values of `__serialize()` and their PHP array layouts are implementation details, not application
 APIs. Yumemi does not promise byte-identical output from `serialize()` for newly written values. It promises that values
 emitted by supported tagged releases remain readable and that semantic validation continues to fail closed. Internal
@@ -268,6 +273,10 @@ supported. Native PHP serialization remains inappropriate for untrusted input.
 The corpus marker `yumemi.conformance/v1` versions the fixture format. Existing cases define evidence for their declared
 version; changing a result requires an explicit semantic decision. The fixtures are repository artifacts for replacement
 and verification, not a runtime wire format shipped as part of the Composer package.
+
+The release persistence marker `yumemi.release-persistence/v1` independently versions the manifest used for tagged
+native-serialization and JSON evidence. Historical release directories are immutable evidence and must not be
+regenerated with a newer implementation.
 
 ## Supported Environments
 
