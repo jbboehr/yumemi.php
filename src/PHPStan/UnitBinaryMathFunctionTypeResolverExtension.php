@@ -185,7 +185,7 @@ final class UnitBinaryMathFunctionTypeResolverExtension implements ExpressionTyp
         $rightTypes = $atomicTypes($rightType);
         $leftUnits = array_map($asUnit, $leftTypes);
         $rightUnits = array_map($asUnit, $rightTypes);
-        $hasUnit = array_filter([...$leftUnits, ...$rightUnits]) !== [];
+        $hasUnit = array_filter($leftUnits) !== [] || array_filter($rightUnits) !== [];
         if (!$hasUnit) {
             return ['type' => null, 'message' => null];
         }

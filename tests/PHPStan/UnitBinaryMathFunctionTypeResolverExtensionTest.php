@@ -52,6 +52,7 @@ use PHPStan\Reflection\FunctionReflection;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\BenevolentUnionType;
 use PHPStan\Type\ArrayType;
+use PHPStan\Type\Constant\ConstantFloatType;
 use PHPStan\Type\FloatType;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
@@ -63,10 +64,24 @@ final class UnitBinaryMathFunctionTypeResolverExtensionTest extends TestCase
 {
     public function testIncompleteCallReturnsNeutralAnalysis(): void
     {
-        $analysis = $this->extension('fdiv')->analyseCall(
+        $extension = $this->extension('fdiv');
+        $analysis = $extension->analyseCall(
             new FuncCall(new Name('fdiv')),
             $this->scope(new FloatType(), new FloatType()),
         );
+        $left = new Variable('left');
+        $missingRight = $extension->analyseCall(
+            new FuncCall(new Name('fdiv'), [new Arg($left)]),
+            $this->scope(new FloatType(), new FloatType()),
+        );
+
+        self::assertSame(['type' => null, 'message' => null], $analysis);
+        self::assertSame(['type' => null, 'message' => null], $missingRight);
+    }
+
+    public function testBareOperandsRemainOwnedByNativePhpstan(): void
+    {
+        $analysis = $this->analyse('fdiv', new FloatType(), new FloatType());
 
         self::assertSame(['type' => null, 'message' => null], $analysis);
     }
@@ -98,6 +113,60 @@ final class UnitBinaryMathFunctionTypeResolverExtensionTest extends TestCase
             "unit_float<'meter / second'>",
             $analysis['type']?->describe(VerbosityLevel::precise()),
         );
+    }
+
+    public function testFloatDivisionPreservesBareConstantOperands(): void
+    {
+        $brandedDividend = $this->analyse(
+            'fdiv',
+            new UnitConstantIntegerType(6, $this->unit('meter')),
+            new ConstantFloatType(2.0),
+        );
+        $brandedDivisor = $this->analyse(
+            'fdiv',
+            new ConstantFloatType(6.0),
+            new UnitConstantIntegerType(2, $this->unit('second')),
+        );
+
+        self::assertSame(
+            "3.0&unit_float<'meter'>",
+            $brandedDividend['type']?->describe(VerbosityLevel::precise()),
+        );
+        self::assertSame(
+            "3.0&unit_float<'1 / second'>",
+            $brandedDivisor['type']?->describe(VerbosityLevel::precise()),
+        );
+    }
+
+    public function testUnitDetectionIncludesEveryReachableUnionArm(): void
+    {
+        $unitAfterBareLeftArm = $this->analyse(
+            'fmod',
+            new UnionType([
+                new FloatType(),
+                new UnitIntegerType($this->unit('meter')),
+            ]),
+            new FloatType(),
+        );
+        $unitAfterBareRightArm = $this->analyse(
+            'hypot',
+            new FloatType(),
+            new UnionType([
+                new FloatType(),
+                new UnitIntegerType($this->unit('meter')),
+            ]),
+        );
+
+        self::assertSame(
+            'Cannot call fmod() with unit-bearing and unbranded operands; both operands need one definitionally equivalent unit.',
+            $unitAfterBareLeftArm['message'],
+        );
+        self::assertNull($unitAfterBareLeftArm['type']);
+        self::assertSame(
+            'Cannot call hypot() with unit-bearing and unbranded operands; both operands need one definitionally equivalent unit.',
+            $unitAfterBareRightArm['message'],
+        );
+        self::assertNull($unitAfterBareRightArm['type']);
     }
 
     public function testFloatRemainderAndHypotenusePreserveEquivalentUnit(): void
@@ -142,10 +211,12 @@ final class UnitBinaryMathFunctionTypeResolverExtensionTest extends TestCase
             'Cannot call hypot() with unit-bearing and unbranded operands; both operands need one definitionally equivalent unit.',
             $mixed['message'],
         );
+        self::assertNull($mixed['type']);
         self::assertSame(
             'Cannot call fmod(): argument #1 has unit meter but argument #2 has unit second; they are not definitionally equivalent.',
             $inequivalent['message'],
         );
+        self::assertNull($inequivalent['type']);
     }
 
     public function testSameUnitFunctionDiagnosticPreservesOperandOrder(): void
@@ -182,13 +253,28 @@ final class UnitBinaryMathFunctionTypeResolverExtensionTest extends TestCase
 
     public function testUnsupportedOperandFallsBackToNativeAnalysis(): void
     {
-        $analysis = $this->analyse(
+        $unsupportedRight = $this->analyse(
             'hypot',
             new UnitFloatType($this->unit('meter')),
             new ArrayType(new FloatType(), new FloatType()),
         );
+        $unsupportedLeft = $this->analyse(
+            'hypot',
+            new ArrayType(new FloatType(), new FloatType()),
+            new UnitFloatType($this->unit('meter')),
+        );
 
-        self::assertSame(['type' => null, 'message' => null], $analysis);
+        self::assertSame(['type' => null, 'message' => null], $unsupportedRight);
+        self::assertSame(['type' => null, 'message' => null], $unsupportedLeft);
+    }
+
+    public function testFloatDivisionDefersNonnumericAlternatives(): void
+    {
+        $array = new ArrayType(new FloatType(), new FloatType());
+        $unit = new UnitFloatType($this->unit('meter'));
+
+        self::assertSame(['type' => null, 'message' => null], $this->analyse('fdiv', $array, $unit));
+        self::assertSame(['type' => null, 'message' => null], $this->analyse('fdiv', $unit, $array));
     }
 
     public function testFloatDivisionReportsUnitExponentOverflow(): void
@@ -240,6 +326,74 @@ final class UnitBinaryMathFunctionTypeResolverExtensionTest extends TestCase
         self::assertNull($analysis['message']);
     }
 
+    public function testBenevolenceIsPreservedSymmetricallyAndNeverOverridesAnOrdinaryUnion(): void
+    {
+        $rightBenevolent = $this->analyse(
+            'fdiv',
+            new UnitFloatType($this->unit('meter')),
+            new BenevolentUnionType([
+                new UnitIntegerType($this->unit('second')),
+                new UnitIntegerType($this->unit('minute')),
+            ]),
+        );
+        $bothBenevolent = $this->analyse(
+            'fdiv',
+            new BenevolentUnionType([
+                new UnitIntegerType($this->unit('meter')),
+                new UnitIntegerType($this->unit('foot')),
+            ]),
+            new BenevolentUnionType([
+                new UnitIntegerType($this->unit('second')),
+                new UnitIntegerType($this->unit('minute')),
+            ]),
+        );
+        $ordinaryLeft = $this->analyse(
+            'fdiv',
+            new UnionType([
+                new UnitIntegerType($this->unit('meter')),
+                new UnitIntegerType($this->unit('foot')),
+            ]),
+            new BenevolentUnionType([
+                new UnitIntegerType($this->unit('second')),
+                new UnitIntegerType($this->unit('minute')),
+            ]),
+        );
+
+        self::assertInstanceOf(BenevolentUnionType::class, $rightBenevolent['type']);
+        self::assertInstanceOf(BenevolentUnionType::class, $bothBenevolent['type']);
+        self::assertInstanceOf(UnionType::class, $ordinaryLeft['type']);
+        self::assertNotInstanceOf(BenevolentUnionType::class, $ordinaryLeft['type']);
+    }
+
+    public function testCartesianConstantUnionsRetainEveryResult(): void
+    {
+        $division = $this->analyse(
+            'fdiv',
+            new UnionType([
+                new UnitConstantIntegerType(6, $this->unit('meter')),
+                new UnitConstantIntegerType(8, $this->unit('meter')),
+            ]),
+            new UnionType([
+                new UnitConstantIntegerType(2, $this->unit('second')),
+                new UnitConstantIntegerType(4, $this->unit('second')),
+            ]),
+        );
+        $hypotenuse = $this->analyse(
+            'hypot',
+            new UnionType([
+                new UnitConstantIntegerType(3, $this->unit('meter')),
+                new UnitConstantIntegerType(4, $this->unit('meter')),
+            ]),
+            new UnionType([
+                new UnitConstantIntegerType(4, $this->unit('meter')),
+                new UnitConstantIntegerType(5, $this->unit('meter')),
+            ]),
+        );
+
+        self::assertSame([1.5, 2.0, 3.0, 4.0], $this->constantFloatValues($division['type']));
+        self::assertCount(4, $this->constantFloatValues($hypotenuse['type']));
+    }
+
     /** @return array{type: Type|null, message: string|null} */
     private function analyse(string $function, Type $leftType, Type $rightType): array
     {
@@ -280,5 +434,20 @@ final class UnitBinaryMathFunctionTypeResolverExtensionTest extends TestCase
         self::assertTrue($result->isOk(), $result->errorMessage() ?? $unit);
 
         return $result->expression();
+    }
+
+    /** @return list<float> */
+    private function constantFloatValues(?Type $type): array
+    {
+        self::assertNotNull($type);
+        $types = $type instanceof UnionType ? $type->getTypes() : [$type];
+        $values = [];
+        foreach ($types as $constant) {
+            self::assertInstanceOf(ConstantFloatType::class, $constant);
+            $values[] = $constant->getValue();
+        }
+        sort($values);
+
+        return $values;
     }
 }

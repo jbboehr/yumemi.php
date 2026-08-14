@@ -601,6 +601,13 @@ repeat the implementation's assumptions:
   underflow. The remaining survivors are equivalent normalization and zero fast paths, scaling by one, sign guards,
   casts, or exception prose. Four timeouts remove progress or termination from denominator reduction for terminating
   decimals. The audit found no runtime defect.
+- A focused 2026-08-14 audit of the native binary-math resolver and its diagnostic rule generated 190 mutants and raised
+  covered MSI from 83% to 95% by adding contracts for incomplete calls, native fallback ownership, bare constants,
+  nonnumeric alternatives, complete Cartesian union results, and symmetric benevolent-union handling. In the final
+  campaign, 181 mutants were killed. The nine survivors are behaviorally equivalent: six remove redundant `int|float`
+  casts before native float-returning functions, two reverse coalescing operands that are equal or have only one
+  non-null value by construction, and one changes loop control only after a bare `float` result has already subsumed the
+  remaining branded-float alternatives. The audit found no additional implementation defect.
 - Maintain the machine-checked inventory of stable public `yumemi.*` diagnostic identifiers. It proves that every public
   rule identifier is represented in the compatibility policy and PHPStan reference, records an emitting implementation
   and representative local-ignore fixture for every listed identifier, and explicitly classifies non-diagnostic
