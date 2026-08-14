@@ -756,11 +756,12 @@ repeat the implementation's assumptions:
   `Units` contexts. Native serialization currently supports the default context plus one dynamically scoped custom
   context through `Units::deserialize()` and rejects semantic drift. Broader ecosystem integrations remain deferred.
 - Strict same-unit comparison variants and PHP object comparison operators unless a concrete use case appears
-- Range-bearing native float types are a separate, more custom follow-up because PHPStan does not provide corresponding
-  public float-range PHPDoc syntax or an integer-range-equivalent core type. They would be particularly valuable for
-  bounded coordinates such as latitude and longitude, nonnegative fractional durations and rates, and other APIs that
-  validate continuous intervals. Their arithmetic must define sound behavior for infinities, underflow, and NaN rather
-  than treating them as integer ranges with different endpoints.
+- Range-bearing native float types remain deferred to PHPStan's upstream
+  [float-range design](https://github.com/phpstan/phpstan/issues/6963). PHPStan does not yet provide corresponding public
+  PHPDoc syntax or an integer-range-equivalent core type, and its open design questions include endpoint inclusivity,
+  binary floating-point bounds, infinities, underflow, and NaN. Such types would be valuable for bounded coordinates,
+  nonnegative fractional durations and rates, and other continuously validated APIs, but Yumemi should not introduce a
+  competing proprietary interval syntax or type model while the upstream contract remains unsettled.
 - Third-party stub breadth and package-version maintenance are tracked in Yumemi Apocrypha rather than this core plan.
 
 The broader feature comparison and intentionally deferred Pint-style capabilities remain in
