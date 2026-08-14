@@ -8,16 +8,34 @@ use function PHPStan\Testing\assertType;
 $integer = unit(3, 'meter');
 assertType("3.0&unit_float<'meter'>", (float) $integer);
 assertType("3&unit_int<'meter'>", (int) $integer);
+assertType("3.0&unit_float<'meter'>", floatval($integer));
+assertType("3.0&unit_float<'meter'>", doubleval(value: $integer));
+assertType("3&unit_int<'meter'>", intval($integer));
+assertType("3&unit_int<'meter'>", intval($integer, 16));
 
 $float = unit(1.5, 'second');
 assertType("1&unit_int<'second'>", (int) $float);
 assertType("1.5&unit_float<'second'>", (float) $float);
+assertType("1&unit_int<'second'>", intval(value: $float));
+assertType("1.5&unit_float<'second'>", floatval($float));
 
 /** @var unit_numeric_string<'second'> $numericString */
 $numericString = '30';
 assertType("unit_int<'second'>", (int) $numericString);
 assertType("unit_float<'second'>", (float) $numericString);
+assertType("unit_int<'second'>", intval($numericString));
+assertType("unit_int<'second'>", intval($numericString, base: 10));
+assertType('int', intval($numericString, 16));
+assertType("unit_float<'second'>", floatval($numericString));
 assertType('float|int', $numericString + 0);
+
+/**
+ * @param unit_numeric_string<'second'> $value
+ */
+function assertDynamicNumericStringBase(string $value, int $base): void
+{
+    assertType('int', intval($value, $base));
+}
 
 /** @param int<-5, 10> $value */
 function assertBrandedRangeCasts(int $value): void
@@ -26,6 +44,8 @@ function assertBrandedRangeCasts(int $value): void
 
     assertType("unit_int<'meter'>&int<-5, 10>", (int) $range);
     assertType("unit_float<'meter'>", (float) $range);
+    assertType("unit_int<'meter'>&int<-5, 10>", intval($range));
+    assertType("unit_float<'meter'>", doubleval($range));
 }
 
 /** @param unit_int<'meter'>|unit_int<'second'> $value */
@@ -64,6 +84,34 @@ assertType(
 );
 assertType("2.0&unit_float<'second'>", ceil(num: unit(2, 'second')));
 assertType("2.0&unit_float<'second'>", floor(num: unit(2, 'second')));
+
+assertType("3.0&unit_float<'meter / second'>", fdiv(unit(6, 'meter'), unit(2, 'second')));
+assertType("3.0&unit_float<'meter'>", fdiv(num1: unit(6, 'meter'), num2: 2));
+assertType("0.5&unit_float<'1 / second'>", fdiv(1, unit(2, 'second')));
+assertType("unit_float<'meter'>", fdiv(unit(1.0, 'meter'), 0.0));
+assertType("1.0&unit_float<'meter'>", fmod(unit(7, 'meter'), unit(3, 'm')));
+assertType("1.0&unit_float<'meter'>", fmod(num1: unit(7, 'meter'), num2: unit(3, 'meter')));
+assertType("5.0&unit_float<'meter'>", hypot(unit(3, 'meter'), unit(4, 'm')));
+assertType("5.0&unit_float<'meter'>", hypot(x: unit(3, 'meter'), y: unit(4, 'meter')));
+
+/** @param unit_int<'meter'>&int<1, 5> $value */
+function assertBrandedBinaryMath(int $value): void
+{
+    assertType("unit_float<'meter'>", fmod($value, unit(2, 'meter')));
+    assertType("unit_float<'meter'>", hypot($value, unit(2, 'meter')));
+}
+
+/** @param unit_int<'meter'>|float $value */
+function assertMixedFloatDivision(int|float $value): void
+{
+    assertType('float', fdiv($value, 2.0));
+}
+
+/** @param unit_int<'meter'>|unit_float<'second'> $value */
+function assertBrandedUnionFloatDivision(int|float $value): void
+{
+    assertType("unit_float<'meter'>|unit_float<'second'>", fdiv($value, 2));
+}
 
 assertType("1&unit_int<'meter'>", min(unit(3, 'meter'), unit(1, 'meter'), unit(2, 'meter')));
 assertType("3&unit_int<'meter'>", max(unit(3, 'meter'), unit(1, 'meter'), unit(2, 'meter')));
@@ -199,6 +247,11 @@ assertType('float', ceil(1.25));
 assertType('float', floor(1.75));
 assertType('float', round(1.25));
 assertType('float', sqrt(4.0));
+assertType('3.0', floatval(3));
+assertType('3', intval(3.5));
+assertType('float', fdiv(6, 2));
+assertType('float', fmod(7, 3));
+assertType('float', hypot(3, 4));
 
 $dynamicFunction = static fn (int $value): int => $value;
 assertType('int', $dynamicFunction(-3));

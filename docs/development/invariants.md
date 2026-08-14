@@ -51,7 +51,8 @@ compatibility break.
 **Invariant.** `unit_int<'...'>`, `unit_float<'...'>`, and `unit_numeric_string<'...'>` describe ordinary PHP `int`,
 `float`, and numeric-string values. Their unit identity exists only in PHPStan. They are not wrappers, runtime
 subclasses, or hidden metadata attached to a scalar. A numeric-string brand crosses into numeric computation only
-through an explicit integer or float cast; implicit coercion does not retain the brand.
+through an explicit integer or float cast, or through the corresponding `intval()`, `floatval()`, or `doubleval()`
+conversion with decimal semantics; implicit coercion does not retain the brand.
 
 **Reason.** Native brands provide interoperability and ordinary PHP arithmetic without allocation or dispatch. Runtime
 code therefore cannot recover a source unit from a branded scalar and must receive that unit explicitly at conversion
@@ -61,8 +62,11 @@ boundaries.
 magnitude unchanged. PHPDoc declarations establish trusted numeric-string brands without runtime work. The custom types
 and dynamic return extensions under [`src/PHPStan`](../../src/PHPStan) carry the analysis-only brand.
 [`UnitFunctionTest`](../../tests/UnitFunctionTest.php) and the [`unit-ops.php`](../../tests/PHPStan/data/unit-ops.php)
-fixture cover runtime identity and inferred arithmetic. The public [Core Concepts](../pages/core-concepts.md) guide
-documents the boundary.
+fixture cover runtime identity and inferred arithmetic. The
+[`unit-scalar-transformations.php`](../../tests/PHPStan/data/unit-scalar-transformations.php) and
+[`unit-numeric-string-weak-coercion.php`](../../tests/PHPStan/data/unit-numeric-string-weak-coercion.php) fixtures
+distinguish explicit scalar conversions from implicit coercion. The public [Core Concepts](../pages/core-concepts.md)
+guide documents the boundary.
 
 **Invalid shortcut.** Describing a branded value as carrying its unit at runtime, attempting to recover the brand in
 `unit_to()`, treating a branded numeric string as a parsed quantity, preserving its brand through implicit numeric

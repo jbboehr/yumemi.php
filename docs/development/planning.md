@@ -564,10 +564,10 @@ repeat the implementation's assumptions:
   parenthesizes those bases, with integer and decimal regressions in `ParserTest`.
 - Maintain the PHP 8.2 lowest-dependency and PHP 8.5 highest-dependency CI jobs. Both perform fresh Composer solves for
   released requirements and run PHPStan plus PHPUnit: the lowest job proves their declared lower bounds, while the
-  highest job detects incompatibility with newly available releases inside those constraints. Direct requirements
-  locked to development branches remain at their committed revisions because copied or generated integrations are
-  tested against those exact inputs. Ordinary lock-file jobs verify one reproducible dependency snapshot and do not
-  cover either released edge.
+  highest job detects incompatibility with newly available releases inside those constraints. Direct requirements locked
+  to development branches remain at their committed revisions because copied or generated integrations are tested
+  against those exact inputs. Ordinary lock-file jobs verify one reproducible dependency snapshot and do not cover
+  either released edge.
 - Continue focused Xdebug branch audits rather than enforcing a global path-coverage floor. The focused `src/Registry`
   audit reached 98.95% branch and 98.65% line coverage after adding contract tests for malformed catalog shapes,
   transactional builder batches, and resilient introspection; the remaining outcomes are structurally unreachable under
@@ -633,17 +633,20 @@ repeat the implementation's assumptions:
   consumers may legitimately have an older analyzer installed. Extension users require PHPStan 2.2.5 or later; automatic
   registration in a project with an older version remains an unsupported integration and should produce clear setup
   guidance rather than making the runtime package uninstallable.
-- Explicit integer/float casts preserve native numeric brands and move a `unit_numeric_string` brand onto the resulting
-  number. Implicit arithmetic and weak numeric coercion do not preserve a numeric-string brand; comparisons still
-  require definitionally equivalent brands. `abs()`, `ceil()`, `floor()`, and `round()` preserve native numeric unit
-  brands. Native `min()` and `max()` preserve a common definitionally equivalent brand across direct, array, and
-  unpacked candidates, retain finite constant extrema, narrow known integer ranges, and report
-  `yumemi.invalidUnitSelection` when a possible returning candidate is bare or differently branded. Native `sqrt()`
-  transforms exact symbolic square units, retains finite nonnegative constants, generalizes negative or non-finite
-  constants, and diagnoses branded units without an exact symbolic root. Other casts and unsupported PHP built-ins can
-  erase brands. Continue adding targeted integrations only for demonstrated workflows; `intdiv()`, generalized native
-  powers, and trigonometric functions remain deferred because they require distinct unit, correlation, or exponent
-  semantics. Exact runtime-object roots are supported through `Quantity::root()`.
+- Explicit integer/float casts and decimal `intval()`/`floatval()`/`doubleval()` conversions preserve native numeric
+  brands and move a `unit_numeric_string` brand onto the resulting number. A non-decimal or dynamic `intval()` base
+  leaves a branded numeric-string result unbranded. Implicit arithmetic and weak numeric coercion do not preserve a
+  numeric-string brand; comparisons still require definitionally equivalent brands. `abs()`, `ceil()`, `floor()`, and
+  `round()` preserve native numeric unit brands. Native `min()` and `max()` preserve a common definitionally equivalent
+  brand across direct, array, and unpacked candidates, retain finite constant extrema, narrow known integer ranges, and
+  report `yumemi.invalidUnitSelection` when a possible returning candidate is bare or differently branded. Native
+  `sqrt()` transforms exact symbolic square units, retains finite nonnegative constants, generalizes negative or
+  non-finite constants, and diagnoses branded units without an exact symbolic root. Native `fdiv()` follows division
+  unit algebra; `fmod()` and `hypot()` require definitionally equivalent branded operands and diagnose mixed or
+  incompatible calls. Other casts and unsupported PHP built-ins can erase brands. Continue adding targeted integrations
+  only for demonstrated workflows; `intdiv()`, generalized native powers, and trigonometric functions remain deferred
+  because they require distinct unit, correlation, or exponent semantics. Exact runtime-object roots are supported
+  through `Quantity::root()`.
 - Native helpers accept finite alternatives only when every valid path produces one semantic result unit. Independent
   source and target alternatives lose value correlation, so conversion helpers validate the Cartesian product and fail
   closed if any pair is invalid. Quantity boundaries continue to preserve finite target unions.
@@ -757,11 +760,11 @@ repeat the implementation's assumptions:
   context through `Units::deserialize()` and rejects semantic drift. Broader ecosystem integrations remain deferred.
 - Strict same-unit comparison variants and PHP object comparison operators unless a concrete use case appears
 - Range-bearing native float types remain deferred to PHPStan's upstream
-  [float-range design](https://github.com/phpstan/phpstan/issues/6963). PHPStan does not yet provide corresponding public
-  PHPDoc syntax or an integer-range-equivalent core type, and its open design questions include endpoint inclusivity,
-  binary floating-point bounds, infinities, underflow, and NaN. Such types would be valuable for bounded coordinates,
-  nonnegative fractional durations and rates, and other continuously validated APIs, but Yumemi should not introduce a
-  competing proprietary interval syntax or type model while the upstream contract remains unsettled.
+  [float-range design](https://github.com/phpstan/phpstan/issues/6963). PHPStan does not yet provide corresponding
+  public PHPDoc syntax or an integer-range-equivalent core type, and its open design questions include endpoint
+  inclusivity, binary floating-point bounds, infinities, underflow, and NaN. Such types would be valuable for bounded
+  coordinates, nonnegative fractional durations and rates, and other continuously validated APIs, but Yumemi should not
+  introduce a competing proprietary interval syntax or type model while the upstream contract remains unsettled.
 - Third-party stub breadth and package-version maintenance are tracked in Yumemi Apocrypha rather than this core plan.
 
 The broader feature comparison and intentionally deferred Pint-style capabilities remain in

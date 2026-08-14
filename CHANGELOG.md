@@ -11,6 +11,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Context-bound preferred-unit profiles for exact application-selected `Quantity` conversion by dimension.
 - Exact `Quantity::toCompact()` engineering-prefix selection within a caller-selected named unit family.
+- PHPStan brand inference for `intval()`, `floatval()`, `doubleval()`, `fdiv()`, `fmod()`, and `hypot()`.
+- The stable `yumemi.invalidUnitMathFunction` diagnostic for incompatible branded `fmod()`/`hypot()` calls and
+  unrepresentable `fdiv()` result units.
 
 ### Changed
 

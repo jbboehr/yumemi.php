@@ -225,18 +225,23 @@ Explicit integer and float casts preserve the unit while changing the native num
 through a small set of built-in scalar functions. Most retain the input unit; `sqrt()` transforms it when the symbolic
 square root is exact:
 
-| Expression                   | Inferred result                                          |
-| ---------------------------- | -------------------------------------------------------- |
-| `(float) $unitInteger`       | Same unit, retaining a known constant                    |
-| `(int) $unitFloat`           | Same unit, retaining a known constant                    |
-| `(int) $unitNumericString`   | `unit_int<'same unit'>`                                  |
-| `(float) $unitNumericString` | `unit_float<'same unit'>`                                |
-| `abs($unitFloat)`            | Same unit, retaining a known float constant              |
-| `abs($unitInteger)`          | Branded integer bounds, with possible overflow promotion |
-| `ceil()` and `floor()`       | Same unit, retaining a known numeric constant            |
-| `round()`                    | `unit_float<'same unit'>`                                |
-| `min()` and `max()`          | Common brand, retaining known extrema or integer bounds  |
-| `sqrt($unitNumber)`          | Rooted unit, retaining a finite nonnegative constant     |
+| Expression                     | Inferred result                                          |
+| ------------------------------ | -------------------------------------------------------- |
+| `(float) $unitInteger`         | Same unit, retaining a known constant                    |
+| `(int) $unitFloat`             | Same unit, retaining a known constant                    |
+| `(int) $unitNumericString`     | `unit_int<'same unit'>`                                  |
+| `(float) $unitNumericString`   | `unit_float<'same unit'>`                                |
+| `intval()`                     | Same as an integer cast when `base` is omitted or `10`   |
+| `floatval()` and `doubleval()` | Same behavior as an explicit float cast                  |
+| `abs($unitFloat)`              | Same unit, retaining a known float constant              |
+| `abs($unitInteger)`            | Branded integer bounds, with possible overflow promotion |
+| `ceil()` and `floor()`         | Same unit, retaining a known numeric constant            |
+| `round()`                      | `unit_float<'same unit'>`                                |
+| `min()` and `max()`            | Common brand, retaining known extrema or integer bounds  |
+| `sqrt($unitNumber)`            | Rooted unit, retaining a finite nonnegative constant     |
+| `fdiv($left, $right)`          | Quotient unit, matching native `/` unit algebra          |
+| `fmod($left, $right)`          | Common definitionally equivalent unit                    |
+| `hypot($left, $right)`         | Common definitionally equivalent unit                    |
 
 For example, these transformations remain ordinary native PHP operations at runtime:
 
@@ -266,9 +271,13 @@ assert($platformWidth === 12.0);
 ```
 
 Crossing a known integer constant to a float retains both its value and unit. Integer ranges still generalize because
-PHPStan has no corresponding public float-range type. `abs()`, `ceil()`, and `floor()` retain a constant value when the
-input and result are known. `sqrt()` does so for finite nonnegative inputs. `round()` currently preserves the unit but
-generalizes the magnitude because its optional precision and rounding-mode arguments are not part of this resolver.
+PHPStan has no corresponding public float-range type. `intval()`, `floatval()`, and `doubleval()` follow the same brand
+rules as explicit casts, including moving a `unit_numeric_string` brand onto the resulting number. For a branded numeric
+string, `intval()` preserves the brand only when `base` is omitted or statically known to be `10`; another or dynamic
+base changes how the text is interpreted, so Yumemi leaves the result unbranded. The `base` argument does not affect
+integer or float inputs. `abs()`, `ceil()`, and `floor()` retain a constant value when the input and result are known.
+`sqrt()` does so for finite nonnegative inputs. `round()` currently preserves the unit but generalizes the magnitude
+because its optional precision and rounding-mode arguments are not part of this resolver.
 
 `min()` and `max()` preserve a unit when every value they can return is branded with one definitionally equivalent unit.
 This works with direct arguments, arrays, and unpacked arrays. When every candidate is required and is a known finite
@@ -292,6 +301,15 @@ magnitude checking are required.
 For a union containing only branded numeric alternatives, Yumemi roots every alternative. Any non-rootable branded arm
 produces the diagnostic. If an otherwise valid union also contains an unbranded numeric arm, PHPStan keeps its ordinary
 native `sqrt()` result because one precise unit cannot describe every runtime path.
+
+`fdiv()` follows the same unit algebra as native `/`: it divides two unit expressions, preserves a unit when the other
+operand is a bare numeric scalar, and produces the reciprocal unit when only the divisor is branded. `fmod()` and
+`hypot()` instead require both operands, across every possible numeric union arm, to carry one definitionally equivalent
+unit; they report `yumemi.invalidUnitMathFunction` rather than infer a misleading brand from mixed or differently
+branded numeric operands. Calls containing nonnumeric alternatives are left to PHPStan's native argument checking. All
+three functions return `unit_float` and retain a known finite result when both magnitudes are known. Non-finite results
+retain only the derived brand. `fdiv()` also reports `yumemi.invalidUnitMathFunction` when the quotient unit would
+exceed Yumemi's supported exponent range.
 
 For branded integers, `abs()` retains exact constants and computes the hull of known ranges. The `PHP_INT_MIN` case can
 produce a float at runtime, so unbounded or partially exposed ranges follow the same `integerOverflowToFloat` policy as
@@ -614,6 +632,7 @@ scope:
 | `yumemi.ambiguousUnitExpression`       | Native helper alternatives produce more than one semantic result unit                                        |
 | `yumemi.invalidUnitCall`               | An invalid constant `unit()`, `unit_factor()`, or `unit_to()` call                                           |
 | `yumemi.invalidUnitComparison`         | A native equality, identity, ordering, or spaceship comparison whose units are not definitionally equivalent |
+| `yumemi.invalidUnitMathFunction`       | Native `fdiv()` produced an unrepresentable unit, or `fmod()`/`hypot()` received incompatible operands       |
 | `yumemi.invalidUnitRoot`               | Native `sqrt()` received a branded unit without an exact symbolic square root                                |
 | `yumemi.invalidUnitSelection`          | Native `min()` or `max()` can return an unbranded or differently branded candidate                           |
 | `yumemi.invalidQuantityConstruction`   | Invalid `Units::quantity()`, `parseQuantity()`, `deltaQuantity()`, or `point()` construction                 |
@@ -649,6 +668,9 @@ Use the identifier to choose the first corrective step:
   affine coordinate was used where multiplicative algebra requires a `delta_*` unit.
 - For `yumemi.invalidUnitRoot`, express the native brand with unit powers divisible by two. Native `sqrt()` does not
   substitute catalog definitions; use `Quantity::simplify()->root(2)` when that runtime transformation is intended.
+- For `yumemi.invalidUnitMathFunction`, give both `fmod()` or `hypot()` operands one definitionally equivalent brand, or
+  reduce `fdiv()` operand exponents so its quotient unit remains representable. Convert compatible magnitudes explicitly
+  before calling the function.
 - For `yumemi.invalidUnitSelection`, ensure every value that `min()` or `max()` can return has one definitionally
   equivalent unit. Convert compatible but differently branded values before selecting an extreme.
 - For quantity arithmetic, comparison, or point diagnostics, verify the statically known dimensions and distinguish a
@@ -664,11 +686,12 @@ Important limits of the current static model are:
 - Native `unit()`, `unit_factor()`, and `unit_to()` calls require statically recoverable unit expressions by default.
   Dynamic object parsing and conversion remain supported, but cannot retain a specific generic unit type.
 - PHPStan supports one configured registry and does not track runtime registry identity per value.
-- Explicit integer/float casts preserve native numeric brands and move a `unit_numeric_string` brand onto the resulting
-  number. Implicit arithmetic and weak numeric coercion do not preserve a numeric-string brand; comparisons still
-  require definitionally equivalent brands. `abs()`, `ceil()`, `floor()`, `round()`, `min()`, and `max()` preserve
-  numeric unit brands when their operation has one sound result unit. `sqrt()` transforms brands with exact symbolic
-  square roots. Other casts and unsupported PHP built-ins can erase brands.
+- Explicit integer/float casts and `intval()`/`floatval()`/`doubleval()` preserve native numeric brands and move a
+  `unit_numeric_string` brand onto the resulting number. Implicit arithmetic and weak numeric coercion do not preserve a
+  numeric-string brand; comparisons still require definitionally equivalent brands. `abs()`, `ceil()`, `floor()`,
+  `round()`, `min()`, and `max()` preserve numeric unit brands when their operation has one sound result unit. `sqrt()`
+  transforms exact symbolic roots, `fdiv()` follows division algebra, and `fmod()`/`hypot()` require equivalent brands.
+  Unsupported casts and PHP built-ins can erase brands.
 - Native `+` and `-` cannot convert dimensionally compatible magnitudes; use an explicit conversion or `Quantity`.
 - Native affine targets remain unbranded because native scalars do not retain point-versus-difference identity. Use
   `PointQuantity<'...'>` when that identity must remain statically visible.

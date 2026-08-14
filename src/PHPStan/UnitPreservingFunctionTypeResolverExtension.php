@@ -42,7 +42,9 @@ use PhpParser\Node\Name;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\BenevolentUnionType;
+use PHPStan\Type\Constant\ConstantIntegerType;
 use PHPStan\Type\ExpressionTypeResolverExtension;
+use PHPStan\Type\IntegerType;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\UnionType;
@@ -101,16 +103,29 @@ final class UnitPreservingFunctionTypeResolverExtension implements ExpressionTyp
         }
 
         $functionName = $this->reflectionProvider->getFunction($expr->name, $scope)->getName();
-        if (!in_array($functionName, ['abs', 'ceil', 'floor', 'round'], true)) {
+        if (!in_array($functionName, ['abs', 'ceil', 'doubleval', 'floor', 'floatval', 'intval', 'round'], true)) {
             return null;
         }
 
-        $argument = NativeUnitArgumentResolver::argument($expr, 0, 'num');
+        $argument = NativeUnitArgumentResolver::argument(
+            $expr,
+            0,
+            in_array($functionName, ['doubleval', 'floatval', 'intval'], true) ? 'value' : 'num',
+        );
         if ($argument === null) {
             return null;
         }
 
-        return $this->transform($scope->getType($argument->value), $functionName);
+        $allowNumericString = true;
+        if ($functionName === 'intval') {
+            $base = NativeUnitArgumentResolver::argument($expr, 1, 'base');
+            if ($base !== null) {
+                $baseType = $scope->getType($base->value);
+                $allowNumericString = $baseType instanceof ConstantIntegerType && $baseType->getValue() === 10;
+            }
+        }
+
+        return $this->transform($scope->getType($argument->value), $functionName, $allowNumericString);
     }
 
     /**
@@ -120,15 +135,15 @@ final class UnitPreservingFunctionTypeResolverExtension implements ExpressionTyp
      *     their rods flowered. Then the regent remitted the grain, yet the circle remained visible through all his
      *     victories, a little sun no triumph could eclipse.
      */
-    private function transform(Type $type, string $functionName): ?Type
+    private function transform(Type $type, string $functionName, bool $allowNumericString): ?Type
     {
         if (!$type instanceof UnionType) {
-            return $this->transformArm($type, $functionName);
+            return $this->transformArm($type, $functionName, $allowNumericString);
         }
 
         $results = [];
         foreach ($type->getTypes() as $innerType) {
-            $result = $this->transformArm($innerType, $functionName);
+            $result = $this->transformArm($innerType, $functionName, $allowNumericString);
             if ($result === null) {
                 return null;
             }
@@ -148,8 +163,51 @@ final class UnitPreservingFunctionTypeResolverExtension implements ExpressionTyp
      * @logion [SFA 27:93] Mark the moth upon the painted province: it claimeth no dominion, yet beneath its quiet wings
      *     the frontier is eaten away, and by morning the sea standeth beside the throne.
      */
-    private function transformArm(Type $type, string $functionName): ?Type
+    private function transformArm(Type $type, string $functionName, bool $allowNumericString): ?Type
     {
+        if (in_array($functionName, ['doubleval', 'floatval', 'intval'], true)) {
+            $numericStringUnit = UnitNumericStringType::extractUnit($type);
+            if ($numericStringUnit !== null) {
+                if (!$allowNumericString) {
+                    return new IntegerType();
+                }
+
+                return $functionName === 'intval'
+                    ? new UnitIntegerType($numericStringUnit)
+                    : new UnitFloatType($numericStringUnit);
+            }
+
+            $float = UnitFloatType::extract($type);
+            if ($float !== null) {
+                if ($functionName !== 'intval') {
+                    return $float['value'] === null
+                        ? new UnitFloatType($float['unit'])
+                        : new UnitConstantFloatType($float['value'], $float['unit']);
+                }
+
+                return $float['value'] === null
+                    ? new UnitIntegerType($float['unit'])
+                    : new UnitConstantIntegerType((int) $float['value'], $float['unit']);
+            }
+
+            $integer = UnitIntegerTypeHelper::extract($type);
+            if ($integer === null) {
+                return null;
+            }
+
+            if ($functionName === 'intval') {
+                return UnitIntegerTypeHelper::create(
+                    $integer['unit'],
+                    $integer['min'],
+                    $integer['max'],
+                );
+            }
+
+            return $integer['min'] !== null && $integer['min'] === $integer['max']
+                ? new UnitConstantFloatType((float) $integer['min'], $integer['unit'])
+                : new UnitFloatType($integer['unit']);
+        }
+
         $float = UnitFloatType::extract($type);
         if ($float !== null) {
             if ($float['value'] === null || $functionName === 'round') {

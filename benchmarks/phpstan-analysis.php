@@ -48,6 +48,7 @@ const PHPSTAN_WORKLOADS = [
     'preserving',
     'extrema',
     'roots',
+    'binary-math',
     'builtins',
     'helper-baseline',
     'helpers',
@@ -248,6 +249,7 @@ PHP;
         'preserving' => renderCases('preserving', $cases),
         'extrema' => renderCases('extrema', $cases),
         'roots' => renderCases('roots', $cases),
+        'binary-math' => renderCases('binary-math', $cases),
         'builtins' => renderCases('builtins', $cases),
         'helper-baseline' => renderCases('helpers', $cases),
         'helpers' => renderCases('helpers', $cases),
@@ -263,7 +265,7 @@ function renderCases(string $workload, int $cases, int $offset = 0): string
 {
     $result = '';
     for ($index = 0; $index < $cases; ++$index) {
-        $name = sprintf('%sCase%04d', $workload, $offset + $index);
+        $name = sprintf('%sCase%04d', str_replace('-', '_', $workload), $offset + $index);
         $result .= match ($workload) {
             'scalar' => scalarCase($name),
             'types' => typeCase($name),
@@ -271,6 +273,7 @@ function renderCases(string $workload, int $cases, int $offset = 0): string
             'preserving' => preservingCase($name),
             'extrema' => extremaCase($name),
             'roots' => rootCase($name),
+            'binary-math' => binaryMathCase($name),
             'builtins' => builtinCase($name),
             'helpers' => helperCase($name),
             'native' => nativeCase($name),
@@ -335,6 +338,9 @@ function {$name}(int \$distance, int \$duration): void
     \$lower = min(\$distance, \$magnitude);
     \$upper = max(\$distance, \$magnitude);
     \$root = sqrt(\$distance * \$distance);
+    \$ratio = fdiv(\$distance, \$distance);
+    \$remainder = fmod(\$distance, \$distance);
+    \$hypotenuse = hypot(\$distance, \$distance);
     \$feet = unit_to(\$distance, 'meter', 'international_foot');
     \$factor = unit_factor('international_foot', 'meter');
     \$seconds = unit(\$duration, 'second');
@@ -389,6 +395,9 @@ function {$name}(int \$distance): float
     \$lower = min(\$distance, \$magnitude);
     \$upper = max(\$distance, \$magnitude);
     \$root = sqrt(\$distance * \$distance);
+    \$ratio = fdiv(\$distance, \$distance);
+    \$remainder = fmod(\$distance, \$distance);
+    \$hypotenuse = hypot(\$distance, \$distance);
 
     return \$root;
 }
@@ -437,6 +446,25 @@ function rootCase(string $name): string
 function {$name}(int \$area): float
 {
     return sqrt(\$area);
+}
+
+PHP;
+}
+
+function binaryMathCase(string $name): string
+{
+    return <<<PHP
+/**
+ * @param unit_int<'meter'>&int<1, 1000> \$left
+ * @param unit_int<'meter'>&int<1, 100>  \$right
+ */
+function {$name}(int \$left, int \$right): float
+{
+    \$ratio = fdiv(\$left, \$right);
+    \$remainder = fmod(\$left, \$right);
+    \$hypotenuse = hypot(\$left, \$right);
+
+    return \$ratio;
 }
 
 PHP;
