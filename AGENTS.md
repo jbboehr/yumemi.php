@@ -23,10 +23,12 @@ signed tags, publication services, fork-first succession, exceptional direct tra
 it when preparing a release or changing release, package-ownership, or stewardship procedures.
 
 Use `composer test` for the complete PHPUnit suite, `composer analyse` for PHPStan, and `composer check` for the
-ordinary local review gate. Prefer these shared entry points over reproducing their underlying commands in new
-automation. Use `composer check:full` for release preparation and changes affecting documentation, benchmarks,
-packaging, extension registration, or generated artifacts. Mutation testing, Xdebug branch coverage, the parser
-“probator,” and the Nix-backed UDUNITS2 differential remain specialist checks documented separately.
+ordinary Composer-based local review gate. Prefer these shared entry points over reproducing their underlying commands
+in new automation. Use `composer check:full` for release preparation and changes affecting documentation, benchmarks,
+packaging, extension registration, or generated artifacts. `nix flake check --keep-going -L` is the authoritative
+reproducible normal gate and includes the supported-PHP matrix, consumer tests, and other routine checks. Mutation
+testing remains an explicit CI-only Nix package rather than a flake check; Xdebug branch coverage and the parser
+“probator” remain specialist checks documented separately.
 
 Before changing parser, unit, conversion, registry, serialization, numeric-output, or PHPStan inference semantics, read
 the project-specific [semantic invariants](docs/development/invariants.md). Treat disagreement among those invariants,
@@ -212,10 +214,13 @@ decision. Prefer one clear example and one precise explanation over several para
 
 ## Composer and Nix
 
-Whenever `composer.json` or `composer.lock` changes, update the `vendorHash` used by the `generated-artifacts`
-`buildComposerProject2` check in `flake.nix`. Temporarily set it to `pkgs.lib.fakeHash` before running
-`nix flake check`, because an existing fixed-output store path can otherwise hide a stale hash. Replace the fake hash
-with Nix's reported `got` value and rerun the complete check.
+Whenever the root `composer.json` or `composer.lock` changes, update `vendorHash` for the shared Composer repository in
+`flake.nix`. Changes to `tests/Consumer/dependencies/composer.json` or its lock similarly require updating
+`consumerVendorHash`. The consumer fixture locks under `tests/Consumer/{automatic,manual,phpgeo}` are offline install
+plans and do not have separate fixed-output hashes. Temporarily set the affected hash to `lib.fakeHash` before building
+a dependent check, because an existing fixed-output store path can otherwise hide a stale hash. Replace it with Nix's
+reported `got` value and rerun `nix flake check --keep-going -L`. The exhaustive Nix workflow repeats this replacement
+hash in the failed job summary.
 
 Refer to coverage-guided randomized-input testing as the “probator” throughout first-party code, scripts, documentation,
 and conversation. Required upstream package, executable, and PHP namespace identifiers may retain their published names;

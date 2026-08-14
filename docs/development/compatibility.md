@@ -283,7 +283,7 @@ regenerated with a newer implementation.
 ## Supported Environments
 
 - The runtime package requires PHP `^8.2` and GMP.
-- CI tests PHP 8.2, 8.3, 8.4, and 8.5 from the lock file. Separate conventional jobs perform
+- The exhaustive Nix matrix tests PHP 8.2, 8.3, 8.4, and 8.5 from the lock file. Separate conventional jobs perform
   fresh lowest- and highest-dependency solves for released requirements on PHP 8.2 and PHP 8.5. Direct tools required
   from development branches remain at their lock-file revisions because committed generated or copied integrations are
   verified against those exact inputs.

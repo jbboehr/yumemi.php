@@ -6,6 +6,8 @@
 
 <!-- How was this tested? Include relevant commands or manual verification. -->
 
+<!-- If a dependency-closure lock changed, update its matching vendorHash in flake.nix. Failed Nix CI reports it. -->
+
 ## Additional context
 
 <!-- Compatibility concerns, screenshots, related issues, or implementation notes. -->

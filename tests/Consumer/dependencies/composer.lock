@@ -1,0 +1,372 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "a9da925f3376b6e87ba0cd19c292a417",
+    "packages": [
+        {
+            "name": "doctrine/lexer",
+            "version": "3.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/doctrine/lexer.git",
+                "reference": "31ad66abc0fc9e1a1f2d9bc6a42668d2fbbcd6dd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/doctrine/lexer/zipball/31ad66abc0fc9e1a1f2d9bc6a42668d2fbbcd6dd",
+                "reference": "31ad66abc0fc9e1a1f2d9bc6a42668d2fbbcd6dd",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "doctrine/coding-standard": "^12",
+                "phpstan/phpstan": "^1.10",
+                "phpunit/phpunit": "^10.5",
+                "psalm/plugin-phpunit": "^0.18.3",
+                "vimeo/psalm": "^5.21"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Doctrine\\Common\\Lexer\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Guilherme Blanco",
+                    "email": "guilhermeblanco@gmail.com"
+                },
+                {
+                    "name": "Roman Borschel",
+                    "email": "roman@code-factory.org"
+                },
+                {
+                    "name": "Johannes Schmitt",
+                    "email": "schmittjoh@gmail.com"
+                }
+            ],
+            "description": "PHP Doctrine Lexer parser library that can be used in Top-Down, Recursive Descent Parsers.",
+            "homepage": "https://www.doctrine-project.org/projects/lexer.html",
+            "keywords": [
+                "annotations",
+                "docblock",
+                "lexer",
+                "parser",
+                "php"
+            ],
+            "support": {
+                "issues": "https://github.com/doctrine/lexer/issues",
+                "source": "https://github.com/doctrine/lexer/tree/3.0.1"
+            },
+            "funding": [
+                {
+                    "url": "https://www.doctrine-project.org/sponsorship.html",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://www.patreon.com/phpdoctrine",
+                    "type": "patreon"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/doctrine%2Flexer",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2024-02-05T11:56:58+00:00"
+        },
+        {
+            "name": "mjaschen/phpgeo",
+            "version": "6.0.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/mjaschen/phpgeo.git",
+                "reference": "b3ef05a4948d73f8a9f5e7e44899223850c8f49a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/mjaschen/phpgeo/zipball/b3ef05a4948d73f8a9f5e7e44899223850c8f49a",
+                "reference": "b3ef05a4948d73f8a9f5e7e44899223850c8f49a",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^2.0",
+                "phpunit/phpunit": "^11.0",
+                "squizlabs/php_codesniffer": "^3.7"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Location\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Marcus Jaschen",
+                    "email": "mjaschen@gmail.com",
+                    "homepage": "https://www.marcusjaschen.de/"
+                }
+            ],
+            "description": "Simple Yet Powerful Geo Library",
+            "homepage": "https://phpgeo.marcusjaschen.de/",
+            "keywords": [
+                "Polygon",
+                "area",
+                "bearing",
+                "bounds",
+                "calculation",
+                "coordinate",
+                "distance",
+                "earth",
+                "ellipsoid",
+                "geo",
+                "geofence",
+                "gis",
+                "gps",
+                "haversine",
+                "length",
+                "perpendicular",
+                "point",
+                "polyline",
+                "projection",
+                "simplify",
+                "track",
+                "vincenty"
+            ],
+            "support": {
+                "docs": "https://phpgeo.marcusjaschen.de/Installation.html",
+                "email": "mjaschen@gmail.com",
+                "issues": "https://github.com/mjaschen/phpgeo/issues",
+                "source": "https://github.com/mjaschen/phpgeo/tree/6.0.4"
+            },
+            "funding": [
+                {
+                    "url": "https://www.paypal.com/paypalme/mjaschen",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/mjaschen",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-08-06T05:32:13+00:00"
+        },
+        {
+            "name": "symfony/polyfill-php84",
+            "version": "v1.38.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/polyfill-php84.git",
+                "reference": "f4e1dfaee5b74aba5964fe1fd4dfc7ba5e3085fa"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/polyfill-php84/zipball/f4e1dfaee5b74aba5964fe1fd4dfc7ba5e3085fa",
+                "reference": "f4e1dfaee5b74aba5964fe1fd4dfc7ba5e3085fa",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.2"
+            },
+            "type": "library",
+            "extra": {
+                "thanks": {
+                    "url": "https://github.com/symfony/polyfill",
+                    "name": "symfony/polyfill"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Php84\\": ""
+                },
+                "classmap": [
+                    "Resources/stubs"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony polyfill backporting some PHP 8.4+ features to lower PHP versions",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "compatibility",
+                "polyfill",
+                "portable",
+                "shim"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/polyfill-php84/tree/v1.38.1"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2026-05-26T12:51:13+00:00"
+        }
+    ],
+    "packages-dev": [
+        {
+            "name": "phpstan/extension-installer",
+            "version": "1.4.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/phpstan/extension-installer.git",
+                "reference": "85e90b3942d06b2326fba0403ec24fe912372936"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/phpstan/extension-installer/zipball/85e90b3942d06b2326fba0403ec24fe912372936",
+                "reference": "85e90b3942d06b2326fba0403ec24fe912372936",
+                "shasum": ""
+            },
+            "require": {
+                "composer-plugin-api": "^2.0",
+                "php": "^7.2 || ^8.0",
+                "phpstan/phpstan": "^1.9.0 || ^2.0"
+            },
+            "require-dev": {
+                "composer/composer": "^2.0",
+                "php-parallel-lint/php-parallel-lint": "^1.2.0",
+                "phpstan/phpstan-strict-rules": "^0.11 || ^0.12 || ^1.0"
+            },
+            "type": "composer-plugin",
+            "extra": {
+                "class": "PHPStan\\ExtensionInstaller\\Plugin"
+            },
+            "autoload": {
+                "psr-4": {
+                    "PHPStan\\ExtensionInstaller\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Composer plugin for automatic installation of PHPStan extensions",
+            "keywords": [
+                "dev",
+                "static analysis"
+            ],
+            "support": {
+                "issues": "https://github.com/phpstan/extension-installer/issues",
+                "source": "https://github.com/phpstan/extension-installer/tree/1.4.3"
+            },
+            "time": "2024-09-04T20:21:43+00:00"
+        },
+        {
+            "name": "phpstan/phpstan",
+            "version": "2.2.8",
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/e285254e60f33c21902efef4a926ca0987c06804",
+                "reference": "e285254e60f33c21902efef4a926ca0987c06804",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.4|^8.0"
+            },
+            "conflict": {
+                "phpstan/phpstan-shim": "*"
+            },
+            "bin": [
+                "phpstan",
+                "phpstan.phar"
+            ],
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ondřej Mirtes"
+                },
+                {
+                    "name": "Markus Staab"
+                },
+                {
+                    "name": "Vincent Langlet"
+                }
+            ],
+            "description": "PHPStan - PHP Static Analysis Tool",
+            "keywords": [
+                "dev",
+                "static analysis"
+            ],
+            "support": {
+                "docs": "https://phpstan.org/user-guide/getting-started",
+                "forum": "https://github.com/phpstan/phpstan/discussions",
+                "issues": "https://github.com/phpstan/phpstan/issues",
+                "security": "https://github.com/phpstan/phpstan/security/policy",
+                "source": "https://github.com/phpstan/phpstan-src"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/ondrejmirtes",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/phpstan",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-08-04T22:21:45+00:00"
+        }
+    ],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {},
+    "prefer-stable": true,
+    "prefer-lowest": false,
+    "platform": {},
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
+}

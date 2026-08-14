@@ -7,16 +7,22 @@ readonly FIXTURES_DIR
 PROJECT_ROOT=$(cd -- "$FIXTURES_DIR/../.." && pwd)
 readonly PROJECT_ROOT
 readonly PACKAGE_MODE=${1:-source}
+readonly COMPOSER_REPOSITORY=${YUMEMI_CONSUMER_COMPOSER_REPOSITORY:-}
 
 WORK_DIR=$(mktemp -d "${TMPDIR:-/tmp}/yumemi-consumer.XXXXXXXX")
 readonly WORK_DIR
-trap 'rm -rf -- "$WORK_DIR"' EXIT
+package_dir=$WORK_DIR/package
 
-package_dir=$PROJECT_ROOT
+cleanup() {
+    if [[ -L $package_dir ]]; then
+        rm -f -- "$package_dir"
+    fi
+    rm -rf -- "$WORK_DIR"
+}
+trap cleanup EXIT
 
 if [[ $PACKAGE_MODE == archive ]]; then
     archive_dir=$WORK_DIR/archive
-    package_dir=$WORK_DIR/package
     mkdir -p -- "$archive_dir" "$package_dir"
 
     composer --working-dir="$PROJECT_ROOT" archive --format=tar --dir="$archive_dir" --no-interaction
@@ -68,37 +74,37 @@ if [[ $PACKAGE_MODE == archive ]]; then
             exit 1
         fi
     done
-elif [[ $PACKAGE_MODE != source ]]; then
+elif [[ $PACKAGE_MODE == source ]]; then
+    ln -s -- "$PROJECT_ROOT" "$package_dir"
+else
     printf 'Usage: %s [source|archive]\n' "$0" >&2
     exit 2
 fi
 
-# PHP expands $argv; the shell must preserve it literally.
-# shellcheck disable=SC2016
-repository_json=$(php -r '
-echo json_encode([
-    "type" => "path",
-    "url" => $argv[1],
-    "options" => [
-        "symlink" => false,
-        "versions" => ["jbboehr/yumemi" => "dev-consumer"],
-    ],
-], JSON_THROW_ON_ERROR);
-' "$package_dir")
-readonly repository_json
+install_dependencies() {
+    local project_dir=$1
+
+    if [[ -z $COMPOSER_REPOSITORY ]]; then
+        composer --working-dir="$project_dir" install --prefer-dist --no-interaction --no-progress
+        return
+    fi
+
+    composer --working-dir="$project_dir" build-local-repo-lock --only-composerlock "$COMPOSER_REPOSITORY" .
+    COMPOSER_DISABLE_NETWORK=1 COMPOSER_MIRROR_PATH_REPOS=1 composer --working-dir="$project_dir" install \
+        --prefer-dist --no-interaction --no-progress
+}
 
 run_core_fixture() {
     local fixture=$1
     local project_dir=$WORK_DIR/$fixture
     local output
-    local phpstan=(vendor/bin/phpstan analyse --no-progress --error-format=raw --level=max)
+    local phpstan=(php vendor/bin/phpstan analyse --no-progress --error-format=raw --level=max)
 
     mkdir -p -- "$project_dir"
     cp -R -- "$FIXTURES_DIR/$fixture/." "$project_dir/"
     cp -R -- "$FIXTURES_DIR/cases" "$project_dir/cases"
 
-    composer --working-dir="$project_dir" repo add yumemi "$repository_json" --no-interaction
-    composer --working-dir="$project_dir" update --prefer-dist --no-interaction --no-progress
+    install_dependencies "$project_dir"
 
     if [[ -f $project_dir/phpstan.neon ]]; then
         phpstan+=(--configuration=phpstan.neon)
@@ -134,13 +140,12 @@ run_phpgeo() {
     local expected
     local project_dir=$WORK_DIR/phpgeo
     local output
-    local phpstan=(vendor/bin/phpstan analyse --no-progress --error-format=raw --level=max --configuration=phpstan.neon)
+    local phpstan=(php vendor/bin/phpstan analyse --no-progress --error-format=raw --level=max --configuration=phpstan.neon)
 
     mkdir -p -- "$project_dir"
     cp -R -- "$FIXTURES_DIR/phpgeo/." "$project_dir/"
 
-    composer --working-dir="$project_dir" repo add yumemi "$repository_json" --no-interaction
-    composer --working-dir="$project_dir" update --prefer-dist --no-interaction --no-progress
+    install_dependencies "$project_dir"
 
     (
         cd -- "$project_dir"

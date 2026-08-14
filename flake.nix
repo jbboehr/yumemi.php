@@ -6,6 +6,10 @@
     flake-utils = {
       url = "github:numtide/flake-utils";
     };
+    nix-github-actions = {
+      url = "github:nix-community/nix-github-actions";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     pre-commit-hooks = {
       url = "github:cachix/pre-commit-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -35,6 +39,7 @@
       self,
       nixpkgs,
       flake-utils,
+      nix-github-actions,
       pre-commit-hooks,
       treefmt-nix,
       gitignore,
@@ -45,6 +50,7 @@
       system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
+        lib = pkgs.lib;
         php-unwrapped = pkgs.php82;
         perfidious = pkgs.callPackage "${php-perfidious}/nix/derivation.nix" {
           php = php-unwrapped;
@@ -63,9 +69,17 @@
                 enabled,
                 all,
               }:
-              enabled ++ [ all.pcov ] ++ pkgs.lib.optional pkgs.stdenv.isLinux perfidious;
+              enabled ++ [ all.pcov ];
           };
-        php = buildEnv php-unwrapped;
+        php = php-unwrapped.buildEnv {
+          extraConfig = "memory_limit = 2G";
+          extensions =
+            {
+              enabled,
+              all,
+            }:
+            enabled ++ [ all.pcov ] ++ lib.optional pkgs.stdenv.isLinux perfidious;
+        };
         php-xdebug = php-unwrapped.buildEnv {
           extraConfig = ''
             memory_limit = 2G
@@ -78,39 +92,200 @@
             }:
             enabled ++ [ all.xdebug ];
         };
+        php82 = buildEnv pkgs.php82;
+        php83 = buildEnv pkgs.php83;
+        php84 = buildEnv pkgs.php84;
+        php85 = buildEnv pkgs.php85;
         src = gitignore.lib.gitignoreSource ./.;
-        generated-artifacts = php-unwrapped.buildComposerProject2 (finalAttrs: {
-          pname = "yumemi-generated-artifacts";
+
+        composerSource = pkgs.runCommand "yumemi-composer-source" { } ''
+          mkdir -p "$out"
+          cp ${./composer.json} "$out/composer.json"
+          cp ${./composer.lock} "$out/composer.lock"
+        '';
+        vendorHash = "sha256-Y4x0KQXscl3bUGdgDlSZCRyLv3D+KwF/rpzcTqIe8G0=";
+        composerRepository = php-unwrapped.mkComposerRepository {
+          pname = "yumemi-dependencies";
           version = "0";
-
-          inherit src;
-
+          src = composerSource;
           composerNoDev = false;
-          vendorHash = "sha256-QOBPL0i0UMB90rl96vy+iHm8z/7z1Zr4FLV3t1nG/KM=";
+          composerNoPlugins = true;
+          composerNoScripts = true;
+          inherit vendorHash;
+        };
 
-          nativeCheckInputs = [
-            pkgs.bison
-            pkgs.udunits
-          ];
-          checkPhase = ''
-            runHook preCheck
+        consumerComposerSource = pkgs.runCommand "yumemi-consumer-composer-source" { } ''
+          mkdir -p "$out"
+          cp ${./tests/Consumer/dependencies/composer.json} "$out/composer.json"
+          cp ${./tests/Consumer/dependencies/composer.lock} "$out/composer.lock"
+        '';
+        consumerVendorHash = "sha256-xo5EOIis31HSsET18NJ9v7png9kLo9ooEiO5yp5ejfs=";
+        consumerComposerRepository = php-unwrapped.mkComposerRepository {
+          pname = "yumemi-consumer-dependencies";
+          version = "0";
+          src = consumerComposerSource;
+          composerNoDev = false;
+          composerNoPlugins = true;
+          composerNoScripts = true;
+          vendorHash = consumerVendorHash;
+        };
 
-            cp src/Parser/Parser.php "$TMPDIR/Parser.php"
-            make --always-make src/Parser/Parser.php
-            cmp "$TMPDIR/Parser.php" src/Parser/Parser.php
+        mkPhpCheck =
+          {
+            name,
+            command,
+            php ? php82,
+            extraNativeBuildInputs ? [ ],
+            repository ? composerRepository,
+            lockFile ? ./composer.lock,
+            needsGit ? false,
+            recordFailure ? false,
+            installResult ? "",
+          }:
+          pkgs.stdenvNoCC.mkDerivation {
+            pname = "yumemi-check-${name}";
+            version = "0";
 
-            export HOME="$TMPDIR"
-            export UDUNITS2_BIN=${pkgs.udunits}/bin/udunits2
-            export UDUNITS2_XML=${pkgs.udunits}/share/udunits/udunits2.xml
-            php vendor/bin/phpunit --group udunits2 --no-coverage --colors=never
+            inherit src;
+            composerRepository = repository;
+            composerLock = lockFile;
+            composerNoDev = false;
+            composerNoPlugins = true;
+            composerNoScripts = true;
 
-            runHook postCheck
-          '';
-          installPhase = ''
+            nativeBuildInputs = [
+              php
+              php.packages.composer-local-repo-plugin
+              php.composerHooks.composerInstallHook
+            ]
+            ++ extraNativeBuildInputs
+            ++ lib.optional needsGit pkgs.git;
+
+            preConfigure = ''
+              export HOME="$TMPDIR/home"
+              export COMPOSER_CACHE_DIR="$TMPDIR/composer-cache"
+              export COMPOSER_DISABLE_NETWORK=1
+              mkdir -p "$HOME" "$COMPOSER_CACHE_DIR"
+            '';
+            postPatch = lib.optionalString needsGit ''
+              git init --quiet
+              git config user.email nix-build@example.invalid
+              git config user.name "Nix build"
+              git add --all
+              git commit --quiet --message baseline
+            '';
+            buildPhase = ''
+              runHook preBuild
+              runHook postBuild
+            '';
+            doCheck = false;
+            preInstall = ''
+              composerInstallInstallHook() {
+                setComposerRootVersion
+                setComposerEnvVariables
+                composer \
+                  --no-interaction \
+                  --no-progress \
+                  ''${composerNoDev:+--no-dev} \
+                  ''${composerNoPlugins:+--no-plugins} \
+                  ''${composerNoScripts:+--no-scripts} \
+                  install
+              }
+            '';
+            installPhase = ''
+              runHook preInstall
+
+              patchShebangs vendor/bin
+              export PATH="$PWD/vendor/bin:$PATH"
+              mkdir -p "$out"
+
+              set +e
+              (
+                set -e
+                ${command}
+              ) 2>&1 | tee "$out/check.log"
+              checkStatus="''${PIPESTATUS[0]}"
+              set -e
+              printf '%s\n' "$checkStatus" > "$out/status"
+
+              ${installResult}
+
+              runHook postInstall
+
+              ${lib.optionalString (!recordFailure) ''
+                if [[ "$checkStatus" -ne 0 ]]; then
+                  exit "$checkStatus"
+                fi
+              ''}
+            '';
+          };
+
+        mkCheckGate =
+          {
+            name,
+            result,
+          }:
+          pkgs.runCommand "yumemi-check-${name}" { } ''
+            status="$(cat ${result}/status)"
+            if [[ "$status" -ne 0 ]]; then
+              cat ${result}/check.log >&2
+              exit "$status"
+            fi
+
             mkdir -p "$out"
-            touch "$out/passed"
+            cp -R ${result}/. "$out/"
           '';
-        });
+
+        mkPhpunitCheck =
+          version: php:
+          mkPhpCheck {
+            name = "phpunit-php${version}";
+            inherit php;
+            command = "composer test -- --colors=never";
+          };
+
+        mutation-runtime-reports = mkPhpCheck {
+          name = "mutation-runtime-reports";
+          needsGit = true;
+          recordFailure = true;
+          command = ''
+            substituteInPlace phpunit.xml.dist \
+              --replace-fail 'https://schema.phpunit.de/11.5/phpunit.xsd' 'vendor/phpunit/phpunit/phpunit.xsd'
+            COMPOSER_PROCESS_TIMEOUT=0 composer infection:ci
+          '';
+          installResult = ''
+            for report in infection.log infection-summary.log; do
+              if [[ -f "$report" ]]; then
+                cp "$report" "$out/"
+              fi
+            done
+          '';
+        };
+        mutation-phpstan-reports = mkPhpCheck {
+          name = "mutation-phpstan-reports";
+          needsGit = true;
+          recordFailure = true;
+          command = ''
+            substituteInPlace phpunit.xml.dist \
+              --replace-fail 'https://schema.phpunit.de/11.5/phpunit.xsd' 'vendor/phpunit/phpunit/phpunit.xsd'
+            COMPOSER_PROCESS_TIMEOUT=0 composer infection:phpstan:ci
+          '';
+          installResult = ''
+            for report in infection-phpstan.log infection-phpstan-summary.log; do
+              if [[ -f "$report" ]]; then
+                cp "$report" "$out/"
+              fi
+            done
+          '';
+        };
+        mutation-runtime = mkCheckGate {
+          name = "mutation-runtime";
+          result = mutation-runtime-reports;
+        };
+        mutation-phpstan = mkCheckGate {
+          name = "mutation-phpstan";
+          result = mutation-phpstan-reports;
+        };
 
         mkDevShell =
           php:
@@ -167,30 +342,158 @@
           hooks = {
             actionlint.enable = true;
             shellcheck.enable = true;
-            treefmt = {
-              enable = true;
-              package = treefmt.config.build.wrapper;
-              require_serial = true;
-            };
           };
         };
+
+        normalGithubMatrix = nix-github-actions.lib.mkGithubMatrix {
+          checks = lib.getAttrs [ "x86_64-linux" ] self.checks;
+          attrPrefix = "checks";
+        };
+        mutationGithubMatrix = nix-github-actions.lib.mkGithubMatrix {
+          checks = {
+            x86_64-linux = {
+              inherit mutation-runtime mutation-phpstan;
+            };
+          };
+          attrPrefix = "packages";
+        };
+        mutationGithubEntries = map (
+          entry:
+          entry
+          // {
+            reportAttr = "packages.${entry.system}.\"${entry.name}-reports\"";
+          }
+        ) mutationGithubMatrix.matrix.include;
+        githubMatrix = {
+          include = normalGithubMatrix.matrix.include ++ mutationGithubEntries;
+        };
+        githubMatrixScript = pkgs.writeShellScript "yumemi-github-actions-matrix" ''
+          printf '%s\n' ${lib.escapeShellArg (builtins.toJSON githubMatrix)}
+        '';
       in
       rec {
         checks = {
-          inherit generated-artifacts pre-commit-check;
-          documentation =
-            pkgs.runCommand "yumemi-documentation"
+          phpunit-php82 = mkPhpunitCheck "82" php82;
+          phpunit-php83 = mkPhpunitCheck "83" php83;
+          phpunit-php84 = mkPhpunitCheck "84" php84;
+          phpunit-php85 = mkPhpunitCheck "85" php85;
+
+          phpstan = mkPhpCheck {
+            name = "phpstan";
+            command = "composer analyse -- --error-format=raw";
+          };
+          php-cs-fixer = mkPhpCheck {
+            name = "php-cs-fixer";
+            command = "composer cs";
+          };
+          composer-validate =
+            pkgs.runCommand "yumemi-composer-validate"
               {
                 nativeBuildInputs = [
-                  pkgs.mdbook
-                  php-unwrapped
+                  php82
+                  php82.packages.composer
+                  pkgs.gnumake
                 ];
               }
               ''
-                mdbook build ${src}/docs --dest-dir "$out"
-                php ${src}/tests/Documentation/check-generated-links.php "$out"
+                composer validate --strict ${src}/composer.json
+                for manifest in \
+                  ${src}/tests/Consumer/automatic/composer.json \
+                  ${src}/tests/Consumer/manual/composer.json \
+                  ${src}/tests/Consumer/phpgeo/composer.json \
+                  ${src}/tests/Consumer/dependencies/composer.json; do
+                  composer validate --no-check-publish "$manifest"
+                done
+                composer --working-dir=${src} test:consumer:locks
+                touch "$out"
               '';
-          formatting = treefmt.config.build.check self;
+          php-lint =
+            pkgs.runCommand "yumemi-php-lint"
+              {
+                nativeBuildInputs = [
+                  php82
+                  pkgs.findutils
+                ];
+              }
+              ''
+                find ${src} -type f -name '*.php' -print0 \
+                  | xargs -0 -n 1 php -l
+                touch "$out"
+              '';
+          benchmark-smoke = mkPhpCheck {
+            name = "benchmark-smoke";
+            command = "composer benchmark:smoke";
+          };
+          consumer-archive = mkPhpCheck {
+            name = "consumer-archive";
+            extraNativeBuildInputs = [
+              pkgs.gnumake
+              pkgs.gnutar
+            ];
+            command = ''
+              patchShebangs tests/Consumer/run
+              export COMPOSER_ROOT_VERSION=dev-consumer
+              export YUMEMI_CONSUMER_COMPOSER_REPOSITORY=${consumerComposerRepository}
+              COMPOSER_PROCESS_TIMEOUT=0 composer test:consumer:archive
+            '';
+          };
+          generated-artifacts = mkPhpCheck {
+            name = "generated-artifacts";
+            extraNativeBuildInputs = [
+              pkgs.bison
+              pkgs.gnumake
+              pkgs.udunits
+            ];
+            command = ''
+              cp src/Parser/Parser.php "$TMPDIR/Parser.php"
+              composer generate-parser
+              cmp "$TMPDIR/Parser.php" src/Parser/Parser.php
+
+              export UDUNITS2_BIN=${pkgs.udunits}/bin/udunits2
+              export UDUNITS2_XML=${pkgs.udunits}/share/udunits/udunits2.xml
+              composer test:udunits2
+            '';
+          };
+          documentation = mkPhpCheck {
+            name = "documentation";
+            extraNativeBuildInputs = [
+              pkgs.gnumake
+              pkgs.mdbook
+            ];
+            command = "composer docs:check";
+            installResult = ''
+              if [[ -d build/docs ]]; then
+                cp -R build/docs "$out/book"
+              fi
+            '';
+          };
+          inherit pre-commit-check;
+          formatting = treefmt.config.build.check src;
+        };
+
+        packages = {
+          inherit
+            mutation-runtime
+            mutation-runtime-reports
+            mutation-phpstan
+            mutation-phpstan-reports
+            ;
+          mutation = pkgs.linkFarm "yumemi-mutation" [
+            {
+              name = "runtime";
+              path = mutation-runtime;
+            }
+            {
+              name = "phpstan";
+              path = mutation-phpstan;
+            }
+          ];
+        };
+
+        apps.github-actions-matrix = {
+          type = "app";
+          program = "${githubMatrixScript}";
+          meta.description = "Print the nix-github-actions validation matrix";
         };
 
         devShells = {

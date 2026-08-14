@@ -1,0 +1,494 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "c97f08e54aa04d20f70192c4deee9b26",
+    "packages": [
+        {
+            "name": "doctrine/lexer",
+            "version": "3.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/doctrine/lexer.git",
+                "reference": "31ad66abc0fc9e1a1f2d9bc6a42668d2fbbcd6dd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/doctrine/lexer/zipball/31ad66abc0fc9e1a1f2d9bc6a42668d2fbbcd6dd",
+                "reference": "31ad66abc0fc9e1a1f2d9bc6a42668d2fbbcd6dd",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "doctrine/coding-standard": "^12",
+                "phpstan/phpstan": "^1.10",
+                "phpunit/phpunit": "^10.5",
+                "psalm/plugin-phpunit": "^0.18.3",
+                "vimeo/psalm": "^5.21"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Doctrine\\Common\\Lexer\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Guilherme Blanco",
+                    "email": "guilhermeblanco@gmail.com"
+                },
+                {
+                    "name": "Roman Borschel",
+                    "email": "roman@code-factory.org"
+                },
+                {
+                    "name": "Johannes Schmitt",
+                    "email": "schmittjoh@gmail.com"
+                }
+            ],
+            "description": "PHP Doctrine Lexer parser library that can be used in Top-Down, Recursive Descent Parsers.",
+            "homepage": "https://www.doctrine-project.org/projects/lexer.html",
+            "keywords": [
+                "annotations",
+                "docblock",
+                "lexer",
+                "parser",
+                "php"
+            ],
+            "support": {
+                "issues": "https://github.com/doctrine/lexer/issues",
+                "source": "https://github.com/doctrine/lexer/tree/3.0.1"
+            },
+            "funding": [
+                {
+                    "url": "https://www.doctrine-project.org/sponsorship.html",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://www.patreon.com/phpdoctrine",
+                    "type": "patreon"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/doctrine%2Flexer",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2024-02-05T11:56:58+00:00"
+        },
+        {
+            "name": "jbboehr/yumemi",
+            "version": "dev-consumer",
+            "dist": {
+                "type": "path",
+                "url": "../package"
+            },
+            "require": {
+                "doctrine/lexer": "^3.0",
+                "ext-gmp": "*",
+                "php": "^8.2",
+                "symfony/polyfill-php84": "^1.34"
+            },
+            "require-dev": {
+                "brianium/paratest": "^7.8.5",
+                "brick/varexporter": "^0.6",
+                "ext-dom": "*",
+                "friendsofphp/php-cs-fixer": "^3",
+                "giorgiosironi/eris": "^1.1",
+                "infection/infection": "^0.32.6",
+                "jbboehr/akashi": "dev-master",
+                "jbboehr/doctrine-of-the-second-sun": "dev-master",
+                "jbboehr/phpbench-perfidious": "dev-master",
+                "mrsuh/php-bison-skeleton": "^1.2",
+                "nikic/php-fuzzer": "^0.0.11",
+                "phpbench/phpbench": "^1.7",
+                "phpstan/phpstan": "^2.2.5",
+                "phpstan/phpstan-deprecation-rules": "^2.0",
+                "phpstan/phpstan-phpunit": "^2.0.13",
+                "phpstan/phpstan-strict-rules": "^2.0",
+                "phpunit/phpunit": "^11.5"
+            },
+            "suggest": {
+                "jbboehr/yumemi-apocrypha": "Provides curated unit-aware PHPStan integrations for supported third-party packages.",
+                "phpstan/phpstan": "Enables the bundled Yumemi unit types extension (extension.neon; requires PHPStan 2.2.5 or later)."
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "0.1.x-dev"
+                },
+                "phpstan": {
+                    "includes": [
+                        "extension.neon"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "jbboehr\\Yumemi\\": "src"
+                },
+                "classmap": [
+                    "src/Parser/Parser.php"
+                ],
+                "files": [
+                    "src/functions.php"
+                ]
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "jbboehr\\Yumemi\\Benchmarks\\": "benchmarks",
+                    "jbboehr\\Yumemi\\Tests\\": "tests"
+                }
+            },
+            "archive": {
+                "exclude": [
+                    "/.claude",
+                    "/.codex",
+                    "/.dvc",
+                    "/.direnv",
+                    "/.envrc",
+                    "/.github",
+                    "/.gitignore",
+                    "/.idea",
+                    "/.php-cs-fixer.cache",
+                    "/.php-cs-fixer.dist.php",
+                    "/.phpbench",
+                    "/.phpunit.cache",
+                    "/.phpunit.result.cache",
+                    "/.pre-commit-cache",
+                    "/.pre-commit-config.yaml",
+                    "/AGENTS.md",
+                    "/Makefile",
+                    "/assets",
+                    "/benchmarks",
+                    "/bin",
+                    "/build",
+                    "/clover.xml",
+                    "/composer-project.nix",
+                    "/composer.lock",
+                    "/coverage",
+                    "/docs/book.toml",
+                    "/docs/pages/assets/heliogenesis",
+                    "/docs/theme",
+                    "/flake.lock",
+                    "/flake.nix",
+                    "/infection.json5.dist",
+                    "/infection.phpstan.bootstrap.php",
+                    "/infection.phpstan.json5.dist",
+                    "/*.log",
+                    "/phpbench-perfidious.json",
+                    "/phpbench.json",
+                    "/phpstan.neon.dist",
+                    "/phpunit.branch.xml.dist",
+                    "/phpunit.xml.dist",
+                    "/result*",
+                    "/secrets",
+                    "/src/Catalog/PhpCatalogExporter.php",
+                    "/src/Catalog/Udunits2CatalogImporter.php",
+                    "/src/Command",
+                    "/tests",
+                    "/tmp",
+                    "/tmp.md",
+                    "/vendor"
+                ]
+            },
+            "scripts": {
+                "analyse": [
+                    "phpstan analyse --no-progress"
+                ],
+                "benchmark": [
+                    "phpbench run --report=aggregate"
+                ],
+                "benchmark:perf": [
+                    "phpbench run --config=phpbench-perfidious.json --report=perfidious"
+                ],
+                "benchmark:phpstan": [
+                    "@php benchmarks/phpstan-analysis.php"
+                ],
+                "benchmark:smoke": [
+                    "phpbench run --iterations=1 --revs=1 --warmup=1 --progress=none"
+                ],
+                "check": [
+                    "@composer validate --strict",
+                    "@test:consumer:locks",
+                    "@check:whitespace",
+                    "@cs",
+                    "@analyse",
+                    "@test"
+                ],
+                "check:bc": [
+                    "Composer\\Config::disableProcessTimeout",
+                    "composer --working-dir=tools/api-compatibility install --no-interaction --no-progress",
+                    "tools/api-compatibility/vendor/bin/roave-backward-compatibility-check"
+                ],
+                "check:full": [
+                    "@check",
+                    "@docs:check",
+                    "@benchmark:smoke",
+                    "@test:consumer:archive"
+                ],
+                "check:whitespace": [
+                    "git diff --check"
+                ],
+                "coverage:branch": [
+                    "make coverage-branch"
+                ],
+                "coverage:branch:parallel": [
+                    "make coverage-branch-parallel"
+                ],
+                "cs": [
+                    "php-cs-fixer fix --config=.php-cs-fixer.dist.php --dry-run --diff"
+                ],
+                "cs:fix": [
+                    "php-cs-fixer fix --config=.php-cs-fixer.dist.php"
+                ],
+                "docs": [
+                    "make docs"
+                ],
+                "docs:check": [
+                    "make docs-check"
+                ],
+                "docs:serve": [
+                    "make docs-serve"
+                ],
+                "probator:unit-parser": [
+                    "make probator-unit-parser"
+                ],
+                "generate-catalog": [
+                    "make generate-catalog"
+                ],
+                "generate-parser": [
+                    "bison -S vendor/mrsuh/php-bison-skeleton/src/php-skel.m4 -o src/Parser/Parser.php src/Parser/grammar.y",
+                    "sed -i \"s/__DOLLAR__/$/g\" src/Parser/Parser.php"
+                ],
+                "infection": [
+                    "infection --no-progress"
+                ],
+                "infection:ci": [
+                    "infection --no-progress --min-msi=86 --min-covered-msi=86"
+                ],
+                "infection:core": [
+                    "infection --no-progress --filter=src/Number/Rational.php,src/Dimension.php,src/Analyzer"
+                ],
+                "infection:phpstan": [
+                    "infection --configuration=infection.phpstan.json5.dist --no-progress"
+                ],
+                "infection:phpstan:ci": [
+                    "infection --configuration=infection.phpstan.json5.dist --no-progress --min-msi=85 --min-covered-msi=85"
+                ],
+                "infection:phpstan:core": [
+                    "infection --configuration=infection.phpstan.json5.dist --no-progress --filter=src/PHPStan/InvalidUnitCallRule.php,src/PHPStan/InvalidUnitMinMaxFunctionRule.php,src/PHPStan/InvalidUnitRootFunctionRule.php,src/PHPStan/NativeUnitArgumentResolver.php,src/PHPStan/UnitExpression.php,src/PHPStan/UnitExpressionAlgebra.php,src/PHPStan/UnitExpressionParseResult.php,src/PHPStan/UnitExpressionParser.php,src/PHPStan/UnitConstantFloatType.php,src/PHPStan/UnitConstantIntegerType.php,src/PHPStan/UnitFactorFunctionDynamicReturnTypeExtension.php,src/PHPStan/UnitFloatType.php,src/PHPStan/UnitFunctionDynamicReturnTypeExtension.php,src/PHPStan/UnitIntegerRangeMath.php,src/PHPStan/UnitIntegerType.php,src/PHPStan/UnitIntegerTypeHelper.php,src/PHPStan/UnitNumericStringType.php,src/PHPStan/UnitMinMaxFunctionTypeResolverExtension.php,src/PHPStan/UnitOperatorTypeSpecifyingExtension.php,src/PHPStan/UnitPreservingFunctionTypeResolverExtension.php,src/PHPStan/UnitRootFunctionTypeResolverExtension.php,src/PHPStan/UnitToFunctionDynamicReturnTypeExtension.php,src/PHPStan/UnitUnaryOperatorTypeSpecifyingExtension.php,src/PHPStan/QuantityType.php,src/PHPStan/PointQuantityType.php,src/PHPStan/PointUnitExpression.php,src/PHPStan/PointUnitExpressionParseResult.php"
+                ],
+                "test": [
+                    "phpunit --no-coverage"
+                ],
+                "test:coverage": [
+                    "phpunit"
+                ],
+                "test:parallel": [
+                    "paratest --functional --no-coverage"
+                ],
+                "test:consumer": [
+                    "make test-consumer"
+                ],
+                "test:consumer:archive": [
+                    "make test-consumer-archive"
+                ],
+                "test:consumer:locks": [
+                    "make test-consumer-locks"
+                ],
+                "test:property": [
+                    "phpunit --group property --no-coverage"
+                ],
+                "test:udunits2": [
+                    "make test-udunits2"
+                ],
+                "update:consumer:locks": [
+                    "make update-consumer-locks"
+                ]
+            },
+            "license": [
+                "AGPL-3.0-only WITH romic-exception"
+            ],
+            "authors": [
+                {
+                    "name": "John Boehr",
+                    "email": "jbboehr@gmail.com"
+                }
+            ],
+            "description": "Static dimensional analysis for PHPStan, backed by a runtime unit-conversion engine for PHP.",
+            "homepage": "https://github.com/jbboehr/yumemi.php",
+            "support": {
+                "issues": "https://github.com/jbboehr/yumemi.php/issues",
+                "source": "https://github.com/jbboehr/yumemi.php"
+            },
+            "transport-options": {
+                "symlink": false,
+                "relative": true
+            }
+        },
+        {
+            "name": "symfony/polyfill-php84",
+            "version": "v1.38.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/polyfill-php84.git",
+                "reference": "f4e1dfaee5b74aba5964fe1fd4dfc7ba5e3085fa"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/polyfill-php84/zipball/f4e1dfaee5b74aba5964fe1fd4dfc7ba5e3085fa",
+                "reference": "f4e1dfaee5b74aba5964fe1fd4dfc7ba5e3085fa",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.2"
+            },
+            "type": "library",
+            "extra": {
+                "thanks": {
+                    "url": "https://github.com/symfony/polyfill",
+                    "name": "symfony/polyfill"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Php84\\": ""
+                },
+                "classmap": [
+                    "Resources/stubs"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony polyfill backporting some PHP 8.4+ features to lower PHP versions",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "compatibility",
+                "polyfill",
+                "portable",
+                "shim"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/polyfill-php84/tree/v1.38.1"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2026-05-26T12:51:13+00:00"
+        }
+    ],
+    "packages-dev": [
+        {
+            "name": "phpstan/phpstan",
+            "version": "2.2.8",
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/e285254e60f33c21902efef4a926ca0987c06804",
+                "reference": "e285254e60f33c21902efef4a926ca0987c06804",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.4|^8.0"
+            },
+            "conflict": {
+                "phpstan/phpstan-shim": "*"
+            },
+            "bin": [
+                "phpstan",
+                "phpstan.phar"
+            ],
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ondřej Mirtes"
+                },
+                {
+                    "name": "Markus Staab"
+                },
+                {
+                    "name": "Vincent Langlet"
+                }
+            ],
+            "description": "PHPStan - PHP Static Analysis Tool",
+            "keywords": [
+                "dev",
+                "static analysis"
+            ],
+            "support": {
+                "docs": "https://phpstan.org/user-guide/getting-started",
+                "forum": "https://github.com/phpstan/phpstan/discussions",
+                "issues": "https://github.com/phpstan/phpstan/issues",
+                "security": "https://github.com/phpstan/phpstan/security/policy",
+                "source": "https://github.com/phpstan/phpstan-src"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/ondrejmirtes",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/phpstan",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-08-04T22:21:45+00:00"
+        }
+    ],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {
+        "jbboehr/yumemi": 20
+    },
+    "prefer-stable": true,
+    "prefer-lowest": false,
+    "platform": {},
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
+}

@@ -59,8 +59,8 @@ when auditing reproducibility. A successful regeneration with the pinned environ
 
 ### Verification
 
-The `generated-artifacts` flake check copies the committed parser, forces the Make target with the pinned Bison and
-Composer dependencies, and compares the result byte-for-byte before running the catalog and UDUNITS2 checks. Parser
+The `generated-artifacts` flake check copies the committed parser, runs `composer generate-parser` with the pinned Bison
+and Composer dependencies, and compares the result byte-for-byte before running `composer test:udunits2`. Parser
 behavior is independently exercised by the normal PHPUnit suite, the runtime conformance corpus, documentation examples,
 finite generative tests, and the manual parser “probator.”
 
@@ -156,7 +156,7 @@ When changing either artifact:
 1. modify the authoritative input or generator rather than generated output;
 2. regenerate in the pinned Nix development shell;
 3. inspect the complete generated diff and distinguish semantic changes from generator-only churn;
-4. run `composer check:full` and `nix flake check`;
+4. run `composer check:full` and `nix flake check --keep-going -L`;
 5. update conformance cases, public documentation, compatibility notes, or licensing material when behavior or
    provenance changes; and
 6. commit authoritative inputs and generated output together.

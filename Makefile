@@ -1,6 +1,7 @@
 .DEFAULT: all
 .PHONY: all clean coverage-branch coverage-branch-parallel docs docs-check docs-serve generate-catalog \
-	probator-unit-parser test-consumer test-consumer-archive test-udunits2
+	probator-unit-parser test-consumer test-consumer-archive test-consumer-locks test-udunits2 \
+	update-consumer-locks
 
 BRANCH_COVERAGE_OUTPUT ?= coverage/branch
 BRANCH_COVERAGE_SOURCE ?= src/Number
@@ -66,6 +67,12 @@ test-consumer:
 
 test-consumer-archive:
 	tests/Consumer/run archive
+
+test-consumer-locks:
+	php tests/Consumer/check-locks.php
+
+update-consumer-locks:
+	tests/Consumer/update-locks
 
 test-udunits2:
 	@command -v "$(UDUNITS2_BIN)" >/dev/null || { \

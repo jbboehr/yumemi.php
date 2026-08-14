@@ -14,39 +14,9 @@ permissions:
     contents: read
 
 jobs:
-    nix:
-        name: Nix
+    php-baseline:
+        name: Conventional PHP baseline
         runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v7
-
-            - name: Install Nix
-              uses: cachix/install-nix-action@v31
-              with:
-                  github_access_token: ${{ secrets.GITHUB_TOKEN }}
-
-            - name: Restore and save Nix store
-              uses: nix-community/cache-nix-action@v7
-              with:
-                  primary-key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
-                  restore-prefixes-first-match: nix-${{ runner.os }}-
-                  gc-max-store-size-linux: 2G
-
-            - name: Check flake
-              run: nix flake check --print-build-logs
-
-    php:
-        name: PHP ${{ matrix.php-version }}
-        runs-on: ubuntu-latest
-        strategy:
-            fail-fast: false
-            matrix:
-                php-version:
-                    - "8.2"
-                    - "8.3"
-                    - "8.4"
-                    - "8.5"
         steps:
             - name: Checkout
               uses: actions/checkout@v7
@@ -54,9 +24,9 @@ jobs:
             - name: Install PHP
               uses: shivammathur/setup-php@v2
               with:
-                  coverage: pcov
+                  coverage: none
                   extensions: dom, gmp
-                  php-version: ${{ matrix.php-version }}
+                  php-version: "8.2"
                   tools: composer:v2
 
             - name: Validate Composer files
@@ -70,9 +40,9 @@ jobs:
               uses: actions/cache@v6
               with:
                   path: ${{ steps.composer-cache.outputs.dir }}
-                  key: ${{ runner.os }}-php-${{ matrix.php-version }}-composer-${{ hashFiles('**/composer.lock') }}
+                  key: ${{ runner.os }}-php-8.2-composer-${{ hashFiles('**/composer.lock') }}
                   restore-keys: |
-                      ${{ runner.os }}-php-${{ matrix.php-version }}-composer-
+                      ${{ runner.os }}-php-8.2-composer-
                       ${{ runner.os }}-php-composer-
 
             - name: Install dependencies
@@ -82,22 +52,13 @@ jobs:
               run: composer check:whitespace
 
             - name: Run PHP-CS-Fixer
-              if: matrix.php-version == '8.2'
               run: composer cs
 
             - name: Run PHPStan
               run: composer analyse -- --error-format=raw
 
             - name: Run PHPUnit
-              run: composer test:coverage -- --colors=never
-
-            - name: Smoke-test benchmarks
-              if: matrix.php-version == '8.2'
-              run: composer benchmark:smoke
-
-            - name: Smoke-test packaged consumer
-              if: matrix.php-version == '8.2'
-              run: composer test:consumer:archive
+              run: composer test -- --colors=never
 
     lowest-dependencies:
         name: Lowest dependencies / PHP 8.2
@@ -220,65 +181,3 @@ jobs:
 
             - name: Check API compatibility
               run: tools/api-compatibility/vendor/bin/roave-backward-compatibility-check --format=github-actions
-
-    mutation:
-        name: Mutation testing
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v7
-
-            - name: Install PHP
-              uses: shivammathur/setup-php@v2
-              with:
-                  coverage: pcov
-                  extensions: dom, gmp
-                  php-version: "8.2"
-                  tools: composer:v2
-
-            - name: Install dependencies
-              run: composer install --prefer-dist --no-interaction --no-progress
-
-            - name: Run mutation tests
-              run: composer infection:ci
-
-            - name: Upload mutation reports
-              if: always()
-              uses: actions/upload-artifact@v7
-              with:
-                  name: infection-reports
-                  path: |
-                      infection.log
-                      infection-summary.log
-                  if-no-files-found: warn
-
-    phpstan-mutation:
-        name: PHPStan mutation testing
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v7
-
-            - name: Install PHP
-              uses: shivammathur/setup-php@v2
-              with:
-                  coverage: pcov
-                  extensions: dom, gmp
-                  php-version: "8.2"
-                  tools: composer:v2
-
-            - name: Install dependencies
-              run: composer install --prefer-dist --no-interaction --no-progress
-
-            - name: Run PHPStan mutation tests
-              run: composer infection:phpstan:ci
-
-            - name: Upload PHPStan mutation reports
-              if: always()
-              uses: actions/upload-artifact@v7
-              with:
-                  name: infection-phpstan-reports
-                  path: |
-                      infection-phpstan.log
-                      infection-phpstan-summary.log
-                  if-no-files-found: warn

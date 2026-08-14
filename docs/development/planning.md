@@ -106,17 +106,22 @@ Current verification:
 - PHPStan passes
 - PHP-CS-Fixer passes
 - Composer validation passes
-- Nix flake checks pass
-- GitHub Actions tests PHP 8.2 through PHP 8.5, plus fresh lowest-dependency and highest-dependency solves for released
-  requirements on PHP 8.2 and PHP 8.5, respectively; direct development-branch tools remain pinned to revisions used by
+- `nix flake check --keep-going -L` runs independent normal checks for PHP 8.2 through PHP 8.5, PHPStan, php-cs-fixer,
+  formatting, documentation, generated artifacts, benchmarks, and isolated consumers
+- GitHub Actions retains a small conventional PHP 8.2 baseline for PHPUnit, PHPStan, and php-cs-fixer while an
+  independently generated exhaustive Nix matrix deliberately repeats those checks and adds the supported-PHP, consumer,
+  generated-artifact, documentation, and other flake checks
+- fresh lowest-dependency and highest-dependency solves for released requirements remain separate conventional jobs on
+  PHP 8.2 and PHP 8.5, respectively; direct development-branch tools remain pinned to the revisions used by committed
   generated or copied integrations
 - a separate master-focused, manually dispatchable advisory workflow exercises PHP 8.2 on macOS and Windows, including
   the release-style package consumers; it remains outside ordinary pull-request gates and does not weaken the required
   Linux matrix
 - PHPBench covers representative cold and warm runtime workflows; CI smoke-tests benchmark discovery without timing
   floors, while an optional Linux Perfidious profile captures local `perf_events` counters
-- Infection runs separate CI campaigns against all handwritten runtime source and the in-process PHPStan adapter tests,
-  with respective total and covered MSI floors of 86% and 85%; the generated parser remains excluded
+- Infection runs as two explicit Nix package jobs, outside ordinary `nix flake check`, against all handwritten runtime
+  source and the in-process PHPStan adapter tests, with respective total and covered MSI floors of 86% and 85%; the
+  generated parser remains excluded
 - a separate Xdebug development shell supports [focused, local branch and path coverage audits](branch-coverage.md)
   without adding their cost to CI or `nix flake check`; branch and path percentages currently have no enforced floor
 - isolated consumer fixtures install a mirrored Composer package, verify automatic and manual PHPStan registration,
@@ -506,13 +511,12 @@ than create documentation or abstractions for their own sake:
    APIs, PHPStan pseudo-types, diagnostics, configuration, grammar, persistent formats, integration contracts,
    provisional surfaces, and internal or generated details. Review it before each release and whenever a change alters
    the supported boundary; do not infer stability from PHP visibility or freeze human-readable diagnostic prose.
-5. **Established:** use `composer test` for the complete PHPUnit suite without coverage, `composer test:coverage` for
-   the existing PCOV CI run, `composer analyse` for PHPStan, and `composer check` for the ordinary PHP/Composer local
-   gate. `composer check:full` adds documentation, benchmark discovery, and release-style consumer verification for
-   relevant changes and release preparation. CI invokes the same focused Composer scripts instead of duplicating their
-   tool commands. Mutation, Xdebug branch coverage, the parser “probator,” and the Nix-backed UDUNITS2 differential
-   remain explicit specialist workflows; Nix remains the reproducible environment rather than the only record of how
-   checks run.
+5. **Established:** use `composer test` for the complete PHPUnit suite without coverage, `composer analyse` for PHPStan,
+   and `composer check` for the ordinary PHP/Composer local gate. `composer check:full` adds documentation, benchmark
+   discovery, and release-style consumer verification for relevant changes and release preparation.
+   `nix flake check --keep-going -L` is the authoritative reproducible normal gate and exposes logically distinct checks
+   as independently cached derivations. A small setup-php baseline intentionally overlaps it. Mutation remains an
+   explicit Nix package used by CI, while Xdebug branch coverage and the parser “probator” remain specialist workflows.
 6. **Established:** maintain the [generated-artifact inventory](generated-artifacts.md) for `src/Parser/Parser.php` and
    `data/udunits2.php`, including editing authorities, known reproducible tool versions, provenance, licensing, consumer
    requirements, and byte-identical plus behavioral verification. Nix checks exact regeneration of both artifacts;

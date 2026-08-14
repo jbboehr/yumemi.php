@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+FIXTURES_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+readonly FIXTURES_DIR
+PROJECT_ROOT=$(cd -- "$FIXTURES_DIR/../.." && pwd)
+readonly PROJECT_ROOT
+
+WORK_DIR=$(mktemp -d "${TMPDIR:-/tmp}/yumemi-consumer-locks.XXXXXXXX")
+readonly WORK_DIR
+
+cleanup() {
+    if [[ -L $WORK_DIR/package ]]; then
+        rm -f -- "$WORK_DIR/package"
+    fi
+    rm -rf -- "$WORK_DIR"
+}
+trap cleanup EXIT
+
+ln -s -- "$PROJECT_ROOT" "$WORK_DIR/package"
+
+for fixture in automatic manual phpgeo dependencies; do
+    mkdir -p -- "$WORK_DIR/$fixture"
+    cp -- "$FIXTURES_DIR/$fixture/composer.json" "$WORK_DIR/$fixture/composer.json"
+    composer --working-dir="$WORK_DIR/$fixture" update --prefer-dist --no-interaction --no-progress
+done
+
+php "$FIXTURES_DIR/check-locks.php" "$WORK_DIR"
+
+for fixture in automatic manual phpgeo dependencies; do
+    cp -- "$WORK_DIR/$fixture/composer.lock" "$FIXTURES_DIR/$fixture/composer.lock"
+done
+
+printf 'Updated all consumer lock files as one compatible dependency set.\n'

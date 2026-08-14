@@ -288,6 +288,17 @@ The architecture is supported by several independent forms of evidence:
 - an isolated phpgeo 6.0.4 project proving consumer-owned unit annotations against real degree and meter APIs; and
 - local Nix, Composer, and Make entry points used by CI.
 
+Validation has two intentionally overlapping CI paths. A small setup-php/Composer baseline runs PHPUnit, PHPStan, and
+php-cs-fixer independently of Nix. The exhaustive Nix workflow uses `nix-github-actions` to give every flake check its
+own job, including the supported-PHP and consumer checks, and adds the two explicit mutation packages. Locally,
+`nix flake check --keep-going -L` is the reproducible normal gate; mutation is excluded from that command because of its
+cost. All ordinary PHP checks share one fixed-output Composer repository, while the consumer fixtures share a second,
+smaller repository for their external package closure. Each consumer fixture retains its own lock as the reproducible
+install plan; the Nix check rewrites those locked external packages to the shared immutable repository while obtaining
+Yumemi itself from the freshly created release archive. Conventional and Nix-backed consumer runs both install these
+committed versions. Dependency drift is therefore deliberate: `composer update:consumer:locks` refreshes every fixture
+and the shared closure together, and `composer test:consumer:locks` rejects incompatible lock combinations.
+
 The phpgeo fixture validates the generic annotation and package-integration contract. It is evidence that downstream
 projects can apply Yumemi to native scalar APIs, not a curated compatibility promise or a transfer of third-party stub
 ownership from Apocrypha into core.

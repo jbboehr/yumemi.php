@@ -130,6 +130,7 @@
         "benchmark:smoke": "phpbench run --iterations=1 --revs=1 --warmup=1 --progress=none",
         "check": [
             "@composer validate --strict",
+            "@test:consumer:locks",
             "@check:whitespace",
             "@cs",
             "@analyse",
@@ -171,8 +172,10 @@
         "test:parallel": "paratest --functional --no-coverage",
         "test:consumer": "make test-consumer",
         "test:consumer:archive": "make test-consumer-archive",
+        "test:consumer:locks": "make test-consumer-locks",
         "test:property": "phpunit --group property --no-coverage",
-        "test:udunits2": "make test-udunits2"
+        "test:udunits2": "make test-udunits2",
+        "update:consumer:locks": "make update-consumer-locks"
     },
     "config": {
         "allow-plugins": {

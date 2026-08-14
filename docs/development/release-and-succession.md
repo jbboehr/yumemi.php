@@ -64,10 +64,11 @@ committed release candidate with the latest stable tag; it does not inspect unco
 security advisories while reporting, rather than failing on, abandoned development tooling; review every reported
 abandonment before release.
 
-When Nix is available, `nix flake check` is recommended, especially after changes to Nix, dependencies, parser or
+When Nix is available, run `nix flake check --keep-going -L`, especially after changes to Nix, dependencies, parser or
 catalog generation, generated artifacts, or the UDUNITS2 integration. The authoritative release gate is a successful
-GitHub Actions run for the exact release commit, including its Nix job. Do not tag a different commit merely because a
-nearby commit passed.
+GitHub Actions run for the exact release commit, including the conventional baseline, exhaustive Nix matrix, mutation
+packages, dependency-bound jobs, and API compatibility check. Branch protection may use the fixed-name `Nix` aggregate
+job rather than individual generated matrix names. Do not tag a different commit merely because a nearby commit passed.
 
 Before publication, also inspect the archive directly:
 

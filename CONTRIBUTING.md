@@ -44,11 +44,50 @@ and release-style consumer archive.
 | Benchmarks                        | `composer benchmark:smoke`                                   | None beyond installed dependencies       |
 | Package or extension registration | `composer test:consumer:archive`                             | Network access for the isolated consumer |
 | Complete non-Nix verification     | `composer check:full`                                        | mdBook and consumer network access       |
-| Nix, dependencies, or generation  | `nix flake check --print-build-logs`                         | Nix                                      |
+| Reproducible normal validation    | `nix flake check --keep-going -L`                            | Nix                                      |
 
-`nix flake check` additionally verifies the reproducible environment, generated artifacts, and UDUNITS2 differential
-suite. Nix is not required for ordinary local work; `nix develop` provides the pinned toolchain when reproducibility,
-documentation, or generation work requires it, and CI supplies the authoritative Nix signal for reviewed changes.
+`nix flake check --keep-going -L` runs the normal validation suite as independent derivations: PHPUnit on every
+supported PHP version, PHPStan, php-cs-fixer, lint and Composer validation, documentation and formatting checks,
+generated-artifact verification, benchmark discovery, and isolated consumer tests. Nix is not required for focused local
+iteration; `nix develop` supplies the pinned toolchain while leaving the working tree's ordinary mutable `vendor/`
+directory under Composer's control.
+
+Mutation testing is intentionally absent from `nix flake check`. The exhaustive Nix GitHub workflow builds the explicit
+`mutation-runtime` and `mutation-phpstan` packages; a local Nix user may run both with:
+
+```shell
+nix build -L .#mutation
+```
+
+### Updating Nix Composer hashes
+
+The root Composer dependency closure is pinned by `vendorHash` in [`flake.nix`](flake.nix). The isolated consumer
+dependency closure under [`tests/Consumer/dependencies`](tests/Consumer/dependencies) is pinned separately by
+`consumerVendorHash` in the same file. The locks beside the automatic, manual, and phpgeo consumer fixtures describe
+their offline installs, but do not have separate Nix hashes. All three fixture locks must use versions present in the
+shared consumer closure; `composer test:consumer:locks` verifies that invariant.
+
+When intentionally refreshing consumer dependencies, update all four locks together:
+
+```shell
+composer update:consumer:locks
+```
+
+The command resolves the fixtures against a temporary copy of the package, verifies the shared closure, and replaces the
+committed locks only after every resolution succeeds. Normal consumer tests use those locks; they do not silently update
+dependencies. When fixture requirements change, first update `tests/Consumer/dependencies/composer.json` to describe
+their combined external closure. Review the resulting dependency changes before updating `consumerVendorHash`.
+
+When either dependency-closure lock changes, set the matching hash to `lib.fakeHash` and build a dependent target. Nix
+will fail with a fixed-output mismatch and print the authoritative replacement on its `got:` line. Put that value in
+`flake.nix`, then run:
+
+```shell
+nix flake check --keep-going -L
+```
+
+If Nix is unavailable locally, push the lock-file change. The failed exhaustive Nix job preserves the raw mismatch and
+also writes the replacement hash to its GitHub step summary; update `flake.nix` with that value and push again.
 
 Mutation testing, Xdebug branch coverage, alternate property-test seeds, and the parser “probator” are intentionally
 separate investigative workflows rather than requirements for every local edit. In `nix develop .#xdebug`, use

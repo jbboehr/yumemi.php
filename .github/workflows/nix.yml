@@ -1,0 +1,122 @@
+name: nix
+
+on:
+    push:
+        branches:
+            - master
+            - develop
+            - ci
+    pull_request:
+        branches:
+            - master
+
+permissions:
+    contents: read
+
+concurrency:
+    group: nix-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    matrix:
+        name: Generate Nix matrix
+        runs-on: ubuntu-latest
+        outputs:
+            matrix: ${{ steps.matrix.outputs.matrix }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Install Nix
+              uses: cachix/install-nix-action@v31
+              with:
+                  github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Generate matrix
+              id: matrix
+              run: echo "matrix=$(nix run .#github-actions-matrix)" >> "$GITHUB_OUTPUT"
+
+    build:
+        name: Nix / ${{ matrix.name }} (${{ matrix.system }})
+        needs: matrix
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix: ${{ fromJSON(needs.matrix.outputs.matrix) }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Install Nix
+              uses: cachix/install-nix-action@v31
+              with:
+                  github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Restore and save Nix store
+              uses: nix-community/cache-nix-action@v7
+              with:
+                  primary-key: nix-${{ runner.os }}-${{ matrix.name }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+                  restore-prefixes-first-match: |
+                      nix-${{ runner.os }}-${{ matrix.name }}-
+                      nix-${{ runner.os }}-
+                  gc-max-store-size-linux: 512M
+
+            - name: Build ${{ matrix.name }}
+              id: build
+              env:
+                  ATTR: ${{ matrix.attr }}
+              run: |
+                  set +e
+                  nix build --print-build-logs --out-link result ".#$ATTR" 2>&1 | tee nix-build.log
+                  status="${PIPESTATUS[0]}"
+                  exit "$status"
+
+            - name: Report stale Composer dependency hash
+              if: failure() && steps.build.outcome == 'failure'
+              run: |
+                  specified="$(sed -nE 's/.*specified:[[:space:]]*(sha256-[A-Za-z0-9+\/=]+).*/\1/p' nix-build.log | tail -n 1)"
+                  got="$(sed -nE 's/.*got:[[:space:]]*(sha256-[A-Za-z0-9+\/=]+).*/\1/p' nix-build.log | tail -n 1)"
+
+                  if [[ -z "$got" ]]; then
+                      exit 0
+                  fi
+
+                  {
+                      echo "## Composer dependency hash is stale"
+                      echo
+                      echo 'Nix reported a fixed-output hash mismatch.'
+                      echo
+                      echo '```text'
+                      echo "Current:     $specified"
+                      echo "Replace with: $got"
+                      echo '```'
+                      echo
+                      echo "Update the matching hash value in flake.nix, then rerun the failed check."
+                  } | tee -a "$GITHUB_STEP_SUMMARY"
+
+            - name: Link cached mutation reports
+              if: failure() && steps.build.outcome == 'failure' && startsWith(matrix.name, 'mutation-')
+              env:
+                  REPORT_ATTR: ${{ matrix.reportAttr }}
+              run: nix build --print-build-logs --out-link mutation-reports ".#$REPORT_ATTR"
+
+            - name: Upload mutation reports
+              if: always() && startsWith(matrix.name, 'mutation-')
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ matrix.name }}-reports
+                  path: |
+                      result/*.log
+                      mutation-reports/*.log
+                  if-no-files-found: warn
+
+    result:
+        name: Nix
+        if: always()
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+            - name: Require every Nix matrix job to pass
+              env:
+                  BUILD_RESULT: ${{ needs.build.result }}
+              run: test "$BUILD_RESULT" = success

@@ -34,22 +34,31 @@ Run the broader experimental campaign over all handwritten PHPStan adapter sourc
 composer infection:phpstan
 ```
 
-CI runs the same full campaign with minimum total and covered MSI thresholds of 86%:
+The exhaustive Nix CI matrix runs the same full campaign with minimum total and covered MSI thresholds of 86%:
 
 ```console
 composer infection:ci
 ```
 
-CI runs the full PHPStan campaign separately with minimum total and covered MSI thresholds of 85%:
+It runs the full PHPStan campaign separately with minimum total and covered MSI thresholds of 85%:
 
 ```console
 composer infection:phpstan:ci
 ```
 
-The runtime commands exclude the generated Bison parser and the PHPStan adapter. The generated parser should be tested
-through its grammar and regeneration checks. PHPStan uses a separate configuration and separate report files so its
-slower analyzer-backed tests and initial score do not affect the established runtime campaign or CI floor. The PHPStan
-campaign runs in a separate CI job, while the focused command remains available for local investigation.
+Both Nix mutation derivations can be built explicitly with `nix build -L .#mutation`. They are packages rather than
+flake checks, so ordinary `nix flake check --keep-going -L` never runs them. The runtime commands exclude the generated
+Bison parser and the PHPStan adapter. The generated parser should be tested through its grammar and regeneration checks.
+PHPStan uses a separate configuration and separate report files so its slower analyzer-backed tests and initial score do
+not affect the established runtime campaign or CI floor. The PHPStan campaign runs in a separate generated Nix CI job,
+while the focused command remains available for local investigation.
+
+Each strict mutation package gates a cached report derivation produced by the same Infection run. The report derivation
+records the command output and exit status even when a score misses its threshold; the gate then fails with that
+recorded status. On failure, GitHub Actions links the already-built report derivation and uploads its logs without
+running the campaign again. The `mutation-runtime-reports` and `mutation-phpstan-reports` packages are diagnostic
+artifacts and may record a nonzero status; use the corresponding package without the `-reports` suffix as the validation
+gate.
 
 Most PHPStan adapter tests execute in the PHPUnit process through direct unit tests, `RuleTestCase`, `PHPStanTestCase`,
 or `TypeInferenceTestCase`. Infection can therefore replace those source paths normally. CLI integration tests that
