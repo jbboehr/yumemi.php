@@ -96,6 +96,12 @@ services:
         tags:
             - phpstan.broker.expressionTypeResolverExtension
     -
+        class: jbboehr\Yumemi\PHPStan\UnitArraySumFunctionTypeResolverExtension
+        arguments:
+            operatorExtension: @yumemiUnitOperatorTypeSpecifyingExtension
+        tags:
+            - phpstan.broker.expressionTypeResolverExtension
+    -
         class: jbboehr\Yumemi\PHPStan\UnitFunctionDynamicReturnTypeExtension
         tags:
             - phpstan.broker.dynamicFunctionReturnTypeExtension
@@ -137,6 +143,10 @@ services:
             - phpstan.rules.rule
     -
         class: jbboehr\Yumemi\PHPStan\InvalidUnitMinMaxFunctionRule
+        tags:
+            - phpstan.rules.rule
+    -
+        class: jbboehr\Yumemi\PHPStan\InvalidUnitArraySumFunctionRule
         tags:
             - phpstan.rules.rule
     -

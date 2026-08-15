@@ -117,6 +117,12 @@ function max(int|float ...$values): string
     return implode(',', $values);
 }
 
+/** @param array<int|float> $values */
+function array_sum(array $values): string
+{
+    return (string) \array_sum($values);
+}
+
 $value = unit(-3, 'meter');
 $area = unit(4, 'meter^2');
 $degrees = unit(180, 'arc_degree');
@@ -145,6 +151,7 @@ assertType('string', atan($ratio));
 assertType('string', atan2($value, $value));
 assertType('string', min($value, $value));
 assertType('string', max($value, $value));
+assertType('string', array_sum([$value]));
 assertType("3&unit_int<'meter'>", \abs($value));
 assertType("-3.0&unit_float<'meter'>", ceil($value));
 assertType("-3.0&unit_float<'meter'>", \floatval($value));
@@ -167,3 +174,4 @@ assertType("0.4636476090008061&unit_float<'radian'>", \atan($ratio));
 assertType("-2.356194490192345&unit_float<'radian'>", \atan2($value, $value));
 assertType("-3&unit_int<'meter'>", \min($value, $value));
 assertType("-3&unit_int<'meter'>", \max($value, $value));
+assertType("-6&unit_int<'meter'>", \array_sum([$value, $value]));

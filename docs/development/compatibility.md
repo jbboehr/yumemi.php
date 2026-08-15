@@ -215,6 +215,7 @@ The following Yumemi identifiers are stable integration keys:
 
 - `yumemi.dynamicUnitExpression`
 - `yumemi.ambiguousUnitExpression`
+- `yumemi.invalidUnitAggregation`
 - `yumemi.invalidUnitAngleFunction`
 - `yumemi.invalidUnitCall`
 - `yumemi.invalidUnitComparison`

@@ -29,6 +29,8 @@ assertType("unit_int<'second'>", intval($numericString, base: 10));
 assertType('int', intval($numericString, 16));
 assertType("unit_float<'second'>", floatval($numericString));
 assertType('float|int', $numericString + 0);
+assertType('float|int', array_sum([$numericString]));
+assertType("unit_int<'second'>", array_sum([(int) $numericString]));
 
 /**
  * @param unit_numeric_string<'second'> $value
@@ -202,6 +204,9 @@ assertType("1.5&unit_float<'meter'>", min(unit(3.5, 'meter'), unit(1.5, 'meter')
 assertType("3.5&unit_float<'meter'>", max(unit(3.5, 'meter'), unit(1.5, 'meter')));
 assertType("1.5&unit_float<'meter'>", min(unit(2, 'meter'), unit(1.5, 'meter')));
 assertType("2&unit_int<'meter'>", max(unit(2, 'meter'), unit(1.5, 'meter')));
+assertType("5&unit_int<'meter'>", array_sum([unit(2, 'meter'), unit(3, 'meter')]));
+assertType("5&unit_int<'meter'>", array_sum(array: [unit(2, 'meter'), unit(3, 'm')]));
+assertType('0', array_sum([]));
 
 /**
  * @param int<0, 20> $lower

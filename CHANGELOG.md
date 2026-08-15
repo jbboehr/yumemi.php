@@ -19,6 +19,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   `atan2()`, with the stable `yumemi.invalidUnitAngleFunction` diagnostic for incorrect angle, ratio, or operand brands.
 - Exact PHPStan constant inference for branded `round()` calls with statically known precision and supported
   half-rounding modes.
+- PHPStan brand inference for `array_sum()` over definitionally equivalent numeric elements, with the stable
+  `yumemi.invalidUnitAggregation` diagnostic for mixed or incompatible summands.
 
 ### Changed
 

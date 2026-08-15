@@ -54,6 +54,9 @@ subclasses, or hidden metadata attached to a scalar. A numeric-string brand cros
 through an explicit integer or float cast, or through the corresponding `intval()`, `floatval()`, or `doubleval()`
 conversion with decimal semantics; implicit coercion does not retain the brand.
 
+Native `array_sum()` therefore aggregates only direct `unit_int` and `unit_float` values with one definitionally
+equivalent unit; callers must explicitly cast branded numeric strings before aggregation.
+
 **Reason.** Native brands provide interoperability and ordinary PHP arithmetic without allocation or dispatch. Runtime
 code therefore cannot recover a source unit from a branded scalar and must receive that unit explicitly at conversion
 boundaries.
@@ -63,7 +66,8 @@ magnitude unchanged. PHPDoc declarations establish trusted numeric-string brands
 and dynamic return extensions under [`src/PHPStan`](../../src/PHPStan) carry the analysis-only brand.
 [`UnitFunctionTest`](../../tests/UnitFunctionTest.php) and the [`unit-ops.php`](../../tests/PHPStan/data/unit-ops.php)
 fixture cover runtime identity and inferred arithmetic. The
-[`unit-scalar-transformations.php`](../../tests/PHPStan/data/unit-scalar-transformations.php) and
+[`unit-scalar-transformations.php`](../../tests/PHPStan/data/unit-scalar-transformations.php),
+[`InvalidUnitArraySumFunctionCalls.php`](../../tests/PHPStan/Fixtures/InvalidUnitArraySumFunctionCalls.php), and
 [`unit-numeric-string-weak-coercion.php`](../../tests/PHPStan/data/unit-numeric-string-weak-coercion.php) fixtures
 distinguish explicit scalar conversions from implicit coercion. The public [Core Concepts](../pages/core-concepts.md)
 guide documents the boundary.
