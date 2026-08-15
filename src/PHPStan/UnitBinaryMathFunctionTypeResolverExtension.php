@@ -42,14 +42,12 @@ use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Name;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ReflectionProvider;
-use PHPStan\Type\BenevolentUnionType;
 use PHPStan\Type\Constant\ConstantFloatType;
 use PHPStan\Type\Constant\ConstantIntegerType;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\ExpressionTypeResolverExtension;
 use PHPStan\Type\FloatType;
 use PHPStan\Type\Type;
-use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\UnionType;
 
 /**
@@ -178,7 +176,6 @@ final class UnitBinaryMathFunctionTypeResolverExtension implements ExpressionTyp
             return $this->transformIntdiv($leftType, $rightType);
         }
 
-        $atomicTypes = static fn (Type $type): array => $type instanceof UnionType ? $type->getTypes() : [$type];
         $asUnit = static function (Type $type): ?array {
             $float = UnitFloatType::extract($type);
             if ($float !== null) {
@@ -204,8 +201,8 @@ final class UnitBinaryMathFunctionTypeResolverExtension implements ExpressionTyp
         $isBareNumeric = static fn (Type $type): bool => $asUnit($type) === null
             && ($type->isInteger()->yes() || $type->isFloat()->yes());
 
-        $leftTypes = $atomicTypes($leftType);
-        $rightTypes = $atomicTypes($rightType);
+        $leftTypes = UnitUnionTypeHelper::directAlternatives($leftType);
+        $rightTypes = UnitUnionTypeHelper::directAlternatives($rightType);
         $leftUnits = array_map($asUnit, $leftTypes);
         $rightUnits = array_map($asUnit, $rightTypes);
         $hasUnit = array_filter($leftUnits) !== [] || array_filter($rightUnits) !== [];
@@ -317,15 +314,10 @@ final class UnitBinaryMathFunctionTypeResolverExtension implements ExpressionTyp
             }
         }
 
-        $result = TypeCombinator::union(...$results);
-        $hasBenevolentUnion = $leftType instanceof BenevolentUnionType || $rightType instanceof BenevolentUnionType;
-        $hasOrdinaryUnion = ($leftType instanceof UnionType && !($leftType instanceof BenevolentUnionType))
-            || ($rightType instanceof UnionType && !($rightType instanceof BenevolentUnionType));
-        if ($hasBenevolentUnion && !$hasOrdinaryUnion && $result instanceof UnionType) {
-            $result = new BenevolentUnionType($result->getTypes());
-        }
-
-        return ['type' => $result, 'message' => null];
+        return [
+            'type' => UnitUnionTypeHelper::combineMapped($results, $leftType, $rightType),
+            'message' => null,
+        ];
     }
 
     /**
@@ -337,12 +329,11 @@ final class UnitBinaryMathFunctionTypeResolverExtension implements ExpressionTyp
      */
     private function transformIntdiv(Type $leftType, Type $rightType): array
     {
-        $atomicTypes = static fn (Type $type): array => $type instanceof UnionType ? $type->getTypes() : [$type];
         $asUnit = static fn (Type $type): ?array => UnitIntegerTypeHelper::extract($type);
         $isBareInteger = static fn (Type $type): bool => $asUnit($type) === null && $type->isInteger()->yes();
 
-        $leftTypes = $atomicTypes($leftType);
-        $rightTypes = $atomicTypes($rightType);
+        $leftTypes = UnitUnionTypeHelper::directAlternatives($leftType);
+        $rightTypes = UnitUnionTypeHelper::directAlternatives($rightType);
         $leftUnits = array_map($asUnit, $leftTypes);
         $rightUnits = array_map($asUnit, $rightTypes);
 
@@ -398,15 +389,10 @@ final class UnitBinaryMathFunctionTypeResolverExtension implements ExpressionTyp
             }
         }
 
-        $result = TypeCombinator::union(...$results);
-        $hasBenevolentUnion = $leftType instanceof BenevolentUnionType || $rightType instanceof BenevolentUnionType;
-        $hasOrdinaryUnion = ($leftType instanceof UnionType && !($leftType instanceof BenevolentUnionType))
-            || ($rightType instanceof UnionType && !($rightType instanceof BenevolentUnionType));
-        if ($hasBenevolentUnion && !$hasOrdinaryUnion && $result instanceof UnionType) {
-            $result = new BenevolentUnionType($result->getTypes());
-        }
-
-        return ['type' => $result, 'message' => null];
+        return [
+            'type' => UnitUnionTypeHelper::combineMapped($results, $leftType, $rightType),
+            'message' => null,
+        ];
     }
 
     /**

@@ -355,6 +355,29 @@ final class UnitBinaryMathFunctionTypeResolverExtensionTest extends TestCase
         );
     }
 
+    public function testIntegerDivisionPreservesBenevolenceOnlyWithoutAnOrdinaryUnionSource(): void
+    {
+        $benevolentLeft = new BenevolentUnionType([
+            new UnitConstantIntegerType(8, $this->unit('meter')),
+            new UnitConstantIntegerType(9, $this->unit('second')),
+        ]);
+        $benevolent = $this->analyse('intdiv', $benevolentLeft, new ConstantIntegerType(2));
+        $ordinary = $this->analyse(
+            'intdiv',
+            $benevolentLeft,
+            new UnionType([
+                new ConstantIntegerType(2),
+                new ConstantIntegerType(3),
+            ]),
+        );
+
+        self::assertInstanceOf(BenevolentUnionType::class, $benevolent['type']);
+        self::assertInstanceOf(UnionType::class, $ordinary['type']);
+        self::assertNotInstanceOf(BenevolentUnionType::class, $ordinary['type']);
+        self::assertNull($benevolent['message']);
+        self::assertNull($ordinary['message']);
+    }
+
     public function testIntegerDivisionDefersBareAndInvalidNativeOperands(): void
     {
         $array = new ArrayType(new IntegerType(), new IntegerType());

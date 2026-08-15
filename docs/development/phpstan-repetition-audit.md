@@ -112,12 +112,11 @@ should continue sorting their own display strings.
 diagnostics remain local, and focused coverage preserves the scalar-preserving resolver's immediate fallback when any
 mapped arm is unsupported.
 
-### Slice 3: Migrate Binary Math
+### Slice 3: Migrate Binary Math (implemented 2026-08-15)
 
-Use the helper for the ordinary binary-math and `intdiv()` Cartesian paths. Preserve the established rule that any
-ordinary multi-arm operand keeps the result ordinary, even when another operand is benevolent. Keep function-specific
-branded/bare and unit-equivalence policy local. Re-run the focused mutation audit because this is the path where a
-benevolence regression previously affected observable assignment behavior.
+The ordinary binary-math and `intdiv()` Cartesian paths now use the helper. Function-specific branded/bare and
+unit-equivalence policy remains local. Focused unit and PHPStan inference coverage preserves the established rule that
+any ordinary multi-arm operand keeps the result ordinary, even when another operand is benevolent.
 
 ### Slice 4: Reassess, Do Not Automatically Expand
 

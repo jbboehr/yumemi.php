@@ -188,7 +188,9 @@ direct top-level union expansion and benevolent-result recombination are repeate
 have carried prior soundness defects. Slice 1 established the independently tested `UnitUnionTypeHelper`, including
 ordinary-versus-benevolent source precedence and proofs that callable and array components are not traversed. Continue
 in reviewable slices; Slice 2 migrated the root and scalar-preserving unary mappers without changing their local
-failure policy. The remaining planned implementation is the binary-math Cartesian paths.
+failure policy. Slice 3 migrated the binary-math Cartesian paths and retained ordinary-union precedence over
+benevolence. Reassess unary angle mapping as the final audit step before deciding whether any further migration is
+warranted.
 
 Do not generalize branded operand extraction, native-function ownership guards, resolver/rule wrappers, or
 quantity/point inference merely because their control flow looks similar. Their failure, identity, array, correlation,

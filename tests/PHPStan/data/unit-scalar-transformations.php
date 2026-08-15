@@ -180,6 +180,18 @@ function assertBrandedUnionFloatDivision(int|float $value): void
     assertType("unit_float<'meter'>|unit_float<'second'>", fdiv($value, 2));
 }
 
+/**
+ * @param unit_int<'meter'>                              $distance
+ * @param unit_int<'second'>|unit_int<'minute'>         $duration
+ */
+function assertOrdinaryDurationUnionRemainsStrict(int $distance, int $duration): void
+{
+    assertType(
+        "unit_float<'meter / minute'>|unit_float<'meter / second'>",
+        fdiv(abs($distance), $duration),
+    );
+}
+
 assertType("1&unit_int<'meter'>", min(unit(3, 'meter'), unit(1, 'meter'), unit(2, 'meter')));
 assertType("3&unit_int<'meter'>", max(unit(3, 'meter'), unit(1, 'meter'), unit(2, 'meter')));
 assertType("1&unit_int<'meter'>", min(value: unit(3, 'meter'), values: unit(1, 'meter')));
