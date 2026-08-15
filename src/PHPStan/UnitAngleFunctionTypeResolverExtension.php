@@ -43,7 +43,6 @@ use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Name;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ReflectionProvider;
-use PHPStan\Type\BenevolentUnionType;
 use PHPStan\Type\ExpressionTypeResolverExtension;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
@@ -237,12 +236,11 @@ final class UnitAngleFunctionTypeResolverExtension implements ExpressionTypeReso
         };
         $requiredUnit = $this->canonicalUnits[$requiredName];
         $outputUnit = $this->canonicalUnits[$outputName];
-        $types = $type instanceof UnionType ? $type->getTypes() : [$type];
         $results = [];
         $invalidUnits = [];
         $hasBareNumericArm = false;
 
-        foreach ($types as $innerType) {
+        foreach (UnitUnionTypeHelper::directAlternatives($type) as $innerType) {
             $float = UnitFloatType::extract($innerType);
             $integer = UnitIntegerTypeHelper::extract($innerType);
             $unit = $float['unit'] ?? $integer['unit'] ?? null;
@@ -307,12 +305,10 @@ final class UnitAngleFunctionTypeResolverExtension implements ExpressionTypeReso
             return ['type' => null, 'message' => null];
         }
 
-        $result = TypeCombinator::union(...$results);
-        if ($type instanceof BenevolentUnionType && $result instanceof UnionType) {
-            $result = new BenevolentUnionType($result->getTypes());
-        }
-
-        return ['type' => $result, 'message' => null];
+        return [
+            'type' => UnitUnionTypeHelper::combineMapped($results, $type),
+            'message' => null,
+        ];
     }
 
     /**

@@ -9,9 +9,9 @@ similar-looking code that enforces different contracts. The objective is not to 
 small, historically error-prone policies without hiding the behavior of individual PHPStan extensions.
 
 The adapter currently contains 52 authored PHP files and about 10,900 lines including headers, PHPDoc, and logia. Raw
-size therefore overstates executable duplication. The audit searched direct union traversal, branded numeric
-extraction, native-function ownership checks, result-union construction, and resolver/rule pairs, then compared each
-occurrence against the semantic invariants and focused regression history.
+size therefore overstates executable duplication. The audit searched direct union traversal, branded numeric extraction,
+native-function ownership checks, result-union construction, and resolver/rule pairs, then compared each occurrence
+against the semantic invariants and focused regression history.
 
 ## Findings
 
@@ -59,8 +59,8 @@ byte-for-byte equivalent extraction policy and the abstraction removes more bran
 ### Resolver And Diagnostic Rule Pairs Should Remain Explicit
 
 The angle, binary-math, root, and extrema diagnostic rules all call a resolver's `analyseCall()` method and turn a
-message into one stable identifier. Their executable wrappers are short. A generic base rule or callback interface
-would save little while making service registration, diagnostic ownership, and identifier lookup less direct.
+message into one stable identifier. Their executable wrappers are short. A generic base rule or callback interface would
+save little while making service registration, diagnostic ownership, and identifier lookup less direct.
 
 Continue sharing each resolver's actual analysis with its companion rule. Do not consolidate the rule classes unless a
 future family adds materially more repeated behavior than the present call-and-build wrapper.
@@ -118,11 +118,12 @@ The ordinary binary-math and `intdiv()` Cartesian paths now use the helper. Func
 unit-equivalence policy remains local. Focused unit and PHPStan inference coverage preserves the established rule that
 any ordinary multi-arm operand keeps the result ordinary, even when another operand is benevolent.
 
-### Slice 4: Reassess, Do Not Automatically Expand
+### Slice 4: Reassess, Do Not Automatically Expand (completed 2026-08-15)
 
-Evaluate unary angle mapping after the first three slices. Leave `atan2()` ordinary unless a separate semantic decision
-changes its documented policy. Do not migrate extrema, comparison, conversion, or operator code merely for consistency;
-their array, correlation, diagnostic, or nested-result behavior must independently match the helper's contract.
+Unary angle mapping matched the helper contract and now uses it. `atan2()` remains local and ordinary because its
+correlated binary policy intentionally does not preserve source benevolence. Extrema, comparison, conversion, and
+operator code remain unchanged because their array, correlation, diagnostic, or nested-result behavior does not
+independently match the helper's contract.
 
 ## Success Criteria
 

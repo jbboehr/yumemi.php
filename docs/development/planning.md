@@ -187,10 +187,10 @@ The dated [PHPStan repetition audit](phpstan-repetition-audit.md) found one narr
 direct top-level union expansion and benevolent-result recombination are repeated across several resolver families and
 have carried prior soundness defects. Slice 1 established the independently tested `UnitUnionTypeHelper`, including
 ordinary-versus-benevolent source precedence and proofs that callable and array components are not traversed. Continue
-in reviewable slices; Slice 2 migrated the root and scalar-preserving unary mappers without changing their local
-failure policy. Slice 3 migrated the binary-math Cartesian paths and retained ordinary-union precedence over
-benevolence. Reassess unary angle mapping as the final audit step before deciding whether any further migration is
-warranted.
+in reviewable slices; Slice 2 migrated the root and scalar-preserving unary mappers without changing their local failure
+policy. Slice 3 migrated the binary-math Cartesian paths and retained ordinary-union precedence over benevolence. The
+final audit slice migrated unary angle mapping while deliberately leaving `atan2()` and the remaining resolver families
+local. No further migration is warranted under the audited contract.
 
 Do not generalize branded operand extraction, native-function ownership guards, resolver/rule wrappers, or
 quantity/point inference merely because their control flow looks similar. Their failure, identity, array, correlation,
@@ -790,14 +790,14 @@ repeat the implementation's assumptions:
   `Units` contexts. Native serialization currently supports the default context plus one dynamically scoped custom
   context through `Units::deserialize()` and rejects semantic drift. Broader ecosystem integrations remain deferred.
 - Strict same-unit comparison variants and PHP object comparison operators unless a concrete use case appears
-- Compare the local `Rational` implementation with
-  [`brick/math`](https://github.com/brick/math) in a disposable spike before considering any dependency or
-  representation change. Keep Yumemi's public API and conformance corpus fixed while comparing canonical reduction,
-  decimal parsing and formatting, significant-digit rounding, exact roots, binary64 conversion and range policies,
-  exception translation, public GMP numerator/denominator access, and released serialization bytes. Benchmark catalog
-  generation, parsing, conversion, and numeric rendering; record memory and dependency effects; and count the adapter
-  code that would remain. Prefer the local implementation unless the spike demonstrates a substantial net maintenance
-  reduction with equivalent observable behavior and no material performance, persistence, or portability regression.
+- Compare the local `Rational` implementation with [`brick/math`](https://github.com/brick/math) in a disposable spike
+  before considering any dependency or representation change. Keep Yumemi's public API and conformance corpus fixed
+  while comparing canonical reduction, decimal parsing and formatting, significant-digit rounding, exact roots, binary64
+  conversion and range policies, exception translation, public GMP numerator/denominator access, and released
+  serialization bytes. Benchmark catalog generation, parsing, conversion, and numeric rendering; record memory and
+  dependency effects; and count the adapter code that would remain. Prefer the local implementation unless the spike
+  demonstrates a substantial net maintenance reduction with equivalent observable behavior and no material performance,
+  persistence, or portability regression.
 - Range-bearing native float types remain deferred to PHPStan's upstream
   [float-range design](https://github.com/phpstan/phpstan/issues/6963). PHPStan does not yet provide corresponding
   public PHPDoc syntax or an integer-range-equivalent core type, and its open design questions include endpoint

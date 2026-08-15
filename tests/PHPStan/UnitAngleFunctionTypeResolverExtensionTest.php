@@ -546,18 +546,20 @@ final class UnitAngleFunctionTypeResolverExtensionTest extends TestCase
         );
     }
 
-    public function testBenevolentUnionIsPreservedWhenDistinctConstantsRemain(): void
+    public function testUnaryAngleFunctionsPreserveOnlyOriginalBenevolentUnions(): void
     {
-        $analysis = $this->analyse(
-            'deg2rad',
-            new BenevolentUnionType([
-                new UnitConstantIntegerType(90, $this->unit('degree')),
-                new UnitConstantIntegerType(180, $this->unit('arc_degree')),
-            ]),
-        );
+        $arms = [
+            new UnitConstantIntegerType(90, $this->unit('degree')),
+            new UnitConstantIntegerType(180, $this->unit('arc_degree')),
+        ];
+        $ordinary = $this->analyse('deg2rad', new UnionType($arms));
+        $benevolent = $this->analyse('deg2rad', new BenevolentUnionType($arms));
 
-        self::assertInstanceOf(BenevolentUnionType::class, $analysis['type']);
-        self::assertNull($analysis['message']);
+        self::assertInstanceOf(UnionType::class, $ordinary['type']);
+        self::assertNotInstanceOf(BenevolentUnionType::class, $ordinary['type']);
+        self::assertInstanceOf(BenevolentUnionType::class, $benevolent['type']);
+        self::assertNull($ordinary['message']);
+        self::assertNull($benevolent['message']);
     }
 
     public function testBenevolentUnionMayCollapseToOneConstantResult(): void
