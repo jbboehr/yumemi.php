@@ -62,6 +62,36 @@ function rad2deg(int|float $num): string
     return (string) $num;
 }
 
+function sin(int|float $num): string
+{
+    return (string) $num;
+}
+
+function cos(int|float $num): string
+{
+    return (string) $num;
+}
+
+function tan(int|float $num): string
+{
+    return (string) $num;
+}
+
+function asin(int|float $num): string
+{
+    return (string) $num;
+}
+
+function acos(int|float $num): string
+{
+    return (string) $num;
+}
+
+function atan(int|float $num): string
+{
+    return (string) $num;
+}
+
 function min(int|float ...$values): string
 {
     return implode(',', $values);
@@ -76,6 +106,7 @@ $value = unit(-3, 'meter');
 $area = unit(4, 'meter^2');
 $degrees = unit(180, 'arc_degree');
 $radians = unit(M_PI, 'radian');
+$ratio = unit(0.5, '1');
 
 assertType('string', abs($value));
 assertType('string', round($value));
@@ -88,6 +119,12 @@ assertType('string', hypot($value, $value));
 assertType('string', sqrt($area));
 assertType('string', deg2rad($degrees));
 assertType('string', rad2deg($radians));
+assertType('string', sin($radians));
+assertType('string', cos($radians));
+assertType('string', tan($radians));
+assertType('string', asin($ratio));
+assertType('string', acos($ratio));
+assertType('string', atan($ratio));
 assertType('string', min($value, $value));
 assertType('string', max($value, $value));
 assertType("3&unit_int<'meter'>", \abs($value));
@@ -101,5 +138,11 @@ assertType("4.242640687119285&unit_float<'meter'>", \hypot($value, $value));
 assertType("2.0&unit_float<'meter'>", \sqrt($area));
 assertType("3.141592653589793&unit_float<'radian'>", \deg2rad($degrees));
 assertType("180.0&unit_float<'arc_degree'>", \rad2deg($radians));
+assertType("1.2246467991473532E-16&unit_float<'1'>", \sin($radians));
+assertType("-1.0&unit_float<'1'>", \cos($radians));
+assertType("-1.2246467991473532E-16&unit_float<'1'>", \tan($radians));
+assertType("0.5235987755982989&unit_float<'radian'>", \asin($ratio));
+assertType("1.0471975511965979&unit_float<'radian'>", \acos($ratio));
+assertType("0.4636476090008061&unit_float<'radian'>", \atan($ratio));
 assertType("-3&unit_int<'meter'>", \min($value, $value));
 assertType("-3&unit_int<'meter'>", \max($value, $value));

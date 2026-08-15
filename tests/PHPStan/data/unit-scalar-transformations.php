@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use function jbboehr\Yumemi\unit;
+use function jbboehr\Yumemi\unit_to;
 use function PHPStan\Testing\assertType;
 
 $integer = unit(3, 'meter');
@@ -96,6 +97,13 @@ assertType("5.0&unit_float<'meter'>", hypot(x: unit(3, 'meter'), y: unit(4, 'met
 assertType("3.141592653589793&unit_float<'radian'>", deg2rad(unit(180, 'degree')));
 assertType("1.5707963267948966&unit_float<'radian'>", deg2rad(num: unit(90.0, 'arc_degree')));
 assertType("180.0&unit_float<'arc_degree'>", rad2deg(unit(M_PI, 'rad')));
+assertType("0.0&unit_float<'1'>", sin(unit(0, 'radian')));
+assertType("1.0&unit_float<'1'>", cos(num: unit(0.0, 'rad')));
+assertType("0.0&unit_float<'1'>", tan(unit(0.0, 'radian')));
+assertType("0.5235987755982989&unit_float<'radian'>", asin(unit(0.5, '1')));
+assertType("0.5235987755982989&unit_float<'radian'>", asin(unit_to(unit(50.0, 'percent'), 'percent', '1')));
+assertType("1.0471975511965979&unit_float<'radian'>", acos(num: unit(0.5, 'meter / meter')));
+assertType("0.7853981633974483&unit_float<'radian'>", atan(unit(1, 'second / second')));
 
 /** @param unit_int<'meter'>&int<1, 5> $value */
 function assertBrandedBinaryMath(int $value): void
@@ -114,6 +122,18 @@ function assertBrandedAngleConversion(int $value): void
 function assertBrandedAngleUnion(int|float $value): void
 {
     assertType("unit_float<'arc_degree'>", rad2deg($value));
+}
+
+/** @param unit_int<'radian'>|unit_float<'rad'> $value */
+function assertBrandedDirectTrigUnion(int|float $value): void
+{
+    assertType("unit_float<'1'>", sin($value));
+}
+
+/** @param unit_int<'1'>|unit_float<'meter / meter'> $value */
+function assertBrandedInverseTrigUnion(int|float $value): void
+{
+    assertType("unit_float<'radian'>", atan($value));
 }
 
 /** @param unit_int<'arc_degree'>|float $value */
@@ -275,6 +295,8 @@ assertType('float', fmod(7, 3));
 assertType('float', hypot(3, 4));
 assertType('float', deg2rad(180));
 assertType('float', rad2deg(M_PI));
+assertType('float', sin(0.5));
+assertType('float', asin(0.5));
 
 $dynamicFunction = static fn (int $value): int => $value;
 assertType('int', $dynamicFunction(-3));
@@ -287,3 +309,6 @@ assertType('float', $squareRootFunction(4.0));
 
 $angleFunction = deg2rad(...);
 assertType('float', $angleFunction(180.0));
+
+$trigFunction = sin(...);
+assertType('float', $trigFunction(0.5));

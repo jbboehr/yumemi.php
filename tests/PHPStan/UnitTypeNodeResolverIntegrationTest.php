@@ -156,7 +156,7 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $output = $this->analyse('unit-angle-function-invalid.php');
 
         $this->assertStringContainsString('yumemi.invalidUnitAngleFunction', $output, $output);
-        $this->assertStringContainsString('[ERROR] Found 2 errors', $output, $output);
+        $this->assertStringContainsString('[ERROR] Found 6 errors', $output, $output);
     }
 
     public function testBrandedIntegerRangesEnforceBoundsAndUnits(): void

@@ -46,6 +46,8 @@ assertType("100.0&unit_float<'USD'>", unit_to($euros, 'EUR', 'USD'));
 assertType("0.9345794392523364&unit_float<'USD / EUR'>", unit_factor('EUR', 'USD'));
 assertType("3.141592653589793&unit_float<'radian'>", deg2rad(unit(180, 'degree')));
 assertType("180.0&unit_float<'arc_degree'>", rad2deg(unit(M_PI, 'rad')));
+assertType("0.0&unit_float<'1'>", sin(unit(0, 'rad')));
+assertType("0.5235987755982989&unit_float<'radian'>", asin(unit(0.5, 'widget / widget')));
 
 $dollars = Units::default()->quantity(100, 'USD');
 $euroQuantity = Units::default()->quantity(107, 'EUR');

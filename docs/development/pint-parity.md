@@ -264,8 +264,9 @@ Status: **Partial** | Importance: **P2** | Remaining difficulty: **L**
 Exact integer `pow()` exists for rational magnitudes, expressions, dimensions, quantities, and PHPStan inference.
 `Rational::root()`, `Dimension::root()`, and `Quantity::root()` support exact positive integer-degree roots while
 keeping unit powers integral and symbolic substitution explicit. Native branded `sqrt()` transforms an exact symbolic
-square unit and diagnoses non-rootable brands. Native `deg2rad()` and `rad2deg()` preserve canonical angle units; direct
-and inverse trigonometry and `atan2()` remain planned in the later slices of the
+square unit and diagnoses non-rootable brands. Native `deg2rad()` and `rad2deg()` preserve canonical angle units;
+`sin()`, `cos()`, and `tan()` map canonical radians to unscaled ratios, while `asin()`, `acos()`, and `atan()` map exact
+unscaled ratios to canonical radians. Binary `atan2()` remains planned in the final slice of the
 [angle-function design](native-angle-functions.md). General rational powers, approximate runtime-object powers and
 trigonometry, logarithms, and exponentials remain absent. Approximate runtime-object functions need a separate precision
 and rounding contract.

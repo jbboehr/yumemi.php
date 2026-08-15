@@ -1,6 +1,6 @@
 # Native Angle Function Design Spike
 
-Status: **Slice 1 implemented; slices 2 and 3 remain deferred.**
+Status: **Slices 1 and 2 implemented; slice 3 remains deferred.**
 
 This spike defines how Yumemi's PHPStan extension should model PHP's native angle conversion and trigonometric
 functions. It does not add runtime wrappers or change unbranded PHP calls.
@@ -13,8 +13,8 @@ Yumemi models or should model these functions when their relevant operands carry
 | ---------------------------- | ----------- | ------------------------------------------------------ | -------------------------- |
 | `deg2rad()`                  | Implemented | canonical `arc_degree`                                 | `unit_float<'radian'>`     |
 | `rad2deg()`                  | Implemented | canonical `radian`                                     | `unit_float<'arc_degree'>` |
-| `sin()`, `cos()`, `tan()`    | Planned     | canonical `radian`                                     | `unit_float<'1'>`          |
-| `asin()`, `acos()`, `atan()` | Planned     | exact unscaled ratio `1`                               | `unit_float<'radian'>`     |
+| `sin()`, `cos()`, `tan()`    | Implemented | canonical `radian`                                     | `unit_float<'1'>`          |
+| `asin()`, `acos()`, `atan()` | Implemented | exact unscaled ratio `1`                               | `unit_float<'radian'>`     |
 | `atan2()`                    | Planned     | two definitionally equivalent branded numeric operands | `unit_float<'radian'>`     |
 
 Under this contract, Yumemi performs no runtime conversion and does not wrap the result. A bare call remains owned by
@@ -26,7 +26,7 @@ The implementation uses one stable diagnostic identifier:
 yumemi.invalidUnitAngleFunction
 ```
 
-It covers a conversion function receiving a known but invalid unit. Later slices should extend it to mixed branded and
+It covers a unary angle function receiving a known but invalid unit. Slice 3 should extend it to mixed branded and
 unbranded `atan2()` operands and branded `atan2()` operands whose units are not definitionally equivalent. PHPStan
 remains responsible for missing arguments, nonnumeric arguments, and ordinary native signature errors.
 
@@ -86,18 +86,18 @@ message, or a neutral result; the expression extension consumes the type and the
 branded integers and floats and return a float branded respectively as `radian` or `arc_degree`.
 
 `sin()`, `cos()`, and `tan()` consume canonical radians. Their result is an unscaled ratio, represented as
-`unit_float<'1'>` rather than a bare float under the proposed contract.
+`unit_float<'1'>` rather than a bare float.
 
-`asin()`, `acos()`, and `atan()` reverse that relation for branded unscaled ratios, with a proposed canonical
+`asin()`, `acos()`, and `atan()` reverse that relation for branded unscaled ratios, with a canonical
 `unit_float<'radian'>` result.
 
 The implemented conversions preserve finite constant results when PHPStan knows an exact input constant. If the native
 result is `INF` or `NAN`, they retain only the output brand, matching the existing finite-constant policy for modeled
-built-ins. Later trigonometric functions should follow the same rule. This is binary floating-point evaluation by the
+built-ins. The unary trigonometric functions follow the same rule. This is binary floating-point evaluation by the
 native PHP function, not exact rational trigonometry.
 
-The static rule should reject direct misuse rather than silently relabeling the result. In particular, the planned
-contract rejects an `arc_degree` brand passed directly to `sin()` and a `percent` brand passed directly to `asin()`.
+The static rule rejects direct misuse rather than silently relabeling the result. In particular, an `arc_degree` brand
+passed directly to `sin()` and a `percent` brand passed directly to `asin()` produce the angle-function diagnostic.
 
 Callers must convert explicitly to `radian` before passing a scalar represented in another angular scale to direct
 trigonometric functions.
@@ -143,10 +143,9 @@ one of those verified entries. Structural or normalized equality alone is insuff
 
 ## Implementation Shape
 
-Slice 1 uses one `UnitAngleFunctionTypeResolverExtension` and one `InvalidUnitAngleFunctionRule`. The resolver receives
-the configured `UnitExpressionParser` and registry, and compares the effective canonical entries with an immutable
-bundled registry. Later unary functions can extend this resolver; `atan2()` should use a separate binary path because
-its validation is relational.
+Slices 1 and 2 use one `UnitAngleFunctionTypeResolverExtension` and one `InvalidUnitAngleFunctionRule`. The resolver
+receives the configured `UnitExpressionParser` and registry, and compares the effective canonical entries with an
+immutable bundled registry. `atan2()` should use a separate binary path because its validation is relational.
 
 Do not add runtime wrappers, public classes, configuration flags, or a general nominal-dimension abstraction for this
 feature. The special identity checks belong to the fixed contracts of these native functions.
@@ -167,13 +166,18 @@ diagnostic in the inventory, compatibility policy, PHPStan reference, local-igno
 - namespaced-shadow and named-argument handling;
 - the initial diagnostic rule and identifier.
 
-This slice establishes the shared unary machinery with the smallest semantic surface and remains the review boundary
+This slice established the shared unary machinery with the smallest semantic surface and served as the review boundary
 before direct and inverse trigonometry.
 
-### Slice 2: Direct and inverse trigonometry
+### Slice 2: Direct and inverse trigonometry (implemented)
 
-Extend the unary table with `sin()`, `cos()`, `tan()`, `asin()`, `acos()`, and `atan()`. Lock in the branded
-dimensionless result, exact-unscaled-ratio input rule, domain/non-finite constant behavior, and union policy.
+`sin()`, `cos()`, `tan()`, `asin()`, `acos()`, and `atan()` now provide:
+
+- canonical-radian input enforcement for direct trigonometry;
+- exact-unscaled-ratio input enforcement for inverse trigonometry;
+- canonical ratio and radian output brands;
+- finite constant retention with non-finite result generalization;
+- fail-closed union handling and the shared angle-function diagnostic.
 
 ### Slice 3: Two-argument direction
 

@@ -69,16 +69,40 @@ final class InvalidUnitAngleFunctionRuleTest extends RuleTestCase
                 11,
             ],
             [
-                'Cannot call deg2rad() because at least one possible unit does not resolve canonically to arc_degree: degree_north.',
-                20,
+                'Cannot call sin() because at least one possible unit does not resolve canonically to radian: arc_degree.',
+                12,
+            ],
+            [
+                'Cannot call cos() because at least one possible unit does not resolve canonically to radian: steradian.',
+                13,
+            ],
+            [
+                'Cannot call asin() because at least one possible unit does not resolve canonically to the exact unscaled ratio 1: percent.',
+                14,
+            ],
+            [
+                'Cannot call atan() because at least one possible unit does not resolve canonically to the exact unscaled ratio 1: radian.',
+                15,
+            ],
+            [
+                'Cannot call asin() because at least one possible unit does not resolve canonically to the exact unscaled ratio 1: 2.',
+                16,
             ],
             [
                 'Cannot call deg2rad() because at least one possible unit does not resolve canonically to arc_degree: degree_north.',
-                25,
+                29,
             ],
             [
                 'Cannot call deg2rad() because at least one possible unit does not resolve canonically to arc_degree: degree_north.',
-                31,
+                34,
+            ],
+            [
+                'Cannot call deg2rad() because at least one possible unit does not resolve canonically to arc_degree: degree_north.',
+                40,
+            ],
+            [
+                'Cannot call asin() because at least one possible unit does not resolve canonically to the exact unscaled ratio 1: count.',
+                46,
             ],
         ]);
     }

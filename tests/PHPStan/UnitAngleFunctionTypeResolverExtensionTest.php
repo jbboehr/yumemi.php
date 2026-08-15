@@ -80,7 +80,7 @@ final class UnitAngleFunctionTypeResolverExtensionTest extends TestCase
         );
         self::assertSame(
             ['type' => null, 'message' => null],
-            $this->analyse('sin', new UnitFloatType($this->unit('radian'))),
+            $this->analyse('atan2', new UnitFloatType($this->unit('radian'))),
         );
     }
 
@@ -120,9 +120,35 @@ final class UnitAngleFunctionTypeResolverExtensionTest extends TestCase
     {
         $radians = $this->analyse('deg2rad', new UnitIntegerType($this->unit('arc_degree')));
         $degrees = $this->analyse('rad2deg', new UnitFloatType($this->unit('radian')));
+        $ratio = $this->analyse('sin', new UnitIntegerType($this->unit('radian')));
+        $inverse = $this->analyse('asin', new UnitFloatType($this->unit('1')));
 
         self::assertSame("unit_float<'radian'>", $radians['type']?->describe(VerbosityLevel::precise()));
         self::assertSame("unit_float<'arc_degree'>", $degrees['type']?->describe(VerbosityLevel::precise()));
+        self::assertSame("unit_float<'1'>", $ratio['type']?->describe(VerbosityLevel::precise()));
+        self::assertSame("unit_float<'radian'>", $inverse['type']?->describe(VerbosityLevel::precise()));
+    }
+
+    public function testDirectAndInverseTrigonometryRetainFiniteConstantResults(): void
+    {
+        foreach ([
+            ['sin', 0.5, 'radian', sin(0.5), '1'],
+            ['cos', 0.5, 'rad', cos(0.5), '1'],
+            ['tan', 0.5, 'radian', tan(0.5), '1'],
+            ['asin', 0.5, '1', asin(0.5), 'radian'],
+            ['acos', 0.5, 'meter / meter', acos(0.5), 'radian'],
+            ['atan', 1, 'second / second', atan(1), 'radian'],
+        ] as [$functionName, $value, $inputUnit, $expected, $outputUnit]) {
+            $input = is_int($value)
+                ? new UnitConstantIntegerType($value, $this->unit($inputUnit))
+                : new UnitConstantFloatType($value, $this->unit($inputUnit));
+            $analysis = $this->analyse($functionName, $input);
+
+            self::assertInstanceOf(UnitConstantFloatType::class, $analysis['type']);
+            self::assertSame($expected, $analysis['type']->getValue());
+            self::assertTrue($analysis['type']->getUnitExpression()->equals($this->unit($outputUnit)));
+            self::assertNull($analysis['message']);
+        }
     }
 
     public function testNonFiniteConstantsRetainOnlyTheOutputBrand(): void
@@ -135,6 +161,96 @@ final class UnitAngleFunctionTypeResolverExtensionTest extends TestCase
 
             self::assertSame("unit_float<'radian'>", $analysis['type']?->describe(VerbosityLevel::precise()));
             self::assertNull($analysis['message']);
+        }
+
+        $direct = $this->analyse('sin', new UnitConstantFloatType(INF, $this->unit('radian')));
+        $outsideInverseDomain = $this->analyse('asin', new UnitConstantIntegerType(2, $this->unit('1')));
+        $finiteAtInfinity = $this->analyse('atan', new UnitConstantFloatType(INF, $this->unit('1')));
+
+        self::assertSame("unit_float<'1'>", $direct['type']?->describe(VerbosityLevel::precise()));
+        self::assertSame("unit_float<'radian'>", $outsideInverseDomain['type']?->describe(VerbosityLevel::precise()));
+        self::assertSame(
+            "1.5707963267948966&unit_float<'radian'>",
+            $finiteAtInfinity['type']?->describe(VerbosityLevel::precise()),
+        );
+    }
+
+    public function testTrigFunctionsRejectNamedDimensionlessAndAngularLookalikes(): void
+    {
+        $direct = $this->analyse(
+            'sin',
+            new UnionType([
+                new UnitFloatType($this->unit('arc_degree')),
+                new UnitFloatType($this->unit('steradian')),
+            ]),
+        );
+        $inverse = $this->analyse(
+            'asin',
+            new UnionType([
+                new UnitFloatType($this->unit('count')),
+                new UnitFloatType($this->unit('percent')),
+                new UnitFloatType($this->unit('radian')),
+            ]),
+        );
+
+        self::assertSame(
+            'Cannot call sin() because at least one possible unit does not resolve canonically to radian: arc_degree, steradian.',
+            $direct['message'],
+        );
+        self::assertSame(
+            'Cannot call asin() because at least one possible unit does not resolve canonically to the exact unscaled ratio 1: count, percent, radian.',
+            $inverse['message'],
+        );
+        self::assertNull($direct['type']);
+        self::assertNull($inverse['type']);
+    }
+
+    public function testReducedRatiosAreAcceptedButBareAlternativesRemainNeutral(): void
+    {
+        $reduced = $this->analyse('acos', new UnitFloatType($this->unit('kilometer / kilometer')));
+        $mixed = $this->analyse(
+            'atan',
+            new UnionType([
+                new FloatType(),
+                new UnitFloatType($this->unit('1')),
+            ]),
+        );
+
+        self::assertSame("unit_float<'radian'>", $reduced['type']?->describe(VerbosityLevel::precise()));
+        self::assertNull($reduced['message']);
+        self::assertSame(['type' => null, 'message' => null], $mixed);
+    }
+
+    public function testInverseTrigonometryRejectsScaledDimensionlessRatios(): void
+    {
+        foreach (['2', '2 * meter / meter'] as $unit) {
+            $analysis = $this->analyse('asin', new UnitFloatType($this->unit($unit)));
+
+            self::assertSame(
+                'Cannot call asin() because at least one possible unit does not resolve canonically to the exact unscaled ratio 1: 2.',
+                $analysis['message'],
+            );
+            self::assertNull($analysis['type']);
+        }
+    }
+
+    public function testDefinitionallyEquivalentNamedRatioAlternativeFailsClosedInEitherOrder(): void
+    {
+        $unscaled = new UnitFloatType($this->unit('1'));
+        $count = new UnitFloatType($this->unit('count'));
+        self::assertTrue($unscaled->accepts($count, true)->yes());
+        self::assertTrue($unscaled->isSuperTypeOf($count)->maybe());
+
+        foreach ([[$unscaled, $count], [$count, $unscaled]] as $types) {
+            $union = TypeCombinator::union(...$types);
+            self::assertInstanceOf(UnionType::class, $union);
+
+            $analysis = $this->analyse('asin', $union);
+            self::assertSame(
+                'Cannot call asin() because at least one possible unit does not resolve canonically to the exact unscaled ratio 1: count.',
+                $analysis['message'],
+            );
+            self::assertNull($analysis['type']);
         }
     }
 
@@ -367,6 +483,7 @@ final class UnitAngleFunctionTypeResolverExtensionTest extends TestCase
             UnitRegistryBuilder::default()->define('radian = 1')->build(),
             UnitRegistryBuilder::default()->define('arc_degree = degree_north')->build(),
             UnitRegistryBuilder::default()->define('pi = 2')->build(),
+            UnitRegistryBuilder::default()->define('pi = missing_angle_constant')->build(),
             UnitRegistryBuilder::default()->alias('rad', 'meter')->build(),
             UnitRegistryBuilder::default()->add(new Unit('radian'))->build(),
         ];

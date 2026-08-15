@@ -50,14 +50,14 @@ use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\UnionType;
 
 /**
- * Infers canonical angle-unit conversions through native deg2rad() and rad2deg().
+ * Infers canonical angle-unit conversions and unary trigonometry through native functions.
  *
  * @logion [OSD 33:57] Bind the scarlet cord around the empty cradle before moonrise, and cut it only when the cedar
  *     floor groweth warm; for a house that remembereth its absent children shall not be judged barren while it
  *     keepeth their place.
  *
  * @phpstan-type CallAnalysis array{type: Type|null, message: string|null}
- * @phpstan-type CanonicalUnits array{radian: UnitExpression, arc_degree: UnitExpression}
+ * @phpstan-type CanonicalUnits array{one: UnitExpression, radian: UnitExpression, arc_degree: UnitExpression}
  * @phpstan-import-type CatalogRecord from UnitRegistry
  * @internal
  */
@@ -140,6 +140,15 @@ final class UnitAngleFunctionTypeResolverExtension implements ExpressionTypeReso
             $canonicalUnits[$name] = $configuredResult->expression();
         }
 
+        $oneResult = $parser->parse('1');
+        if (!$oneResult->isOk()) {
+            $this->canonicalUnits = null;
+
+            return;
+        }
+
+        $canonicalUnits['one'] = $oneResult->expression();
+
         $this->canonicalUnits = $canonicalUnits;
     }
 
@@ -180,7 +189,7 @@ final class UnitAngleFunctionTypeResolverExtension implements ExpressionTypeReso
         }
 
         $functionName = $this->reflectionProvider->getFunction($call->name, $scope)->getName();
-        if (!in_array($functionName, ['deg2rad', 'rad2deg'], true)) {
+        if (!in_array($functionName, ['deg2rad', 'rad2deg', 'sin', 'cos', 'tan', 'asin', 'acos', 'atan'], true)) {
             return ['type' => null, 'message' => null];
         }
 
@@ -205,8 +214,13 @@ final class UnitAngleFunctionTypeResolverExtension implements ExpressionTypeReso
             return ['type' => null, 'message' => null];
         }
 
-        $requiredName = $functionName === 'deg2rad' ? 'arc_degree' : 'radian';
-        $outputName = $functionName === 'deg2rad' ? 'radian' : 'arc_degree';
+        [$requiredName, $outputName] = match ($functionName) {
+            'deg2rad' => ['arc_degree', 'radian'],
+            'rad2deg' => ['radian', 'arc_degree'],
+            'sin', 'cos', 'tan' => ['radian', 'one'],
+            'asin', 'acos', 'atan' => ['one', 'radian'],
+            default => throw new \LogicException(sprintf('Unsupported native angle function: %s', $functionName)),
+        };
         $requiredUnit = $this->canonicalUnits[$requiredName];
         $outputUnit = $this->canonicalUnits[$outputName];
         $types = $type instanceof UnionType ? $type->getTypes() : [$type];
@@ -240,7 +254,16 @@ final class UnitAngleFunctionTypeResolverExtension implements ExpressionTypeReso
                     : null
             );
             if ($value !== null) {
-                $converted = $functionName === 'deg2rad' ? deg2rad($value) : rad2deg($value);
+                $converted = match ($functionName) {
+                    'deg2rad' => deg2rad($value),
+                    'rad2deg' => rad2deg($value),
+                    'sin' => sin($value),
+                    'cos' => cos($value),
+                    'tan' => tan($value),
+                    'asin' => asin($value),
+                    'acos' => acos($value),
+                    'atan' => atan($value),
+                };
                 if (is_finite($converted)) {
                     $results[] = new UnitConstantFloatType($converted, $outputUnit);
 
@@ -260,7 +283,7 @@ final class UnitAngleFunctionTypeResolverExtension implements ExpressionTypeReso
                 'message' => sprintf(
                     'Cannot call %s() because at least one possible unit does not resolve canonically to %s: %s.',
                     $functionName,
-                    $requiredName,
+                    $requiredName === 'one' ? 'the exact unscaled ratio 1' : $requiredName,
                     implode(', ', $invalidUnits),
                 ),
             ];

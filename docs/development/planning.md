@@ -652,11 +652,11 @@ repeat the implementation's assumptions:
   non-finite constants, and diagnoses branded units without an exact symbolic root. Native `fdiv()` follows division
   unit algebra; `fmod()` and `hypot()` require definitionally equivalent branded operands and diagnose mixed or
   incompatible calls. Other casts and unsupported PHP built-ins can erase brands. Continue adding targeted integrations
-  only for demonstrated workflows. Native `deg2rad()` and `rad2deg()` now enforce canonical angle identities according
-  to the first slice of the [angle-function design](native-angle-functions.md); direct and inverse trigonometry and
-  `atan2()` remain deferred to its later slices. `intdiv()` and generalized native powers remain deferred because they
-  require distinct truncation, correlation, or exponent semantics. Exact runtime-object roots are supported through
-  `Quantity::root()`.
+  only for demonstrated workflows. Native `deg2rad()`, `rad2deg()`, direct trigonometry, and inverse trigonometry now
+  enforce canonical angle or exact unscaled-ratio identities according to the first two slices of the
+  [angle-function design](native-angle-functions.md); binary `atan2()` remains deferred to its final slice. `intdiv()`
+  and generalized native powers remain deferred because they require distinct truncation, correlation, or exponent
+  semantics. Exact runtime-object roots are supported through `Quantity::root()`.
 - Native helpers accept finite alternatives only when every valid path produces one semantic result unit. Independent
   source and target alternatives lose value correlation, so conversion helpers validate the Cartesian product and fail
   closed if any pair is invalid. Quantity boundaries continue to preserve finite target unions.
