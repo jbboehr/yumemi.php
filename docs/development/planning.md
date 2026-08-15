@@ -181,6 +181,19 @@ discovery, outside coverage, and prevent parse-time extensions from executing ag
 CLI integration tests still spawn the real PHPStan binary for startup, parser-service, and end-to-end checks. Their
 child-process coverage is intentionally not merged; correctness matters more than an inflated coverage figure.
 
+### PHPStan Repetition Audit
+
+The dated [PHPStan repetition audit](phpstan-repetition-audit.md) found one narrow consolidation worth implementing:
+direct top-level union expansion and benevolent-result recombination are repeated across several resolver families and
+have carried prior soundness defects. Implement that work in reviewable slices, beginning with an independently tested
+helper and the root/scalar-preserving unary mappers, then the binary-math Cartesian paths. The helper must never recurse
+into callable, array, generic, shape, or object component types.
+
+Do not generalize branded operand extraction, native-function ownership guards, resolver/rule wrappers, or
+quantity/point inference merely because their control flow looks similar. Their failure, identity, array, correlation,
+and diagnostic policies remain materially different. Reassess those candidates only after the narrow union helper has
+demonstrated a real reduction in branching without hiding resolver-specific semantics.
+
 ## Runtime API Direction
 
 The runtime deliberately has expression-level operations on `Units` and value-level operations on exact `Quantity`
@@ -774,6 +787,14 @@ repeat the implementation's assumptions:
   `Units` contexts. Native serialization currently supports the default context plus one dynamically scoped custom
   context through `Units::deserialize()` and rejects semantic drift. Broader ecosystem integrations remain deferred.
 - Strict same-unit comparison variants and PHP object comparison operators unless a concrete use case appears
+- Compare the local `Rational` implementation with
+  [`brick/math`](https://github.com/brick/math) in a disposable spike before considering any dependency or
+  representation change. Keep Yumemi's public API and conformance corpus fixed while comparing canonical reduction,
+  decimal parsing and formatting, significant-digit rounding, exact roots, binary64 conversion and range policies,
+  exception translation, public GMP numerator/denominator access, and released serialization bytes. Benchmark catalog
+  generation, parsing, conversion, and numeric rendering; record memory and dependency effects; and count the adapter
+  code that would remain. Prefer the local implementation unless the spike demonstrates a substantial net maintenance
+  reduction with equivalent observable behavior and no material performance, persistence, or portability regression.
 - Range-bearing native float types remain deferred to PHPStan's upstream
   [float-range design](https://github.com/phpstan/phpstan/issues/6963). PHPStan does not yet provide corresponding
   public PHPDoc syntax or an integer-range-equivalent core type, and its open design questions include endpoint
