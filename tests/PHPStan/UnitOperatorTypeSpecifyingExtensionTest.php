@@ -559,10 +559,37 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
 
     public function testPowOutOfRangeConstantExponentIsError(): void
     {
+        $positiveBoundary = $this->extension->specifyType(
+            '**',
+            $this->unitFloat('meter'),
+            new ConstantIntegerType(10_000),
+        );
+        $negativeBoundary = $this->extension->specifyType(
+            '**',
+            $this->unitFloat('meter'),
+            new ConstantIntegerType(-10_000),
+        );
         $result = $this->extension->specifyType('**', $this->unitFloat('meter'), new ConstantIntegerType(10_001));
 
+        $this->assertSame("unit_float<'meter ^ 10000'>", $positiveBoundary->describe(VerbosityLevel::precise()));
+        $this->assertSame("unit_float<'1 / meter ^ 10000'>", $negativeBoundary->describe(VerbosityLevel::precise()));
         $this->assertInstanceOf(ErrorType::class, $result);
         $this->assertStringContainsString('-10000 through 10000', $result->getReason() ?? '');
+    }
+
+    public function testPowRejectsDerivedUnitExponentOverflow(): void
+    {
+        $result = $this->extension->specifyType(
+            '**',
+            $this->unitFloat('meter ^ 10000'),
+            new ConstantIntegerType(2),
+        );
+
+        $this->assertInstanceOf(ErrorType::class, $result);
+        $this->assertSame(
+            'Unit exponentiation produces a unit outside the supported exponent range.',
+            $result->getReason(),
+        );
     }
 
     public function testModSameUnitKeepsUnit(): void

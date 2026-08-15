@@ -216,8 +216,8 @@ Native exponentiation requires a statically known integer exponent. For exact ru
 `Quantity::root($degree)` infers the rooted unit when the degree is one statically known positive integer and every
 symbolic unit power is divisible by it. PHPStan cannot prove that the runtime rational magnitude has an exact root, so a
 statically valid call may still throw `NonExactRootException`. A dynamic degree falls back to the nongeneric `Quantity`
-return type. Native `sqrt()` support is described below. Rational exponents, approximate real powers, and other
-unit-transforming native functions other than the angle functions described below are not part of the current model.
+return type. Native `sqrt()` and integer-exponent `pow()` support are described below. Rational exponents, approximate
+real powers, and unlisted unit-transforming native functions are not part of the current model.
 
 ### Casts And Scalar Functions
 
@@ -242,6 +242,7 @@ square root is exact:
 | `fdiv($left, $right)`            | Quotient unit, matching native `/` unit algebra          |
 | `fmod($left, $right)`            | Common definitionally equivalent unit                    |
 | `hypot($left, $right)`           | Common definitionally equivalent unit                    |
+| `pow($base, $exponent)`          | Base unit raised to a constant integer exponent          |
 | `deg2rad($degrees)`              | `unit_float<'radian'>`                                   |
 | `rad2deg($radians)`              | `unit_float<'arc_degree'>`                               |
 | `sin()`, `cos()`, and `tan()`    | `unit_float<'1'>` from canonical radians                 |
@@ -283,6 +284,7 @@ $rise = 3.0;
 /** @var unit_float<'meter'> $run */
 $run = 4.0;
 $direction = atan2($rise, $run);
+$platformVolume = pow($platformWidth, 3);
 
 assert((float) $displayHeight === 12.0);
 assert((float) $platformWidth === 12.0);
@@ -329,6 +331,14 @@ branded numeric operands. Calls containing nonnumeric alternatives are left to P
 three functions return `unit_float` and retain a known finite result when both magnitudes are known. Non-finite results
 retain only the derived brand. `fdiv()` also reports `yumemi.invalidUnitMathFunction` when the quotient unit would
 exceed Yumemi's supported exponent range.
+
+`pow()` follows the same branded-unit contract as native `**`. Its base may be a branded integer or float, while every
+possible exponent must be a bare constant integer from `-10000` through `10000`. The unit is raised to that exponent;
+negative exponents produce branded floats, and nonnegative integer powers retain integer bounds and the configured
+overflow-to-float policy. Finite constant exponent alternatives are evaluated independently and may produce a union of
+result units. A dynamic, fractional, or unit-bearing exponent, a mixed branded-and-bare base, or a resulting unit beyond
+the exponent limit reports `yumemi.invalidUnitMathFunction`. Wholly bare calls and calls containing nonnumeric
+alternatives remain under PHPStan's native analysis.
 
 `deg2rad()` accepts `arc_degree` and aliases that resolve canonically to it, then returns `unit_float<'radian'>`.
 `rad2deg()` accepts canonical `radian` aliases and returns `unit_float<'arc_degree'>`. Both functions accept branded
@@ -691,7 +701,7 @@ scope:
 | `yumemi.invalidUnitAngleFunction`      | Native angle function received a noncanonical input, or `atan2()` received mixed or inequivalent operands    |
 | `yumemi.invalidUnitCall`               | An invalid constant `unit()`, `unit_factor()`, or `unit_to()` call                                           |
 | `yumemi.invalidUnitComparison`         | A native equality, identity, ordering, or spaceship comparison whose units are not definitionally equivalent |
-| `yumemi.invalidUnitMathFunction`       | Native `fdiv()` produced an unrepresentable unit, or `fmod()`/`hypot()` received incompatible operands       |
+| `yumemi.invalidUnitMathFunction`       | Native binary math received incompatible operands, an invalid exponent, or an unrepresentable result unit    |
 | `yumemi.invalidUnitRoot`               | Native `sqrt()` received a branded unit without an exact symbolic square root                                |
 | `yumemi.invalidUnitSelection`          | Native `min()` or `max()` can return an unbranded or differently branded candidate                           |
 | `yumemi.invalidQuantityConstruction`   | Invalid `Units::quantity()`, `parseQuantity()`, `deltaQuantity()`, or `point()` construction                 |
@@ -735,8 +745,9 @@ Use the identifier to choose the first corrective step:
   `atan2()`, give both operands one definitionally equivalent brand; convert either magnitude before the call when their
   units are merely compatible.
 - For `yumemi.invalidUnitMathFunction`, give both `fmod()` or `hypot()` operands one definitionally equivalent brand, or
-  reduce `fdiv()` operand exponents so its quotient unit remains representable. Convert compatible magnitudes explicitly
-  before calling the function.
+  reduce `fdiv()` operand exponents so its quotient unit remains representable. For `pow()`, use a bare constant integer
+  exponent within the supported range and ensure the resulting unit remains representable. Convert compatible magnitudes
+  explicitly before calling the function.
 - For `yumemi.invalidUnitSelection`, ensure every value that `min()` or `max()` can return has one definitionally
   equivalent unit. Convert compatible but differently branded values before selecting an extreme.
 - For quantity arithmetic, comparison, or point diagnostics, verify the statically known dimensions and distinguish a
@@ -756,15 +767,17 @@ Important limits of the current static model are:
   `unit_numeric_string` brand onto the resulting number. Implicit arithmetic and weak numeric coercion do not preserve a
   numeric-string brand; comparisons still require definitionally equivalent brands. `abs()`, `ceil()`, `floor()`,
   `round()`, `min()`, and `max()` preserve numeric unit brands when their operation has one sound result unit. `sqrt()`
-  transforms exact symbolic roots, `fdiv()` follows division algebra, and `fmod()`/`hypot()` require equivalent brands.
-  `deg2rad()`, `rad2deg()`, and the trigonometric functions enforce their canonical angle, exact-unscaled-ratio, or
-  equivalent-operand contracts. Other unsupported casts and PHP built-ins can erase brands.
+  transforms exact symbolic roots, `fdiv()` follows division algebra, `fmod()`/`hypot()` require equivalent brands, and
+  `pow()` raises a branded unit to a constant integer exponent. `deg2rad()`, `rad2deg()`, and the trigonometric
+  functions enforce their canonical angle, exact-unscaled-ratio, or equivalent-operand contracts. Other unsupported
+  casts and PHP built-ins can erase brands.
 - Native `+` and `-` cannot convert dimensionally compatible magnitudes; use an explicit conversion or `Quantity`.
 - Native affine targets remain unbranded because native scalars do not retain point-versus-difference identity. Use
   `PointQuantity<'...'>` when that identity must remain statically visible.
 - `unit_to()` and `unit_factor()` validate the Cartesian product of independent source and target alternatives and
   reject the call if any pairing is invalid. Valid alternatives must also collapse to one semantic result unit.
-- Unit exponentiation supports constant integers only.
+- Unit exponentiation through `**`, `pow()`, and runtime exact-value APIs supports integer exponents only; native
+  branded operations additionally require each possible exponent to be statically constant.
 - PHPStan has no corresponding native float-range syntax, so branded floats can retain known constants but not
   continuous bounds.
 - Dimensional analysis cannot distinguish different physical meanings with the same dimension, such as gray and sievert.

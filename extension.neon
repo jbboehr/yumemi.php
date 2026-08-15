@@ -56,7 +56,7 @@ services:
         class: jbboehr\Yumemi\PHPStan\UnitTypeNodeResolverExtension
         tags:
             - phpstan.phpDoc.typeNodeResolverExtension
-    -
+    yumemiUnitOperatorTypeSpecifyingExtension:
         class: jbboehr\Yumemi\PHPStan\UnitOperatorTypeSpecifyingExtension
         arguments:
             integerOverflowToFloat: %yumemi.integerOverflowToFloat%
@@ -87,6 +87,8 @@ services:
             - phpstan.broker.expressionTypeResolverExtension
     -
         class: jbboehr\Yumemi\PHPStan\UnitBinaryMathFunctionTypeResolverExtension
+        arguments:
+            operatorExtension: @yumemiUnitOperatorTypeSpecifyingExtension
         tags:
             - phpstan.broker.expressionTypeResolverExtension
     -

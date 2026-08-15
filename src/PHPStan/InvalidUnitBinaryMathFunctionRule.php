@@ -43,7 +43,7 @@ use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
 /**
- * Emits diagnostics for binary math functions whose operands cannot share one unit.
+ * Emits diagnostics for binary math functions with invalid unit operands or exponents.
  *
  * @logion [OSD 4:15] Bring no unequal weights unto the violet tribunal, though each bear the imperial seal. Wash them
  *     first in the same rain and set them upon the unmarked balance; if one descend, condemn not the bronze, but the

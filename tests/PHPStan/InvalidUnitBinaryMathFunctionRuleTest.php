@@ -55,7 +55,7 @@ final class InvalidUnitBinaryMathFunctionRuleTest extends RuleTestCase
         return [__DIR__ . '/../../extension.neon'];
     }
 
-    public function testInvalidSameUnitMathCallsAreReported(): void
+    public function testInvalidBinaryMathCallsAreReported(): void
     {
         $this->analyse([__DIR__ . '/Fixtures/InvalidUnitBinaryMathFunctionCalls.php'], [
             [
@@ -73,6 +73,22 @@ final class InvalidUnitBinaryMathFunctionRuleTest extends RuleTestCase
             [
                 'Cannot call fdiv() because the resulting unit exceeds the supported exponent range.',
                 17,
+            ],
+            [
+                'Cannot call pow(): unit exponentiation requires a constant integer exponent (e.g. $length ** 2).',
+                18,
+            ],
+            [
+                'Cannot call pow(): cannot raise a value to a unit power; the exponent must be a bare integer.',
+                19,
+            ],
+            [
+                'Cannot call pow(): unit exponentiation produces a unit outside the supported exponent range.',
+                20,
+            ],
+            [
+                'Cannot call pow(): unit exponentiation requires a constant integer exponent (e.g. $length ** 2).',
+                24,
             ],
         ]);
     }

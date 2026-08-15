@@ -94,6 +94,8 @@ assertType("1.0&unit_float<'meter'>", fmod(unit(7, 'meter'), unit(3, 'm')));
 assertType("1.0&unit_float<'meter'>", fmod(num1: unit(7, 'meter'), num2: unit(3, 'meter')));
 assertType("5.0&unit_float<'meter'>", hypot(unit(3, 'meter'), unit(4, 'm')));
 assertType("5.0&unit_float<'meter'>", hypot(x: unit(3, 'meter'), y: unit(4, 'meter')));
+assertType("9&unit_int<'meter ^ 2'>", pow(unit(3, 'meter'), 2));
+assertType("0.5&unit_float<'1 / second'>", pow(num: unit(2.0, 'second'), exponent: -1));
 assertType("3.141592653589793&unit_float<'radian'>", deg2rad(unit(180, 'degree')));
 assertType("1.5707963267948966&unit_float<'radian'>", deg2rad(num: unit(90.0, 'arc_degree')));
 assertType("180.0&unit_float<'arc_degree'>", rad2deg(unit(M_PI, 'rad')));
@@ -112,6 +114,7 @@ function assertBrandedBinaryMath(int $value): void
 {
     assertType("unit_float<'meter'>", fmod($value, unit(2, 'meter')));
     assertType("unit_float<'meter'>", hypot($value, unit(2, 'meter')));
+    assertType("unit_int<'meter ^ 2'>&int<1, 25>", pow($value, 2));
 }
 
 /** @param unit_int<'arc_degree'>&int<0, 360> $value */
@@ -295,6 +298,7 @@ assertType('3', intval(3.5));
 assertType('float', fdiv(6, 2));
 assertType('float', fmod(7, 3));
 assertType('float', hypot(3, 4));
+assertType('9', pow(3, 2));
 assertType('float', deg2rad(180));
 assertType('float', rad2deg(M_PI));
 assertType('float', sin(0.5));
@@ -318,3 +322,6 @@ assertType('float', $trigFunction(0.5));
 
 $directionFunction = atan2(...);
 assertType('float', $directionFunction(1.0, 1.0));
+
+$powerFunction = pow(...);
+assertType('float|int|object', $powerFunction(3, 2));

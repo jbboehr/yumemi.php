@@ -45,6 +45,7 @@ use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\BenevolentUnionType;
 use PHPStan\Type\Constant\ConstantFloatType;
 use PHPStan\Type\Constant\ConstantIntegerType;
+use PHPStan\Type\ErrorType;
 use PHPStan\Type\ExpressionTypeResolverExtension;
 use PHPStan\Type\FloatType;
 use PHPStan\Type\Type;
@@ -72,13 +73,24 @@ final class UnitBinaryMathFunctionTypeResolverExtension implements ExpressionTyp
     private ReflectionProvider $reflectionProvider;
 
     /**
+     * @logion [OSD 26:67] Leave the northern stair unroofed through the month of white wind, though snow enter the
+     *     council hall and extinguish its braziers. Let the eldest sweep no path thereon. For counsel that cannot endure
+     *     the season of its people shall govern only painted walls; but where the ministers ascend through cold, spring
+     *     shall find the city already awake.
+     */
+    private UnitOperatorTypeSpecifyingExtension $operatorExtension;
+
+    /**
      * @logion [AWC 40:81] In the reign of the lacquered standard, the surveyors placed twin stones beside every ford,
      *     one for the river in drought and one for the river in flood. Thus the road endured both seasons, and no king
      *     enlarged his province by naming only the lesser water.
      */
-    public function __construct(ReflectionProvider $reflectionProvider)
-    {
+    public function __construct(
+        ReflectionProvider $reflectionProvider,
+        UnitOperatorTypeSpecifyingExtension $operatorExtension,
+    ) {
         $this->reflectionProvider = $reflectionProvider;
+        $this->operatorExtension = $operatorExtension;
     }
 
     /**
@@ -118,11 +130,15 @@ final class UnitBinaryMathFunctionTypeResolverExtension implements ExpressionTyp
         }
 
         $functionName = $this->reflectionProvider->getFunction($call->name, $scope)->getName();
-        if (!in_array($functionName, ['fdiv', 'fmod', 'hypot'], true)) {
+        if (!in_array($functionName, ['fdiv', 'fmod', 'hypot', 'pow'], true)) {
             return ['type' => null, 'message' => null];
         }
 
-        [$leftName, $rightName] = $functionName === 'hypot' ? ['x', 'y'] : ['num1', 'num2'];
+        [$leftName, $rightName] = match ($functionName) {
+            'hypot' => ['x', 'y'],
+            'pow' => ['num', 'exponent'],
+            default => ['num1', 'num2'],
+        };
         $left = NativeUnitArgumentResolver::argument($call, 0, $leftName);
         $right = NativeUnitArgumentResolver::argument($call, 1, $rightName);
         if ($left === null || $right === null) {
@@ -155,6 +171,10 @@ final class UnitBinaryMathFunctionTypeResolverExtension implements ExpressionTyp
      */
     private function transform(Type $leftType, Type $rightType, string $functionName): array
     {
+        if ($functionName === 'pow') {
+            return $this->transformPow($leftType, $rightType);
+        }
+
         $atomicTypes = static fn (Type $type): array => $type instanceof UnionType ? $type->getTypes() : [$type];
         $asUnit = static function (Type $type): ?array {
             $float = UnitFloatType::extract($type);
@@ -303,5 +323,43 @@ final class UnitBinaryMathFunctionTypeResolverExtension implements ExpressionTyp
         }
 
         return ['type' => $result, 'message' => null];
+    }
+
+    /**
+     * @logion [OSD 44:95] Gather not the black persimmons that ripen beside the road of exile, though their branches
+     *     bow beneath sweetness and the children hunger. Mark each tree with white cord and pass in silence; for these
+     *     fruits contain the unspoken farewells of those who died facing home. At winter's end they shall fall upward,
+     *     and the road shall answer for every footstep.
+     *
+     * @return CallAnalysis
+     */
+    private function transformPow(Type $baseType, Type $exponentType): array
+    {
+        $atomicTypes = static fn (Type $type): array => $type instanceof UnionType ? $type->getTypes() : [$type];
+        $isNumeric = static fn (Type $type): bool => $type->isInteger()->yes() || $type->isFloat()->yes();
+
+        foreach ([$baseType, $exponentType] as $type) {
+            foreach ($atomicTypes($type) as $innerType) {
+                if (!$isNumeric($innerType)) {
+                    return ['type' => null, 'message' => null];
+                }
+            }
+        }
+
+        if (!$this->operatorExtension->isOperatorSupported('**', $baseType, $exponentType)) {
+            return ['type' => null, 'message' => null];
+        }
+
+        $result = $this->operatorExtension->specifyType('**', $baseType, $exponentType);
+        if (!$result instanceof ErrorType) {
+            return ['type' => $result, 'message' => null];
+        }
+
+        $reason = $result->getReason() ?? 'Unit exponentiation cannot be represented.';
+
+        return [
+            'type' => null,
+            'message' => sprintf('Cannot call pow(): %s', lcfirst($reason)),
+        ];
     }
 }

@@ -43,7 +43,9 @@ use jbboehr\Yumemi\PHPStan\UnitExpression;
 use jbboehr\Yumemi\PHPStan\UnitExpressionParser;
 use jbboehr\Yumemi\PHPStan\UnitFloatType;
 use jbboehr\Yumemi\PHPStan\UnitIntegerType;
+use jbboehr\Yumemi\PHPStan\UnitOperatorTypeSpecifyingExtension;
 use PhpParser\Node\Arg;
+use PhpParser\Node\Identifier;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Name;
@@ -53,7 +55,9 @@ use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\BenevolentUnionType;
 use PHPStan\Type\ArrayType;
 use PHPStan\Type\Constant\ConstantFloatType;
+use PHPStan\Type\Constant\ConstantIntegerType;
 use PHPStan\Type\FloatType;
+use PHPStan\Type\IntegerType;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\UnionType;
@@ -74,9 +78,15 @@ final class UnitBinaryMathFunctionTypeResolverExtensionTest extends TestCase
             new FuncCall(new Name('fdiv'), [new Arg($left)]),
             $this->scope(new FloatType(), new FloatType()),
         );
+        $power = $this->extension('pow');
+        $missingExponent = $power->analyseCall(
+            new FuncCall(new Name('pow'), [new Arg($left)]),
+            $this->scope(new UnitFloatType($this->unit('meter')), new IntegerType()),
+        );
 
         self::assertSame(['type' => null, 'message' => null], $analysis);
         self::assertSame(['type' => null, 'message' => null], $missingRight);
+        self::assertSame(['type' => null, 'message' => null], $missingExponent);
     }
 
     public function testBareOperandsRemainOwnedByNativePhpstan(): void
@@ -84,6 +94,164 @@ final class UnitBinaryMathFunctionTypeResolverExtensionTest extends TestCase
         $analysis = $this->analyse('fdiv', new FloatType(), new FloatType());
 
         self::assertSame(['type' => null, 'message' => null], $analysis);
+    }
+
+    public function testPowerMatchesNativeOperatorUnitAndConstantSemantics(): void
+    {
+        $square = $this->analyse(
+            'pow',
+            new UnitConstantIntegerType(3, $this->unit('meter')),
+            new ConstantIntegerType(2),
+        );
+        $reciprocal = $this->analyse(
+            'pow',
+            new UnitConstantIntegerType(2, $this->unit('second')),
+            new ConstantIntegerType(-1),
+        );
+        $zero = $this->analyse(
+            'pow',
+            new UnitConstantFloatType(0.0, $this->unit('meter')),
+            new ConstantIntegerType(0),
+        );
+        $undefinedReciprocal = $this->analyse(
+            'pow',
+            new UnitConstantIntegerType(0, $this->unit('meter')),
+            new ConstantIntegerType(-1),
+        );
+
+        self::assertSame("9&unit_int<'meter ^ 2'>", $square['type']?->describe(VerbosityLevel::precise()));
+        self::assertSame("0.5&unit_float<'1 / second'>", $reciprocal['type']?->describe(VerbosityLevel::precise()));
+        self::assertSame("1.0&unit_float<'1'>", $zero['type']?->describe(VerbosityLevel::precise()));
+        self::assertSame(
+            "unit_float<'1 / meter'>",
+            $undefinedReciprocal['type']?->describe(VerbosityLevel::precise()),
+        );
+        self::assertNull($square['message']);
+        self::assertNull($reciprocal['message']);
+        self::assertNull($zero['message']);
+        self::assertNull($undefinedReciprocal['message']);
+    }
+
+    public function testPowerResolvesNativeNamedArguments(): void
+    {
+        $base = new Variable('left');
+        $exponent = new Variable('right');
+        $analysis = $this->extension('pow')->analyseCall(
+            new FuncCall(new Name('pow'), [
+                new Arg($exponent, name: new Identifier('exponent')),
+                new Arg($base, name: new Identifier('num')),
+            ]),
+            $this->scope(
+                new UnitConstantIntegerType(3, $this->unit('meter')),
+                new ConstantIntegerType(2),
+            ),
+        );
+
+        self::assertSame("9&unit_int<'meter ^ 2'>", $analysis['type']?->describe(VerbosityLevel::precise()));
+        self::assertNull($analysis['message']);
+    }
+
+    public function testPowerPreservesFiniteExponentAlternativesAndIntegerOverflowPolicy(): void
+    {
+        $exponents = TypeCombinator::union(new ConstantIntegerType(2), new ConstantIntegerType(3));
+        $alternatives = $this->analyse('pow', new UnitFloatType($this->unit('meter')), $exponents);
+        $default = $this->analyse('pow', new UnitIntegerType($this->unit('meter')), new ConstantIntegerType(2));
+        $strict = $this->analyse(
+            'pow',
+            new UnitIntegerType($this->unit('meter')),
+            new ConstantIntegerType(2),
+            false,
+        );
+
+        self::assertSame(
+            "unit_float<'meter ^ 2'>|unit_float<'meter ^ 3'>",
+            $alternatives['type']?->describe(VerbosityLevel::precise()),
+        );
+        self::assertInstanceOf(BenevolentUnionType::class, $default['type']);
+        self::assertSame("unit_int<'meter ^ 2'>", $strict['type']?->describe(VerbosityLevel::precise()));
+    }
+
+    public function testPowerRejectsInvalidOrUnrepresentableExponents(): void
+    {
+        $dynamic = $this->analyse(
+            'pow',
+            new UnitFloatType($this->unit('meter')),
+            new IntegerType(),
+        );
+        $branded = $this->analyse(
+            'pow',
+            new UnitFloatType($this->unit('meter')),
+            new UnitConstantIntegerType(2, $this->unit('second')),
+        );
+        $mixedBase = $this->analyse(
+            'pow',
+            new UnionType([
+                new UnitFloatType($this->unit('meter')),
+                new FloatType(),
+            ]),
+            new ConstantIntegerType(2),
+        );
+        $outsidePolicy = $this->analyse(
+            'pow',
+            new UnitFloatType($this->unit('meter')),
+            new ConstantIntegerType(10_001),
+        );
+        $boundary = $this->analyse(
+            'pow',
+            new UnitFloatType($this->unit('meter')),
+            new ConstantIntegerType(10_000),
+        );
+        $derivedOverflow = $this->analyse(
+            'pow',
+            new UnitFloatType($this->unit('meter ^ 10000')),
+            new ConstantIntegerType(2),
+        );
+
+        self::assertSame(
+            'Cannot call pow(): unit exponentiation requires a constant integer exponent (e.g. $length ** 2).',
+            $dynamic['message'],
+        );
+        self::assertSame(
+            'Cannot call pow(): cannot raise a value to a unit power; the exponent must be a bare integer.',
+            $branded['message'],
+        );
+        self::assertSame(
+            'Cannot call pow(): cannot raise a bare numeric value to a power involving units.',
+            $mixedBase['message'],
+        );
+        self::assertSame(
+            'Cannot call pow(): unit exponentiation supports exponents from -10000 through 10000.',
+            $outsidePolicy['message'],
+        );
+        self::assertSame("unit_float<'meter ^ 10000'>", $boundary['type']?->describe(VerbosityLevel::precise()));
+        self::assertNull($boundary['message']);
+        self::assertSame(
+            'Cannot call pow(): unit exponentiation produces a unit outside the supported exponent range.',
+            $derivedOverflow['message'],
+        );
+        self::assertNull($dynamic['type']);
+        self::assertNull($branded['type']);
+        self::assertNull($mixedBase['type']);
+        self::assertNull($outsidePolicy['type']);
+        self::assertNull($derivedOverflow['type']);
+    }
+
+    public function testPowerDefersBareAndNonnumericCallsToNativePhpstan(): void
+    {
+        $array = new ArrayType(new FloatType(), new FloatType());
+
+        self::assertSame(
+            ['type' => null, 'message' => null],
+            $this->analyse('pow', new ConstantIntegerType(2), new ConstantIntegerType(3)),
+        );
+        self::assertSame(
+            ['type' => null, 'message' => null],
+            $this->analyse('pow', new UnitFloatType($this->unit('meter')), $array),
+        );
+        self::assertSame(
+            ['type' => null, 'message' => null],
+            $this->analyse('pow', $array, new UnitConstantIntegerType(2, $this->unit('second'))),
+        );
     }
 
     public function testFloatDivisionCombinesUnitsAndPreservesFiniteConstants(): void
@@ -395,19 +563,25 @@ final class UnitBinaryMathFunctionTypeResolverExtensionTest extends TestCase
     }
 
     /** @return array{type: Type|null, message: string|null} */
-    private function analyse(string $function, Type $leftType, Type $rightType): array
-    {
+    private function analyse(
+        string $function,
+        Type $leftType,
+        Type $rightType,
+        bool $integerOverflowToFloat = true,
+    ): array {
         $left = new Variable('left');
         $right = new Variable('right');
 
-        return $this->extension($function)->analyseCall(
+        return $this->extension($function, $integerOverflowToFloat)->analyseCall(
             new FuncCall(new Name($function), [new Arg($left), new Arg($right)]),
             $this->scope($leftType, $rightType),
         );
     }
 
-    private function extension(string $functionName): UnitBinaryMathFunctionTypeResolverExtension
-    {
+    private function extension(
+        string $functionName,
+        bool $integerOverflowToFloat = true,
+    ): UnitBinaryMathFunctionTypeResolverExtension {
         $function = self::createStub(FunctionReflection::class);
         $function->method('getName')->willReturn($functionName);
 
@@ -415,7 +589,10 @@ final class UnitBinaryMathFunctionTypeResolverExtensionTest extends TestCase
         $reflectionProvider->method('hasFunction')->willReturn(true);
         $reflectionProvider->method('getFunction')->willReturn($function);
 
-        return new UnitBinaryMathFunctionTypeResolverExtension($reflectionProvider);
+        return new UnitBinaryMathFunctionTypeResolverExtension(
+            $reflectionProvider,
+            new UnitOperatorTypeSpecifyingExtension($integerOverflowToFloat),
+        );
     }
 
     private function scope(Type $leftType, Type $rightType): Scope

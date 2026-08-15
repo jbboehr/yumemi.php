@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
+use jbboehr\Yumemi\Exception\OverflowException;
 use jbboehr\Yumemi\Util\Exponent;
 use PHPStan\Type\BenevolentUnionType;
 use PHPStan\Type\Constant\ConstantFloatType;
@@ -379,7 +380,11 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
             ));
         }
 
-        $unit = UnitExpressionAlgebra::power($leftUnit['unit'], $exponent);
+        try {
+            $unit = UnitExpressionAlgebra::power($leftUnit['unit'], $exponent);
+        } catch (OverflowException) {
+            return new ErrorType('Unit exponentiation produces a unit outside the supported exponent range.');
+        }
 
         // PHP: negative exponents yield float; also promote when the base is float-like.
         if ($exponent < 0 || !$leftUnit['integer']) {

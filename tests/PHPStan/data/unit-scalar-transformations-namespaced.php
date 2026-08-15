@@ -47,6 +47,11 @@ function hypot(int|float $x, int|float $y): string
     return (string) \hypot($x, $y);
 }
 
+function pow(int|float $num, int|float $exponent): string
+{
+    return (string) ($num ** $exponent);
+}
+
 function sqrt(int|float $num): string
 {
     return (string) $num;
@@ -121,6 +126,7 @@ assertType('string', intval($value));
 assertType('string', fdiv($value, $value));
 assertType('string', fmod($value, $value));
 assertType('string', hypot($value, $value));
+assertType('string', pow($value, 2));
 assertType('string', sqrt($area));
 assertType('string', deg2rad($degrees));
 assertType('string', rad2deg($radians));
@@ -141,6 +147,7 @@ assertType("-3&unit_int<'meter'>", \intval($value));
 assertType("1.0&unit_float<'1'>", \fdiv($value, $value));
 assertType("-0.0&unit_float<'meter'>", \fmod($value, $value));
 assertType("4.242640687119285&unit_float<'meter'>", \hypot($value, $value));
+assertType("9&unit_int<'meter ^ 2'>", \pow($value, 2));
 assertType("2.0&unit_float<'meter'>", \sqrt($area));
 assertType("3.141592653589793&unit_float<'radian'>", \deg2rad($degrees));
 assertType("180.0&unit_float<'arc_degree'>", \rad2deg($radians));
