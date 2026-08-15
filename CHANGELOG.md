@@ -17,6 +17,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   ambiguous, or unrepresentable `fdiv()`/`intdiv()`/`pow()` unit algebra.
 - PHPStan inference for canonical `deg2rad()` and `rad2deg()` conversions and branded trigonometric functions, including
   `atan2()`, with the stable `yumemi.invalidUnitAngleFunction` diagnostic for incorrect angle, ratio, or operand brands.
+- Exact PHPStan constant inference for branded `round()` calls with statically known precision and supported
+  half-rounding modes.
 
 ### Changed
 

@@ -77,12 +77,29 @@ function assertUnboundedBrandedAbsoluteValue(int $value): void
 
 assertType("2.0&unit_float<'meter'>", ceil(unit(1.25, 'meter')));
 assertType("1.0&unit_float<'meter'>", floor(unit(1.75, 'meter')));
-assertType("unit_float<'meter'>", round(unit(1.25, 'meter')));
-assertType("unit_float<'meter'>", round(unit(125, 'meter'), -1));
-assertType(
-    "unit_float<'meter'>",
-    round(num: unit(1.25, 'meter'), precision: 1, mode: RoundingMode::HalfEven),
-);
+assertType("2.0&unit_float<'meter'>", round(unit(1.5, 'meter')));
+assertType("130.0&unit_float<'meter'>", round(unit(125, 'meter'), -1));
+assertType("1.3&unit_float<'meter'>", round(unit(1.25, 'meter'), 1, PHP_ROUND_HALF_UP));
+assertType("1.2&unit_float<'meter'>", round(unit(1.25, 'meter'), 1, PHP_ROUND_HALF_DOWN));
+assertType("1.2&unit_float<'meter'>", round(unit(1.25, 'meter'), 1, PHP_ROUND_HALF_EVEN));
+assertType("1.3&unit_float<'meter'>", round(unit(1.25, 'meter'), 1, PHP_ROUND_HALF_ODD));
+
+/** @param 0|1 $precision */
+function assertBrandedRoundPrecisionAlternatives(int $precision): void
+{
+    assertType("1.0&unit_float<'meter'>|1.3&unit_float<'meter'>", round(unit(1.25, 'meter'), $precision));
+}
+
+/** @param 1|2 $mode */
+function assertBrandedRoundModeAlternatives(int $mode): void
+{
+    assertType("1.0&unit_float<'meter'>|2.0&unit_float<'meter'>", round(unit(1.5, 'meter'), 0, $mode));
+}
+
+function assertDynamicBrandedRoundPrecision(int $precision): void
+{
+    assertType("unit_float<'meter'>", round(unit(1.25, 'meter'), $precision));
+}
 assertType("2.0&unit_float<'second'>", ceil(num: unit(2, 'second')));
 assertType("2.0&unit_float<'second'>", floor(num: unit(2, 'second')));
 
@@ -315,6 +332,9 @@ assertType('int', $dynamicFunction(-3));
 
 $absoluteFunction = abs(...);
 assertType('int<0, max>', $absoluteFunction(-3));
+
+$roundFunction = round(...);
+assertType('float', $roundFunction(1.25));
 
 $squareRootFunction = sqrt(...);
 assertType('float', $squareRootFunction(4.0));

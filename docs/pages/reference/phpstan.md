@@ -236,7 +236,7 @@ square root is exact:
 | `abs($unitFloat)`                | Same unit, retaining a known float constant              |
 | `abs($unitInteger)`              | Branded integer bounds, with possible overflow promotion |
 | `ceil()` and `floor()`           | Same unit, retaining a known numeric constant            |
-| `round()`                        | `unit_float<'same unit'>`                                |
+| `round()`                        | Same unit, retaining supported known results             |
 | `min()` and `max()`              | Common brand, retaining known extrema or integer bounds  |
 | `sqrt($unitNumber)`              | Rooted unit, retaining a finite nonnegative constant     |
 | `fdiv($left, $right)`            | Quotient unit, matching native `/` unit algebra          |
@@ -302,8 +302,18 @@ rules as explicit casts, including moving a `unit_numeric_string` brand onto the
 string, `intval()` preserves the brand only when `base` is omitted or statically known to be `10`; another or dynamic
 base changes how the text is interpreted, so Yumemi leaves the result unbranded. The `base` argument does not affect
 integer or float inputs. `abs()`, `ceil()`, and `floor()` retain a constant value when the input and result are known.
-`sqrt()` does so for finite nonnegative inputs. `round()` currently preserves the unit but generalizes the magnitude
-because its optional precision and rounding-mode arguments are not part of this resolver.
+`sqrt()` does so for finite nonnegative inputs. `round()` retains a finite constant result when the input, precision,
+and rounding mode are each omitted or resolve completely to supported constants. Finite precision and mode alternatives
+produce the union of every possible rounded result rather than selecting one path. Dynamic arguments, invalid modes,
+non-finite values, and excessively large alternative sets retain `unit_float<'same unit'>` without claiming a constant.
+
+The four longstanding `PHP_ROUND_HALF_*` modes are supported as integer constants. On PHP 8.4 and later, their
+corresponding `RoundingMode` enum cases are also supported when PHPStan's configured target and the PHP runtime
+executing PHPStan use the same rounding-semantics era. The four directional enum cases introduced in PHP 8.4 currently
+retain the unit but generalize the value. A target/runtime mismatch across PHP 8.4 also generalizes the value because
+configuring a target version does not make the analyzer execute another PHP runtime's rounding algorithm. On PHP 8.2 and
+8.3, native `round()` still requires the legacy integer modes; the polyfilled enum is available to Yumemi's runtime APIs
+but does not change that native signature.
 
 `min()` and `max()` preserve a unit when every value they can return is branded with one definitionally equivalent unit.
 This works with direct arguments, arrays, and unpacked arrays. When every candidate is required and is a known finite
@@ -781,11 +791,12 @@ Important limits of the current static model are:
 - Explicit integer/float casts and `intval()`/`floatval()`/`doubleval()` preserve native numeric brands and move a
   `unit_numeric_string` brand onto the resulting number. Implicit arithmetic and weak numeric coercion do not preserve a
   numeric-string brand; comparisons still require definitionally equivalent brands. `abs()`, `ceil()`, `floor()`,
-  `round()`, `min()`, and `max()` preserve numeric unit brands when their operation has one sound result unit. `sqrt()`
-  transforms exact symbolic roots, `fdiv()` and `intdiv()` follow division algebra, `fmod()`/`hypot()` require
-  equivalent brands, and `pow()` raises a branded unit to a constant integer exponent. `deg2rad()`, `rad2deg()`, and the
-  trigonometric functions enforce their canonical angle, exact-unscaled-ratio, or equivalent-operand contracts. Other
-  unsupported casts and PHP built-ins can erase brands.
+  `round()`, `min()`, and `max()` preserve numeric unit brands when their operation has one sound result unit. Supported
+  constant `round()` calls also retain every possible finite result; dynamic or version-incompatible policies generalize
+  the value. `sqrt()` transforms exact symbolic roots, `fdiv()` and `intdiv()` follow division algebra,
+  `fmod()`/`hypot()` require equivalent brands, and `pow()` raises a branded unit to a constant integer exponent.
+  `deg2rad()`, `rad2deg()`, and the trigonometric functions enforce their canonical angle, exact-unscaled-ratio, or
+  equivalent-operand contracts. Other unsupported casts and PHP built-ins can erase brands.
 - Native `+` and `-` cannot convert dimensionally compatible magnitudes; use an explicit conversion or `Quantity`.
 - Native affine targets remain unbranded because native scalars do not retain point-versus-difference identity. Use
   `PointQuantity<'...'>` when that identity must remain statically visible.

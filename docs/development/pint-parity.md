@@ -287,7 +287,8 @@ stubs without expanding core's dependency graph. Branded integer constants and P
 propagate through supported arithmetic, allowing exact bounds to distinguish safe integer results, guaranteed float
 overflow, and mixed outcomes. Integer-brand extraction inspects only direct values and immediate intersection
 constraints, so callables, arrays, and other compound types retain nested brands without collapsing into integers.
-Explicit integer/float casts and `abs()`, `ceil()`, `floor()`, and `round()` preserve native brands. `min()` and `max()`
+Explicit integer/float casts and `abs()`, `ceil()`, `floor()`, and `round()` preserve native brands. Supported constant
+`round()` inputs, precisions, and half-rounding modes also retain every possible finite result. `min()` and `max()`
 preserve one definitionally equivalent brand across every possible returning candidate and retain known finite extrema,
 while native `sqrt()` transforms exact symbolic square units. Known finite native float values now survive construction,
 conversion factors, direct conversion, supported arithmetic, casts, and modeled scalar functions when the result remains

@@ -56,4 +56,13 @@ final class UnitScalarTransformationTypeTest extends TypeInferenceTestCase
     {
         $this->assertFixtureUnderCoverage(__DIR__ . '/data/unit-scalar-transformations.php');
     }
+
+    public function testRoundingModeCasesMatchTheRuntimeEra(): void
+    {
+        $fixture = PHP_VERSION_ID >= 80400
+            ? 'unit-rounding-mode-php84.php'
+            : 'unit-rounding-mode-polyfill.php';
+
+        $this->assertFixtureUnderCoverage(__DIR__ . '/data/' . $fixture);
+    }
 }
