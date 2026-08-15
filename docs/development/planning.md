@@ -185,9 +185,9 @@ child-process coverage is intentionally not merged; correctness matters more tha
 
 The dated [PHPStan repetition audit](phpstan-repetition-audit.md) found one narrow consolidation worth implementing:
 direct top-level union expansion and benevolent-result recombination are repeated across several resolver families and
-have carried prior soundness defects. Implement that work in reviewable slices, beginning with an independently tested
-helper and the root/scalar-preserving unary mappers, then the binary-math Cartesian paths. The helper must never recurse
-into callable, array, generic, shape, or object component types.
+have carried prior soundness defects. Slice 1 established the independently tested `UnitUnionTypeHelper`, including
+ordinary-versus-benevolent source precedence and proofs that callable and array components are not traversed. Continue
+in reviewable slices with the root/scalar-preserving unary mappers, then the binary-math Cartesian paths.
 
 Do not generalize branded operand extraction, native-function ownership guards, resolver/rule wrappers, or
 quantity/point inference merely because their control flow looks similar. Their failure, identity, array, correlation,

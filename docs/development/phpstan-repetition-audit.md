@@ -90,9 +90,10 @@ different conversion, arithmetic, and identity rules even where their control fl
 
 ## Recommended Implementation Slices
 
-### Slice 1: Introduce And Prove The Direct-Union Helper
+### Slice 1: Introduce And Prove The Direct-Union Helper (implemented 2026-08-15)
 
-Add one internal helper with direct-alternative and mapped-result-combination operations. Test it independently for:
+`UnitUnionTypeHelper` now provides direct-alternative and mapped-result-combination operations. Its independent tests
+cover:
 
 - one non-union input;
 - an ordinary union;
