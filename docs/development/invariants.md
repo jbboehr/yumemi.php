@@ -84,8 +84,9 @@ native helper to return an object would be a compatibility break.
 - dimensional compatibility permits an explicit conversion between units of the same dimension.
 
 Native addition, subtraction, and modulo require definitional equivalence because PHP cannot convert either operand.
-`Quantity` addition, subtraction, and comparison may convert a dimensionally compatible right operand into the left
-operand's unit. Strict `*WithSameUnit()` methods retain the definitional-equivalence rule.
+Native `intdiv()` follows quotient unit algebra and truncates only the stored integer magnitude; it does not convert
+either operand. `Quantity` addition, subtraction, and comparison may convert a dimensionally compatible right operand
+into the left operand's unit. Strict `*WithSameUnit()` methods retain the definitional-equivalence rule.
 
 **Reason.** `meter` and `foot` measure the same dimension but represent different native magnitudes. Treating
 compatibility as interchangeability would silently calculate the wrong number.

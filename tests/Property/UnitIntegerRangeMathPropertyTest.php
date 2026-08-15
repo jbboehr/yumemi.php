@@ -95,6 +95,11 @@ final class UnitIntegerRangeMathPropertyTest extends TestCase
                     UnitIntegerRangeMath::multiply($this->unit, $left, $right, true),
                     static fn (int $a, int $b): int => $a * $b,
                 );
+                $this->assertDivisionHull(
+                    $left,
+                    $right,
+                    UnitIntegerRangeMath::divide($this->unit, $left, $right),
+                );
             });
     }
 
@@ -173,6 +178,35 @@ final class UnitIntegerRangeMathPropertyTest extends TestCase
         }
 
         return ['min' => $minimum, 'max' => $maximum];
+    }
+
+    /**
+     * @param array{min: int, max: int} $left
+     * @param array{min: int, max: int} $right
+     */
+    private function assertDivisionHull(array $left, array $right, Type $type): void
+    {
+        $metadata = UnitIntegerTypeHelper::extract($type);
+        $description = sprintf(
+            'integer division for [%d, %d] and [%d, %d]',
+            $left['min'],
+            $left['max'],
+            $right['min'],
+            $right['max'],
+        );
+        self::assertNotNull($metadata, $description);
+
+        $values = [];
+        for ($a = $left['min']; $a <= $left['max']; ++$a) {
+            for ($b = $right['min']; $b <= $right['max']; ++$b) {
+                if ($b !== 0) {
+                    $values[] = intdiv($a, $b);
+                }
+            }
+        }
+
+        self::assertSame($values === [] ? null : min($values), $metadata['min'], $description);
+        self::assertSame($values === [] ? null : max($values), $metadata['max'], $description);
     }
 
     /**

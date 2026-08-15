@@ -75,20 +75,24 @@ final class InvalidUnitBinaryMathFunctionRuleTest extends RuleTestCase
                 17,
             ],
             [
-                'Cannot call pow(): unit exponentiation requires a constant integer exponent (e.g. $length ** 2).',
+                'Cannot call intdiv() because the resulting unit exceeds the supported exponent range.',
                 18,
             ],
             [
-                'Cannot call pow(): cannot raise a value to a unit power; the exponent must be a bare integer.',
-                19,
-            ],
-            [
-                'Cannot call pow(): unit exponentiation produces a unit outside the supported exponent range.',
+                'Cannot call pow(): unit exponentiation requires a constant integer exponent (e.g. $length ** 2).',
                 20,
             ],
             [
+                'Cannot call pow(): cannot raise a value to a unit power; the exponent must be a bare integer.',
+                21,
+            ],
+            [
+                'Cannot call pow(): unit exponentiation produces a unit outside the supported exponent range.',
+                22,
+            ],
+            [
                 'Cannot call pow(): unit exponentiation requires a constant integer exponent (e.g. $length ** 2).',
-                24,
+                26,
             ],
         ]);
     }

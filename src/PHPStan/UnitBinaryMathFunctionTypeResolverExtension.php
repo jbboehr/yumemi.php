@@ -130,7 +130,7 @@ final class UnitBinaryMathFunctionTypeResolverExtension implements ExpressionTyp
         }
 
         $functionName = $this->reflectionProvider->getFunction($call->name, $scope)->getName();
-        if (!in_array($functionName, ['fdiv', 'fmod', 'hypot', 'pow'], true)) {
+        if (!in_array($functionName, ['fdiv', 'fmod', 'hypot', 'intdiv', 'pow'], true)) {
             return ['type' => null, 'message' => null];
         }
 
@@ -173,6 +173,9 @@ final class UnitBinaryMathFunctionTypeResolverExtension implements ExpressionTyp
     {
         if ($functionName === 'pow') {
             return $this->transformPow($leftType, $rightType);
+        }
+        if ($functionName === 'intdiv') {
+            return $this->transformIntdiv($leftType, $rightType);
         }
 
         $atomicTypes = static fn (Type $type): array => $type instanceof UnionType ? $type->getTypes() : [$type];
@@ -311,6 +314,87 @@ final class UnitBinaryMathFunctionTypeResolverExtension implements ExpressionTyp
                 }
 
                 $results[] = new UnitFloatType($leftUnit['unit']);
+            }
+        }
+
+        $result = TypeCombinator::union(...$results);
+        $hasBenevolentUnion = $leftType instanceof BenevolentUnionType || $rightType instanceof BenevolentUnionType;
+        $hasOrdinaryUnion = ($leftType instanceof UnionType && !($leftType instanceof BenevolentUnionType))
+            || ($rightType instanceof UnionType && !($rightType instanceof BenevolentUnionType));
+        if ($hasBenevolentUnion && !$hasOrdinaryUnion && $result instanceof UnionType) {
+            $result = new BenevolentUnionType($result->getTypes());
+        }
+
+        return ['type' => $result, 'message' => null];
+    }
+
+    /**
+     * @logion [AWC 43:80] In the third year after the violet eclipse, the widows of the eastern arsenal forged
+     *     plowshares from the locks of the prison. The governor condemned them for profaning judgment; yet when famine
+     *     came, those fields alone bore grain, and he set the broken keys beneath the first loaf offered at court.
+     *
+     * @return CallAnalysis
+     */
+    private function transformIntdiv(Type $leftType, Type $rightType): array
+    {
+        $atomicTypes = static fn (Type $type): array => $type instanceof UnionType ? $type->getTypes() : [$type];
+        $asUnit = static fn (Type $type): ?array => UnitIntegerTypeHelper::extract($type);
+        $isBareInteger = static fn (Type $type): bool => $asUnit($type) === null && $type->isInteger()->yes();
+
+        $leftTypes = $atomicTypes($leftType);
+        $rightTypes = $atomicTypes($rightType);
+        $leftUnits = array_map($asUnit, $leftTypes);
+        $rightUnits = array_map($asUnit, $rightTypes);
+
+        foreach ($leftTypes as $index => $type) {
+            if ($leftUnits[$index] === null && !$isBareInteger($type)) {
+                return ['type' => null, 'message' => null];
+            }
+        }
+        foreach ($rightTypes as $index => $type) {
+            if ($rightUnits[$index] === null && !$isBareInteger($type)) {
+                return ['type' => null, 'message' => null];
+            }
+        }
+
+        $hasUnit = array_filter($leftUnits) !== [] || array_filter($rightUnits) !== [];
+        if (!$hasUnit) {
+            return ['type' => null, 'message' => null];
+        }
+
+        $results = [];
+        foreach ($leftTypes as $leftIndex => $left) {
+            foreach ($rightTypes as $rightIndex => $right) {
+                $leftUnit = $leftUnits[$leftIndex];
+                $rightUnit = $rightUnits[$rightIndex];
+                $unit = match (true) {
+                    $leftUnit !== null && $rightUnit !== null => UnitExpressionAlgebra::divide(
+                        $leftUnit['unit'],
+                        $rightUnit['unit'],
+                    ),
+                    $leftUnit !== null => $leftUnit['unit'],
+                    $rightUnit !== null => UnitExpressionAlgebra::invert($rightUnit['unit']),
+                    default => null,
+                };
+
+                if ($unit === null) {
+                    return [
+                        'type' => null,
+                        'message' => 'Cannot call intdiv() when a possible result is unbranded; every operand pairing must retain a unit.',
+                    ];
+                }
+
+                $leftBounds = $leftUnit === null
+                    ? UnitIntegerTypeHelper::integerBounds($left)
+                    : ['min' => $leftUnit['min'], 'max' => $leftUnit['max']];
+                $rightBounds = $rightUnit === null
+                    ? UnitIntegerTypeHelper::integerBounds($right)
+                    : ['min' => $rightUnit['min'], 'max' => $rightUnit['max']];
+                if ($leftBounds === null || $rightBounds === null) {
+                    return ['type' => null, 'message' => null];
+                }
+
+                $results[] = UnitIntegerRangeMath::divide($unit, $leftBounds, $rightBounds);
             }
         }
 

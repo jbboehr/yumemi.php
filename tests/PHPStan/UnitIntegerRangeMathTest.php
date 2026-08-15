@@ -120,6 +120,99 @@ final class UnitIntegerRangeMathTest extends TestCase
         }
     }
 
+    public function testBoundedIntegerDivisionContainsExactlyTheSuccessfulEnumeratedHull(): void
+    {
+        foreach (self::smallIntervals() as $left) {
+            foreach (self::smallIntervals() as $right) {
+                $type = UnitIntegerRangeMath::divide($this->unit, $left, $right);
+                $metadata = UnitIntegerTypeHelper::extract($type);
+                self::assertNotNull($metadata);
+
+                $values = [];
+                for ($a = $left['min']; $a <= $left['max']; ++$a) {
+                    for ($b = $right['min']; $b <= $right['max']; ++$b) {
+                        if ($b !== 0) {
+                            $values[] = intdiv($a, $b);
+                        }
+                    }
+                }
+
+                $description = sprintf(
+                    'integer division failed for [%d, %d] and [%d, %d]',
+                    $left['min'],
+                    $left['max'],
+                    $right['min'],
+                    $right['max'],
+                );
+                self::assertSame($values === [] ? null : min($values), $metadata['min'], $description);
+                self::assertSame($values === [] ? null : max($values), $metadata['max'], $description);
+            }
+        }
+    }
+
+    public function testIntegerDivisionExcludesNativeExceptionalPairsFromTheSuccessfulHull(): void
+    {
+        $overflowOnly = UnitIntegerRangeMath::divide(
+            $this->unit,
+            ['min' => PHP_INT_MIN, 'max' => PHP_INT_MIN],
+            ['min' => -1, 'max' => -1],
+        );
+        $adjacentDividend = UnitIntegerRangeMath::divide(
+            $this->unit,
+            ['min' => PHP_INT_MIN, 'max' => PHP_INT_MIN + 1],
+            ['min' => -1, 'max' => -1],
+        );
+        $wideDividend = UnitIntegerRangeMath::divide(
+            $this->unit,
+            ['min' => PHP_INT_MIN, 'max' => 0],
+            ['min' => -1, 'max' => -1],
+        );
+        $mixedDivisor = UnitIntegerRangeMath::divide(
+            $this->unit,
+            ['min' => PHP_INT_MIN, 'max' => PHP_INT_MIN],
+            ['min' => -1, 'max' => 1],
+        );
+        $negativeDivisors = UnitIntegerRangeMath::divide(
+            $this->unit,
+            ['min' => PHP_INT_MIN, 'max' => PHP_INT_MIN],
+            ['min' => -3, 'max' => -1],
+        );
+        $zeroOnly = UnitIntegerRangeMath::divide(
+            $this->unit,
+            ['min' => -10, 'max' => 10],
+            ['min' => 0, 'max' => 0],
+        );
+
+        self::assertSame(
+            ['unit' => $this->unit, 'min' => null, 'max' => null],
+            UnitIntegerTypeHelper::extract($overflowOnly),
+        );
+        self::assertSame(
+            ['unit' => $this->unit, 'min' => PHP_INT_MAX, 'max' => PHP_INT_MAX],
+            UnitIntegerTypeHelper::extract($adjacentDividend),
+        );
+        self::assertSame(
+            ['unit' => $this->unit, 'min' => 0, 'max' => null],
+            UnitIntegerTypeHelper::extract($wideDividend),
+        );
+        self::assertSame(
+            ['unit' => $this->unit, 'min' => PHP_INT_MIN, 'max' => PHP_INT_MIN],
+            UnitIntegerTypeHelper::extract($mixedDivisor),
+        );
+        self::assertSame(
+            [
+                'unit' => $this->unit,
+                'min' => intdiv(PHP_INT_MIN, -3),
+                'max' => intdiv(PHP_INT_MIN, -2),
+            ],
+            UnitIntegerTypeHelper::extract($negativeDivisors),
+        );
+        self::assertSame(
+            ['unit' => $this->unit, 'min' => null, 'max' => null],
+            UnitIntegerTypeHelper::extract($zeroOnly),
+        );
+    }
+
     public function testBoundedAbsoluteIntervalsContainExactlyTheEnumeratedHull(): void
     {
         foreach (self::smallIntervals() as $bounds) {

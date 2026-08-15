@@ -90,6 +90,9 @@ assertType("3.0&unit_float<'meter / second'>", fdiv(unit(6, 'meter'), unit(2, 's
 assertType("3.0&unit_float<'meter'>", fdiv(num1: unit(6, 'meter'), num2: 2));
 assertType("0.5&unit_float<'1 / second'>", fdiv(1, unit(2, 'second')));
 assertType("unit_float<'meter'>", fdiv(unit(1.0, 'meter'), 0.0));
+assertType("2&unit_int<'meter / second'>", intdiv(unit(7, 'meter'), unit(3, 'second')));
+assertType("-2&unit_int<'meter'>", intdiv(num1: unit(-7, 'meter'), num2: 3));
+assertType("-2&unit_int<'1 / second'>", intdiv(7, unit(-3, 'second')));
 assertType("1.0&unit_float<'meter'>", fmod(unit(7, 'meter'), unit(3, 'm')));
 assertType("1.0&unit_float<'meter'>", fmod(num1: unit(7, 'meter'), num2: unit(3, 'meter')));
 assertType("5.0&unit_float<'meter'>", hypot(unit(3, 'meter'), unit(4, 'm')));
@@ -112,6 +115,7 @@ assertType("0.4636476090008061&unit_float<'radian'>", atan2(x: unit(2, 'second')
 /** @param unit_int<'meter'>&int<1, 5> $value */
 function assertBrandedBinaryMath(int $value): void
 {
+    assertType("unit_int<'meter'>&int<0, 2>", intdiv($value, 2));
     assertType("unit_float<'meter'>", fmod($value, unit(2, 'meter')));
     assertType("unit_float<'meter'>", hypot($value, unit(2, 'meter')));
     assertType("unit_int<'meter ^ 2'>&int<1, 25>", pow($value, 2));
@@ -296,6 +300,7 @@ assertType('float', sqrt(4.0));
 assertType('3.0', floatval(3));
 assertType('3', intval(3.5));
 assertType('float', fdiv(6, 2));
+assertType('int', intdiv(7, 3));
 assertType('float', fmod(7, 3));
 assertType('float', hypot(3, 4));
 assertType('9', pow(3, 2));
@@ -325,3 +330,6 @@ assertType('float', $directionFunction(1.0, 1.0));
 
 $powerFunction = pow(...);
 assertType('float|int|object', $powerFunction(3, 2));
+
+$integerDivisionFunction = intdiv(...);
+assertType('int', $integerDivisionFunction(7, 3));

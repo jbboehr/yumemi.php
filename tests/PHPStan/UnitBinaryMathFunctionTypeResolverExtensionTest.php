@@ -43,6 +43,7 @@ use jbboehr\Yumemi\PHPStan\UnitExpression;
 use jbboehr\Yumemi\PHPStan\UnitExpressionParser;
 use jbboehr\Yumemi\PHPStan\UnitFloatType;
 use jbboehr\Yumemi\PHPStan\UnitIntegerType;
+use jbboehr\Yumemi\PHPStan\UnitIntegerTypeHelper;
 use jbboehr\Yumemi\PHPStan\UnitOperatorTypeSpecifyingExtension;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Identifier;
@@ -251,6 +252,139 @@ final class UnitBinaryMathFunctionTypeResolverExtensionTest extends TestCase
         self::assertSame(
             ['type' => null, 'message' => null],
             $this->analyse('pow', $array, new UnitConstantIntegerType(2, $this->unit('second'))),
+        );
+    }
+
+    public function testIntegerDivisionAppliesQuotientUnitAlgebraAndTruncatesConstants(): void
+    {
+        $unitQuotient = $this->analyse(
+            'intdiv',
+            new UnitConstantIntegerType(7, $this->unit('meter')),
+            new UnitConstantIntegerType(3, $this->unit('second')),
+        );
+        $brandedDividend = $this->analyse(
+            'intdiv',
+            new UnitConstantIntegerType(-7, $this->unit('meter')),
+            new ConstantIntegerType(3),
+        );
+        $brandedDivisor = $this->analyse(
+            'intdiv',
+            new ConstantIntegerType(7),
+            new UnitConstantIntegerType(-3, $this->unit('second')),
+        );
+
+        self::assertSame(
+            "2&unit_int<'meter / second'>",
+            $unitQuotient['type']?->describe(VerbosityLevel::precise()),
+        );
+        self::assertSame("-2&unit_int<'meter'>", $brandedDividend['type']?->describe(VerbosityLevel::precise()));
+        self::assertSame(
+            "-2&unit_int<'1 / second'>",
+            $brandedDivisor['type']?->describe(VerbosityLevel::precise()),
+        );
+        self::assertNull($unitQuotient['message']);
+        self::assertNull($brandedDividend['message']);
+        self::assertNull($brandedDivisor['message']);
+    }
+
+    public function testIntegerDivisionResolvesNativeNamedArguments(): void
+    {
+        $left = new Variable('left');
+        $right = new Variable('right');
+        $analysis = $this->extension('intdiv')->analyseCall(
+            new FuncCall(new Name('intdiv'), [
+                new Arg($right, name: new Identifier('num2')),
+                new Arg($left, name: new Identifier('num1')),
+            ]),
+            $this->scope(
+                new UnitConstantIntegerType(7, $this->unit('meter')),
+                new ConstantIntegerType(3),
+            ),
+        );
+
+        self::assertSame("2&unit_int<'meter'>", $analysis['type']?->describe(VerbosityLevel::precise()));
+        self::assertNull($analysis['message']);
+    }
+
+    public function testIntegerDivisionPreservesBoundedSuccessfulResults(): void
+    {
+        $analysis = $this->analyse(
+            'intdiv',
+            UnitIntegerTypeHelper::create($this->unit('meter'), -7, 7),
+            new ConstantIntegerType(3),
+        );
+
+        self::assertSame("unit_int<'meter'>&int<-2, 2>", $analysis['type']?->describe(VerbosityLevel::precise()));
+        self::assertNull($analysis['message']);
+    }
+
+    public function testIntegerDivisionKeepsAConservativeBrandForAlwaysExceptionalInputs(): void
+    {
+        $zero = $this->analyse(
+            'intdiv',
+            new UnitConstantIntegerType(7, $this->unit('meter')),
+            new ConstantIntegerType(0),
+        );
+        $overflow = $this->analyse(
+            'intdiv',
+            new UnitConstantIntegerType(PHP_INT_MIN, $this->unit('meter')),
+            new ConstantIntegerType(-1),
+        );
+
+        self::assertSame("unit_int<'meter'>", $zero['type']?->describe(VerbosityLevel::precise()));
+        self::assertSame("unit_int<'meter'>", $overflow['type']?->describe(VerbosityLevel::precise()));
+        self::assertNull($zero['message']);
+        self::assertNull($overflow['message']);
+    }
+
+    public function testIntegerDivisionRejectsPossibleUnbrandedResults(): void
+    {
+        $analysis = $this->analyse(
+            'intdiv',
+            new UnionType([
+                new UnitIntegerType($this->unit('meter')),
+                new IntegerType(),
+            ]),
+            new ConstantIntegerType(2),
+        );
+
+        self::assertNull($analysis['type']);
+        self::assertSame(
+            'Cannot call intdiv() when a possible result is unbranded; every operand pairing must retain a unit.',
+            $analysis['message'],
+        );
+    }
+
+    public function testIntegerDivisionDefersBareAndInvalidNativeOperands(): void
+    {
+        $array = new ArrayType(new IntegerType(), new IntegerType());
+
+        self::assertSame(
+            ['type' => null, 'message' => null],
+            $this->analyse('intdiv', new ConstantIntegerType(7), new ConstantIntegerType(3)),
+        );
+        self::assertSame(
+            ['type' => null, 'message' => null],
+            $this->analyse('intdiv', new UnitFloatType($this->unit('meter')), new ConstantIntegerType(3)),
+        );
+        self::assertSame(
+            ['type' => null, 'message' => null],
+            $this->analyse('intdiv', new UnitIntegerType($this->unit('meter')), $array),
+        );
+    }
+
+    public function testIntegerDivisionReportsUnitExponentOverflow(): void
+    {
+        $analysis = $this->analyse(
+            'intdiv',
+            new UnitIntegerType($this->unit('meter ^ 10000')),
+            new UnitIntegerType($this->unit('meter ^ -10000')),
+        );
+
+        self::assertNull($analysis['type']);
+        self::assertSame(
+            'Cannot call intdiv() because the resulting unit exceeds the supported exponent range.',
+            $analysis['message'],
         );
     }
 

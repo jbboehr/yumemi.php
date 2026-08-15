@@ -262,7 +262,8 @@ comparison variants remain low value because comparisons do not produce a unit-b
 Status: **Partial** | Importance: **P2** | Remaining difficulty: **L**
 
 Exact integer `pow()` exists for rational magnitudes, expressions, dimensions, and quantities. PHPStan preserves branded
-units through native `**` and `pow()` when every possible exponent is a statically known integer. `Rational::root()`,
+units through native `**` and `pow()` when every possible exponent is a statically known integer, and models native
+`intdiv()` with exact quotient unit algebra and truncation-toward-zero integer bounds. `Rational::root()`,
 `Dimension::root()`, and `Quantity::root()` support exact positive integer-degree roots while keeping unit powers
 integral and symbolic substitution explicit. Native branded `sqrt()` transforms an exact symbolic square unit and
 diagnoses non-rootable brands. Native `deg2rad()` and `rad2deg()` preserve canonical angle units; `sin()`, `cos()`, and

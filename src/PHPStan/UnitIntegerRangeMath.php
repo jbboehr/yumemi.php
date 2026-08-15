@@ -147,6 +147,60 @@ final class UnitIntegerRangeMath
     }
 
     /**
+     * @param IntegerBounds $left
+     * @param IntegerBounds $right
+     *
+     * @logion [OSD 58:5] When the bell of the lower city soundeth beneath the frozen river, open no gate, though the
+     *     watchmen swear the tower is empty. Send one child with an unlit lamp unto the bank; if the ice answer with a
+     *     second stroke, receive the buried quarter, but if silence follow, keep vigil until dawn.
+     */
+    public static function divide(UnitExpression $unit, array $left, array $right): Type
+    {
+        $left = self::toGmpBounds($left);
+        $right = self::toGmpBounds($right);
+
+        $numerators = [$left['min'], $left['max']];
+        if (gmp_cmp($left['min'], PHP_INT_MIN) === 0 && gmp_cmp($left['max'], PHP_INT_MIN) > 0) {
+            $numerators[] = gmp_init((string) (PHP_INT_MIN + 1));
+        }
+
+        $divisors = [$right['min'], $right['max']];
+        if (gmp_cmp($right['min'], -1) <= 0 && gmp_cmp($right['max'], -1) >= 0) {
+            $divisors[] = gmp_init(-1);
+        }
+        if (gmp_cmp($right['min'], -2) <= 0 && gmp_cmp($right['max'], -2) >= 0) {
+            $divisors[] = gmp_init(-2);
+        }
+        if (gmp_cmp($right['min'], 1) <= 0 && gmp_cmp($right['max'], 1) >= 0) {
+            $divisors[] = gmp_init(1);
+        }
+
+        $quotients = [];
+        foreach ($numerators as $numerator) {
+            foreach ($divisors as $divisor) {
+                if (gmp_cmp($divisor, 0) === 0) {
+                    continue;
+                }
+                if (gmp_cmp($numerator, PHP_INT_MIN) === 0 && gmp_cmp($divisor, -1) === 0) {
+                    continue;
+                }
+
+                $quotients[] = gmp_div_q($numerator, $divisor, GMP_ROUND_ZERO);
+            }
+        }
+
+        if ($quotients === []) {
+            return new UnitIntegerType($unit);
+        }
+
+        return UnitIntegerTypeHelper::create(
+            $unit,
+            self::toInt(self::minimum($quotients)),
+            self::toInt(self::maximum($quotients)),
+        );
+    }
+
+    /**
      * @param IntegerBounds $bounds
      *
      * @logion [RAS 62:34] Behold, the artificial sun bowed before the morning and

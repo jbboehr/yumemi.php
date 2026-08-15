@@ -37,6 +37,11 @@ function fdiv(int|float $num1, int|float $num2): string
     return (string) ($num1 / $num2);
 }
 
+function intdiv(int $num1, int $num2): string
+{
+    return (string) \intdiv($num1, $num2);
+}
+
 function fmod(int|float $num1, int|float $num2): string
 {
     return (string) ($num1 % $num2);
@@ -124,6 +129,7 @@ assertType('string', floatval($value));
 assertType('string', doubleval($value));
 assertType('string', intval($value));
 assertType('string', fdiv($value, $value));
+assertType('string', intdiv($value, $value));
 assertType('string', fmod($value, $value));
 assertType('string', hypot($value, $value));
 assertType('string', pow($value, 2));
@@ -145,6 +151,7 @@ assertType("-3.0&unit_float<'meter'>", \floatval($value));
 assertType("-3.0&unit_float<'meter'>", \doubleval($value));
 assertType("-3&unit_int<'meter'>", \intval($value));
 assertType("1.0&unit_float<'1'>", \fdiv($value, $value));
+assertType("-1&unit_int<'meter'>", \intdiv($value, 2));
 assertType("-0.0&unit_float<'meter'>", \fmod($value, $value));
 assertType("4.242640687119285&unit_float<'meter'>", \hypot($value, $value));
 assertType("9&unit_int<'meter ^ 2'>", \pow($value, 2));

@@ -240,6 +240,7 @@ square root is exact:
 | `min()` and `max()`              | Common brand, retaining known extrema or integer bounds  |
 | `sqrt($unitNumber)`              | Rooted unit, retaining a finite nonnegative constant     |
 | `fdiv($left, $right)`            | Quotient unit, matching native `/` unit algebra          |
+| `intdiv($left, $right)`          | Integer quotient unit with truncation toward zero        |
 | `fmod($left, $right)`            | Common definitionally equivalent unit                    |
 | `hypot($left, $right)`           | Common definitionally equivalent unit                    |
 | `pow($base, $exponent)`          | Base unit raised to a constant integer exponent          |
@@ -285,10 +286,14 @@ $rise = 3.0;
 $run = 4.0;
 $direction = atan2($rise, $run);
 $platformVolume = pow($platformWidth, 3);
+/** @var unit_int<'meter'> $surveyedLength */
+$surveyedLength = 7;
+$wholeHalfLength = intdiv($surveyedLength, 2);
 
 assert((float) $displayHeight === 12.0);
 assert((float) $platformWidth === 12.0);
 assert((float) $bearingInRadians === M_PI);
+assert((int) $wholeHalfLength === 3);
 ```
 
 Crossing a known integer constant to a float retains both its value and unit. Integer ranges still generalize because
@@ -331,6 +336,16 @@ branded numeric operands. Calls containing nonnumeric alternatives are left to P
 three functions return `unit_float` and retain a known finite result when both magnitudes are known. Non-finite results
 retain only the derived brand. `fdiv()` also reports `yumemi.invalidUnitMathFunction` when the quotient unit would
 exceed Yumemi's supported exponent range.
+
+`intdiv()` applies the same quotient unit algebra to integer operands and returns `unit_int`. Two branded operands
+produce the quotient of their units; one branded operand preserves that unit or produces its reciprocal according to its
+position. Known constants and integer ranges retain truncation-toward-zero bounds. A wholly bare call remains under
+PHPStan's native inference, while float or otherwise invalid operands remain under its native argument checking. Every
+possible operand pairing must retain a unit; if union alternatives permit a wholly bare pairing, Yumemi reports
+`yumemi.invalidUnitMathFunction` instead of inferring a same-carrier branded/bare union. Division by zero and
+`PHP_INT_MIN / -1` retain PHPStan's native throw analysis; Yumemi keeps a conservative branded return type for those
+exceptional paths rather than inventing a successful value. An unrepresentable quotient unit reports
+`yumemi.invalidUnitMathFunction`.
 
 `pow()` follows the same branded-unit contract as native `**`. Its base may be a branded integer or float, while every
 possible exponent must be a bare constant integer from `-10000` through `10000`. The unit is raised to that exponent;
@@ -745,9 +760,9 @@ Use the identifier to choose the first corrective step:
   `atan2()`, give both operands one definitionally equivalent brand; convert either magnitude before the call when their
   units are merely compatible.
 - For `yumemi.invalidUnitMathFunction`, give both `fmod()` or `hypot()` operands one definitionally equivalent brand, or
-  reduce `fdiv()` operand exponents so its quotient unit remains representable. For `pow()`, use a bare constant integer
-  exponent within the supported range and ensure the resulting unit remains representable. Convert compatible magnitudes
-  explicitly before calling the function.
+  ensure every possible `intdiv()` pairing retains a brand. Reduce `fdiv()` or `intdiv()` operand exponents so their
+  quotient unit remains representable. For `pow()`, use a bare constant integer exponent within the supported range and
+  ensure the resulting unit remains representable. Convert compatible magnitudes explicitly before calling the function.
 - For `yumemi.invalidUnitSelection`, ensure every value that `min()` or `max()` can return has one definitionally
   equivalent unit. Convert compatible but differently branded values before selecting an extreme.
 - For quantity arithmetic, comparison, or point diagnostics, verify the statically known dimensions and distinguish a
@@ -767,10 +782,10 @@ Important limits of the current static model are:
   `unit_numeric_string` brand onto the resulting number. Implicit arithmetic and weak numeric coercion do not preserve a
   numeric-string brand; comparisons still require definitionally equivalent brands. `abs()`, `ceil()`, `floor()`,
   `round()`, `min()`, and `max()` preserve numeric unit brands when their operation has one sound result unit. `sqrt()`
-  transforms exact symbolic roots, `fdiv()` follows division algebra, `fmod()`/`hypot()` require equivalent brands, and
-  `pow()` raises a branded unit to a constant integer exponent. `deg2rad()`, `rad2deg()`, and the trigonometric
-  functions enforce their canonical angle, exact-unscaled-ratio, or equivalent-operand contracts. Other unsupported
-  casts and PHP built-ins can erase brands.
+  transforms exact symbolic roots, `fdiv()` and `intdiv()` follow division algebra, `fmod()`/`hypot()` require
+  equivalent brands, and `pow()` raises a branded unit to a constant integer exponent. `deg2rad()`, `rad2deg()`, and the
+  trigonometric functions enforce their canonical angle, exact-unscaled-ratio, or equivalent-operand contracts. Other
+  unsupported casts and PHP built-ins can erase brands.
 - Native `+` and `-` cannot convert dimensionally compatible magnitudes; use an explicit conversion or `Quantity`.
 - Native affine targets remain unbranded because native scalars do not retain point-versus-difference identity. Use
   `PointQuantity<'...'>` when that identity must remain statically visible.

@@ -11,10 +11,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Context-bound preferred-unit profiles for exact application-selected `Quantity` conversion by dimension.
 - Exact `Quantity::toCompact()` engineering-prefix selection within a caller-selected named unit family.
-- PHPStan brand inference for `intval()`, `floatval()`, `doubleval()`, `fdiv()`, `fmod()`, `hypot()`, and native
-  integer-exponent `pow()` calls.
-- The stable `yumemi.invalidUnitMathFunction` diagnostic for incompatible branded `fmod()`/`hypot()` calls and invalid
-  or unrepresentable `fdiv()`/`pow()` unit algebra.
+- PHPStan brand inference for `intval()`, `floatval()`, `doubleval()`, `fdiv()`, `intdiv()`, `fmod()`, `hypot()`, and
+  native integer-exponent `pow()` calls.
+- The stable `yumemi.invalidUnitMathFunction` diagnostic for incompatible branded `fmod()`/`hypot()` calls and invalid,
+  ambiguous, or unrepresentable `fdiv()`/`intdiv()`/`pow()` unit algebra.
 - PHPStan inference for canonical `deg2rad()` and `rad2deg()` conversions and branded trigonometric functions, including
   `atan2()`, with the stable `yumemi.invalidUnitAngleFunction` diagnostic for incorrect angle, ratio, or operand brands.
 
