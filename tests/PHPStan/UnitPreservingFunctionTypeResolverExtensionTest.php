@@ -59,6 +59,7 @@ use PHPStan\Type\Constant\ConstantIntegerType;
 use PHPStan\Type\Constant\ConstantStringType;
 use PHPStan\Type\Enum\EnumCaseObjectType;
 use PHPStan\Type\IntegerType;
+use PHPStan\Type\StringType;
 use PHPStan\Type\Type;
 use PHPStan\Type\UnionType;
 use PHPStan\Type\VerbosityLevel;
@@ -67,6 +68,19 @@ use PHPUnit\Framework\TestCase;
 
 final class UnitPreservingFunctionTypeResolverExtensionTest extends TestCase
 {
+    public function testPreservingFunctionFailsClosedWhenAnyUnionArmIsUnsupported(): void
+    {
+        $result = $this->resolve(
+            'abs',
+            new UnionType([
+                new UnitFloatType($this->unit('meter')),
+                new StringType(),
+            ]),
+        );
+
+        self::assertNull($result);
+    }
+
     public function testRoundPreservesExactConstantsAcrossPrecisionAndLegacyModeAlternatives(): void
     {
         $precision = new UnionType([
@@ -258,6 +272,26 @@ final class UnitPreservingFunctionTypeResolverExtensionTest extends TestCase
         bool $named = false,
         ?Expr $modeExpression = null,
     ): ?Type {
+        return $this->resolve(
+            'round',
+            $number,
+            $precision,
+            $mode,
+            $targetVersion,
+            $named,
+            $modeExpression,
+        );
+    }
+
+    private function resolve(
+        string $functionName,
+        Type $number,
+        ?Type $precision = null,
+        ?Type $mode = null,
+        int $targetVersion = PHP_VERSION_ID,
+        bool $named = false,
+        ?Expr $modeExpression = null,
+    ): ?Type {
         $numberExpression = new Variable('number');
         $precisionExpression = new Variable('precision');
         $modeExpression ??= new Variable('mode');
@@ -290,7 +324,7 @@ final class UnitPreservingFunctionTypeResolverExtensionTest extends TestCase
                 ?? throw new \LogicException('Unexpected expression.'),
         );
         $function = self::createStub(FunctionReflection::class);
-        $function->method('getName')->willReturn('round');
+        $function->method('getName')->willReturn($functionName);
         $reflectionProvider = self::createStub(ReflectionProvider::class);
         $reflectionProvider->method('hasFunction')->willReturn(true);
         $reflectionProvider->method('getFunction')->willReturn($function);
@@ -300,7 +334,7 @@ final class UnitPreservingFunctionTypeResolverExtensionTest extends TestCase
             true,
         );
 
-        return $extension->getType(new FuncCall(new Name('round'), $arguments), $scope);
+        return $extension->getType(new FuncCall(new Name($functionName), $arguments), $scope);
     }
 
     private function unit(string $expression): UnitExpression

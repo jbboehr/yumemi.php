@@ -106,12 +106,11 @@ cover:
 The helper must preserve source order only where PHPStan promises it; callers that require deterministic diagnostics
 should continue sorting their own display strings.
 
-### Slice 2: Migrate Unary Mappers
+### Slice 2: Migrate Unary Mappers (implemented 2026-08-15)
 
-Use the helper in `UnitRootFunctionTypeResolverExtension` and
-`UnitPreservingFunctionTypeResolverExtension`. Preserve root diagnostics and the scalar-preserving resolver's immediate
-fallback when any mapped arm is unsupported. Run focused resolver tests, PHPStan integration fixtures, mutation testing
-for the touched PHPStan filter, and the complete normal gate.
+`UnitRootFunctionTypeResolverExtension` and `UnitPreservingFunctionTypeResolverExtension` now use the helper. Root
+diagnostics remain local, and focused coverage preserves the scalar-preserving resolver's immediate fallback when any
+mapped arm is unsupported.
 
 ### Slice 3: Migrate Binary Math
 

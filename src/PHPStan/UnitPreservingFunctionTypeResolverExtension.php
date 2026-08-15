@@ -44,14 +44,12 @@ use PhpParser\Node\Name;
 use PHPStan\Analyser\Scope;
 use PHPStan\Php\PhpVersion;
 use PHPStan\Reflection\ReflectionProvider;
-use PHPStan\Type\BenevolentUnionType;
 use PHPStan\Type\Constant\ConstantIntegerType;
 use PHPStan\Type\ExpressionTypeResolverExtension;
 use PHPStan\Type\IntegerType;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\TypeUtils;
-use PHPStan\Type\UnionType;
 
 /**
  * Preserves branded numeric units through a conservative set of scalar functions.
@@ -184,22 +182,10 @@ final class UnitPreservingFunctionTypeResolverExtension implements ExpressionTyp
         ?Type $modeType,
         ?string $roundingModeCase,
     ): ?Type {
-        $combinationLimit = 128;
-        if (!$type instanceof UnionType) {
-            return $this->transformArm(
-                $type,
-                $functionName,
-                $allowNumericString,
-                $precisionType,
-                $modeType,
-                $roundingModeCase,
-                $combinationLimit,
-            );
-        }
-
-        $combinationLimit = intdiv($combinationLimit, count($type->getTypes()));
+        $types = UnitUnionTypeHelper::directAlternatives($type);
+        $combinationLimit = intdiv(128, count($types));
         $results = [];
-        foreach ($type->getTypes() as $innerType) {
+        foreach ($types as $innerType) {
             $result = $this->transformArm(
                 $innerType,
                 $functionName,
@@ -216,12 +202,7 @@ final class UnitPreservingFunctionTypeResolverExtension implements ExpressionTyp
             $results[] = $result;
         }
 
-        $result = TypeCombinator::union(...$results);
-        if ($type instanceof BenevolentUnionType && $result instanceof UnionType) {
-            return new BenevolentUnionType($result->getTypes());
-        }
-
-        return $result;
+        return UnitUnionTypeHelper::combineMapped($results, $type);
     }
 
     /**

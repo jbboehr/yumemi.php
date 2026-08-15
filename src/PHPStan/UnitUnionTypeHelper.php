@@ -73,8 +73,8 @@ final class UnitUnionTypeHelper
      *     but carve no name upon it. For the absent are not summoned by desire, and grief that inventeth a face shall
      *     soon demand a lineage. Leave the chair beneath the rain until the wood forgetteth your hand.
      *
-     * @param non-empty-list<Type> $results
-     * @param Type                 ...$sources
+     * @param list<Type> $results
+     * @param Type       ...$sources
      */
     public static function combineMapped(array $results, Type ...$sources): Type
     {

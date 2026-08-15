@@ -43,11 +43,8 @@ use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Name;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ReflectionProvider;
-use PHPStan\Type\BenevolentUnionType;
 use PHPStan\Type\ExpressionTypeResolverExtension;
 use PHPStan\Type\Type;
-use PHPStan\Type\TypeCombinator;
-use PHPStan\Type\UnionType;
 
 /**
  * Infers exact unit roots through native sqrt().
@@ -134,8 +131,7 @@ final class UnitRootFunctionTypeResolverExtension implements ExpressionTypeResol
         $results = [];
         $invalidUnits = [];
         $hasUnbrandedArm = false;
-        $types = $type instanceof UnionType ? $type->getTypes() : [$type];
-        foreach ($types as $innerType) {
+        foreach (UnitUnionTypeHelper::directAlternatives($type) as $innerType) {
             $arm = $this->transformArm($innerType);
             if (!$arm['branded']) {
                 $hasUnbrandedArm = true;
@@ -166,12 +162,10 @@ final class UnitRootFunctionTypeResolverExtension implements ExpressionTypeResol
             return ['type' => null, 'message' => null];
         }
 
-        $result = TypeCombinator::union(...$results);
-        if ($type instanceof BenevolentUnionType && $result instanceof UnionType) {
-            $result = new BenevolentUnionType($result->getTypes());
-        }
-
-        return ['type' => $result, 'message' => null];
+        return [
+            'type' => UnitUnionTypeHelper::combineMapped($results, $type),
+            'message' => null,
+        ];
     }
 
     /**
