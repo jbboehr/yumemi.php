@@ -92,6 +92,11 @@ function atan(int|float $num): string
     return (string) $num;
 }
 
+function atan2(int|float $y, int|float $x): string
+{
+    return (string) ($y / $x);
+}
+
 function min(int|float ...$values): string
 {
     return implode(',', $values);
@@ -125,6 +130,7 @@ assertType('string', tan($radians));
 assertType('string', asin($ratio));
 assertType('string', acos($ratio));
 assertType('string', atan($ratio));
+assertType('string', atan2($value, $value));
 assertType('string', min($value, $value));
 assertType('string', max($value, $value));
 assertType("3&unit_int<'meter'>", \abs($value));
@@ -144,5 +150,6 @@ assertType("-1.2246467991473532E-16&unit_float<'1'>", \tan($radians));
 assertType("0.5235987755982989&unit_float<'radian'>", \asin($ratio));
 assertType("1.0471975511965979&unit_float<'radian'>", \acos($ratio));
 assertType("0.4636476090008061&unit_float<'radian'>", \atan($ratio));
+assertType("-2.356194490192345&unit_float<'radian'>", \atan2($value, $value));
 assertType("-3&unit_int<'meter'>", \min($value, $value));
 assertType("-3&unit_int<'meter'>", \max($value, $value));

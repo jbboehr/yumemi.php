@@ -246,6 +246,7 @@ square root is exact:
 | `rad2deg($radians)`              | `unit_float<'arc_degree'>`                               |
 | `sin()`, `cos()`, and `tan()`    | `unit_float<'1'>` from canonical radians                 |
 | `asin()`, `acos()`, and `atan()` | `unit_float<'radian'>` from an exact unscaled ratio      |
+| `atan2($y, $x)`                  | `unit_float<'radian'>` from equivalent operand units     |
 
 For example, these transformations remain ordinary native PHP operations at runtime:
 
@@ -277,6 +278,11 @@ $horizontalComponent = sin($bearingInRadians);
 /** @var unit_float<'1'> $slopeRatio */
 $slopeRatio = 0.5;
 $inclination = asin($slopeRatio);
+/** @var unit_float<'meter'> $rise */
+$rise = 3.0;
+/** @var unit_float<'meter'> $run */
+$run = 4.0;
+$direction = atan2($rise, $run);
 
 assert((float) $displayHeight === 12.0);
 assert((float) $platformWidth === 12.0);
@@ -337,13 +343,18 @@ angular scale before evaluating them. Their results are unscaled ratios branded 
 `acos()`, and `atan()` reverse that relation: they require an expression that reduces structurally to the unscaled unit
 `1` and return canonical `unit_float<'radian'>`. A ratio such as `meter / meter` qualifies because its symbols cancel.
 Named dimensionless units such as `percent`, `count`, `radian`, and `steradian` do not qualify merely because their
-dimensions or normalized definitions are dimensionless. Convert the magnitude to `1`, or deliberately rebrand an
-already unscaled ratio as `unit_float<'1'>`, when its ratio semantics are known.
+dimensions or normalized definitions are dimensionless. Convert the magnitude to `1`, or deliberately rebrand an already
+unscaled ratio as `unit_float<'1'>`, when its ratio semantics are known.
 
-The unary trigonometric functions retain finite constant results. A branded call whose native result falls outside that
-finite set, such as `asin(unit(2.0, '1'))`, retains the output unit but generalizes its magnitude instead of representing
-`NAN` as a branded constant. As with the conversion functions, wholly bare calls remain ordinary PHPStan `float`
-expressions.
+`atan2($y, $x)` accepts two branded operands only when their units are definitionally equivalent across every possible
+union pairing. The common unit may be dimensional: `meter` and `100 * centimeter` qualify because their scale is the
+same, while `meter` and `foot` do not because native PHP performs no conversion. Mixing a branded operand with a bare
+number reports `yumemi.invalidUnitAngleFunction`. A wholly bare call remains an ordinary PHPStan `float` expression. The
+branded result is canonical `unit_float<'radian'>`.
+
+The modeled trigonometric functions retain finite constant results. A branded call whose native result falls outside
+that finite set, such as `asin(unit(2.0, '1'))`, retains the output unit but generalizes its magnitude instead of
+representing `NAN` as a branded constant.
 
 The identity check applies to the unit expression statically visible at the native call. Yumemi preserves structurally
 distinct alternatives such as `unit_float<'arc_degree'>|unit_float<'degree_north'>` so that the call fails closed.
@@ -677,7 +688,7 @@ scope:
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `yumemi.dynamicUnitExpression`         | A native helper argument does not reveal its complete unit expression during analysis                        |
 | `yumemi.ambiguousUnitExpression`       | Native helper alternatives produce more than one semantic result unit                                        |
-| `yumemi.invalidUnitAngleFunction`      | Native angle function received a brand that is not its required canonical angle or unscaled-ratio input      |
+| `yumemi.invalidUnitAngleFunction`      | Native angle function received a noncanonical input, or `atan2()` received mixed or inequivalent operands    |
 | `yumemi.invalidUnitCall`               | An invalid constant `unit()`, `unit_factor()`, or `unit_to()` call                                           |
 | `yumemi.invalidUnitComparison`         | A native equality, identity, ordering, or spaceship comparison whose units are not definitionally equivalent |
 | `yumemi.invalidUnitMathFunction`       | Native `fdiv()` produced an unrepresentable unit, or `fmod()`/`hypot()` received incompatible operands       |
@@ -720,7 +731,9 @@ Use the identifier to choose the first corrective step:
   trigonometric functions a `radian` alias. Inverse trigonometric functions require an explicitly unscaled `1` ratio.
   Convert explicitly rather than relying on dimensional or scale equivalence, for example
   `deg2rad(unit_to($latitude, 'degree_north', 'arc_degree'))` or `asin(unit_to($grade, 'percent', '1'))`. When the value
-  is already an unscaled ratio and no conversion is intended, deliberately declare it as `unit_float<'1'>`.
+  is already an unscaled ratio and no conversion is intended, deliberately declare it as `unit_float<'1'>`. For
+  `atan2()`, give both operands one definitionally equivalent brand; convert either magnitude before the call when their
+  units are merely compatible.
 - For `yumemi.invalidUnitMathFunction`, give both `fmod()` or `hypot()` operands one definitionally equivalent brand, or
   reduce `fdiv()` operand exponents so its quotient unit remains representable. Convert compatible magnitudes explicitly
   before calling the function.
@@ -744,8 +757,8 @@ Important limits of the current static model are:
   numeric-string brand; comparisons still require definitionally equivalent brands. `abs()`, `ceil()`, `floor()`,
   `round()`, `min()`, and `max()` preserve numeric unit brands when their operation has one sound result unit. `sqrt()`
   transforms exact symbolic roots, `fdiv()` follows division algebra, and `fmod()`/`hypot()` require equivalent brands.
-  `deg2rad()`, `rad2deg()`, and the unary trigonometric functions enforce their canonical angle or exact-unscaled-ratio
-  contracts. `atan2()`, other unsupported casts, and other unsupported PHP built-ins can erase brands.
+  `deg2rad()`, `rad2deg()`, and the trigonometric functions enforce their canonical angle, exact-unscaled-ratio, or
+  equivalent-operand contracts. Other unsupported casts and PHP built-ins can erase brands.
 - Native `+` and `-` cannot convert dimensionally compatible magnitudes; use an explicit conversion or `Quantity`.
 - Native affine targets remain unbranded because native scalars do not retain point-versus-difference identity. Use
   `PointQuantity<'...'>` when that identity must remain statically visible.

@@ -1,13 +1,13 @@
 # Native Angle Function Design Spike
 
-Status: **Slices 1 and 2 implemented; slice 3 remains deferred.**
+Status: **Implemented.**
 
 This spike defines how Yumemi's PHPStan extension should model PHP's native angle conversion and trigonometric
 functions. It does not add runtime wrappers or change unbranded PHP calls.
 
 ## Decision Summary
 
-Yumemi models or should model these functions when their relevant operands carry native unit brands:
+Yumemi models these functions when their relevant operands carry native unit brands:
 
 | Function family              | Status      | Required branded input                                 | Branded output             |
 | ---------------------------- | ----------- | ------------------------------------------------------ | -------------------------- |
@@ -15,7 +15,7 @@ Yumemi models or should model these functions when their relevant operands carry
 | `rad2deg()`                  | Implemented | canonical `radian`                                     | `unit_float<'arc_degree'>` |
 | `sin()`, `cos()`, `tan()`    | Implemented | canonical `radian`                                     | `unit_float<'1'>`          |
 | `asin()`, `acos()`, `atan()` | Implemented | exact unscaled ratio `1`                               | `unit_float<'radian'>`     |
-| `atan2()`                    | Planned     | two definitionally equivalent branded numeric operands | `unit_float<'radian'>`     |
+| `atan2()`                    | Implemented | two definitionally equivalent branded numeric operands | `unit_float<'radian'>`     |
 
 Under this contract, Yumemi performs no runtime conversion and does not wrap the result. A bare call remains owned by
 PHPStan and retains PHPStan's native `float` result.
@@ -26,9 +26,9 @@ The implementation uses one stable diagnostic identifier:
 yumemi.invalidUnitAngleFunction
 ```
 
-It covers a unary angle function receiving a known but invalid unit. Slice 3 should extend it to mixed branded and
-unbranded `atan2()` operands and branded `atan2()` operands whose units are not definitionally equivalent. PHPStan
-remains responsible for missing arguments, nonnumeric arguments, and ordinary native signature errors.
+It covers unary angle functions receiving a known but invalid unit, mixed branded and unbranded `atan2()` operands, and
+branded `atan2()` operands whose units are not definitionally equivalent. PHPStan remains responsible for missing
+arguments, nonnumeric arguments, and ordinary native signature errors.
 
 ## Why Angle Identity Must Be Stricter
 
@@ -55,10 +55,10 @@ to use definitional equivalence, so a value passed through a parameter, property
 canonical type loses any earlier nominal spelling before this extension sees it. A stronger guarantee would require a
 separate redesign of global assignability rather than an angle-specific inference rule.
 
-Inverse trigonometric functions should require an expression structurally equal to dimensionless one. Reduced ratios
-such as `meter / meter` satisfy that requirement. Named dimensionless units such as `radian`, `steradian`, `count`, and
-scaled units such as `percent` do not. Callers can convert or deliberately rebrand a value at the boundary when its
-ratio semantics are known.
+Inverse trigonometric functions require an expression structurally equal to dimensionless one. Reduced ratios such as
+`meter / meter` satisfy that requirement. Named dimensionless units such as `radian`, `steradian`, `count`, and scaled
+units such as `percent` do not. Callers can convert or deliberately rebrand a value at the boundary when its ratio
+semantics are known.
 
 This is a function-contract distinction, not a new global relation among units. Ordinary assignment, arithmetic, and
 conversion continue to use Yumemi's established structural, definitional, and dimensional relations.
@@ -104,20 +104,19 @@ trigonometric functions.
 
 ## `atan2()`
 
-The proposed `atan2($y, $x)` contract accepts coordinates, vector components, or other magnitudes only when both branded
-operands have one definitionally equivalent unit. The common unit may be dimensional or dimensionless; the quotient
-implicit in the angle calculation cancels it. The proposed output is canonical radians. For example, `meter` and
-`100 * centimeter` operands satisfy the unit relation.
+The `atan2($y, $x)` contract accepts coordinates, vector components, or other magnitudes only when both branded operands
+have one definitionally equivalent unit. The common unit may be dimensional or dimensionless; the quotient implicit in
+the angle calculation cancels it. The output is canonical radians. For example, `meter` and `100 * centimeter` operands
+satisfy the unit relation.
 
 Dimensionally compatible but differently scaled operands remain invalid because PHP does not convert either scalar: the
-planned rule rejects a `meter` operand paired with a `foot` operand.
+rule rejects a `meter` operand paired with a `foot` operand.
 
 Mixing one branded operand with one bare numeric operand is also diagnosed, following `fmod()` and `hypot()`. A wholly
 bare `atan2()` call remains an ordinary PHPStan `float` expression.
 
-Cartesian union analysis must fail closed for any mixed or incompatible pair. Ordinary operand unions remain ordinary;
-do not add an angle-specific benevolence policy in the first implementation. Defer benevolent-union propagation until a
-reachable native input demonstrates which established policy should apply.
+Cartesian union analysis fails closed for any mixed or incompatible pair. Result unions remain ordinary even when an
+input is benevolent; the implementation adds no angle-specific benevolence policy.
 
 ## Custom Registries
 
@@ -143,9 +142,9 @@ one of those verified entries. Structural or normalized equality alone is insuff
 
 ## Implementation Shape
 
-Slices 1 and 2 use one `UnitAngleFunctionTypeResolverExtension` and one `InvalidUnitAngleFunctionRule`. The resolver
+All three slices use one `UnitAngleFunctionTypeResolverExtension` and one `InvalidUnitAngleFunctionRule`. The resolver
 receives the configured `UnitExpressionParser` and registry, and compares the effective canonical entries with an
-immutable bundled registry. `atan2()` should use a separate binary path because its validation is relational.
+immutable bundled registry. `atan2()` uses a separate private binary path because its validation is relational.
 
 Do not add runtime wrappers, public classes, configuration flags, or a general nominal-dimension abstraction for this
 feature. The special identity checks belong to the fixed contracts of these native functions.
@@ -179,11 +178,15 @@ before direct and inverse trigonometry.
 - finite constant retention with non-finite result generalization;
 - fail-closed union handling and the shared angle-function diagnostic.
 
-### Slice 3: Two-argument direction
+### Slice 3: Two-argument direction (implemented)
 
-Add `atan2()` using definitionally equivalent operand checks, mixed-brand diagnostics, complete Cartesian union
-validation, and canonical radian output. Compare its union behavior explicitly with native `/`, `fdiv()`, `fmod()`, and
-`hypot()` rather than copying one resolver mechanically.
+`atan2()` now provides:
+
+- definitionally equivalent operand checks;
+- mixed-brand diagnostics;
+- complete Cartesian union validation;
+- finite constant retention with non-finite result generalization;
+- canonical radian output without benevolent-union propagation.
 
 Pause after each slice for review. Do not combine `intdiv()`, generalized `pow()`, hyperbolic functions, logarithms, or
 runtime approximate quantity arithmetic with this work.

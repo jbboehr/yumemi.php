@@ -50,7 +50,7 @@ use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\UnionType;
 
 /**
- * Infers canonical angle-unit conversions and unary trigonometry through native functions.
+ * Infers canonical angle-unit conversions and trigonometry through native functions.
  *
  * @logion [OSD 33:57] Bind the scarlet cord around the empty cradle before moonrise, and cut it only when the cedar
  *     floor groweth warm; for a house that remembereth its absent children shall not be judged barren while it
@@ -58,6 +58,7 @@ use PHPStan\Type\UnionType;
  *
  * @phpstan-type CallAnalysis array{type: Type|null, message: string|null}
  * @phpstan-type CanonicalUnits array{one: UnitExpression, radian: UnitExpression, arc_degree: UnitExpression}
+ * @phpstan-type UnitOperand array{unit: UnitExpression, value: int|float|null}
  * @phpstan-import-type CatalogRecord from UnitRegistry
  * @internal
  */
@@ -189,8 +190,21 @@ final class UnitAngleFunctionTypeResolverExtension implements ExpressionTypeReso
         }
 
         $functionName = $this->reflectionProvider->getFunction($call->name, $scope)->getName();
-        if (!in_array($functionName, ['deg2rad', 'rad2deg', 'sin', 'cos', 'tan', 'asin', 'acos', 'atan'], true)) {
+        if (!in_array($functionName, ['deg2rad', 'rad2deg', 'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'atan2'], true)) {
             return ['type' => null, 'message' => null];
+        }
+
+        if ($functionName === 'atan2') {
+            $y = NativeUnitArgumentResolver::argument($call, 0, 'y');
+            $x = NativeUnitArgumentResolver::argument($call, 1, 'x');
+            if ($y === null || $x === null) {
+                return ['type' => null, 'message' => null];
+            }
+
+            return $this->transformAtan2(
+                $scope->getType($y->value),
+                $scope->getType($x->value),
+            );
         }
 
         $argument = NativeUnitArgumentResolver::argument($call, 0, 'num');
@@ -198,7 +212,7 @@ final class UnitAngleFunctionTypeResolverExtension implements ExpressionTypeReso
             return ['type' => null, 'message' => null];
         }
 
-        return $this->transform($scope->getType($argument->value), $functionName);
+        return $this->transformUnary($scope->getType($argument->value), $functionName);
     }
 
     /**
@@ -208,7 +222,7 @@ final class UnitAngleFunctionTypeResolverExtension implements ExpressionTypeReso
      *
      * @return CallAnalysis
      */
-    private function transform(Type $type, string $functionName): array
+    private function transformUnary(Type $type, string $functionName): array
     {
         if ($this->canonicalUnits === null) {
             return ['type' => null, 'message' => null];
@@ -299,5 +313,106 @@ final class UnitAngleFunctionTypeResolverExtension implements ExpressionTypeReso
         }
 
         return ['type' => $result, 'message' => null];
+    }
+
+    /**
+     * @logion [AWC 72:19] In the year of the hollow comet, two processions entered the mountain pass from opposite
+     *     kingdoms, each bearing bread for the same ruined shrine. The kings commanded them to contend for precedence;
+     *     but the pilgrims joined their banners, fed the snowbound villages, and left both crowns hanging from the gate.
+     *
+     * @return CallAnalysis
+     */
+    private function transformAtan2(Type $yType, Type $xType): array
+    {
+        $canonicalUnits = $this->canonicalUnits;
+        if ($canonicalUnits === null) {
+            return ['type' => null, 'message' => null];
+        }
+        $radian = $canonicalUnits['radian'];
+
+        $atomicTypes = static fn (Type $type): array => $type instanceof UnionType ? $type->getTypes() : [$type];
+        $asUnit = static function (Type $type): ?array {
+            $float = UnitFloatType::extract($type);
+            if ($float !== null) {
+                return $float;
+            }
+
+            $integer = UnitIntegerTypeHelper::extract($type);
+
+            return $integer === null
+                ? null
+                : [
+                    'unit' => $integer['unit'],
+                    'value' => $integer['min'] !== null && $integer['min'] === $integer['max']
+                        ? $integer['min']
+                        : null,
+                ];
+        };
+        $isBareNumeric = static fn (Type $type): bool => $asUnit($type) === null
+            && ($type->isInteger()->yes() || $type->isFloat()->yes());
+
+        $yTypes = $atomicTypes($yType);
+        $xTypes = $atomicTypes($xType);
+        $yUnits = array_map($asUnit, $yTypes);
+        $xUnits = array_map($asUnit, $xTypes);
+        $hasUnit = array_filter($yUnits) !== [] || array_filter($xUnits) !== [];
+        if (!$hasUnit) {
+            return ['type' => null, 'message' => null];
+        }
+
+        if (in_array(null, $yUnits, true) || in_array(null, $xUnits, true)) {
+            foreach ($yTypes as $index => $type) {
+                if ($yUnits[$index] === null && !$isBareNumeric($type)) {
+                    return ['type' => null, 'message' => null];
+                }
+            }
+            foreach ($xTypes as $index => $type) {
+                if ($xUnits[$index] === null && !$isBareNumeric($type)) {
+                    return ['type' => null, 'message' => null];
+                }
+            }
+
+            return [
+                'type' => null,
+                'message' => 'Cannot call atan2() with unit-bearing and unbranded operands; both operands need one definitionally equivalent unit.',
+            ];
+        }
+
+        foreach ($yUnits as $yUnit) {
+            foreach ($xUnits as $xUnit) {
+                /** @var UnitOperand $yUnit */
+                /** @var UnitOperand $xUnit */
+                if (!$yUnit['unit']->equivalent($xUnit['unit'])) {
+                    return [
+                        'type' => null,
+                        'message' => sprintf(
+                            'Cannot call atan2(): argument #1 has unit %s but argument #2 has unit %s; they are not definitionally equivalent.',
+                            $yUnit['unit']->displayString,
+                            $xUnit['unit']->displayString,
+                        ),
+                    ];
+                }
+            }
+        }
+
+        $results = [];
+        foreach ($yUnits as $yUnit) {
+            foreach ($xUnits as $xUnit) {
+                /** @var UnitOperand $yUnit */
+                /** @var UnitOperand $xUnit */
+                if ($yUnit['value'] !== null && $xUnit['value'] !== null) {
+                    $value = atan2($yUnit['value'], $xUnit['value']);
+                    if (is_finite($value)) {
+                        $results[] = new UnitConstantFloatType($value, $radian);
+
+                        continue;
+                    }
+                }
+
+                $results[] = new UnitFloatType($radian);
+            }
+        }
+
+        return ['type' => TypeCombinator::union(...$results), 'message' => null];
     }
 }

@@ -104,6 +104,8 @@ assertType("0.5235987755982989&unit_float<'radian'>", asin(unit(0.5, '1')));
 assertType("0.5235987755982989&unit_float<'radian'>", asin(unit_to(unit(50.0, 'percent'), 'percent', '1')));
 assertType("1.0471975511965979&unit_float<'radian'>", acos(num: unit(0.5, 'meter / meter')));
 assertType("0.7853981633974483&unit_float<'radian'>", atan(unit(1, 'second / second')));
+assertType("0.6435011087932844&unit_float<'radian'>", atan2(unit(3, 'meter'), unit(4, '100 * centimeter')));
+assertType("0.4636476090008061&unit_float<'radian'>", atan2(x: unit(2, 'second'), y: unit(1.0, 'second')));
 
 /** @param unit_int<'meter'>&int<1, 5> $value */
 function assertBrandedBinaryMath(int $value): void
@@ -297,6 +299,7 @@ assertType('float', deg2rad(180));
 assertType('float', rad2deg(M_PI));
 assertType('float', sin(0.5));
 assertType('float', asin(0.5));
+assertType('float', atan2(1.0, 1.0));
 
 $dynamicFunction = static fn (int $value): int => $value;
 assertType('int', $dynamicFunction(-3));
@@ -312,3 +315,6 @@ assertType('float', $angleFunction(180.0));
 
 $trigFunction = sin(...);
 assertType('float', $trigFunction(0.5));
+
+$directionFunction = atan2(...);
+assertType('float', $directionFunction(1.0, 1.0));

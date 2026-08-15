@@ -44,11 +44,13 @@ use jbboehr\Yumemi\PHPStan\UnitExpression;
 use jbboehr\Yumemi\PHPStan\UnitExpressionParser;
 use jbboehr\Yumemi\PHPStan\UnitFloatType;
 use jbboehr\Yumemi\PHPStan\UnitIntegerType;
+use jbboehr\Yumemi\PHPStan\UnitIntegerTypeHelper;
 use jbboehr\Yumemi\PHPStan\UnitNumericStringType;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
 use jbboehr\Yumemi\Units;
 use PhpParser\Node\Arg;
+use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Name;
@@ -58,6 +60,7 @@ use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\ArrayType;
 use PHPStan\Type\BenevolentUnionType;
 use PHPStan\Type\FloatType;
+use PHPStan\Type\IntegerRangeType;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\UnionType;
@@ -81,6 +84,10 @@ final class UnitAngleFunctionTypeResolverExtensionTest extends TestCase
         self::assertSame(
             ['type' => null, 'message' => null],
             $this->analyse('atan2', new UnitFloatType($this->unit('radian'))),
+        );
+        self::assertSame(
+            ['type' => null, 'message' => null],
+            $this->analyseAtan2(new FloatType(), new FloatType()),
         );
     }
 
@@ -151,6 +158,35 @@ final class UnitAngleFunctionTypeResolverExtensionTest extends TestCase
         }
     }
 
+    public function testAtan2AcceptsDefinitionallyEquivalentBrandsAndRetainsFiniteConstants(): void
+    {
+        $constant = $this->analyseAtan2(
+            new UnitConstantIntegerType(3, $this->unit('meter')),
+            new UnitConstantIntegerType(4, $this->unit('100 * centimeter')),
+        );
+        $general = $this->analyseAtan2(
+            new UnitIntegerType($this->unit('meter')),
+            new UnitFloatType($this->unit('100 * centimeter')),
+        );
+        $ranged = $this->analyseAtan2(
+            UnitIntegerTypeHelper::brand(IntegerRangeType::fromInterval(1, 5), $this->unit('meter')),
+            new UnitConstantIntegerType(4, $this->unit('meter')),
+        );
+        $partiallyKnown = $this->analyseAtan2(
+            new UnitConstantIntegerType(3, $this->unit('meter')),
+            new UnitFloatType($this->unit('meter')),
+        );
+
+        self::assertInstanceOf(UnitConstantFloatType::class, $constant['type']);
+        self::assertSame(atan2(3.0, 4.0), $constant['type']->getValue());
+        self::assertTrue($constant['type']->getUnitExpression()->equals($this->unit('radian')));
+        self::assertNull($constant['message']);
+        self::assertSame("unit_float<'radian'>", $general['type']?->describe(VerbosityLevel::precise()));
+        self::assertNull($general['message']);
+        self::assertSame("unit_float<'radian'>", $ranged['type']?->describe(VerbosityLevel::precise()));
+        self::assertSame("unit_float<'radian'>", $partiallyKnown['type']?->describe(VerbosityLevel::precise()));
+    }
+
     public function testNonFiniteConstantsRetainOnlyTheOutputBrand(): void
     {
         foreach ([INF, NAN] as $value) {
@@ -172,6 +208,112 @@ final class UnitAngleFunctionTypeResolverExtensionTest extends TestCase
         self::assertSame(
             "1.5707963267948966&unit_float<'radian'>",
             $finiteAtInfinity['type']?->describe(VerbosityLevel::precise()),
+        );
+
+        $nonFiniteAtan2 = $this->analyseAtan2(
+            new UnitConstantFloatType(NAN, $this->unit('meter')),
+            new UnitConstantIntegerType(1, $this->unit('meter')),
+        );
+        $finiteAtan2 = $this->analyseAtan2(
+            new UnitConstantFloatType(INF, $this->unit('meter')),
+            new UnitConstantFloatType(INF, $this->unit('meter')),
+        );
+
+        self::assertSame("unit_float<'radian'>", $nonFiniteAtan2['type']?->describe(VerbosityLevel::precise()));
+        self::assertSame(
+            "0.7853981633974483&unit_float<'radian'>",
+            $finiteAtan2['type']?->describe(VerbosityLevel::precise()),
+        );
+    }
+
+    public function testAtan2RejectsIncompatibleAndMixedOperands(): void
+    {
+        $incompatible = $this->analyseAtan2(
+            new UnitFloatType($this->unit('meter')),
+            new UnitFloatType($this->unit('second')),
+        );
+        $differentlyScaled = $this->analyseAtan2(
+            new UnitFloatType($this->unit('meter')),
+            new UnitFloatType($this->unit('foot')),
+        );
+        $mixedRight = $this->analyseAtan2(
+            new UnitFloatType($this->unit('meter')),
+            new FloatType(),
+        );
+        $mixedLeft = $this->analyseAtan2(
+            new FloatType(),
+            new UnitIntegerType($this->unit('meter')),
+        );
+
+        self::assertSame(
+            'Cannot call atan2(): argument #1 has unit meter but argument #2 has unit second; they are not definitionally equivalent.',
+            $incompatible['message'],
+        );
+        self::assertSame([
+            'type' => null,
+            'message' => 'Cannot call atan2(): argument #1 has unit meter but argument #2 has unit international_foot; they are not definitionally equivalent.',
+        ], $differentlyScaled);
+        self::assertSame([
+            'type' => null,
+            'message' => 'Cannot call atan2() with unit-bearing and unbranded operands; both operands need one definitionally equivalent unit.',
+        ], $mixedRight);
+        self::assertSame($mixedRight, $mixedLeft);
+        self::assertNull($incompatible['type']);
+    }
+
+    public function testAtan2ValidatesEveryCartesianUnionPairAndKeepsOrdinaryResultsOrdinary(): void
+    {
+        $invalid = $this->analyseAtan2(
+            new UnionType([
+                new UnitFloatType($this->unit('meter')),
+                new UnitFloatType($this->unit('second')),
+            ]),
+            new UnitFloatType($this->unit('meter')),
+        );
+        $valid = $this->analyseAtan2(
+            new BenevolentUnionType([
+                new UnitConstantIntegerType(0, $this->unit('meter')),
+                new UnitConstantIntegerType(1, $this->unit('meter')),
+            ]),
+            new UnitConstantIntegerType(1, $this->unit('meter')),
+        );
+        $multipleResults = $this->analyseAtan2(
+            new UnitConstantIntegerType(1, $this->unit('meter')),
+            new UnionType([
+                new UnitConstantIntegerType(1, $this->unit('meter')),
+                new UnitConstantIntegerType(2, $this->unit('meter')),
+            ]),
+        );
+
+        self::assertSame(
+            'Cannot call atan2(): argument #1 has unit second but argument #2 has unit meter; they are not definitionally equivalent.',
+            $invalid['message'],
+        );
+        self::assertNull($invalid['type']);
+        self::assertInstanceOf(UnionType::class, $valid['type']);
+        self::assertNotInstanceOf(BenevolentUnionType::class, $valid['type']);
+        self::assertNull($valid['message']);
+        self::assertInstanceOf(UnionType::class, $multipleResults['type']);
+        self::assertCount(2, $multipleResults['type']->getTypes());
+        self::assertNull($multipleResults['message']);
+    }
+
+    public function testAtan2NonnumericAlternativesRemainNeutral(): void
+    {
+        $array = new ArrayType(new FloatType(), new FloatType());
+        $numericString = new UnitNumericStringType($this->unit('meter'));
+
+        self::assertSame(
+            ['type' => null, 'message' => null],
+            $this->analyseAtan2($array, new UnitFloatType($this->unit('meter'))),
+        );
+        self::assertSame(
+            ['type' => null, 'message' => null],
+            $this->analyseAtan2(new UnitFloatType($this->unit('meter')), $array),
+        );
+        self::assertSame(
+            ['type' => null, 'message' => null],
+            $this->analyseAtan2($numericString, new UnitFloatType($this->unit('meter'))),
         );
     }
 
@@ -496,8 +638,15 @@ final class UnitAngleFunctionTypeResolverExtensionTest extends TestCase
                 $registry,
                 $parser,
             );
+            $atan2Analysis = $this->analyseAtan2(
+                new UnitFloatType($this->unit('meter')),
+                new UnitFloatType($this->unit('meter')),
+                $registry,
+                $parser,
+            );
 
             self::assertSame(['type' => null, 'message' => null], $analysis);
+            self::assertSame(['type' => null, 'message' => null], $atan2Analysis);
         }
     }
 
@@ -513,6 +662,26 @@ final class UnitAngleFunctionTypeResolverExtensionTest extends TestCase
         return $this->extension($functionName, $registry, $parser)->analyseCall(
             new FuncCall(new Name($functionName), [new Arg($value)]),
             $this->scope($type),
+        );
+    }
+
+    /** @return array{type: Type|null, message: string|null} */
+    private function analyseAtan2(
+        Type $yType,
+        Type $xType,
+        ?UnitRegistry $registry = null,
+        ?UnitExpressionParser $parser = null,
+    ): array {
+        $y = new Variable('y');
+        $x = new Variable('x');
+        $scope = self::createStub(Scope::class);
+        $scope->method('getType')->willReturnCallback(
+            static fn (Expr $expr): Type => $expr === $y ? $yType : $xType,
+        );
+
+        return $this->extension('atan2', $registry, $parser)->analyseCall(
+            new FuncCall(new Name('atan2'), [new Arg($y), new Arg($x)]),
+            $scope,
         );
     }
 

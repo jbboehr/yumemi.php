@@ -266,10 +266,10 @@ Exact integer `pow()` exists for rational magnitudes, expressions, dimensions, q
 keeping unit powers integral and symbolic substitution explicit. Native branded `sqrt()` transforms an exact symbolic
 square unit and diagnoses non-rootable brands. Native `deg2rad()` and `rad2deg()` preserve canonical angle units;
 `sin()`, `cos()`, and `tan()` map canonical radians to unscaled ratios, while `asin()`, `acos()`, and `atan()` map exact
-unscaled ratios to canonical radians. Binary `atan2()` remains planned in the final slice of the
-[angle-function design](native-angle-functions.md). General rational powers, approximate runtime-object powers and
-trigonometry, logarithms, and exponentials remain absent. Approximate runtime-object functions need a separate precision
-and rounding contract.
+unscaled ratios to canonical radians. Binary `atan2()` maps definitionally equivalent branded operands to canonical
+radians, completing the [angle-function design](native-angle-functions.md). General rational powers, approximate
+runtime-object powers and trigonometry, logarithms, and exponentials remain absent. Approximate runtime-object functions
+need a separate precision and rounding contract.
 
 ### 21. Static Analysis With PHPStan
 

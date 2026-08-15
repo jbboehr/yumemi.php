@@ -89,20 +89,36 @@ final class InvalidUnitAngleFunctionRuleTest extends RuleTestCase
                 16,
             ],
             [
-                'Cannot call deg2rad() because at least one possible unit does not resolve canonically to arc_degree: degree_north.',
-                29,
+                'Cannot call atan2(): argument #1 has unit meter but argument #2 has unit second; they are not definitionally equivalent.',
+                17,
+            ],
+            [
+                'Cannot call atan2(): argument #1 has unit meter but argument #2 has unit international_foot; they are not definitionally equivalent.',
+                18,
+            ],
+            [
+                'Cannot call atan2() with unit-bearing and unbranded operands; both operands need one definitionally equivalent unit.',
+                19,
             ],
             [
                 'Cannot call deg2rad() because at least one possible unit does not resolve canonically to arc_degree: degree_north.',
-                34,
+                35,
             ],
             [
                 'Cannot call deg2rad() because at least one possible unit does not resolve canonically to arc_degree: degree_north.',
                 40,
             ],
             [
-                'Cannot call asin() because at least one possible unit does not resolve canonically to the exact unscaled ratio 1: count.',
+                'Cannot call deg2rad() because at least one possible unit does not resolve canonically to arc_degree: degree_north.',
                 46,
+            ],
+            [
+                'Cannot call asin() because at least one possible unit does not resolve canonically to the exact unscaled ratio 1: count.',
+                52,
+            ],
+            [
+                'Cannot call atan2(): argument #1 has unit second but argument #2 has unit meter; they are not definitionally equivalent.',
+                58,
             ],
         ]);
     }
