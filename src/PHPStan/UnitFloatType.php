@@ -118,7 +118,7 @@ final class UnitFloatType extends FloatType
     public function equals(Type $type): bool
     {
         return $type instanceof self
-            && $this->unit->equivalent($type->unit);
+            && $this->unit->equals($type->unit);
     }
 
     public function accepts(Type $type, bool $strictTypes): AcceptsResult
@@ -174,9 +174,13 @@ final class UnitFloatType extends FloatType
     {
         $float = self::extract($type);
         if ($float !== null) {
-            return $this->unit->equivalent($float['unit'])
+            if (!$this->unit->equivalent($float['unit'])) {
+                return IsSuperTypeOfResult::createNo();
+            }
+
+            return $this->unit->equals($float['unit'])
                 ? IsSuperTypeOfResult::createYes()
-                : IsSuperTypeOfResult::createNo();
+                : IsSuperTypeOfResult::createMaybe();
         }
 
         if (UnitIntegerTypeHelper::extract($type) !== null) {

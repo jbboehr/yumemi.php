@@ -79,6 +79,13 @@ services:
         tags:
             - phpstan.broker.expressionTypeResolverExtension
     -
+        class: jbboehr\Yumemi\PHPStan\UnitAngleFunctionTypeResolverExtension
+        arguments:
+            parser: @yumemiUnitExpressionParser
+            registry: @yumemiUnitRegistry
+        tags:
+            - phpstan.broker.expressionTypeResolverExtension
+    -
         class: jbboehr\Yumemi\PHPStan\UnitBinaryMathFunctionTypeResolverExtension
         tags:
             - phpstan.broker.expressionTypeResolverExtension
@@ -116,6 +123,10 @@ services:
             - phpstan.rules.rule
     -
         class: jbboehr\Yumemi\PHPStan\InvalidUnitRootFunctionRule
+        tags:
+            - phpstan.rules.rule
+    -
+        class: jbboehr\Yumemi\PHPStan\InvalidUnitAngleFunctionRule
         tags:
             - phpstan.rules.rule
     -

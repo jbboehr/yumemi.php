@@ -52,6 +52,16 @@ function sqrt(int|float $num): string
     return (string) $num;
 }
 
+function deg2rad(int|float $num): string
+{
+    return (string) $num;
+}
+
+function rad2deg(int|float $num): string
+{
+    return (string) $num;
+}
+
 function min(int|float ...$values): string
 {
     return implode(',', $values);
@@ -64,6 +74,8 @@ function max(int|float ...$values): string
 
 $value = unit(-3, 'meter');
 $area = unit(4, 'meter^2');
+$degrees = unit(180, 'arc_degree');
+$radians = unit(M_PI, 'radian');
 
 assertType('string', abs($value));
 assertType('string', round($value));
@@ -74,6 +86,8 @@ assertType('string', fdiv($value, $value));
 assertType('string', fmod($value, $value));
 assertType('string', hypot($value, $value));
 assertType('string', sqrt($area));
+assertType('string', deg2rad($degrees));
+assertType('string', rad2deg($radians));
 assertType('string', min($value, $value));
 assertType('string', max($value, $value));
 assertType("3&unit_int<'meter'>", \abs($value));
@@ -85,5 +99,7 @@ assertType("1.0&unit_float<'1'>", \fdiv($value, $value));
 assertType("-0.0&unit_float<'meter'>", \fmod($value, $value));
 assertType("4.242640687119285&unit_float<'meter'>", \hypot($value, $value));
 assertType("2.0&unit_float<'meter'>", \sqrt($area));
+assertType("3.141592653589793&unit_float<'radian'>", \deg2rad($degrees));
+assertType("180.0&unit_float<'arc_degree'>", \rad2deg($radians));
 assertType("-3&unit_int<'meter'>", \min($value, $value));
 assertType("-3&unit_int<'meter'>", \max($value, $value));

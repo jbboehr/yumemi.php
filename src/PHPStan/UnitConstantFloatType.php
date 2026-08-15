@@ -103,7 +103,7 @@ final class UnitConstantFloatType extends ConstantFloatType
     {
         return $type instanceof self
             && parent::equals($type)
-            && $this->unit->equivalent($type->unit);
+            && $this->unit->equals($type->unit);
     }
 
     /**
@@ -162,6 +162,13 @@ final class UnitConstantFloatType extends ConstantFloatType
     public function isSuperTypeOf(Type $type): IsSuperTypeOfResult
     {
         $result = $this->accepts($type, true);
+
+        if ($result->yes()) {
+            $metadata = UnitFloatType::extract($type);
+            if ($metadata !== null && !$this->unit->equals($metadata['unit'])) {
+                return IsSuperTypeOfResult::createMaybe();
+            }
+        }
 
         return $result->yes()
             ? IsSuperTypeOfResult::createYes()

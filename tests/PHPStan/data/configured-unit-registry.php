@@ -44,6 +44,8 @@ $euros = unit(107, 'EUR');
 assertType("107&unit_int<'EUR'>", $euros);
 assertType("100.0&unit_float<'USD'>", unit_to($euros, 'EUR', 'USD'));
 assertType("0.9345794392523364&unit_float<'USD / EUR'>", unit_factor('EUR', 'USD'));
+assertType("3.141592653589793&unit_float<'radian'>", deg2rad(unit(180, 'degree')));
+assertType("180.0&unit_float<'arc_degree'>", rad2deg(unit(M_PI, 'rad')));
 
 $dollars = Units::default()->quantity(100, 'USD');
 $euroQuantity = Units::default()->quantity(107, 'EUR');

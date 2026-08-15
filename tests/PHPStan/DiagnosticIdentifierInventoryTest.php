@@ -55,6 +55,7 @@ final class DiagnosticIdentifierInventoryTest extends TestCase
         'yumemi.invalidQuantityComparison',
         'yumemi.invalidQuantityConstruction',
         'yumemi.invalidQuantityConversion',
+        'yumemi.invalidUnitAngleFunction',
         'yumemi.invalidUnitCall',
         'yumemi.invalidUnitComparison',
         'yumemi.invalidUnitMathFunction',

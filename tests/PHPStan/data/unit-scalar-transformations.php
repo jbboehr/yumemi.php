@@ -93,12 +93,33 @@ assertType("1.0&unit_float<'meter'>", fmod(unit(7, 'meter'), unit(3, 'm')));
 assertType("1.0&unit_float<'meter'>", fmod(num1: unit(7, 'meter'), num2: unit(3, 'meter')));
 assertType("5.0&unit_float<'meter'>", hypot(unit(3, 'meter'), unit(4, 'm')));
 assertType("5.0&unit_float<'meter'>", hypot(x: unit(3, 'meter'), y: unit(4, 'meter')));
+assertType("3.141592653589793&unit_float<'radian'>", deg2rad(unit(180, 'degree')));
+assertType("1.5707963267948966&unit_float<'radian'>", deg2rad(num: unit(90.0, 'arc_degree')));
+assertType("180.0&unit_float<'arc_degree'>", rad2deg(unit(M_PI, 'rad')));
 
 /** @param unit_int<'meter'>&int<1, 5> $value */
 function assertBrandedBinaryMath(int $value): void
 {
     assertType("unit_float<'meter'>", fmod($value, unit(2, 'meter')));
     assertType("unit_float<'meter'>", hypot($value, unit(2, 'meter')));
+}
+
+/** @param unit_int<'arc_degree'>&int<0, 360> $value */
+function assertBrandedAngleConversion(int $value): void
+{
+    assertType("unit_float<'radian'>", deg2rad($value));
+}
+
+/** @param unit_int<'radian'>|unit_float<'rad'> $value */
+function assertBrandedAngleUnion(int|float $value): void
+{
+    assertType("unit_float<'arc_degree'>", rad2deg($value));
+}
+
+/** @param unit_int<'arc_degree'>|float $value */
+function assertMixedAngleConversionFallsBackToFloat(int|float $value): void
+{
+    assertType('float', deg2rad($value));
 }
 
 /** @param unit_int<'meter'>|float $value */
@@ -252,6 +273,8 @@ assertType('3', intval(3.5));
 assertType('float', fdiv(6, 2));
 assertType('float', fmod(7, 3));
 assertType('float', hypot(3, 4));
+assertType('float', deg2rad(180));
+assertType('float', rad2deg(M_PI));
 
 $dynamicFunction = static fn (int $value): int => $value;
 assertType('int', $dynamicFunction(-3));
@@ -261,3 +284,6 @@ assertType('int<0, max>', $absoluteFunction(-3));
 
 $squareRootFunction = sqrt(...);
 assertType('float', $squareRootFunction(4.0));
+
+$angleFunction = deg2rad(...);
+assertType('float', $angleFunction(180.0));

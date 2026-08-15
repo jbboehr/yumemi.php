@@ -103,7 +103,7 @@ final class UnitConstantIntegerType extends ConstantIntegerType
     {
         return $type instanceof self
             && $this->getValue() === $type->getValue()
-            && $this->unit->equivalent($type->unit);
+            && $this->unit->equals($type->unit);
     }
 
     /**
@@ -169,6 +169,13 @@ final class UnitConstantIntegerType extends ConstantIntegerType
     public function isSuperTypeOf(Type $type): IsSuperTypeOfResult
     {
         $result = $this->accepts($type, true);
+
+        if ($result->yes()) {
+            $metadata = UnitIntegerTypeHelper::extract($type);
+            if ($metadata !== null && !$this->unit->equals($metadata['unit'])) {
+                return IsSuperTypeOfResult::createMaybe();
+            }
+        }
 
         return $result->yes()
             ? IsSuperTypeOfResult::createYes()

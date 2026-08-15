@@ -257,6 +257,37 @@ final class UnitMagnitudeTypeTest extends TestCase
         $this->assertTrue($km->isSuperTypeOf($hundredThousandCm)->yes());
     }
 
+    public function testDefinitionallyEquivalentNominalBrandsRemainDistinctDuringTypeCombination(): void
+    {
+        $canonicalFloat = $this->unitFloat('arc_degree');
+        $directionalFloat = $this->unitFloat('degree_north');
+        $canonicalInteger = $this->unitInt('arc_degree');
+        $directionalInteger = $this->unitInt('degree_north');
+        $canonicalString = $this->unitNumericString('arc_degree');
+        $directionalString = $this->unitNumericString('degree_north');
+        $canonicalRange = UnitIntegerTypeHelper::create($canonicalInteger->getUnitExpression(), 0, 360);
+        $directionalRange = UnitIntegerTypeHelper::create($directionalInteger->getUnitExpression(), 0, 360);
+
+        $this->assertFalse($canonicalFloat->equals($directionalFloat));
+        $this->assertTrue($canonicalFloat->accepts($directionalFloat, true)->yes());
+        $this->assertTrue($canonicalFloat->isSuperTypeOf($directionalFloat)->maybe());
+        $this->assertFalse($canonicalInteger->equals($directionalInteger));
+        $this->assertTrue($canonicalInteger->accepts($directionalInteger, true)->yes());
+        $this->assertTrue($canonicalInteger->isSuperTypeOf($directionalInteger)->maybe());
+        $this->assertFalse($canonicalString->equals($directionalString));
+        $this->assertTrue($canonicalString->accepts($directionalString, true)->yes());
+        $this->assertTrue($canonicalString->isSuperTypeOf($directionalString)->maybe());
+
+        foreach ([
+            [$canonicalFloat, $directionalFloat],
+            [$canonicalInteger, $directionalInteger],
+            [$canonicalString, $directionalString],
+            [$canonicalRange, $directionalRange],
+        ] as $types) {
+            $this->assertInstanceOf(UnionType::class, TypeCombinator::union(...$types));
+        }
+    }
+
     public function testDerivedSiUnitsMatchExpandedBaseForm(): void
     {
         $newton = $this->unitFloat('newton');

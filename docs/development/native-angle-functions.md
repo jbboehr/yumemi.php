@@ -1,35 +1,34 @@
 # Native Angle Function Design Spike
 
-Status: **Design complete; implementation deferred to the slices below.**
+Status: **Slice 1 implemented; slices 2 and 3 remain deferred.**
 
 This spike defines how Yumemi's PHPStan extension should model PHP's native angle conversion and trigonometric
 functions. It does not add runtime wrappers or change unbranded PHP calls.
 
 ## Decision Summary
 
-Yumemi should model these functions when their relevant operands carry native unit brands. This table is a proposed
-contract for the implementation slices, not a description of current inference:
+Yumemi models or should model these functions when their relevant operands carry native unit brands:
 
-| Function family | Proposed required branded input | Proposed branded output |
-| --- | --- | --- |
-| `deg2rad()` | canonical `arc_degree` | `unit_float<'radian'>` |
-| `rad2deg()` | canonical `radian` | `unit_float<'arc_degree'>` |
-| `sin()`, `cos()`, `tan()` | canonical `radian` | `unit_float<'1'>` |
-| `asin()`, `acos()`, `atan()` | exact unscaled ratio `1` | `unit_float<'radian'>` |
-| `atan2()` | two definitionally equivalent branded numeric operands | `unit_float<'radian'>` |
+| Function family              | Status      | Required branded input                                 | Branded output             |
+| ---------------------------- | ----------- | ------------------------------------------------------ | -------------------------- |
+| `deg2rad()`                  | Implemented | canonical `arc_degree`                                 | `unit_float<'radian'>`     |
+| `rad2deg()`                  | Implemented | canonical `radian`                                     | `unit_float<'arc_degree'>` |
+| `sin()`, `cos()`, `tan()`    | Planned     | canonical `radian`                                     | `unit_float<'1'>`          |
+| `asin()`, `acos()`, `atan()` | Planned     | exact unscaled ratio `1`                               | `unit_float<'radian'>`     |
+| `atan2()`                    | Planned     | two definitionally equivalent branded numeric operands | `unit_float<'radian'>`     |
 
-Under this proposed contract, Yumemi performs no runtime conversion and does not wrap the result. A bare call remains
-owned by PHPStan and retains PHPStan's native `float` result.
+Under this contract, Yumemi performs no runtime conversion and does not wrap the result. A bare call remains owned by
+PHPStan and retains PHPStan's native `float` result.
 
-The first implementation should use one stable diagnostic identifier:
+The implementation uses one stable diagnostic identifier:
 
 ```text
 yumemi.invalidUnitAngleFunction
 ```
 
-It should cover an angle function receiving a known but invalid unit, mixed branded and unbranded `atan2()` operands,
-and branded `atan2()` operands whose units are not definitionally equivalent. PHPStan remains responsible for missing
-arguments, nonnumeric arguments, and ordinary native signature errors.
+It covers a conversion function receiving a known but invalid unit. Later slices should extend it to mixed branded and
+unbranded `atan2()` operands and branded `atan2()` operands whose units are not definitionally equivalent. PHPStan
+remains responsible for missing arguments, nonnumeric arguments, and ordinary native signature errors.
 
 ## Why Angle Identity Must Be Stricter
 
@@ -44,11 +43,17 @@ PHP nevertheless defines `sin()` in radians and `deg2rad()` in ordinary angular 
 before those functions receive the scalar. Accepting every definitionally equivalent or dimensionally compatible unit
 would therefore admit solid angles, directional coordinates, percentages, and other semantically different values.
 
-For the fixed-unit unary functions, resolve a simple unit spelling through registry metadata and require its canonical
-name to be the verified `radian` or `arc_degree` entry. This accepts catalog aliases such as `rad` and `degree` while
-rejecting independently named lookalikes such as `steradian`, `degree_north`, `arc_minute`, and `turn`, even when their
-resolved expressions or scales compare equally. Composite expressions do not acquire canonical angle identity merely
-by reducing to the same value.
+For the fixed-unit unary functions, verify the canonical registry entries and require the branded input's reduced unit
+expression to equal `radian` or `arc_degree`. This accepts catalog aliases such as `rad` and `degree` while rejecting
+independently named lookalikes such as `steradian`, `degree_north`, `arc_minute`, and `turn`, even when their resolved
+expressions or scales compare equally. Definition expansion and normalized equality do not confer canonical angle
+identity; exact symbolic cancellation may still reduce an expression to the canonical unit itself.
+
+That check can enforce only the unit expression statically visible at the call. Same-carrier alternatives with distinct
+symbolic identities must remain unions so the resolver can fail closed regardless of union order. Assignment continues
+to use definitional equivalence, so a value passed through a parameter, property, or return declared solely as the
+canonical type loses any earlier nominal spelling before this extension sees it. A stronger guarantee would require a
+separate redesign of global assignability rather than an angle-specific inference rule.
 
 Inverse trigonometric functions should require an expression structurally equal to dimensionless one. Reduced ratios
 such as `meter / meter` satisfy that requirement. Named dimensionless units such as `radian`, `steradian`, `count`, and
@@ -77,8 +82,8 @@ message, or a neutral result; the expression extension consumes the type and the
 
 ## Unary Functions
 
-`deg2rad()` and `rad2deg()` are explicit scale conversions with fixed canonical units. The proposed contract accepts
-branded integers and floats and returns a float branded respectively as `radian` or `arc_degree`.
+`deg2rad()` and `rad2deg()` are implemented as explicit scale conversions with fixed canonical units. They accept
+branded integers and floats and return a float branded respectively as `radian` or `arc_degree`.
 
 `sin()`, `cos()`, and `tan()` consume canonical radians. Their result is an unscaled ratio, represented as
 `unit_float<'1'>` rather than a bare float under the proposed contract.
@@ -86,9 +91,10 @@ branded integers and floats and returns a float branded respectively as `radian`
 `asin()`, `acos()`, and `atan()` reverse that relation for branded unscaled ratios, with a proposed canonical
 `unit_float<'radian'>` result.
 
-The extension should preserve finite constant results when PHPStan knows an exact input constant. If the native result
-is `INF` or `NAN`, retain only the output brand, matching the existing finite-constant policy for modeled built-ins.
-This is binary floating-point evaluation by the native PHP function, not exact rational trigonometry.
+The implemented conversions preserve finite constant results when PHPStan knows an exact input constant. If the native
+result is `INF` or `NAN`, they retain only the output brand, matching the existing finite-constant policy for modeled
+built-ins. Later trigonometric functions should follow the same rule. This is binary floating-point evaluation by the
+native PHP function, not exact rational trigonometry.
 
 The static rule should reject direct misuse rather than silently relabeling the result. In particular, the planned
 contract rejects an `arc_degree` brand passed directly to `sin()` and a `percent` brand passed directly to `asin()`.
@@ -98,20 +104,20 @@ trigonometric functions.
 
 ## `atan2()`
 
-The proposed `atan2($y, $x)` contract accepts coordinates, vector components, or other magnitudes only when both
-branded operands have one definitionally equivalent unit. The common unit may be dimensional or dimensionless; the
-quotient implicit in the angle calculation cancels it. The proposed output is canonical radians. For example, `meter`
-and `100 * centimeter` operands satisfy the unit relation.
+The proposed `atan2($y, $x)` contract accepts coordinates, vector components, or other magnitudes only when both branded
+operands have one definitionally equivalent unit. The common unit may be dimensional or dimensionless; the quotient
+implicit in the angle calculation cancels it. The proposed output is canonical radians. For example, `meter` and
+`100 * centimeter` operands satisfy the unit relation.
 
-Dimensionally compatible but differently scaled operands remain invalid because PHP does not convert either scalar:
-the planned rule rejects a `meter` operand paired with a `foot` operand.
+Dimensionally compatible but differently scaled operands remain invalid because PHP does not convert either scalar: the
+planned rule rejects a `meter` operand paired with a `foot` operand.
 
 Mixing one branded operand with one bare numeric operand is also diagnosed, following `fmod()` and `hypot()`. A wholly
 bare `atan2()` call remains an ordinary PHPStan `float` expression.
 
 Cartesian union analysis must fail closed for any mixed or incompatible pair. Ordinary operand unions remain ordinary;
-do not add an angle-specific benevolence policy in the first implementation. Defer benevolent-union propagation until
-a reachable native input demonstrates which established policy should apply.
+do not add an angle-specific benevolence policy in the first implementation. Defer benevolent-union propagation until a
+reachable native input demonstrates which established policy should apply.
 
 ## Custom Registries
 
@@ -120,39 +126,39 @@ not application-configurable. Normalized expressions cannot establish that ident
 `count` would still normalize to dimensionless one, and a replacement `arc_degree` could reproduce the expected scale
 without retaining the canonical unit.
 
-Before enabling angle inference, the implementation should verify that the effective configured entries for `radian`
-and `arc_degree` retain the bundled canonical catalog identity. The check should compare each complete effective entry,
-including its prebuilt and catalog-record channels, with the immutable bundled entry rather than comparing only selected
-dimensions or definitions. A shadowing alias, replacement record, or prebuilt unit must fail this check even when it
-normalizes to the expected value. If the available registry API cannot establish that identity, the extension should
-decline the call. The dimensionless literal `1` does not require a named registry entry.
+Before enabling angle inference, the implementation verifies that the effective configured entries for `radian` and
+`arc_degree` retain the bundled canonical catalog semantics. Prebuilt-unit identity and the catalog fields that control
+resolution must match the immutable bundled entry; descriptive prose and array key order are irrelevant. The configured
+and bundled expressions must also resolve definitionally alike, which catches transitive changes such as replacing `pi`
+or redirecting `rad` even when the direct `arc_degree` record remains unchanged. A shadowing alias, semantic record
+change, replacement prebuilt unit, or altered dependency fails this check. If the registry API cannot establish that
+identity, the extension declines the call. The dimensionless literal `1` does not require a named registry entry.
 
-If those references are absent or redefined, the angle extension should decline calls rather than crash analysis or
-infer units from altered meanings. An empty or specialized custom registry must remain usable for unrelated Yumemi
-features. This limitation should be documented publicly when the feature ships.
+If those references are absent or redefined, the angle extension declines calls rather than crashing analysis or
+inferring units from altered meanings. An empty or specialized custom registry remains usable for unrelated Yumemi
+features. This limitation is documented in the public PHPStan reference.
 
 Aliases added by a valid custom registry may be accepted only when registry metadata resolves their canonical name to
 one of those verified entries. Structural or normalized equality alone is insufficient.
 
-## Proposed Implementation Shape
+## Implementation Shape
 
-Prefer one `UnitAngleFunctionTypeResolverExtension` and one `InvalidUnitAngleFunctionRule`. The resolver should receive
-the configured `UnitExpressionParser`, configured registry metadata, and a bundled registry or equivalent immutable
-reference contract. A small internal function table can describe each unary function's required input, output, and
-native evaluator; `atan2()` should use a separate binary path because its validation is relational.
+Slice 1 uses one `UnitAngleFunctionTypeResolverExtension` and one `InvalidUnitAngleFunctionRule`. The resolver receives
+the configured `UnitExpressionParser` and registry, and compares the effective canonical entries with an immutable
+bundled registry. Later unary functions can extend this resolver; `atan2()` should use a separate binary path because
+its validation is relational.
 
 Do not add runtime wrappers, public classes, configuration flags, or a general nominal-dimension abstraction for this
 feature. The special identity checks belong to the fixed contracts of these native functions.
 
-When implementation begins, register the new source paths in the PHPStan Infection filter and the extension service in
-`extension.neon`. Add the stable diagnostic to the inventory, compatibility policy, PHPStan reference, local-ignore
-fixture, and changelog in the same slice that first emits it.
+Slice 1 registers the source paths in the PHPStan Infection filter and extension services, and records the stable
+diagnostic in the inventory, compatibility policy, PHPStan reference, local-ignore fixture, and changelog.
 
 ## Implementation Slices
 
-### Slice 1: Explicit angle conversion
+### Slice 1: Explicit angle conversion (implemented)
 
-Implement `deg2rad()` and `rad2deg()` with:
+`deg2rad()` and `rad2deg()` now provide:
 
 - verified canonical reference units;
 - alias-aware canonical-identity checks;
@@ -161,7 +167,8 @@ Implement `deg2rad()` and `rad2deg()` with:
 - namespaced-shadow and named-argument handling;
 - the initial diagnostic rule and identifier.
 
-This slice establishes the shared unary machinery with the smallest semantic surface.
+This slice establishes the shared unary machinery with the smallest semantic surface and remains the review boundary
+before direct and inverse trigonometry.
 
 ### Slice 2: Direct and inverse trigonometry
 

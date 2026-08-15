@@ -217,7 +217,7 @@ Native exponentiation requires a statically known integer exponent. For exact ru
 symbolic unit power is divisible by it. PHPStan cannot prove that the runtime rational magnitude has an exact root, so a
 statically valid call may still throw `NonExactRootException`. A dynamic degree falls back to the nongeneric `Quantity`
 return type. Native `sqrt()` support is described below. Rational exponents, approximate real powers, and other
-unit-transforming native functions are not part of the current model.
+unit-transforming native functions other than the angle conversions described below are not part of the current model.
 
 ### Casts And Scalar Functions
 
@@ -242,6 +242,8 @@ square root is exact:
 | `fdiv($left, $right)`          | Quotient unit, matching native `/` unit algebra          |
 | `fmod($left, $right)`          | Common definitionally equivalent unit                    |
 | `hypot($left, $right)`         | Common definitionally equivalent unit                    |
+| `deg2rad($degrees)`            | `unit_float<'radian'>`                                   |
+| `rad2deg($radians)`            | `unit_float<'arc_degree'>`                               |
 
 For example, these transformations remain ordinary native PHP operations at runtime:
 
@@ -266,8 +268,13 @@ $displayHeight = round((float) $measuredHeight, 1);
 $platformArea = 144.0;
 $platformWidth = sqrt($platformArea);
 
-assert($displayHeight === 12.0);
-assert($platformWidth === 12.0);
+/** @var unit_float<'arc_degree'> $bearing */
+$bearing = 180.0;
+$bearingInRadians = deg2rad($bearing);
+
+assert((float) $displayHeight === 12.0);
+assert((float) $platformWidth === 12.0);
+assert((float) $bearingInRadians === M_PI);
 ```
 
 Crossing a known integer constant to a float retains both its value and unit. Integer ranges still generalize because
@@ -310,6 +317,27 @@ branded numeric operands. Calls containing nonnumeric alternatives are left to P
 three functions return `unit_float` and retain a known finite result when both magnitudes are known. Non-finite results
 retain only the derived brand. `fdiv()` also reports `yumemi.invalidUnitMathFunction` when the quotient unit would
 exceed Yumemi's supported exponent range.
+
+`deg2rad()` accepts `arc_degree` and aliases that resolve canonically to it, then returns `unit_float<'radian'>`.
+`rad2deg()` accepts canonical `radian` aliases and returns `unit_float<'arc_degree'>`. Both functions accept branded
+integers and floats and retain finite constant results. They do not treat merely equal-scale or dimensionless units as
+angles: for example, `degree_north` is not an `arc_degree` alias, and `steradian` is not a `radian` alias. Such calls
+report `yumemi.invalidUnitAngleFunction` rather than silently relabeling the result. Bare calls remain ordinary PHPStan
+`float` expressions, and an otherwise valid union containing a bare numeric alternative falls back to that native
+result.
+
+The identity check applies to the unit expression statically visible at the native call. Yumemi preserves structurally
+distinct alternatives such as `unit_float<'arc_degree'>|unit_float<'degree_north'>` so that the call fails closed.
+Ordinary assignment remains definitionally based, however: passing `degree_north` through a parameter, property, or
+return explicitly declared as only `arc_degree` leaves the native call with that declared type. Convert before that
+boundary when the nominal distinction must remain visible.
+
+These fixed native contracts require the configured registry's effective `radian` and `arc_degree` semantic records and
+fully resolved meanings to match the bundled canonical entries. Descriptive catalog prose and record-key order do not
+affect that check, but redefinitions of dependencies such as `pi` or `rad` disable angle inference. An isolated registry
+or one that changes either canonical meaning leaves angle calls to PHPStan instead of inferring a potentially false
+brand. Additional aliases remain valid when they resolve to the verified canonical entries. Convert another angular
+scale explicitly before calling the native function.
 
 For branded integers, `abs()` retains exact constants and computes the hull of known ranges. The `PHP_INT_MIN` case can
 produce a float at runtime, so unbounded or partially exposed ranges follow the same `integerOverflowToFloat` policy as
@@ -630,6 +658,7 @@ scope:
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `yumemi.dynamicUnitExpression`         | A native helper argument does not reveal its complete unit expression during analysis                        |
 | `yumemi.ambiguousUnitExpression`       | Native helper alternatives produce more than one semantic result unit                                        |
+| `yumemi.invalidUnitAngleFunction`      | Native angle conversion received a brand that is not the required canonical angle unit or alias              |
 | `yumemi.invalidUnitCall`               | An invalid constant `unit()`, `unit_factor()`, or `unit_to()` call                                           |
 | `yumemi.invalidUnitComparison`         | A native equality, identity, ordering, or spaceship comparison whose units are not definitionally equivalent |
 | `yumemi.invalidUnitMathFunction`       | Native `fdiv()` produced an unrepresentable unit, or `fmod()`/`hypot()` received incompatible operands       |
@@ -668,6 +697,9 @@ Use the identifier to choose the first corrective step:
   affine coordinate was used where multiplicative algebra requires a `delta_*` unit.
 - For `yumemi.invalidUnitRoot`, express the native brand with unit powers divisible by two. Native `sqrt()` does not
   substitute catalog definitions; use `Quantity::simplify()->root(2)` when that runtime transformation is intended.
+- For `yumemi.invalidUnitAngleFunction`, pass `deg2rad()` an `arc_degree` alias or pass `rad2deg()` a `radian` alias.
+  Convert other angular scales explicitly rather than relying on dimensional or scale equivalence, for example
+  `deg2rad(unit_to($latitude, 'degree_north', 'arc_degree'))`.
 - For `yumemi.invalidUnitMathFunction`, give both `fmod()` or `hypot()` operands one definitionally equivalent brand, or
   reduce `fdiv()` operand exponents so its quotient unit remains representable. Convert compatible magnitudes explicitly
   before calling the function.

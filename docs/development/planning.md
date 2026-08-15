@@ -317,12 +317,13 @@ caller that needs to retain a display choice should keep the original string or 
 `PointQuantity`; formatting a string remains the direct presentation-only path.
 
 PHPStan's `UnitExpression` similarly keeps a symbolic expression for unit algebra, but its type description remains
-canonical. Definitionally equivalent alternatives such as `'foot'|'international_foot'` or `'100 * centimeter'|'meter'`
-collapse to one semantic type, so no unique source spelling survives the join. Canonical type display avoids making
-diagnostics and result-cache output depend on union enumeration or whichever equivalent arm PHPStan retains.
-Yumemi-owned diagnostics quote the reduced symbolic spelling of an exact unit argument while it remains directly
-available, but fall back to canonical presentation after unions, derived operations, or other joins make provenance
-ambiguous. Do not add general source metadata to semantic `Expr` identity, equality, or cache keys.
+canonical within each arm. Alternatives that reduce to the same symbolic expression collapse to one semantic type.
+Structurally distinct but definitionally equivalent same-carrier alternatives may remain a union when downstream fixed
+native contracts must inspect nominal identity and fail closed; ordinary assignment still accepts definitional
+equivalence and can therefore narrow a value to its declared boundary type. Yumemi-owned diagnostics quote the reduced
+symbolic spelling of an exact unit argument while it remains directly available, but fall back to canonical presentation
+after derived operations or other joins make provenance ambiguous. Do not add general source metadata to semantic `Expr`
+identity, equality, or cache keys.
 
 ## Compatibility And Conversion
 
@@ -651,10 +652,11 @@ repeat the implementation's assumptions:
   non-finite constants, and diagnoses branded units without an exact symbolic root. Native `fdiv()` follows division
   unit algebra; `fmod()` and `hypot()` require definitionally equivalent branded operands and diagnose mixed or
   incompatible calls. Other casts and unsupported PHP built-ins can erase brands. Continue adding targeted integrations
-  only for demonstrated workflows. Native angle conversion and trigonometric functions now have a sliced
-  [design](native-angle-functions.md), but remain unimplemented pending review of each slice. `intdiv()` and generalized
-  native powers remain deferred because they require distinct truncation, correlation, or exponent semantics. Exact
-  runtime-object roots are supported through `Quantity::root()`.
+  only for demonstrated workflows. Native `deg2rad()` and `rad2deg()` now enforce canonical angle identities according
+  to the first slice of the [angle-function design](native-angle-functions.md); direct and inverse trigonometry and
+  `atan2()` remain deferred to its later slices. `intdiv()` and generalized native powers remain deferred because they
+  require distinct truncation, correlation, or exponent semantics. Exact runtime-object roots are supported through
+  `Quantity::root()`.
 - Native helpers accept finite alternatives only when every valid path produces one semantic result unit. Independent
   source and target alternatives lose value correlation, so conversion helpers validate the Cartesian product and fail
   closed if any pair is invalid. Quantity boundaries continue to preserve finite target unions.

@@ -14,11 +14,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - PHPStan brand inference for `intval()`, `floatval()`, `doubleval()`, `fdiv()`, `fmod()`, and `hypot()`.
 - The stable `yumemi.invalidUnitMathFunction` diagnostic for incompatible branded `fmod()`/`hypot()` calls and
   unrepresentable `fdiv()` result units.
+- PHPStan inference for canonical `deg2rad()` and `rad2deg()` conversions, with the stable
+  `yumemi.invalidUnitAngleFunction` diagnostic for incorrect angle brands.
 
 ### Changed
 
 - Yumemi-owned PHPStan diagnostics preserve statically known unit spellings at direct argument boundaries while inferred
   types and diagnostics formed after semantic joins remain canonical.
+- Newly modeled native functions can expose unit errors at existing call sites that previously received bare numeric
+  results; convert, rebrand, or explicitly cast at the intended unit boundary.
 
 ### Deprecated
 

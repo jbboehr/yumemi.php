@@ -120,7 +120,7 @@ final class UnitNumericStringType extends StringType
     public function equals(Type $type): bool
     {
         return $type instanceof self
-            && $this->unit->equivalent($type->unit);
+            && $this->unit->equals($type->unit);
     }
 
     /**
@@ -178,9 +178,13 @@ final class UnitNumericStringType extends StringType
     {
         $unit = self::extractUnit($type);
         if ($unit !== null) {
-            return $this->unit->equivalent($unit)
+            if (!$this->unit->equivalent($unit)) {
+                return IsSuperTypeOfResult::createNo();
+            }
+
+            return $this->unit->equals($unit)
                 ? IsSuperTypeOfResult::createYes()
-                : IsSuperTypeOfResult::createNo();
+                : IsSuperTypeOfResult::createMaybe();
         }
 
         if ($type instanceof UnionType) {

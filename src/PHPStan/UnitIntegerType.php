@@ -71,7 +71,7 @@ final class UnitIntegerType extends IntegerType
     public function equals(Type $type): bool
     {
         return $type instanceof self
-            && $this->unit->equivalent($type->unit);
+            && $this->unit->equals($type->unit);
     }
 
     public function accepts(Type $type, bool $strictTypes): AcceptsResult
@@ -120,9 +120,13 @@ final class UnitIntegerType extends IntegerType
     {
         $metadata = UnitIntegerTypeHelper::extract($type);
         if ($metadata !== null) {
-            return $this->unit->equivalent($metadata['unit'])
+            if (!$this->unit->equivalent($metadata['unit'])) {
+                return IsSuperTypeOfResult::createNo();
+            }
+
+            return $this->unit->equals($metadata['unit'])
                 ? IsSuperTypeOfResult::createYes()
-                : IsSuperTypeOfResult::createNo();
+                : IsSuperTypeOfResult::createMaybe();
         }
 
         // unit_int is not a general super-type of bare int.
