@@ -280,6 +280,21 @@ runtime magnitude exactness remains a possible `NonExactRootException`.
 General `Rational` exponents still require the cross-cutting representation work above. A future approximate API still
 needs an explicit precision, rounding, unit-power, and PHPStan contract.
 
+## Rational Backend Evaluation
+
+The dated [rational backend evaluation](rational-backend-evaluation.md) compared the current direct-GMP implementation
+with `brick/math` 0.19.1 over GMP, BCMath, and its native-PHP calculator. Brick provides a credible path to operation
+without mandatory extensions, and 85,453 deterministic observable comparisons confirmed compatible primitives across
+bounded arithmetic, fixed-scale rounding, exact decimals, roots, and ordinary finite float output. It is not a drop-in
+replacement for Yumemi's significant-digit output, strict binary64 range policy, truncating integer conversion, decimal
+grammar, public GMP values, JSON, exception taxonomy, or released serialization.
+
+Retain direct GMP for now. Common Brick-over-GMP operations were generally several times slower, portable arbitrary-root
+calculation was substantially slower, and a selectable Yumemi backend would add two execution paths without removing the
+project-specific numeric policy. If GMP installation becomes a demonstrated adoption barrier, reconsider one
+Brick-`BigInteger` representation in a deliberate `0.2` compatibility project, with GMP used only as Brick's optional
+accelerator and with explicit migration of the released persistence and public GMP surfaces.
+
 ## Numeric Output Policy
 
 Exact `Rational` storage remains authoritative, and every native conversion is explicit. The complete rounding,
@@ -790,14 +805,9 @@ repeat the implementation's assumptions:
   `Units` contexts. Native serialization currently supports the default context plus one dynamically scoped custom
   context through `Units::deserialize()` and rejects semantic drift. Broader ecosystem integrations remain deferred.
 - Strict same-unit comparison variants and PHP object comparison operators unless a concrete use case appears
-- Compare the local `Rational` implementation with [`brick/math`](https://github.com/brick/math) in a disposable spike
-  before considering any dependency or representation change. Keep Yumemi's public API and conformance corpus fixed
-  while comparing canonical reduction, decimal parsing and formatting, significant-digit rounding, exact roots, binary64
-  conversion and range policies, exception translation, public GMP numerator/denominator access, and released
-  serialization bytes. Benchmark catalog generation, parsing, conversion, and numeric rendering; record memory and
-  dependency effects; and count the adapter code that would remain. Prefer the local implementation unless the spike
-  demonstrates a substantial net maintenance reduction with equivalent observable behavior and no material performance,
-  persistence, or portability regression.
+- Removing mandatory GMP remains deferred until supported users demonstrate a material installation or deployment
+  barrier. The completed [backend evaluation](rational-backend-evaluation.md) found that Brick offers a viable portable
+  integer representation but does not justify the current performance, compatibility, persistence, and adapter costs.
 - Range-bearing native float types remain deferred to PHPStan's upstream
   [float-range design](https://github.com/phpstan/phpstan/issues/6963). PHPStan does not yet provide corresponding
   public PHPDoc syntax or an integer-range-equivalent core type, and its open design questions include endpoint
