@@ -49,6 +49,10 @@ const PHPSTAN_WORKLOADS = [
     'extrema',
     'roots',
     'binary-math',
+    'rounding',
+    'integer-math',
+    'angles',
+    'aggregation',
     'builtins',
     'helper-baseline',
     'helpers',
@@ -250,6 +254,10 @@ PHP;
         'extrema' => renderCases('extrema', $cases),
         'roots' => renderCases('roots', $cases),
         'binary-math' => renderCases('binary-math', $cases),
+        'rounding' => renderCases('rounding', $cases),
+        'integer-math' => renderCases('integer-math', $cases),
+        'angles' => renderCases('angles', $cases),
+        'aggregation' => renderCases('aggregation', $cases),
         'builtins' => renderCases('builtins', $cases),
         'helper-baseline' => renderCases('helpers', $cases),
         'helpers' => renderCases('helpers', $cases),
@@ -274,6 +282,10 @@ function renderCases(string $workload, int $cases, int $offset = 0): string
             'extrema' => extremaCase($name),
             'roots' => rootCase($name),
             'binary-math' => binaryMathCase($name),
+            'rounding' => roundingCase($name),
+            'integer-math' => integerMathCase($name),
+            'angles' => angleCase($name),
+            'aggregation' => aggregationCase($name),
             'builtins' => builtinCase($name),
             'helpers' => helperCase($name),
             'native' => nativeCase($name),
@@ -465,6 +477,86 @@ function {$name}(int \$left, int \$right): float
     \$hypotenuse = hypot(\$left, \$right);
 
     return \$ratio;
+}
+
+PHP;
+}
+
+function roundingCase(string $name): string
+{
+    return <<<PHP
+/**
+ * @param 1.25&unit_float<'meter'> \$distance
+ */
+function {$name}(float \$distance): float
+{
+    \$nearest = round(\$distance);
+    \$decimal = round(\$distance, 1, PHP_ROUND_HALF_EVEN);
+    \$tens = round(\$distance, -1, PHP_ROUND_HALF_ODD);
+
+    return \$nearest + \$decimal + \$tens;
+}
+
+PHP;
+}
+
+function integerMathCase(string $name): string
+{
+    return <<<PHP
+/**
+ * @param unit_int<'meter'>&int<-1000, 1000> \$distance
+ * @param unit_int<'second'>&int<1, 100>      \$duration
+ */
+function {$name}(int \$distance, int \$duration): void
+{
+    \$speed = intdiv(\$distance, \$duration);
+    \$area = pow(\$distance, 2);
+    \$inverseDuration = pow(\$duration, -1);
+}
+
+PHP;
+}
+
+function angleCase(string $name): string
+{
+    return <<<PHP
+/**
+ * @param unit_float<'arc_degree'> \$degrees
+ * @param unit_float<'radian'>     \$radians
+ * @param unit_float<'1'>          \$ratio
+ * @param unit_float<'meter'>      \$rise
+ * @param unit_float<'meter'>      \$run
+ */
+function {$name}(float \$degrees, float \$radians, float \$ratio, float \$rise, float \$run): void
+{
+    \$convertedRadians = deg2rad(\$degrees);
+    \$convertedDegrees = rad2deg(\$radians);
+    \$sine = sin(\$radians);
+    \$cosine = cos(\$radians);
+    \$tangent = tan(\$radians);
+    \$arcSine = asin(\$ratio);
+    \$arcCosine = acos(\$ratio);
+    \$arcTangent = atan(\$ratio);
+    \$direction = atan2(\$rise, \$run);
+}
+
+PHP;
+}
+
+function aggregationCase(string $name): string
+{
+    return <<<PHP
+/**
+ * @param unit_int<'meter'>&int<0, 100>       \$left
+ * @param unit_int<'meter'>&int<100, 200>     \$right
+ * @param list<unit_int<'meter'>&int<0, 100>> \$distances
+ */
+function {$name}(int \$left, int \$right, array \$distances): int
+{
+    \$pair = array_sum([\$left, \$right]);
+    \$list = array_sum(\$distances);
+
+    return \$pair + \$list;
 }
 
 PHP;

@@ -341,6 +341,26 @@ final class QuantityTest extends TestCase
         $units->quantity(1, 'meter')->subWithSameUnit(self::unbrandedQuantity($units, 1, 'foot'));
     }
 
+    public function testSameUnitAdditionRejectsAQuantityFromAnotherContext(): void
+    {
+        $left = new Units(new Udunits2UnitRegistry());
+        $right = new Units(new Udunits2UnitRegistry());
+
+        $this->expectException(IncompatibleQuantityContextException::class);
+
+        $left->quantity(1, 'meter')->addWithSameUnit($right->quantity(1, 'meter'));
+    }
+
+    public function testSameUnitSubtractionRejectsAQuantityFromAnotherContext(): void
+    {
+        $left = new Units(new Udunits2UnitRegistry());
+        $right = new Units(new Udunits2UnitRegistry());
+
+        $this->expectException(IncompatibleQuantityContextException::class);
+
+        $left->quantity(1, 'meter')->subWithSameUnit($right->quantity(1, 'meter'));
+    }
+
     public function testRejectsIncompatibleAddition(): void
     {
         $units = Units::default();

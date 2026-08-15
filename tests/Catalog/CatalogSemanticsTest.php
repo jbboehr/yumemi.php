@@ -39,10 +39,30 @@ namespace jbboehr\Yumemi\Tests\Catalog;
 use jbboehr\Yumemi\Catalog\AffineDeltaUnitSynthesizer;
 use jbboehr\Yumemi\Catalog\UnitDefinitionClassifier;
 use jbboehr\Yumemi\Catalog\UnitSemantics;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class CatalogSemanticsTest extends TestCase
 {
+    #[DataProvider('unitSemanticsProvider')]
+    public function testUnitSemanticsDeclareTheirCapabilities(
+        UnitSemantics $semantics,
+        bool $supportsMultiplicativeAlgebra,
+        bool $supportsConversion,
+    ): void {
+        self::assertSame($supportsMultiplicativeAlgebra, $semantics->supportsMultiplicativeAlgebra());
+        self::assertSame($supportsConversion, $semantics->supportsConversion());
+    }
+
+    /** @return iterable<string, array{UnitSemantics, bool, bool}> */
+    public static function unitSemanticsProvider(): iterable
+    {
+        yield 'multiplicative' => [UnitSemantics::Multiplicative, true, true];
+        yield 'affine' => [UnitSemantics::Affine, false, true];
+        yield 'logarithmic' => [UnitSemantics::Logarithmic, false, false];
+        yield 'unsupported expression' => [UnitSemantics::UnsupportedExpression, false, false];
+    }
+
     public function testSkipsBothCompatibilityTemperatureSymbolsWithoutStoppingSynthesis(): void
     {
         $records = [

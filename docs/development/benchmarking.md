@@ -48,9 +48,11 @@ Yumemi-enabled scalar analysis, PHPDoc type resolution (`types`), native operato
 preservation (`preserving`), `min()`/`max()` inference (`extrema`), `sqrt()` inference (`roots`), binary math inference
 (`binary-math`), their combined `builtins` workload, extension-free and Yumemi-enabled native helpers (`helper-baseline`
 and `helpers`), combined branded inference, quantity and affine inference, optional `@yumemi-*` promotion, and a mixed
-application workload. Every measured process receives a fresh PHPStan temporary directory, preventing the result cache
-from skipping analysis. Repeated unit strings within one fixture are intentional: they exercise parser and semantic
-caches during a realistic long-running analysis process.
+application workload. Focused workloads also isolate exact `round()` inference (`rounding`), branded `intdiv()` and
+`pow()` inference (`integer-math`), angle conversion and trigonometric inference (`angles`), and `array_sum()` inference
+(`aggregation`). Every measured process receives a fresh PHPStan temporary directory, preventing the result cache from
+skipping analysis. Repeated unit strings within one fixture are intentional: they exercise parser and semantic caches
+during a realistic long-running analysis process.
 
 The `baseline`/`bootstrap` pair compares minimal analyzer startup without and with Yumemi. The `plain`/`scalar` pair
 compares the same ordinary numeric fixture without and with Yumemi, exposing adapter callbacks that decline unbranded
@@ -60,9 +62,9 @@ isolates extension overhead for the native helper fixture. Use multiple fixture 
 startup cost from work that scales with analyzed declarations. The reported wall times are local diagnostic
 measurements, not cross-machine performance guarantees or CI thresholds. The default run uses the representative
 workloads; `--workload=all` additionally runs the focused type, operator, preserving-function, extrema, root,
-binary-math, combined-built-in, and controlled helper subjects. Each workload is deliberately one generated source file,
-so PHPStan has nothing to parallelize; the harness measures stable single-file analysis rather than project-scale
-parallel throughput.
+binary-math, rounding, integer-math, angle, aggregation, combined-built-in, and controlled helper subjects. Each
+workload is deliberately one generated source file, so PHPStan has nothing to parallelize; the harness measures stable
+single-file analysis rather than project-scale parallel throughput.
 
 ## Hardware Performance Counters
 
@@ -130,6 +132,10 @@ The conversion and quantity subjects pair repeated string boundaries with equiva
 isolate parsing and context binding from conversion and object construction. `benchWarmConversionFactor` and
 `benchPointQuantityValueIn` exercise the existing cached string-resolution paths, so they help distinguish a parsing
 cost from evidence for a separate pairwise conversion-plan cache.
+
+Preferred-unit subjects separate profile construction from repeated application. Compaction subjects separately measure
+the first family discovery in a fresh context and repeated selection from a cached family; compare those two before
+attributing compaction cost to ordinary quantity conversion.
 
 Use measurements to identify an optimization target before changing cache ownership or expression semantics. A faster
 microbenchmark is not sufficient if the corresponding operation does not materially contribute to an application or

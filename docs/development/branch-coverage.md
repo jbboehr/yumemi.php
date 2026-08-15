@@ -99,6 +99,24 @@ These are point-in-time diagnostics, not enforced floors:
   killed 205, improving covered MSI from 82% to 86%; 33 escaped and one timed out. The surviving changes are equivalent
   cache and ranking mutations, unreachable defensive parser states, or exception-code and prose details, while the
   timeout removes circular-resolution termination. No runtime defect was found.
+- The 2026-08-15 repository-wide mutation refresh generated 3,813 runtime mutants and 3,341 PHPStan mutants. The runtime
+  campaign killed 3,454, with 259 escaped, 85 timed out, and 15 errored or syntactically invalid; the PHPStan campaign
+  killed 3,007, with 291 escaped, 38 timed out, and five errored. Triage added observable contracts for cross-context
+  same-unit arithmetic, unknown compaction families, and all `UnitSemantics` capability combinations. Other sampled
+  survivors were equivalent normalization, cache, ordering, native-return, or exception-prose changes, or defensive
+  states excluded by registry and PHPStan type contracts.
+- A corresponding 2026-08-15 focused runtime branch audit ran 118 quantity, compaction, preferred-profile, and catalog
+  semantic tests. `PreferredUnitProfile` covered all 20 branches and 42 executable lines, while `UnitSemantics` covered
+  all four branches and two executable lines. `Units::compactQuantity()` covered 44 of 52 branches and 72 of 81 lines;
+  its remaining outcomes require contradictory registry introspection, malformed prefix definitions, unavailable
+  prefixed candidates, or failed conversions after successful descriptor resolution. These percentages belong only to
+  the stated focused scope.
+- The 2026-08-15 focused PHPStan audit ran 99 direct resolver and rule tests with 10,623 assertions. It covered every
+  branch and line in `UnitIntegerRangeMath`, all 23 branches and 18 lines in `UnitUnionTypeHelper`, 130 of 135 branches
+  in angle inference, 69 of 73 in `array_sum()` inference, and 164 of 170 in binary-math inference. Five PHP 8.4 native
+  `RoundingMode` cases were skipped under PHP 8.2. The remaining resolver branches are throwable guards, impossible
+  calls outside registered function names and signatures, disabled canonical-angle inference, or unrepresentable direct
+  union alternatives; no implementation defect was found.
 
 The subsequent cross-cutting verification added a machine-checked inventory of PHPStan diagnostic identifiers and their
 documented suppression boundaries. It validates both documentation lists, emitting implementation keys, and the set of

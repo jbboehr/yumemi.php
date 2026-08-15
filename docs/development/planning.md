@@ -640,6 +640,13 @@ repeat the implementation's assumptions:
   casts before native float-returning functions, two reverse coalescing operands that are equal or have only one
   non-null value by construction, and one changes loop control only after a bare `float` result has already subsumed the
   remaining branded-float alternatives. The audit found no additional implementation defect.
+- A 2026-08-15 repository-wide mutation refresh generated 3,813 runtime and 3,341 PHPStan mutants. It added direct
+  contracts for cross-context same-unit arithmetic, unknown compaction-family lookup failures, and every `UnitSemantics`
+  capability combination. Focused Xdebug follow-up reached 100% branch coverage in `PreferredUnitProfile`,
+  `UnitSemantics`, `UnitIntegerRangeMath`, and `UnitUnionTypeHelper`; the angle, aggregation, and binary-math resolvers
+  reached 94.52% to 96.47% in their direct test scope. Remaining sampled survivors and uncovered branches were
+  equivalent representation changes, defensive registry or PHPStan states, cache behavior, or exception prose rather
+  than missing public contracts. Retain these focused audits instead of adopting a global coverage floor.
 - Maintain the machine-checked inventory of stable public `yumemi.*` diagnostic identifiers. It proves that every public
   rule identifier is represented in the compatibility policy and PHPStan reference, records an emitting implementation
   and representative local-ignore fixture for every listed identifier, and explicitly classifies non-diagnostic
@@ -765,6 +772,16 @@ repeat the implementation's assumptions:
   different `FiberScope` and `MutatingScope` wrappers, so an exact node-and-scope cache cannot share their analyses,
   while a node-only cache would risk stale scope-dependent types. Retain the controlled benchmark, but do not add helper
   cache state without a new profile identifying safely reusable material work.
+- The 2026-08-15 PHPStan benchmark expansion added focused rounding, integer-math, angle, and aggregation workloads. At
+  400 generated declarations on the same PHP 8.2 host, median isolated-process times were about 1.29 seconds for branded
+  type resolution, 2.49 for `round()`, 2.69 for `intdiv()` plus `pow()`, 4.19 for angle and trigonometric functions, and
+  2.79 for `array_sum()`. Measurements at 50 and 200 declarations scaled approximately linearly; a noisy first
+  aggregation sample was not reproduced in seven isolated reruns. No source-level PHPStan profile is justified without a
+  nonlinear or application-observed regression.
+- The corresponding runtime subjects measured preferred-profile construction at about 16.3 microseconds, repeated
+  profile application at 12.0 microseconds, cached engineering compaction at 21.7 microseconds, and first compaction in
+  a fresh context at 25.0 microseconds. The small first-use premium confirms that the catalog index and family cache are
+  effective; do not add another selection cache based on these measurements.
 - Dimensional analysis intentionally cannot distinguish semantically different quantities with the same dimension, such
   as gray and sievert.
 - Exact catalog decimals for angles can normalize to large rationals; this is correct but can produce unwieldy display

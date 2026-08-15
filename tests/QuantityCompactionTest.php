@@ -39,6 +39,7 @@ namespace jbboehr\Yumemi\Tests;
 use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
+use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitCompactionException;
 use jbboehr\Yumemi\Number\Rational;
@@ -174,6 +175,13 @@ final class QuantityCompactionTest extends TestCase
         yield 'power' => ['meter ^ 2'];
         yield 'numeric multiplier' => ['1000 * meter'];
         yield 'dimensionless constant' => ['1'];
+    }
+
+    public function testUnknownNamedFamilyRetainsTheUnitLookupFailure(): void
+    {
+        $this->expectException(UnitNotFoundException::class);
+
+        Units::default()->quantity(1, 'meter')->toCompact(self::runtimeUnit('unknown_compaction_unit'));
     }
 
     public function testRetainsExistingAffineSemanticFailure(): void

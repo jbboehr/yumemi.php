@@ -39,6 +39,7 @@ namespace jbboehr\Yumemi\Benchmarks;
 use jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\PointQuantity;
+use jbboehr\Yumemi\PreferredUnitProfile;
 use jbboehr\Yumemi\Quantity;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
 use jbboehr\Yumemi\Units;
@@ -57,7 +58,11 @@ final class ConversionAndQuantityBench
     private Quantity $feet;
     private Quantity $speed;
     private Quantity $duration;
+    private Quantity $compactPower;
     private PointQuantity $temperature;
+    private PreferredUnitProfile $preferredUnits;
+    private Units $coldCompactionUnits;
+    private Quantity $coldCompactPower;
 
     public function setUp(): void
     {
@@ -69,13 +74,19 @@ final class ConversionAndQuantityBench
         $this->feet = $this->units->quantity(100, 'foot');
         $this->speed = $this->units->quantity(90, 'kilometer / hour');
         $this->duration = $this->units->quantity(30, 'second');
+        $this->compactPower = $this->units->quantity(1_000_000, 'watt');
         $this->temperature = $this->units->point(100, 'celsius');
+        $this->preferredUnits = $this->units->preferredUnitProfile(['meter / second']);
+        $this->coldCompactionUnits = new Units(new Udunits2UnitRegistry());
+        $this->coldCompactPower = $this->coldCompactionUnits->quantity(1_000_000, 'watt');
 
         $this->units->conversionFactor('meter', 'foot');
         $this->units->conversionFactor($this->metersUnit, $this->feetUnit);
         $this->units->convert(100, 'celsius', 'fahrenheit');
         $this->speed->valueIn($this->speedUnit);
         $this->temperature->valueIn('fahrenheit');
+        $this->speed->toPreferred($this->preferredUnits);
+        $this->compactPower->toCompact('watt');
     }
 
     #[Bench\BeforeMethods('setUp')]
@@ -125,6 +136,34 @@ final class ConversionAndQuantityBench
     public function benchQuantityValueInWithParsedUnit(): Rational
     {
         return $this->speed->valueIn($this->speedUnit);
+    }
+
+    #[Bench\BeforeMethods('setUp')]
+    #[Bench\Revs(200)]
+    public function benchPreferredUnitProfileConstruction(): PreferredUnitProfile
+    {
+        return $this->units->preferredUnitProfile(['meter / second', 'millibar']);
+    }
+
+    #[Bench\BeforeMethods('setUp')]
+    #[Bench\Revs(200)]
+    public function benchQuantityToPreferred(): Quantity
+    {
+        return $this->speed->toPreferred($this->preferredUnits);
+    }
+
+    #[Bench\BeforeMethods('setUp')]
+    #[Bench\Revs(100)]
+    public function benchWarmQuantityCompaction(): Quantity
+    {
+        return $this->compactPower->toCompact('watt');
+    }
+
+    #[Bench\BeforeMethods('setUp')]
+    #[Bench\Revs(1)]
+    public function benchFirstQuantityCompaction(): Quantity
+    {
+        return $this->coldCompactPower->toCompact('watt');
     }
 
     #[Bench\BeforeMethods('setUp')]
