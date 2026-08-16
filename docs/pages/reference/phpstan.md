@@ -55,12 +55,13 @@ function setPlatformHeight(float $length): void {}
 /** @var unit_float<'foot'> $height */
 $height = 6.0;
 
-//! expects unit_float<'meter'>, unit_float<'international_foot'> given
+// @akashi-phpstan-error argument.type: unit_float<'meter'>, unit_float<'international_foot'> given
 setPlatformHeight($height);
 ```
 
-In tested examples, a `//!` comment records part of the PHPStan diagnostic expected on the following line. It is an
-ordinary comment used by the documentation tests, not a Yumemi annotation.
+In tested examples, an `@akashi-phpstan-error` comment records the stable PHPStan diagnostic identifier and a
+distinctive fragment of the expected message on the following statement. It is an ordinary comment used by the
+documentation tests, not a Yumemi annotation.
 
 The catalog canonicalizes aliases when it constructs a brand, which is why the diagnostic names `international_foot`.
 The [catalog reference](catalog.md) describes canonical names, aliases, symbols, plurals, and prefixes.
@@ -200,7 +201,7 @@ $elapsed = 9.58;
 
 saveSprintSpeed($distance / $elapsed);
 
-//! expects unit_float<'meter / second'>, unit_float<'meter * second'> given
+// @akashi-phpstan-error argument.type: unit_float<'meter / second'>, unit_float<'meter * second'> given
 saveSprintSpeed($distance * $elapsed);
 ```
 
@@ -740,10 +741,10 @@ use function jbboehr\Yumemi\unit;
  */
 function storeWarehouseLength(int $length): void {}
 
-//! expects unit_int<'meter'>, int given
+// @akashi-phpstan-error argument.type: unit_int<'meter'>, int given
 storeWarehouseLength(5);
 
-//! expects unit_int<'meter'>, 3&unit_int<'international_foot'> given
+// @akashi-phpstan-error argument.type: unit_int<'meter'>, 3&unit_int<'international_foot'> given
 storeWarehouseLength(unit(3, 'foot'));
 ```
 

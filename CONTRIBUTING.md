@@ -135,9 +135,9 @@ composer docs:serve
 ```
 
 The generated site is written to `build/docs`. [Akashi](https://github.com/jbboehr/akashi.php) discovers PHP examples in
-the public documentation, executes them through PHPUnit, and verifies PHPStan-relevant examples and `//!` diagnostics.
-Run `composer test -- tests/Documentation` for focused example verification; use `composer check:full` before submitting
-a public-documentation change.
+the public Markdown and selected source PHPDoc, executes them through PHPUnit, and verifies PHPStan-relevant examples
+against stable diagnostic identifiers or legacy message expectations. Run `composer test -- tests/Documentation` for
+focused example verification; use `composer check:full` before submitting a public-documentation change.
 
 ## Definitions
 

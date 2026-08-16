@@ -76,7 +76,7 @@ $speed = $distance / $duration;
 saveJourneySpeed($speed);
 assert($speed === 10.0);
 
-//! unit_float<'meter * second'> is not assignable
+// @akashi-phpstan-error argument.type: unit_float<'meter / second'>, 1000.0&unit_float<'meter * second'> given
 saveJourneySpeed($distance * $duration);
 ```
 
@@ -86,9 +86,9 @@ Run the PHPStan command used by your project, or the default executable directly
 vendor/bin/phpstan analyse
 ```
 
-PHPStan should accept `$speed` and report the expected unit mismatch for the final call. The `//!` line records the
-diagnostic expected by Yumemi's documentation tests; it is an ordinary comment, not a required annotation. Remove the
-incorrect call once the extension is working.
+PHPStan should accept `$speed` and report the expected unit mismatch for the final call. The `@akashi-phpstan-error`
+line records the diagnostic identifier and a distinctive fragment of the expected message; it is an ordinary comment,
+not a required annotation. Remove the incorrect call once the extension is working.
 
 If PHPStan instead reports unknown `unit_int` or `unit_float` PHPDoc types, the extension is not registered. Install
 `phpstan/extension-installer` or add Yumemi's `extension.neon` include explicitly.

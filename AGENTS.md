@@ -139,8 +139,10 @@ that read like test fixtures. Declarations in extracted examples must neverthele
 documentation corpus because PHPStan verification loads relevant blocks into one process.
 
 Do not repeat `require 'vendor/autoload.php';` on every page. State the convention once and include it only in
-standalone examples where it helps. When an example contains `//!`, explain that it marks an expected PHPStan diagnostic
-used by documentation testing and is not Yumemi syntax.
+standalone examples where it helps. Prefer `@akashi-phpstan-error` with a stable PHPStan diagnostic identifier when an
+example expects an analysis error. When the diagnostic text is the point of the example, include a distinctive message
+fragment after the identifier (`argument.type: unit_float<'international_foot'>`). Explain that this marker, or a legacy
+`//!` message expectation, belongs to documentation testing and is not Yumemi syntax.
 
 Never include an expected output, diagnostic, inferred type, or conversion result without verifying it against the
 implementation.
@@ -181,9 +183,10 @@ section, preserve any behavioral guarantee, limitation, edge case, compatibility
 policy, or tested example in the appropriate guide or reference page.
 
 Before editing examples or moving documentation, inspect the Akashi integrations under `tests/Documentation/`. Preserve
-the configured Markdown corpus, fenced-PHP execution, PHPStan analysis, `//!` expectations, and any explicit execution
-directives. Search for CI jobs or scripts tied to affected filenames. Do not claim examples are tested unless the
-applicable checks include them, and do not weaken verification merely to make a refactor pass.
+the configured Markdown and PHPDoc corpus, fenced-PHP execution, PHPStan analysis, identifier and legacy message
+expectations, and any explicit execution directives. Search for CI jobs or scripts tied to affected filenames. Do not
+claim examples are tested unless the applicable checks include them, and do not weaken verification merely to make a
+refactor pass.
 
 ### Required workflow
 

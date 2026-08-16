@@ -52,13 +52,14 @@ use jbboehr\Yumemi\Parser\Parser;
  * Typical usage:
  *
  * ```php
- * $registry = UnitRegistryBuilder::default()
+ * $registry = \jbboehr\Yumemi\Registry\UnitRegistryBuilder::default()
  *     ->define('widget = 12 * meter')
  *     ->alias('widgets', 'widget')
  *     ->build();
  *
- * $units = new Units($registry);
- * $units->quantity(1, 'widget')->valueIn('meter'); // 12
+ * $units = new \jbboehr\Yumemi\Units($registry);
+ *
+ * assert($units->quantity(1, 'widget')->valueIn('meter')->toString() === '12');
  * ```
  *
  * Start from {@see self::empty()} for a blank registry, or {@see self::default()} for UDUNITS2.

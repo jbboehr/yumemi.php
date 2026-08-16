@@ -37,25 +37,25 @@
 namespace jbboehr\Yumemi\Tests\Documentation;
 
 use jbboehr\Akashi\ExampleCorpus;
-use jbboehr\Akashi\Execution\RuntimeConfiguration;
-use jbboehr\Akashi\Integration\PhpUnit\VerifiesPhpUnitExamples;
-use PHPUnit\Framework\TestCase;
+use jbboehr\Akashi\Source\DocumentationSource;
 
 /**
- * Executes every PHP fence in the public documentation through Akashi.
+ * Defines the public documentation examples shared by runtime and PHPStan verification.
  */
-final class DocumentationExamplesTest extends TestCase
+final class DocumentationCorpus
 {
-    use VerifiesPhpUnitExamples;
-
-    protected static function akashiExampleCorpus(): ExampleCorpus
+    public static function load(): ExampleCorpus
     {
-        return DocumentationCorpus::load();
+        return DocumentationSource::forProject(self::projectRoot())
+            ->includeFile('README.md')
+            ->includeDirectory('docs/pages')
+            ->includeFile('src/Registry/UnitRegistryBuilder.php')
+            ->exclude('docs/pages/SUMMARY.md')
+            ->load();
     }
 
-    protected static function akashiRuntimeConfiguration(): RuntimeConfiguration
+    public static function projectRoot(): string
     {
-        return RuntimeConfiguration::forProject(DocumentationCorpus::projectRoot())
-            ->withBootstrap('vendor/autoload.php');
+        return dirname(__DIR__, 2);
     }
 }

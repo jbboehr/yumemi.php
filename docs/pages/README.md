@@ -21,14 +21,14 @@ use function jbboehr\Yumemi\unit;
 /** @param unit_float<'meter'> $height */
 function setDoorHeight(float $height): void {}
 
-//! unit_float<'international_foot'> is not assignable
+// @akashi-phpstan-error argument.type: unit_float<'meter'>, 6.0&unit_float<'international_foot'> given
 setDoorHeight(unit(6.0, 'foot'));
 ```
 
-PHPStan reports the unit mismatch while PHP still receives an ordinary `float`. In tested examples, a `//!` comment
-records part of the diagnostic expected on the following line. It is documentation-test notation, not Yumemi syntax.
-`foot` is an alias of the catalog's canonical `international_foot` unit, and diagnostics use the canonical name after
-resolving aliases.
+PHPStan reports the unit mismatch while PHP still receives an ordinary `float`. In tested examples, an
+`@akashi-phpstan-error` comment records the stable PHPStan diagnostic identifier and a distinctive fragment of the
+expected message on the following statement. It is documentation-test notation, not Yumemi syntax. `foot` is an alias of
+the catalog's canonical `international_foot` unit, and diagnostics use the canonical name after resolving aliases.
 
 - **I want PHPStan to catch unit mistakes in native numbers.** Start with
   [Static Analysis](getting-started.md#verify-static-analysis).

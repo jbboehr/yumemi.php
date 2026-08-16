@@ -30,7 +30,7 @@ function setRideHeight(float $height): void {}
 
 $measuredHeight = unit(6.0, 'foot');
 
-//! unit_float<'international_foot'> is not assignable
+// @akashi-phpstan-error argument.type: unit_float<'meter'>, 6.0&unit_float<'international_foot'> given
 setRideHeight($measuredHeight);
 
 setRideHeight(unit_to($measuredHeight, 'foot', 'meter'));

@@ -67,14 +67,14 @@ $elapsed = unit(10.0, 'second');
 
 storeTelemetrySpeed($distance / $elapsed);
 
-//! unit_float<'meter * second'> is not assignable
+// @akashi-phpstan-error argument.type: unit_float<'meter / second'>, 1000.0&unit_float<'meter * second'> given
 storeTelemetrySpeed($distance * $elapsed);
 
 assert($distance / $elapsed === 10.0);
 ```
 
-A `//!` comment records part of the PHPStan diagnostic expected on the following line in Yumemi's tested documentation.
-It is documentation-test notation, not Yumemi syntax.
+An `@akashi-phpstan-error` comment records the PHPStan diagnostic identifier and a distinctive fragment of the expected
+message on the following statement. It is documentation-test notation, not Yumemi syntax.
 
 `unit_int<'...'>` and `unit_float<'...'>` work in ordinary PHPDoc positions. Yumemi also models runtime objects as
 `Quantity<'unit'>` and coordinate points as `PointQuantity<'unit'>`, preserving their units through supported

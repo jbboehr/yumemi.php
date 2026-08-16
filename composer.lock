@@ -166,6 +166,71 @@
     ],
     "packages-dev": [
         {
+            "name": "arokettu/random-polyfill",
+            "version": "1.0.6",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/arokettu/php-random-polyfill.git",
+                "reference": "1f7e9cf63b06883319074d878a4c2b9fb92042c4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/arokettu/php-random-polyfill/zipball/1f7e9cf63b06883319074d878a4c2b9fb92042c4",
+                "reference": "1f7e9cf63b06883319074d878a4c2b9fb92042c4",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">= 7.1",
+                "symfony/polyfill-php80": "^1.22",
+                "symfony/polyfill-php81": "^1.22",
+                "symfony/polyfill-php82": "^1.27"
+            },
+            "provide": {
+                "ext-random": "8.2.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^7.5 || ^8.5 || 9.5.*",
+                "psy/psysh": "*",
+                "sandfox.dev/code-standard": "^1.2025.09.11",
+                "squizlabs/php_codesniffer": "*"
+            },
+            "suggest": {
+                "ext-gmp": "For significantly faster calculation"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Random\\": "src",
+                    "Arokettu\\Random\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Anton Smirnov",
+                    "email": "sandfox+composer@sandfox.me",
+                    "homepage": "https://sandfox.me/",
+                    "role": "developer"
+                }
+            ],
+            "description": "Random Extension Polyfill for PHP",
+            "homepage": "https://sandfox.dev/php/random-polyfill.html",
+            "keywords": [
+                "polyfill",
+                "random"
+            ],
+            "support": {
+                "chat": "https://gitter.im/arokettu/community",
+                "docs": "https://php-random-polyfill.readthedocs.io/",
+                "issues": "https://github.com/arokettu/php-random-polyfill/issues",
+                "source": "https://github.com/arokettu/php-random-polyfill"
+            },
+            "time": "2026-04-13T15:38:34+00:00"
+        },
+        {
             "name": "brianium/paratest",
             "version": "v7.8.5",
             "source": {
@@ -1548,34 +1613,43 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/jbboehr/akashi.php.git",
-                "reference": "225cc33f61d5779791112fb6c3b0f473e9c8e5ae"
+                "reference": "96ea8ebcccf5a8ba7f7f64c12fc6049b1d581f18"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jbboehr/akashi.php/zipball/225cc33f61d5779791112fb6c3b0f473e9c8e5ae",
-                "reference": "225cc33f61d5779791112fb6c3b0f473e9c8e5ae",
+                "url": "https://api.github.com/repos/jbboehr/akashi.php/zipball/96ea8ebcccf5a8ba7f7f64c12fc6049b1d581f18",
+                "reference": "96ea8ebcccf5a8ba7f7f64c12fc6049b1d581f18",
                 "shasum": ""
             },
             "require": {
+                "arokettu/random-polyfill": ">=1.0.6 <1.99",
                 "composer-runtime-api": "^2.2",
                 "league/commonmark": "^2.8.3",
-                "nikic/php-parser": "^5.8",
-                "php": "^8.2",
-                "symfony/process": "^7.4"
+                "nikic/php-parser": "^4.19.5 || ^5.8",
+                "php": "^8.1",
+                "sebastian/diff": "^5.1.1 || ^6.0.2",
+                "symfony/console": "^6.4 || ^7.4",
+                "symfony/process": "^6.4 || ^7.4"
             },
             "require-dev": {
-                "brianium/paratest": "^7.8.5",
+                "brianium/paratest": "^7.3",
                 "ext-dom": "*",
                 "friendsofphp/php-cs-fixer": "^3",
-                "infection/infection": "^0.32.6",
+                "infection/infection": "^0.28.1 || ^0.32.6",
+                "jbboehr/doctrine-of-the-second-sun": "dev-master",
+                "jbboehr/phpbench-perfidious": "dev-master",
+                "phpbench/phpbench": "^1.4.3",
                 "phpstan/phpstan": "^2.2.5",
+                "phpstan/phpstan-deprecation-rules": "^2.0",
                 "phpstan/phpstan-phpunit": "^2.0.13",
                 "phpstan/phpstan-strict-rules": "^2.0",
-                "phpunit/phpunit": "^11.5"
+                "phpunit/phpunit": "^10.5 || ^11.5",
+                "spaze/phpstan-disallowed-calls": "^4.14"
             },
             "suggest": {
-                "phpstan/phpstan": "Enables PHPStan documentation-example verification (PHPStan 2.x).",
-                "phpunit/phpunit": "Enables runtime and PHPStan test integration (PHPUnit 11.5)."
+                "friendsofphp/php-cs-fixer": "Enables optional formatting checks for inline Markdown and PHPDoc examples.",
+                "phpstan/phpstan": "Enables PHPStan documentation-example verification (PHPStan 1.12 or 2.x).",
+                "phpunit/phpunit": "Enables runtime and PHPStan test integration (PHPUnit 10.5 or 11.5)."
             },
             "default-branch": true,
             "bin": [
@@ -1589,6 +1663,7 @@
             },
             "autoload-dev": {
                 "psr-4": {
+                    "jbboehr\\Akashi\\Benchmarks\\": "benchmarks",
                     "jbboehr\\Akashi\\Tests\\": "tests"
                 }
             },
@@ -1603,37 +1678,79 @@
                     "/.idea",
                     "/.php-cs-fixer.cache",
                     "/.php-cs-fixer.dist.php",
+                    "/.phpbench",
                     "/.phpunit.cache",
                     "/.pre-commit-cache",
                     "/.pre-commit-config.yaml",
                     "/AGENTS.md",
+                    "/benchmarks",
+                    "/CODE_OF_CONDUCT.md",
+                    "/CONTRIBUTING.md",
                     "/Makefile",
                     "/build",
                     "/clover.xml",
                     "/composer.lock",
                     "/coverage",
-                    "/docs/DOCTRINE-CODING-GUIDE.md",
-                    "/docs/DOCTRINE-IMAGE-GUIDE.md",
-                    "/docs/DOCTRINE-STYLE-GUIDE.md",
+                    "/docs/ARCHITECTURE.md",
+                    "/docs/CLA-v1.md",
+                    "/docs/CLEAN_ROOM.md",
                     "/docs/IMPLEMENTATION_HANDOFF.md",
+                    "/docs/MIGRATING_YUMEMI.md",
+                    "/docs/STEWARD.md",
                     "/docs/book.toml",
                     "/docs/development",
+                    "/docs/pages",
                     "/docs/theme",
                     "/flake.lock",
                     "/flake.nix",
                     "/infection.json5.dist",
+                    "/nix",
                     "/*.log",
+                    "/phpbench-perfidious.json",
+                    "/phpbench.json",
                     "/phpstan.neon.dist",
                     "/phpunit.branch.xml.dist",
                     "/phpunit.xml.dist",
                     "/result*",
                     "/secrets",
                     "/tests",
-                    "/tmp",
+                    "/tmp*",
+                    "/tools",
                     "/vendor"
                 ]
             },
             "scripts": {
+                "analyse": [
+                    "phpstan analyse --no-progress --error-format=raw"
+                ],
+                "benchmark": [
+                    "phpbench run --report=aggregate"
+                ],
+                "benchmark:perf": [
+                    "phpbench run --config=phpbench-perfidious.json --report=perfidious"
+                ],
+                "benchmark:smoke": [
+                    "phpbench run --iterations=1 --revs=1 --warmup=1 --progress=none"
+                ],
+                "check": [
+                    "@composer:validate",
+                    "@cs",
+                    "@analyse",
+                    "@test",
+                    "@docs:check",
+                    "@package:check"
+                ],
+                "check:full": [
+                    "@check",
+                    "@test:phpstan1",
+                    "@test:phpunit10",
+                    "@test:parallel",
+                    "@benchmark:smoke",
+                    "@infection:ci"
+                ],
+                "composer:validate": [
+                    "composer validate --strict"
+                ],
                 "coverage:branch": [
                     "make coverage-branch"
                 ],
@@ -1658,6 +1775,18 @@
                 "infection:ci": [
                     "infection --no-progress --min-msi=90 --min-covered-msi=90"
                 ],
+                "package:check": [
+                    "php tools/check-package.php"
+                ],
+                "test": [
+                    "phpunit --colors=never --no-coverage"
+                ],
+                "test:phpstan1": [
+                    "bash tests/Compatibility/PHPStan1/run"
+                ],
+                "test:phpunit10": [
+                    "bash tests/Compatibility/PHPUnit10/run"
+                ],
                 "test:parallel": [
                     "@test:parallel:cases",
                     "@test:parallel:functional"
@@ -1678,13 +1807,20 @@
                     "email": "jbboehr@gmail.com"
                 }
             ],
-            "description": "Executable documentation testing for PHP.",
+            "description": "Test PHP examples in Markdown and PHPDoc through PHPUnit and PHPStan.",
             "homepage": "https://github.com/jbboehr/akashi.php",
+            "keywords": [
+                "doctest",
+                "documentation",
+                "phpstan",
+                "phpunit",
+                "testing"
+            ],
             "support": {
                 "issues": "https://github.com/jbboehr/akashi.php/issues",
                 "source": "https://github.com/jbboehr/akashi.php"
             },
-            "time": "2026-08-07T08:33:01+00:00"
+            "time": "2026-08-16T01:27:09+00:00"
         },
         {
             "name": "jbboehr/doctrine-of-the-second-sun",
@@ -1950,16 +2086,16 @@
         },
         {
             "name": "league/commonmark",
-            "version": "2.9.0",
+            "version": "2.10.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/commonmark.git",
-                "reference": "5703d83ba3da3b2e356a5fedc848ed6d8ffb6529"
+                "reference": "d2d1aa8b35e072966c89bc0c66cf926e56767dc4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/5703d83ba3da3b2e356a5fedc848ed6d8ffb6529",
-                "reference": "5703d83ba3da3b2e356a5fedc848ed6d8ffb6529",
+                "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/d2d1aa8b35e072966c89bc0c66cf926e56767dc4",
+                "reference": "d2d1aa8b35e072966c89bc0c66cf926e56767dc4",
                 "shasum": ""
             },
             "require": {
@@ -1996,7 +2132,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-main": "2.10-dev"
+                    "dev-main": "2.11-dev"
                 }
             },
             "autoload": {
@@ -2053,7 +2189,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-08-03T13:42:31+00:00"
+            "time": "2026-08-11T16:06:25+00:00"
         },
         {
             "name": "league/config",
@@ -5786,16 +5922,16 @@
         },
         {
             "name": "symfony/console",
-            "version": "v7.4.14",
+            "version": "v7.4.16",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/console.git",
-                "reference": "92f58bc4bf97a92ed1b9f367f0cd44f20bde0e87"
+                "reference": "f4c69c9aed03abf933b294257d618bdd9b30a06d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/console/zipball/92f58bc4bf97a92ed1b9f367f0cd44f20bde0e87",
-                "reference": "92f58bc4bf97a92ed1b9f367f0cd44f20bde0e87",
+                "url": "https://api.github.com/repos/symfony/console/zipball/f4c69c9aed03abf933b294257d618bdd9b30a06d",
+                "reference": "f4c69c9aed03abf933b294257d618bdd9b30a06d",
                 "shasum": ""
             },
             "require": {
@@ -5860,7 +5996,7 @@
                 "terminal"
             ],
             "support": {
-                "source": "https://github.com/symfony/console/tree/v7.4.14"
+                "source": "https://github.com/symfony/console/tree/v7.4.16"
             },
             "funding": [
                 {
@@ -5880,7 +6016,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-06-16T11:50:14+00:00"
+            "time": "2026-07-31T12:37:14+00:00"
         },
         {
             "name": "symfony/deprecation-contracts",
@@ -6827,6 +6963,86 @@
             "time": "2026-05-26T12:45:58+00:00"
         },
         {
+            "name": "symfony/polyfill-php82",
+            "version": "v1.38.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/polyfill-php82.git",
+                "reference": "002dc0cfe5fd4ed6033d48f27d4f19a486c4b04b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/polyfill-php82/zipball/002dc0cfe5fd4ed6033d48f27d4f19a486c4b04b",
+                "reference": "002dc0cfe5fd4ed6033d48f27d4f19a486c4b04b",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.2"
+            },
+            "type": "library",
+            "extra": {
+                "thanks": {
+                    "url": "https://github.com/symfony/polyfill",
+                    "name": "symfony/polyfill"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ],
+                "psr-4": {
+                    "Symfony\\Polyfill\\Php82\\": ""
+                },
+                "classmap": [
+                    "Resources/stubs"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nicolas Grekas",
+                    "email": "p@tchwork.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony polyfill backporting some PHP 8.2+ features to lower PHP versions",
+            "homepage": "https://symfony.com",
+            "keywords": [
+                "compatibility",
+                "polyfill",
+                "portable",
+                "shim"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/polyfill-php82/tree/v1.38.1"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/nicolas-grekas",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
+            "time": "2026-05-26T12:45:58+00:00"
+        },
+        {
             "name": "symfony/polyfill-php85",
             "version": "v1.41.0",
             "source": {
@@ -7126,16 +7342,16 @@
         },
         {
             "name": "symfony/string",
-            "version": "v7.4.13",
+            "version": "v7.4.15",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/string.git",
-                "reference": "961683010db3b27ec6ebcd7308e6e1ee8fa7ffde"
+                "reference": "e394af32256bf9e7bf80849d95e589167c10097b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/string/zipball/961683010db3b27ec6ebcd7308e6e1ee8fa7ffde",
-                "reference": "961683010db3b27ec6ebcd7308e6e1ee8fa7ffde",
+                "url": "https://api.github.com/repos/symfony/string/zipball/e394af32256bf9e7bf80849d95e589167c10097b",
+                "reference": "e394af32256bf9e7bf80849d95e589167c10097b",
                 "shasum": ""
             },
             "require": {
@@ -7193,7 +7409,7 @@
                 "utf8"
             ],
             "support": {
-                "source": "https://github.com/symfony/string/tree/v7.4.13"
+                "source": "https://github.com/symfony/string/tree/v7.4.15"
             },
             "funding": [
                 {
@@ -7213,7 +7429,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2026-05-23T15:23:29+00:00"
+            "time": "2026-07-28T07:33:02+00:00"
         },
         {
             "name": "thecodingmachine/safe",

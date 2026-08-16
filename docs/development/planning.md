@@ -91,8 +91,8 @@ The implemented foundation now includes:
   `@yumemi-*` promotion;
 - a separately versioned [Yumemi Apocrypha](https://github.com/jbboehr/yumemi-apocrypha.php) package for curated
   third-party stubs, leaving the generic `@yumemi-*` mechanism in core;
-- focused public documentation whose executable PHP and PHPStan examples are verified through Akashi, using child
-  processes only for examples whose authored namespaces require isolation.
+- focused public Markdown and selected source PHPDoc whose executable PHP and PHPStan examples are verified through
+  Akashi, using stable diagnostic identifiers and child processes only where authored namespaces require isolation.
 
 The public behavior is documented in [Core Concepts](../pages/core-concepts.md) and the
 [PHPStan](../pages/reference/phpstan.md), [Unit Syntax](../pages/reference/unit-syntax.md),

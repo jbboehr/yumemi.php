@@ -36,10 +36,8 @@
 
 namespace jbboehr\Yumemi\Tests\Documentation;
 
-use jbboehr\Akashi\ExampleCorpus;
 use jbboehr\Akashi\Integration\PHPStan\PhpStanExampleConfiguration;
 use jbboehr\Akashi\Integration\PHPStan\VerifiesPhpStanExamples;
-use jbboehr\Akashi\Source\MarkdownSource;
 use PHPStan\Rules\Functions\CallToFunctionParametersRule;
 use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;
@@ -57,6 +55,7 @@ final class DocumentationPhpStanExamplesTest extends RuleTestCase
      * Tokens that mark a documentation block as PHPStan-relevant rather than a pure runtime example.
      */
     private const UNIT_TOKENS = [
+        '@akashi-phpstan-error',
         '//!',
         'unit_int<',
         'unit_float<',
@@ -81,22 +80,13 @@ final class DocumentationPhpStanExamplesTest extends RuleTestCase
     public function testPhpStanRelevantDocumentationExamplesMatchDocumentedDiagnostics(): void
     {
         $this->assertPhpStanExamples(
-            self::documentationCorpus(),
-            PhpStanExampleConfiguration::forTokens(self::projectRoot(), ...self::UNIT_TOKENS),
+            DocumentationCorpus::load(),
+            PhpStanExampleConfiguration::forTokens(DocumentationCorpus::projectRoot(), ...self::UNIT_TOKENS),
         );
-    }
-
-    private static function documentationCorpus(): ExampleCorpus
-    {
-        return MarkdownSource::forProject(self::projectRoot())
-            ->includeFile('README.md')
-            ->includeDirectory('docs/pages')
-            ->exclude('docs/pages/SUMMARY.md')
-            ->load();
     }
 
     private static function projectRoot(): string
     {
-        return dirname(__DIR__, 2);
+        return DocumentationCorpus::projectRoot();
     }
 }
