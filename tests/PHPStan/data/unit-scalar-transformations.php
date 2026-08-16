@@ -1,5 +1,39 @@
 <?php
 
+/**
+ * +--------------------------------------------------------------------------------------------------------------+
+ * |        *                 .                         *                  .                         *            |
+ * |   .              *                      .                    *                      .                        |
+ * |             .                 .                  *                         .                 *               |
+ * -      *                    .             *                    .                         .                     -
+ *
+ *                               Iudex Mensurarum Mysticarum『夢見』〜ＹＵＭＥＭＩ〜
+ *
+ * -                                          .----------------.                                                  -
+ * |                                      .--'        __        '--.                                              |
+ * |                                  .--'          .'  '.          '--.                                          |
+ * |                             .---'            .'      '.            '---.                                     |
+ * +--------------------------------------------------------------------------------------------------------------+
+ *
+ * Copyright (c) anno Domini nostri Jesu Christi MMXXVI, John Boehr & contributors
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only WITH romic-exception
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License version 3,
+ * as published by the Free Software Foundation, together with the Romic
+ * Exception (an additional permission under section 7 of that license).
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * and the Romic Exception along with this program.  If not, see
+ * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
+ */
+
 declare(strict_types=1);
 
 use function jbboehr\Yumemi\unit;
@@ -213,6 +247,23 @@ assertType(
     array_product(array: [unit(2, 'meter'), 4, unit(3, 'second')]),
 );
 assertType('float|int', array_product([]));
+assertType(
+    "array{1&unit_int<'meter'>, 2&unit_int<'meter'>, 3&unit_int<'meter'>}",
+    range(unit(1, 'meter'), unit(3, 'meter')),
+);
+assertType(
+    "array{0.0&unit_float<'meter'>, 0.5&unit_float<'meter'>, 1.0&unit_float<'meter'>}",
+    range(start: unit(0.0, 'meter'), end: unit(1.0, 'm'), step: unit(0.5, 'meter')),
+);
+
+/**
+ * @param unit_int<'meter'>&int<0, 10>   $start
+ * @param unit_int<'meter'>&int<100, 200> $end
+ */
+function assertBrandedRange(int $start, int $end): void
+{
+    assertType("non-empty-list<unit_int<'meter'>&int<0, 200>>", range($start, $end));
+}
 
 /**
  * @param int<0, 20> $lower

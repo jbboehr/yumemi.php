@@ -220,6 +220,7 @@ The following Yumemi identifiers are stable integration keys:
 - `yumemi.invalidUnitCall`
 - `yumemi.invalidUnitComparison`
 - `yumemi.invalidUnitMathFunction`
+- `yumemi.invalidUnitRange`
 - `yumemi.invalidUnitRoot`
 - `yumemi.invalidUnitSelection`
 - `yumemi.invalidQuantityConstruction`

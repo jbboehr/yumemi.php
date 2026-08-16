@@ -59,6 +59,11 @@ equivalent unit. Native `array_product()` composes direct numeric brands only fo
 bare integer or float factor is dimensionless, but a branded numeric string still requires an explicit cast. Neither
 operation treats implicit string coercion as proof that the numeric-string brand survived.
 
+Native `range()` constructs values only when both endpoints and any explicit step carry one definitionally equivalent
+numeric brand. Omitting the step uses PHP's contextual default increment; explicitly passing an unbranded step is not
+equivalent because the call would otherwise assert a unit the argument does not possess. Branded numeric strings must be
+cast before range construction.
+
 **Reason.** Native brands provide interoperability and ordinary PHP arithmetic without allocation or dispatch. Runtime
 code therefore cannot recover a source unit from a branded scalar and must receive that unit explicitly at conversion
 boundaries.

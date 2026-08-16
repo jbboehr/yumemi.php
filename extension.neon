@@ -102,6 +102,10 @@ services:
         tags:
             - phpstan.broker.expressionTypeResolverExtension
     -
+        class: jbboehr\Yumemi\PHPStan\UnitRangeFunctionTypeResolverExtension
+        tags:
+            - phpstan.broker.expressionTypeResolverExtension
+    -
         class: jbboehr\Yumemi\PHPStan\UnitFunctionDynamicReturnTypeExtension
         tags:
             - phpstan.broker.dynamicFunctionReturnTypeExtension
@@ -147,6 +151,10 @@ services:
             - phpstan.rules.rule
     -
         class: jbboehr\Yumemi\PHPStan\InvalidUnitArrayAggregationFunctionRule
+        tags:
+            - phpstan.rules.rule
+    -
+        class: jbboehr\Yumemi\PHPStan\InvalidUnitRangeFunctionRule
         tags:
             - phpstan.rules.rule
     -

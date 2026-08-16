@@ -1,5 +1,39 @@
 <?php
 
+/**
+ * +--------------------------------------------------------------------------------------------------------------+
+ * |        *                 .                         *                  .                         *            |
+ * |   .              *                      .                    *                      .                        |
+ * |             .                 .                  *                         .                 *               |
+ * -      *                    .             *                    .                         .                     -
+ *
+ *                               Iudex Mensurarum Mysticarum『夢見』〜ＹＵＭＥＭＩ〜
+ *
+ * -                                          .----------------.                                                  -
+ * |                                      .--'        __        '--.                                              |
+ * |                                  .--'          .'  '.          '--.                                          |
+ * |                             .---'            .'      '.            '---.                                     |
+ * +--------------------------------------------------------------------------------------------------------------+
+ *
+ * Copyright (c) anno Domini nostri Jesu Christi MMXXVI, John Boehr & contributors
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only WITH romic-exception
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License version 3,
+ * as published by the Free Software Foundation, together with the Romic
+ * Exception (an additional permission under section 7 of that license).
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * and the Romic Exception along with this program.  If not, see
+ * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
+ */
+
 declare(strict_types=1);
 
 namespace jbboehr\Yumemi\Tests\PHPStan\Fixtures\ScalarFunctionShadow;
@@ -55,6 +89,11 @@ function hypot(int|float $x, int|float $y): string
 function pow(int|float $num, int|float $exponent): string
 {
     return (string) ($num ** $exponent);
+}
+
+function range(int|float $start, int|float $end, int|float $step = 1): string
+{
+    return sprintf('%s:%s:%s', $start, $end, $step);
 }
 
 function sqrt(int|float $num): string
@@ -176,3 +215,5 @@ assertType("-3&unit_int<'meter'>", \min($value, $value));
 assertType("-3&unit_int<'meter'>", \max($value, $value));
 assertType("-6&unit_int<'meter'>", \array_sum([$value, $value]));
 assertType("9&unit_int<'meter ^ 2'>", \array_product([$value, $value]));
+assertType("array{-3&unit_int<'meter'>}", \range($value, $value));
+assertType('string', range($value, $value));

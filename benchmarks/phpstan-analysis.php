@@ -556,6 +556,7 @@ function {$name}(int \$left, int \$right, array \$distances): int
     \$pair = array_sum([\$left, \$right]);
     \$list = array_sum(\$distances);
     \$area = array_product([\$left, \$right]);
+    \$positions = range(\$left, \$right);
 
     return \$pair + \$list;
 }

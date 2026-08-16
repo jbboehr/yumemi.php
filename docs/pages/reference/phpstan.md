@@ -240,6 +240,7 @@ square root is exact:
 | `min()` and `max()`              | Common brand, retaining known extrema or integer bounds  |
 | `array_sum()`                    | Common brand, retaining known sums or integer bounds     |
 | `array_product()`                | Composed brand for sealed, statically known array shapes |
+| `range()`                        | List with one common endpoint and step brand             |
 | `sqrt($unitNumber)`              | Rooted unit, retaining a finite nonnegative constant     |
 | `fdiv($left, $right)`            | Quotient unit, matching native `/` unit algebra          |
 | `intdiv($left, $right)`          | Integer quotient unit with truncation toward zero        |
@@ -294,6 +295,9 @@ $surveyedLength = 7;
 $additionalSurveyedLength = 5;
 $totalSurveyedLength = array_sum([$surveyedLength, $additionalSurveyedLength]);
 $surveyedArea = array_product([$surveyedLength, $additionalSurveyedLength]);
+/** @var unit_int<'meter'> $surveyEnd */
+$surveyEnd = 11;
+$surveyMarkers = range($surveyedLength, $surveyEnd);
 $wholeHalfLength = intdiv($surveyedLength, 2);
 
 assert((float) $displayHeight === 12.0);
@@ -301,6 +305,7 @@ assert((float) $platformWidth === 12.0);
 assert((float) $bearingInRadians === M_PI);
 assert((int) $totalSurveyedLength === 12);
 assert((int) $surveyedArea === 35);
+assert(count($surveyMarkers) === 5);
 assert((int) $wholeHalfLength === 3);
 ```
 
@@ -351,6 +356,19 @@ possible nonempty fixed shape without any unit-bearing factor, implicit string c
 products, and derived units outside the supported exponent range report the same identifier. Cast branded numeric
 strings explicitly before multiplying them. A unit-free call, including literal `array_product([])`, remains owned by
 PHPStan's native return type.
+
+`range()` preserves a unit when both endpoints and any explicit step are branded `int` or `float` values with one
+definitionally equivalent unit. A small range of known constants retains its exact list; larger or dynamic integer
+endpoints retain their combined bounds, and any possible float endpoint or step contributes a branded float result. On
+PHP 8.2, an explicit float step that may be `NAN` produces an ordinary list because that call may return an empty array;
+successful ranges are otherwise non-empty. The omitted native step is interpreted contextually in the endpoints' unit.
+An explicitly supplied step must be branded even when its runtime value is `1`, because native PHP carries no unit that
+Yumemi could safely infer from that bare argument. Constant folding follows PHPStan's configured target PHP version; a
+known constant call rejected by that target is left to PHPStan instead of receiving a branded success type.
+
+Mixed or incompatible endpoints and explicit steps report `yumemi.invalidUnitRange`. Convert compatible values before
+constructing the range, and cast `unit_numeric_string` values explicitly. Calls with no branded arguments remain owned
+by PHPStan's native `range()` inference.
 
 Unlike those preserving operations, `sqrt()` transforms the unit. It infers `unit_float<'meter'>` from either an integer
 or float branded as `meter^2`, because native `sqrt()` always returns a `float`. Every symbolic unit power must be
@@ -757,6 +775,7 @@ scope:
 | `yumemi.invalidUnitCall`               | An invalid constant `unit()`, `unit_factor()`, or `unit_to()` call                                           |
 | `yumemi.invalidUnitComparison`         | A native equality, identity, ordering, or spaceship comparison whose units are not definitionally equivalent |
 | `yumemi.invalidUnitMathFunction`       | Native binary math received incompatible operands, an invalid exponent, or an unrepresentable result unit    |
+| `yumemi.invalidUnitRange`              | Native `range()` received mixed, unbranded, nonnumeric, or differently branded endpoints or an explicit step |
 | `yumemi.invalidUnitRoot`               | Native `sqrt()` received a branded unit without an exact symbolic square root                                |
 | `yumemi.invalidUnitSelection`          | Native `min()` or `max()` can return an unbranded or differently branded candidate                           |
 | `yumemi.invalidQuantityConstruction`   | Invalid `Units::quantity()`, `parseQuantity()`, `deltaQuantity()`, or `point()` construction                 |
@@ -803,6 +822,9 @@ Use the identifier to choose the first corrective step:
   ensure every possible `intdiv()` pairing retains a brand. Reduce `fdiv()` or `intdiv()` operand exponents so their
   quotient unit remains representable. For `pow()`, use a bare constant integer exponent within the supported range and
   ensure the resulting unit remains representable. Convert compatible magnitudes explicitly before calling the function.
+- For `yumemi.invalidUnitRange`, give both endpoints and any explicit step one definitionally equivalent numeric brand.
+  Omit the step to use the contextual native default, or explicitly brand it when choosing another increment. Cast
+  branded numeric strings before constructing the range.
 - For `yumemi.invalidUnitSelection`, ensure every value that `min()` or `max()` can return has one definitionally
   equivalent unit. Convert compatible but differently branded values before selecting an extreme.
 - For `yumemi.invalidUnitAggregation`, ensure every possible `array_sum()` value has one definitionally equivalent
@@ -824,10 +846,10 @@ Important limits of the current static model are:
 - Explicit integer/float casts and `intval()`/`floatval()`/`doubleval()` preserve native numeric brands and move a
   `unit_numeric_string` brand onto the resulting number. Implicit arithmetic and weak numeric coercion do not preserve a
   numeric-string brand; comparisons still require definitionally equivalent brands. `abs()`, `ceil()`, `floor()`,
-  `round()`, `min()`, `max()`, and `array_sum()` preserve numeric unit brands when their operation has one sound result
-  unit. `array_product()` composes brands for sealed, statically known shapes. Supported constant `round()` calls also
-  retain every possible finite result; dynamic or version-incompatible policies generalize the value. `sqrt()`
-  transforms exact symbolic roots, `fdiv()` and `intdiv()` follow division algebra, `fmod()`/`hypot()` require
+  `round()`, `min()`, `max()`, `array_sum()`, and `range()` preserve numeric unit brands when their operation has one
+  sound result unit. `array_product()` composes brands for sealed, statically known shapes. Supported constant `round()`
+  calls also retain every possible finite result; dynamic or version-incompatible policies generalize the value.
+  `sqrt()` transforms exact symbolic roots, `fdiv()` and `intdiv()` follow division algebra, `fmod()`/`hypot()` require
   equivalent brands, and `pow()` raises a branded unit to a constant integer exponent. `deg2rad()`, `rad2deg()`, and the
   trigonometric functions enforce their canonical angle, exact-unscaled-ratio, or equivalent-operand contracts. Other
   unsupported casts and PHP built-ins can erase brands.

@@ -693,16 +693,18 @@ repeat the implementation's assumptions:
   `yumemi.invalidUnitAggregation` for bare or differently branded summands. Native `array_product()` composes units
   across sealed, statically known array shapes, retains fixed constants and integer ranges, accepts bare numeric factors
   as dimensionless, and reports `yumemi.invalidUnitAggregation` when cardinality, factor types, possible products, or
-  derived exponents prevent one sound result. Native `sqrt()` transforms an exact symbolic square unit, retains finite
-  nonnegative constants, generalizes negative or non-finite constants, and diagnoses branded units without an exact
-  symbolic root. Native `fdiv()` follows division unit algebra; `fmod()` and `hypot()` require definitionally equivalent
-  branded operands and diagnose mixed or incompatible calls. Native `intdiv()` applies quotient unit algebra to integer
-  operands, retains exact constants and truncation-toward-zero ranges, and leaves zero-divisor and `PHP_INT_MIN / -1`
-  throw analysis to PHPStan. Native `pow()` mirrors `**` for statically known integer exponents, including bounds,
-  constant folding, integer ranges, overflow promotion, finite alternatives, and derived-unit overflow. Other casts and
-  unsupported PHP built-ins can erase brands. Continue adding targeted integrations only for demonstrated workflows.
-  Native `deg2rad()`, `rad2deg()`, direct and inverse trigonometry, and binary `atan2()` enforce the canonical angle,
-  exact unscaled-ratio, and equivalent-operand contracts in the completed
+  derived exponents prevent one sound result. Native `range()` requires definitionally equivalent branded endpoints and
+  explicit steps, retains exact small ranges or bounded non-empty integer lists, and reports `yumemi.invalidUnitRange`
+  when one sound numeric brand cannot be established. Native `sqrt()` transforms an exact symbolic square unit, retains
+  finite nonnegative constants, generalizes negative or non-finite constants, and diagnoses branded units without an
+  exact symbolic root. Native `fdiv()` follows division unit algebra; `fmod()` and `hypot()` require definitionally
+  equivalent branded operands and diagnose mixed or incompatible calls. Native `intdiv()` applies quotient unit algebra
+  to integer operands, retains exact constants and truncation-toward-zero ranges, and leaves zero-divisor and
+  `PHP_INT_MIN / -1` throw analysis to PHPStan. Native `pow()` mirrors `**` for statically known integer exponents,
+  including bounds, constant folding, integer ranges, overflow promotion, finite alternatives, and derived-unit
+  overflow. Other casts and unsupported PHP built-ins can erase brands. Continue adding targeted integrations only for
+  demonstrated workflows. Native `deg2rad()`, `rad2deg()`, direct and inverse trigonometry, and binary `atan2()` enforce
+  the canonical angle, exact unscaled-ratio, and equivalent-operand contracts in the completed
   [angle-function design](native-angle-functions.md). Fractional or otherwise generalized native powers remain deferred
   because they require distinct correlation or approximation semantics. Exact runtime-object roots are supported through
   `Quantity::root()`.

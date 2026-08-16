@@ -23,6 +23,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   `yumemi.invalidUnitAggregation` diagnostic for mixed or incompatible summands.
 - PHPStan unit composition for `array_product()` over sealed, statically known array shapes, using
   `yumemi.invalidUnitAggregation` when no sound product unit can be inferred.
+- PHPStan brand inference for native `range()` endpoints and explicit steps, with exact small ranges, bounded integer
+  lists, and the stable `yumemi.invalidUnitRange` diagnostic for mixed or incompatible arguments.
 
 ### Changed
 
