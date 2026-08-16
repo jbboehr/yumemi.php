@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-08-15
+
 ### Added
 
 - Context-bound preferred-unit profiles for exact application-selected `Quantity` conversion by dimension.
@@ -33,18 +35,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Newly modeled native functions can expose unit errors at existing call sites that previously received bare numeric
   results; convert, rebrand, or explicitly cast at the intended unit boundary.
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - Branded `**` expressions now report an exponent-range diagnostic instead of aborting PHPStan analysis when their
   derived unit exceeds the supported exponent bounds.
 - Branded native multiplication and division now report an invalid operation instead of aborting PHPStan analysis when
   their derived unit exceeds the supported exponent bounds.
-
-### Security
 
 ## [0.1.0] - 2026-08-11
 
@@ -62,5 +58,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Verified public documentation, portable runtime conformance fixtures, release-style consumer tests, and automatic or
   manual PHPStan extension registration.
 
-[Unreleased]: https://github.com/jbboehr/yumemi.php/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/jbboehr/yumemi.php/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/jbboehr/yumemi.php/releases/tag/v0.1.1
 [0.1.0]: https://github.com/jbboehr/yumemi.php/releases/tag/v0.1.0
