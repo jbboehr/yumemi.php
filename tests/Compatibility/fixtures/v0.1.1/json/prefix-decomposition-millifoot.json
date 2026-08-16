@@ -1,0 +1,30 @@
+{
+    "prefix": {
+        "matchedName": "milli",
+        "canonicalName": "milli",
+        "matchedAs": "canonical",
+        "definitionExpression": "1e-3"
+    },
+    "unit": {
+        "matchedName": "foot",
+        "canonicalName": "international_foot",
+        "matchedAs": "alias",
+        "kind": "derived",
+        "definitionExpression": "12 international_inches",
+        "documentation": "unit of length equal to 12 international inches, in the imperial and US customary systems; primarily used in the United States",
+        "comment": null,
+        "aliases": [
+            "foot"
+        ],
+        "symbols": [
+            "ft"
+        ],
+        "explicitPlurals": [
+            "feet",
+            "international_feet"
+        ],
+        "generatedPlurals": [],
+        "semantics": "multiplicative",
+        "prefixDecomposition": null
+    }
+}

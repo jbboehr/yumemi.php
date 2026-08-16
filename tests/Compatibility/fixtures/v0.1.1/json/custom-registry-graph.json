@@ -1,0 +1,23 @@
+{
+    "default": {
+        "value": {
+            "numerator": "1",
+            "denominator": "1"
+        },
+        "unit": "meter"
+    },
+    "quantity": {
+        "value": {
+            "numerator": "3",
+            "denominator": "1"
+        },
+        "unit": "voucher"
+    },
+    "point": {
+        "value": {
+            "numerator": "4",
+            "denominator": "1"
+        },
+        "unit": "credit_point"
+    }
+}

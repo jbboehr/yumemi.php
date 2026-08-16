@@ -81,6 +81,21 @@ final class ReleasePersistenceCompatibilityTest extends TestCase
                 'prefix-decomposition-millifoot' => 'prefix-decomposition',
             ],
         ],
+        'v0.1.1' => [
+            'version' => '0.1.1',
+            'sourceReference' => '33bb4a3e4b0b730ad764bfcad2343258a56ece42',
+            'cases' => [
+                'rational-large-negative' => 'rational',
+                'dimension-fixed-and-custom' => 'dimension',
+                'quantity-default' => 'quantity',
+                'quantity-named-dimension' => 'quantity',
+                'point-default-affine' => 'point-quantity',
+                'custom-registry-graph' => 'custom-registry-graph',
+                'prefix-descriptor-milli' => 'prefix-descriptor',
+                'unit-descriptor-millifoot' => 'unit-descriptor',
+                'prefix-decomposition-millifoot' => 'prefix-decomposition',
+            ],
+        ],
     ];
 
     /**

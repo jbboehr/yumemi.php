@@ -1,0 +1,13 @@
+{
+    "length": 1,
+    "mass": 2,
+    "time": -3,
+    "electricCurrent": 0,
+    "temperature": 0,
+    "amountOfSubstance": 0,
+    "luminousIntensity": 0,
+    "additionalPowers": {
+        "currency": -2,
+        "information": 3
+    }
+}
