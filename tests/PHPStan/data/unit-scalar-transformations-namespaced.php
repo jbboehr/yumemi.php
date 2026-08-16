@@ -166,7 +166,12 @@ $value = unit(-3, 'meter');
 $area = unit(4, 'meter^2');
 $degrees = unit(180, 'arc_degree');
 $radians = unit(M_PI, 'radian');
-$ratio = unit(0.5, '1');
+/** @var unit_int<'meter'> $distance */
+$distance = -3;
+/** @var unit_float<'radian'> $dynamicRadians */
+$dynamicRadians = M_PI;
+/** @var unit_float<'1'> $ratio */
+$ratio = 0.5;
 
 assertType('string', abs($value));
 assertType('string', round($value));
@@ -199,18 +204,18 @@ assertType("-3&unit_int<'meter'>", \intval($value));
 assertType("1.0&unit_float<'1'>", \fdiv($value, $value));
 assertType("-1&unit_int<'meter'>", \intdiv($value, 2));
 assertType("-0.0&unit_float<'meter'>", \fmod($value, $value));
-assertType("4.242640687119285&unit_float<'meter'>", \hypot($value, $value));
+assertType("unit_float<'meter'>", \hypot($distance, $distance));
 assertType("9&unit_int<'meter ^ 2'>", \pow($value, 2));
 assertType("2.0&unit_float<'meter'>", \sqrt($area));
 assertType("3.141592653589793&unit_float<'radian'>", \deg2rad($degrees));
 assertType("180.0&unit_float<'arc_degree'>", \rad2deg($radians));
-assertType("1.2246467991473532E-16&unit_float<'1'>", \sin($radians));
+assertType("unit_float<'1'>", \sin($dynamicRadians));
 assertType("-1.0&unit_float<'1'>", \cos($radians));
-assertType("-1.2246467991473532E-16&unit_float<'1'>", \tan($radians));
-assertType("0.5235987755982989&unit_float<'radian'>", \asin($ratio));
-assertType("1.0471975511965979&unit_float<'radian'>", \acos($ratio));
-assertType("0.4636476090008061&unit_float<'radian'>", \atan($ratio));
-assertType("-2.356194490192345&unit_float<'radian'>", \atan2($value, $value));
+assertType("unit_float<'1'>", \tan($dynamicRadians));
+assertType("unit_float<'radian'>", \asin($ratio));
+assertType("unit_float<'radian'>", \acos($ratio));
+assertType("unit_float<'radian'>", \atan($ratio));
+assertType("unit_float<'radian'>", \atan2($distance, $distance));
 assertType("-3&unit_int<'meter'>", \min($value, $value));
 assertType("-3&unit_int<'meter'>", \max($value, $value));
 assertType("-6&unit_int<'meter'>", \array_sum([$value, $value]));

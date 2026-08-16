@@ -158,12 +158,34 @@ assertType("180.0&unit_float<'arc_degree'>", rad2deg(unit(M_PI, 'rad')));
 assertType("0.0&unit_float<'1'>", sin(unit(0, 'radian')));
 assertType("1.0&unit_float<'1'>", cos(num: unit(0.0, 'rad')));
 assertType("0.0&unit_float<'1'>", tan(unit(0.0, 'radian')));
-assertType("0.5235987755982989&unit_float<'radian'>", asin(unit(0.5, '1')));
-assertType("0.5235987755982989&unit_float<'radian'>", asin(unit_to(unit(50.0, 'percent'), 'percent', '1')));
-assertType("1.0471975511965979&unit_float<'radian'>", acos(num: unit(0.5, 'meter / meter')));
-assertType("0.7853981633974483&unit_float<'radian'>", atan(unit(1, 'second / second')));
-assertType("0.6435011087932844&unit_float<'radian'>", atan2(unit(3, 'meter'), unit(4, '100 * centimeter')));
-assertType("0.4636476090008061&unit_float<'radian'>", atan2(x: unit(2, 'second'), y: unit(1.0, 'second')));
+/**
+ * @param unit_float<'1'>              $half
+ * @param unit_float<'percent'>        $percent
+ * @param unit_float<'meter / meter'>  $ratio
+ * @param unit_int<'second / second'>  $one
+ * @param unit_int<'meter'>            $rise
+ * @param unit_int<'100 * centimeter'> $run
+ * @param unit_float<'second'>         $y
+ * @param unit_int<'second'>           $x
+ */
+function assertBrandedInverseTrigConstants(
+    float $half,
+    float $percent,
+    float $ratio,
+    int $one,
+    int $rise,
+    int $run,
+    float $y,
+    int $x,
+): void {
+    // Exact inverse-trig last bits follow the analyzer libm and are not portable.
+    assertType("unit_float<'radian'>", asin($half));
+    assertType("unit_float<'radian'>", asin(unit_to($percent, 'percent', '1')));
+    assertType("unit_float<'radian'>", acos(num: $ratio));
+    assertType("unit_float<'radian'>", atan($one));
+    assertType("unit_float<'radian'>", atan2($rise, $run));
+    assertType("unit_float<'radian'>", atan2(x: $x, y: $y));
+}
 
 /** @param unit_int<'meter'>&int<1, 5> $value */
 function assertBrandedBinaryMath(int $value): void

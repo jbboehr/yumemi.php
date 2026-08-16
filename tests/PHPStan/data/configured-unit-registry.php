@@ -47,8 +47,12 @@ assertType("0.9345794392523364&unit_float<'USD / EUR'>", unit_factor('EUR', 'USD
 assertType("3.141592653589793&unit_float<'radian'>", deg2rad(unit(180, 'degree')));
 assertType("180.0&unit_float<'arc_degree'>", rad2deg(unit(M_PI, 'rad')));
 assertType("0.0&unit_float<'1'>", sin(unit(0, 'rad')));
-assertType("0.5235987755982989&unit_float<'radian'>", asin(unit(0.5, 'widget / widget')));
-assertType("0.7853981633974483&unit_float<'radian'>", atan2(unit(1, 'widget'), unit(1, 'widget')));
+/** @var unit_float<'widget / widget'> $widgetRatio */
+$widgetRatio = 0.5;
+/** @var unit_int<'widget'> $widgetLeg */
+$widgetLeg = 1;
+assertType("unit_float<'radian'>", asin($widgetRatio));
+assertType("unit_float<'radian'>", atan2($widgetLeg, $widgetLeg));
 
 $dollars = Units::default()->quantity(100, 'USD');
 $euroQuantity = Units::default()->quantity(107, 'EUR');

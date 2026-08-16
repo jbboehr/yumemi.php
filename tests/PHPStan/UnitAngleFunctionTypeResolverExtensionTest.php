@@ -205,10 +205,9 @@ final class UnitAngleFunctionTypeResolverExtensionTest extends TestCase
 
         self::assertSame("unit_float<'1'>", $direct['type']?->describe(VerbosityLevel::precise()));
         self::assertSame("unit_float<'radian'>", $outsideInverseDomain['type']?->describe(VerbosityLevel::precise()));
-        self::assertSame(
-            "1.5707963267948966&unit_float<'radian'>",
-            $finiteAtInfinity['type']?->describe(VerbosityLevel::precise()),
-        );
+        self::assertInstanceOf(UnitConstantFloatType::class, $finiteAtInfinity['type']);
+        self::assertSame(atan(INF), $finiteAtInfinity['type']->getValue());
+        self::assertTrue($finiteAtInfinity['type']->getUnitExpression()->equals($this->unit('radian')));
 
         $nonFiniteAtan2 = $this->analyseAtan2(
             new UnitConstantFloatType(NAN, $this->unit('meter')),
@@ -220,10 +219,9 @@ final class UnitAngleFunctionTypeResolverExtensionTest extends TestCase
         );
 
         self::assertSame("unit_float<'radian'>", $nonFiniteAtan2['type']?->describe(VerbosityLevel::precise()));
-        self::assertSame(
-            "0.7853981633974483&unit_float<'radian'>",
-            $finiteAtan2['type']?->describe(VerbosityLevel::precise()),
-        );
+        self::assertInstanceOf(UnitConstantFloatType::class, $finiteAtan2['type']);
+        self::assertSame(atan2(INF, INF), $finiteAtan2['type']->getValue());
+        self::assertTrue($finiteAtan2['type']->getUnitExpression()->equals($this->unit('radian')));
     }
 
     public function testAtan2RejectsIncompatibleAndMixedOperands(): void
