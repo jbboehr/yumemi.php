@@ -175,3 +175,4 @@ assertType("-2.356194490192345&unit_float<'radian'>", \atan2($value, $value));
 assertType("-3&unit_int<'meter'>", \min($value, $value));
 assertType("-3&unit_int<'meter'>", \max($value, $value));
 assertType("-6&unit_int<'meter'>", \array_sum([$value, $value]));
+assertType("9&unit_int<'meter ^ 2'>", \array_product([$value, $value]));

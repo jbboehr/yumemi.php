@@ -38,18 +38,18 @@ declare(strict_types=1);
 
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
-use jbboehr\Yumemi\PHPStan\InvalidUnitArraySumFunctionRule;
+use jbboehr\Yumemi\PHPStan\InvalidUnitArrayAggregationFunctionRule;
 use PHPStan\Rules\Rule;
 use PHPStan\Testing\RuleTestCase;
 
 /**
- * @extends RuleTestCase<InvalidUnitArraySumFunctionRule>
+ * @extends RuleTestCase<InvalidUnitArrayAggregationFunctionRule>
  */
-final class InvalidUnitArraySumFunctionRuleTest extends RuleTestCase
+final class InvalidUnitArrayAggregationFunctionRuleTest extends RuleTestCase
 {
     protected function getRule(): Rule
     {
-        return self::getContainer()->getByType(InvalidUnitArraySumFunctionRule::class);
+        return self::getContainer()->getByType(InvalidUnitArrayAggregationFunctionRule::class);
     }
 
     public static function getAdditionalConfigFiles(): array
@@ -59,7 +59,7 @@ final class InvalidUnitArraySumFunctionRuleTest extends RuleTestCase
 
     public function testInvalidNativeUnitAggregationsAreReported(): void
     {
-        $this->analyse([__DIR__ . '/Fixtures/InvalidUnitArraySumFunctionCalls.php'], [
+        $this->analyse([__DIR__ . '/Fixtures/InvalidUnitArrayAggregationFunctionCalls.php'], [
             [
                 'Cannot call array_sum() with units international_foot and meter because they are not definitionally equivalent.',
                 13,
@@ -75,6 +75,18 @@ final class InvalidUnitArraySumFunctionRuleTest extends RuleTestCase
             [
                 'Cannot call array_sum() with unit-bearing and unbranded values; every possible summand needs one definitionally equivalent unit.',
                 22,
+            ],
+            [
+                'Cannot infer a unit for array_product() unless every possible input array has a sealed, statically known shape.',
+                34,
+            ],
+            [
+                'Cannot call array_product() with a unit-bearing array unless every possible factor is an explicit int or float; cast numeric strings before multiplication.',
+                38,
+            ],
+            [
+                'Cannot infer array_product() because its product unit exceeds the supported exponent range.',
+                40,
             ],
         ]);
     }

@@ -207,6 +207,12 @@ assertType("2&unit_int<'meter'>", max(unit(2, 'meter'), unit(1.5, 'meter')));
 assertType("5&unit_int<'meter'>", array_sum([unit(2, 'meter'), unit(3, 'meter')]));
 assertType("5&unit_int<'meter'>", array_sum(array: [unit(2, 'meter'), unit(3, 'm')]));
 assertType('0', array_sum([]));
+assertType("6&unit_int<'meter ^ 2'>", array_product([unit(2, 'meter'), unit(3, 'meter')]));
+assertType(
+    "24&unit_int<'meter * second'>",
+    array_product(array: [unit(2, 'meter'), 4, unit(3, 'second')]),
+);
+assertType('float|int', array_product([]));
 
 /**
  * @param int<0, 20> $lower

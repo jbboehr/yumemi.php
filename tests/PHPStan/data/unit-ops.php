@@ -26,3 +26,11 @@ $bad = $a + $t;
 
 // Should error: modulo requires unit_int operands
 $badModulo = $floatDistance % $floatDistance;
+
+// Should error without aborting analysis: the resulting exponent exceeds Yumemi's limit.
+/** @var unit_int<'meter ^ 10000'> $highPower */
+$highPower = 1;
+/** @var unit_int<'1 / meter'> $inverseDistance */
+$inverseDistance = 1;
+$badProduct = $highPower * $a;
+$badQuotient = $highPower / $inverseDistance;

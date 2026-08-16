@@ -55,7 +55,9 @@ through an explicit integer or float cast, or through the corresponding `intval(
 conversion with decimal semantics; implicit coercion does not retain the brand.
 
 Native `array_sum()` therefore aggregates only direct `unit_int` and `unit_float` values with one definitionally
-equivalent unit; callers must explicitly cast branded numeric strings before aggregation.
+equivalent unit. Native `array_product()` composes direct numeric brands only for sealed, statically known shapes; a
+bare integer or float factor is dimensionless, but a branded numeric string still requires an explicit cast. Neither
+operation treats implicit string coercion as proof that the numeric-string brand survived.
 
 **Reason.** Native brands provide interoperability and ordinary PHP arithmetic without allocation or dispatch. Runtime
 code therefore cannot recover a source unit from a branded scalar and must receive that unit explicitly at conversion
@@ -67,8 +69,8 @@ and dynamic return extensions under [`src/PHPStan`](../../src/PHPStan) carry the
 [`UnitFunctionTest`](../../tests/UnitFunctionTest.php) and the [`unit-ops.php`](../../tests/PHPStan/data/unit-ops.php)
 fixture cover runtime identity and inferred arithmetic. The
 [`unit-scalar-transformations.php`](../../tests/PHPStan/data/unit-scalar-transformations.php),
-[`InvalidUnitArraySumFunctionCalls.php`](../../tests/PHPStan/Fixtures/InvalidUnitArraySumFunctionCalls.php), and
-[`unit-numeric-string-weak-coercion.php`](../../tests/PHPStan/data/unit-numeric-string-weak-coercion.php) fixtures
+[`InvalidUnitArrayAggregationFunctionCalls.php`](../../tests/PHPStan/Fixtures/InvalidUnitArrayAggregationFunctionCalls.php),
+and [`unit-numeric-string-weak-coercion.php`](../../tests/PHPStan/data/unit-numeric-string-weak-coercion.php) fixtures
 distinguish explicit scalar conversions from implicit coercion. The public [Core Concepts](../pages/core-concepts.md)
 guide documents the boundary.
 

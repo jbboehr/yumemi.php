@@ -21,6 +21,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   half-rounding modes.
 - PHPStan brand inference for `array_sum()` over definitionally equivalent numeric elements, with the stable
   `yumemi.invalidUnitAggregation` diagnostic for mixed or incompatible summands.
+- PHPStan unit composition for `array_product()` over sealed, statically known array shapes, using
+  `yumemi.invalidUnitAggregation` when no sound product unit can be inferred.
 
 ### Changed
 
@@ -37,6 +39,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Branded `**` expressions now report an exponent-range diagnostic instead of aborting PHPStan analysis when their
   derived unit exceeds the supported exponent bounds.
+- Branded native multiplication and division now report an invalid operation instead of aborting PHPStan analysis when
+  their derived unit exceeds the supported exponent bounds.
 
 ### Security
 

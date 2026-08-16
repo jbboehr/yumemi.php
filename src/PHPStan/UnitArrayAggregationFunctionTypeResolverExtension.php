@@ -42,6 +42,7 @@ use PhpParser\Node\Name;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\Constant\ConstantArrayType;
+use PHPStan\Type\ErrorType;
 use PHPStan\Type\ExpressionTypeResolverExtension;
 use PHPStan\Type\IntegerRangeType;
 use PHPStan\Type\NeverType;
@@ -49,7 +50,7 @@ use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
 
 /**
- * Preserves one common unit through native array_sum() aggregation.
+ * Infers unit-aware native array_sum() and fixed-shape array_product() aggregation.
  *
  * @logion [RAS 60:67] I beheld a silver censer swinging between the appointed stars; at each passage it scattered no
  *     incense, but the forgotten prayers of cities whose sanctuaries had become galleries. The angel who bore it wept
@@ -58,10 +59,11 @@ use PHPStan\Type\TypeCombinator;
  *
  * @phpstan-type ValueAnalysis array{units: list<UnitExpression>, hasBare: bool}
  * @phpstan-type CallAnalysis array{type: ?Type, message: ?string}
+ * @phpstan-type ProductFactorAnalysis array{unit: ?UnitExpression, hasBare: bool, valid: bool}
  *
  * @internal
  */
-final class UnitArraySumFunctionTypeResolverExtension implements ExpressionTypeResolverExtension
+final class UnitArrayAggregationFunctionTypeResolverExtension implements ExpressionTypeResolverExtension
 {
     /**
      * @logion [OSD 93:8] Anoint the red-lacquer threshold with the first frost of winter, and admit no guest whose
@@ -112,11 +114,9 @@ final class UnitArraySumFunctionTypeResolverExtension implements ExpressionTypeR
 
         $functionName = $this->reflectionProvider->getFunction($expr->name, $scope)->getName();
         $arguments = $expr->getArgs();
-        if (
-            $functionName !== 'array_sum'
+        if (!in_array($functionName, ['array_product', 'array_sum'], true)
             || count($arguments) !== 1
-            || $arguments[0]->unpack
-        ) {
+            || $arguments[0]->unpack) {
             return ['type' => null, 'message' => null];
         }
 
@@ -125,6 +125,21 @@ final class UnitArraySumFunctionTypeResolverExtension implements ExpressionTypeR
             return ['type' => null, 'message' => null];
         }
 
+        return $functionName === 'array_sum'
+            ? $this->analyseSum($argumentType)
+            : $this->analyseProduct($argumentType);
+    }
+
+    /**
+     * @logion [AWC 37:81] When the western granaries were opened after the long frost, the stewards counted every
+     *     remaining measure beneath the names of those who had sown it. They joined no field unto another by decree;
+     *     yet where the measures agreed, the bread was divided without dispute, and the forgotten households received
+     *     their portion before the court was fed.
+     *
+     * @return CallAnalysis
+     */
+    private function analyseSum(Type $argumentType): array
+    {
         $units = [];
         $hasBare = false;
         foreach (UnitUnionTypeHelper::directAlternatives($argumentType) as $arrayType) {
@@ -179,6 +194,229 @@ final class UnitArraySumFunctionTypeResolverExtension implements ExpressionTypeR
             'type' => UnitUnionTypeHelper::combineMapped($results, $argumentType),
             'message' => null,
         ];
+    }
+
+    /**
+     * @logion [RAS 79:99] I beheld seven bronze wheels turning within the artificial sun, and each bore a different
+     *     constellation upon its rim. Their motions were unlike, yet their crossings kindled one white road beyond the
+     *     firmament. The watchers numbered every conjunction; but where one wheel vanished from the count, the road
+     *     divided into unmeasured heavens and no traveler returned.
+     *
+     * @return CallAnalysis
+     */
+    private function analyseProduct(Type $argumentType): array
+    {
+        $arrayTypes = [];
+        $identityUnit = null;
+        $hasInvalidFactor = false;
+        $hasUnknownShape = false;
+
+        foreach (UnitUnionTypeHelper::directAlternatives($argumentType) as $arrayType) {
+            if ($arrayType instanceof NeverType) {
+                continue;
+            }
+
+            if ($arrayType->isConstantArray()->yes()) {
+                foreach ($arrayType->getConstantArrays() as $constantArray) {
+                    foreach ($constantArray->getValueTypes() as $valueType) {
+                        $factorAnalysis = $this->analyzeProductFactor($valueType);
+                        $identityUnit ??= $factorAnalysis['unit'];
+                    }
+
+                    $unsealedTypes = $constantArray->getUnsealedTypes();
+                    if ($unsealedTypes !== null) {
+                        $factorAnalysis = $this->analyzeProductFactor($unsealedTypes[1]);
+                        $identityUnit ??= $factorAnalysis['unit'];
+                    }
+
+                    $arrayTypes[] = $constantArray;
+                }
+
+                continue;
+            }
+
+            $factorAnalysis = $this->analyzeProductFactor($arrayType->getIterableValueType());
+            $identityUnit ??= $factorAnalysis['unit'];
+            $hasInvalidFactor = $hasInvalidFactor || !$factorAnalysis['valid'];
+            $hasUnknownShape = true;
+        }
+
+        if ($identityUnit === null) {
+            return ['type' => null, 'message' => null];
+        }
+
+        if ($hasInvalidFactor) {
+            return [
+                'type' => null,
+                'message' => 'Cannot call array_product() with a unit-bearing array unless every possible factor is an explicit int or float; cast numeric strings before multiplication.',
+            ];
+        }
+
+        if ($hasUnknownShape) {
+            return [
+                'type' => null,
+                'message' => 'Cannot infer a unit for array_product() unless every possible input array has a sealed, statically known shape.',
+            ];
+        }
+
+        $results = [];
+        foreach ($arrayTypes as $arrayType) {
+            $analysis = $this->productConstantArray($arrayType, $identityUnit);
+            if ($analysis['message'] !== null) {
+                return $analysis;
+            }
+
+            if ($analysis['type'] !== null) {
+                $results[] = $analysis['type'];
+            }
+        }
+
+        return [
+            'type' => $results === [] ? null : UnitUnionTypeHelper::combineMapped($results, $argumentType),
+            'message' => null,
+        ];
+    }
+
+    /**
+     * @logion [OSD 81:87] Set each ingot upon the black altar in the order received, and strike the seal only after the
+     *     final weight hath entered the fire. If one vessel remaineth open, quench the furnace and proclaim no measure;
+     *     for a work whose bounds are hidden may increase without form, and its strength shall consume the inheritance
+     *     it was appointed to fulfill.
+     *
+     * @return CallAnalysis
+     */
+    private function productConstantArray(ConstantArrayType $type, UnitExpression $identityUnit): array
+    {
+        if ($type->getUnsealedTypes() !== null) {
+            return [
+                'type' => null,
+                'message' => 'Cannot infer a unit for array_product() unless every possible input array has a sealed, statically known shape.',
+            ];
+        }
+
+        $unit = null;
+        $hasRequiredKey = false;
+        $hasGuaranteedRequiredUnit = false;
+        $allOptionalFactorsGuaranteeUnit = true;
+        foreach ($type->getValueTypes() as $index => $valueType) {
+            $analysis = $this->analyzeProductFactor($valueType);
+            if (!$analysis['valid']) {
+                return [
+                    'type' => null,
+                    'message' => 'Cannot call array_product() with a unit-bearing array unless every possible factor is an explicit int or float; cast numeric strings before multiplication.',
+                ];
+            }
+
+            $unit ??= $analysis['unit'];
+            $guaranteesUnit = $analysis['unit'] !== null && !$analysis['hasBare'];
+            if ($type->isOptionalKey($index)) {
+                $allOptionalFactorsGuaranteeUnit = $allOptionalFactorsGuaranteeUnit && $guaranteesUnit;
+            } else {
+                $hasRequiredKey = true;
+                $hasGuaranteedRequiredUnit = $hasGuaranteedRequiredUnit || $guaranteesUnit;
+            }
+        }
+
+        if ($unit === null) {
+            if ($type->getValueTypes() === []) {
+                return [
+                    'type' => UnitIntegerTypeHelper::create(
+                        UnitExpressionAlgebra::power($identityUnit, 0),
+                        1,
+                        1,
+                    ),
+                    'message' => null,
+                ];
+            }
+
+            return [
+                'type' => null,
+                'message' => 'Cannot infer one array_product() result unit when a possible nonempty array shape has no unit-bearing factor.',
+            ];
+        }
+
+        if (!$hasGuaranteedRequiredUnit && ($hasRequiredKey || !$allOptionalFactorsGuaranteeUnit)) {
+            return [
+                'type' => null,
+                'message' => 'Cannot infer one array_product() result unit when a possible nonempty array shape has no unit-bearing factor.',
+            ];
+        }
+
+        $product = UnitIntegerTypeHelper::create(UnitExpressionAlgebra::power($identityUnit, 0), 1, 1);
+        foreach ($type->getValueTypes() as $index => $valueType) {
+            $productCount = count(UnitUnionTypeHelper::directAlternatives($product));
+            $factorCount = count(UnitUnionTypeHelper::directAlternatives($valueType));
+            $choiceCount = $factorCount + ($type->isOptionalKey($index) ? 1 : 0);
+            if ($choiceCount !== 0 && $productCount > intdiv(128, $choiceCount)) {
+                return [
+                    'type' => null,
+                    'message' => 'Cannot infer array_product() because its fixed input shape produces more than 128 possible unit products.',
+                ];
+            }
+
+            $withValue = $this->operatorExtension->specifyType('*', $product, $valueType);
+            if ($withValue instanceof ErrorType) {
+                return [
+                    'type' => null,
+                    'message' => 'Cannot infer array_product() because its product unit exceeds the supported exponent range.',
+                ];
+            }
+
+            $product = $type->isOptionalKey($index)
+                ? TypeCombinator::union($product, $withValue)
+                : $withValue;
+        }
+
+        return ['type' => $product, 'message' => null];
+    }
+
+    /**
+     * @logion [SFA 62:48] A vessel may receive many fires if each flame be named before it entereth; but the nameless
+     *     ember borroweth every color and answereth to none. Therefore distinguish the coal from the seal impressed upon
+     *     it, and suffer no hidden mark to pass into the furnace as though heat alone had testified concerning its
+     *     origin.
+     *
+     * @return ProductFactorAnalysis
+     */
+    private function analyzeProductFactor(Type $type): array
+    {
+        $unit = null;
+        $hasBare = false;
+        $valid = true;
+        foreach (UnitUnionTypeHelper::directAlternatives($type) as $innerType) {
+            if ($innerType instanceof NeverType) {
+                continue;
+            }
+
+            $float = UnitFloatType::extract($innerType);
+            if ($float !== null) {
+                $unit ??= $float['unit'];
+
+                continue;
+            }
+
+            $integer = UnitIntegerTypeHelper::extract($innerType);
+            if ($integer !== null) {
+                $unit ??= $integer['unit'];
+
+                continue;
+            }
+
+            if ($innerType instanceof UnitNumericStringType) {
+                $unit ??= $innerType->getUnitExpression();
+                $valid = false;
+
+                continue;
+            }
+
+            if (!$innerType->isInteger()->yes() && !$innerType->isFloat()->yes()) {
+                $valid = false;
+            } else {
+                $hasBare = true;
+            }
+        }
+
+        return ['unit' => $unit, 'hasBare' => $hasBare, 'valid' => $valid];
     }
 
     /**

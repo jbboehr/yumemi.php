@@ -85,7 +85,7 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $this->assertStringContainsString("unit_int<'meter'>", $output, $output);
         $this->assertStringContainsString("unit_int<'second'>", $output, $output);
         $this->assertStringContainsString("unit_float<'meter'>", $output, $output);
-        $this->assertStringContainsString('Found 2 errors', $output, $output);
+        $this->assertStringContainsString('Found 4 errors', $output, $output);
     }
 
     /**

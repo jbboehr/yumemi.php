@@ -49,10 +49,10 @@ preservation (`preserving`), `min()`/`max()` inference (`extrema`), `sqrt()` inf
 (`binary-math`), their combined `builtins` workload, extension-free and Yumemi-enabled native helpers (`helper-baseline`
 and `helpers`), combined branded inference, quantity and affine inference, optional `@yumemi-*` promotion, and a mixed
 application workload. Focused workloads also isolate exact `round()` inference (`rounding`), branded `intdiv()` and
-`pow()` inference (`integer-math`), angle conversion and trigonometric inference (`angles`), and `array_sum()` inference
-(`aggregation`). Every measured process receives a fresh PHPStan temporary directory, preventing the result cache from
-skipping analysis. Repeated unit strings within one fixture are intentional: they exercise parser and semantic caches
-during a realistic long-running analysis process.
+`pow()` inference (`integer-math`), angle conversion and trigonometric inference (`angles`), and `array_sum()` plus
+fixed-shape `array_product()` inference (`aggregation`). Every measured process receives a fresh PHPStan temporary
+directory, preventing the result cache from skipping analysis. Repeated unit strings within one fixture are intentional:
+they exercise parser and semantic caches during a realistic long-running analysis process.
 
 The `baseline`/`bootstrap` pair compares minimal analyzer startup without and with Yumemi. The `plain`/`scalar` pair
 compares the same ordinary numeric fixture without and with Yumemi, exposing adapter callbacks that decline unbranded

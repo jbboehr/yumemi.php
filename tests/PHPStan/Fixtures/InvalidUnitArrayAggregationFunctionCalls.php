@@ -28,3 +28,18 @@ array_sum([[$meter]]);
 
 // @phpstan-ignore yumemi.invalidUnitAggregation (exercise identifier-specific suppression)
 array_sum([$meter, $foot]);
+
+/** @var list<unit_int<'meter'>> $productFactors */
+$productFactors = [$meter];
+array_product($productFactors);
+
+/** @var unit_numeric_string<'meter'> $numericDistance */
+$numericDistance = '2';
+array_product([$numericDistance, $meter]);
+
+array_product([unit(2, 'meter ^ 10000'), unit(3, 'meter')]);
+array_product([$meter, $foot]);
+array_product([$meter, 3]);
+
+// @phpstan-ignore yumemi.invalidUnitAggregation (exercise product suppression)
+array_product($productFactors);

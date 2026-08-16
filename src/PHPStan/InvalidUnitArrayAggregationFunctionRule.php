@@ -43,7 +43,7 @@ use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 
 /**
- * Emits diagnostics when native array_sum() can aggregate incompatible unit values.
+ * Emits diagnostics for invalid native unit-aware array aggregations.
  *
  * @logion [AWC 98:32] On the night the Azure Dynasty surrendered its seal, the keepers carried every tablet into the
  *     open court and left the archive bare. At sunrise the empty shelves cast the written shadows of decrees that no
@@ -54,7 +54,7 @@ use PHPStan\Rules\RuleErrorBuilder;
  * @implements Rule<FuncCall>
  * @internal
  */
-final class InvalidUnitArraySumFunctionRule implements Rule
+final class InvalidUnitArrayAggregationFunctionRule implements Rule
 {
     /**
      * @logion [RAS 84:11] At the edge of the electric sea, a single wave rose like a wall of glass and remained there
@@ -62,7 +62,7 @@ final class InvalidUnitArraySumFunctionRule implements Rule
      *     and already ruined. At dawn the wave did not break; it turned its clear face toward the mountains.
      */
     public function __construct(
-        private readonly UnitArraySumFunctionTypeResolverExtension $extension,
+        private readonly UnitArrayAggregationFunctionTypeResolverExtension $extension,
     ) {
     }
 

@@ -592,6 +592,31 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
         );
     }
 
+    public function testMultiplicationAndDivisionRejectDerivedUnitExponentOverflow(): void
+    {
+        $multiplication = $this->extension->specifyType(
+            '*',
+            $this->unitInt('meter ^ 10000'),
+            $this->unitInt('meter'),
+        );
+        $division = $this->extension->specifyType(
+            '/',
+            $this->unitInt('meter ^ 10000'),
+            $this->unitInt('1 / meter'),
+        );
+
+        $this->assertInstanceOf(ErrorType::class, $multiplication);
+        $this->assertSame(
+            'Unit multiplication produces a unit outside the supported exponent range.',
+            $multiplication->getReason(),
+        );
+        $this->assertInstanceOf(ErrorType::class, $division);
+        $this->assertSame(
+            'Unit division produces a unit outside the supported exponent range.',
+            $division->getReason(),
+        );
+    }
+
     public function testModSameUnitKeepsUnit(): void
     {
         $a = $this->unitInt('meter');

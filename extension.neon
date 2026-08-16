@@ -96,7 +96,7 @@ services:
         tags:
             - phpstan.broker.expressionTypeResolverExtension
     -
-        class: jbboehr\Yumemi\PHPStan\UnitArraySumFunctionTypeResolverExtension
+        class: jbboehr\Yumemi\PHPStan\UnitArrayAggregationFunctionTypeResolverExtension
         arguments:
             operatorExtension: @yumemiUnitOperatorTypeSpecifyingExtension
         tags:
@@ -146,7 +146,7 @@ services:
         tags:
             - phpstan.rules.rule
     -
-        class: jbboehr\Yumemi\PHPStan\InvalidUnitArraySumFunctionRule
+        class: jbboehr\Yumemi\PHPStan\InvalidUnitArrayAggregationFunctionRule
         tags:
             - phpstan.rules.rule
     -

@@ -243,9 +243,16 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
         Type $rightSide,
     ): Type {
         if ($leftUnit !== null && $rightUnit !== null) {
-            $unit = $operatorSigil === '*'
-                ? UnitExpressionAlgebra::multiply($leftUnit['unit'], $rightUnit['unit'])
-                : UnitExpressionAlgebra::divide($leftUnit['unit'], $rightUnit['unit']);
+            try {
+                $unit = $operatorSigil === '*'
+                    ? UnitExpressionAlgebra::multiply($leftUnit['unit'], $rightUnit['unit'])
+                    : UnitExpressionAlgebra::divide($leftUnit['unit'], $rightUnit['unit']);
+            } catch (OverflowException) {
+                return new ErrorType(sprintf(
+                    'Unit %s produces a unit outside the supported exponent range.',
+                    $operatorSigil === '*' ? 'multiplication' : 'division',
+                ));
+            }
 
             if ($operatorSigil === '/' || !$leftUnit['integer'] || !$rightUnit['integer']) {
                 if (
