@@ -100,8 +100,9 @@ jobs:
 
             - name: Run PHPUnit
               run: |
+                  mkdir -p build/test-results
                   set +e
-                  composer test 2>&1 | tee phpunit-output.log
+                  composer test -- --log-junit build/test-results/phpunit.xml 2>&1 | tee phpunit-output.log
                   status=${PIPESTATUS[0]}
                   if [ "$status" -ne 0 ]; then
                       output=$(tail -c 60000 phpunit-output.log)
@@ -112,6 +113,14 @@ jobs:
                   fi
 
                   exit "$status"
+
+            - name: Upload PHPUnit report
+              if: ${{ !cancelled() }}
+              uses: actions/upload-artifact@v7
+              with:
+                  name: phpunit-portability-${{ runner.os }}-php82
+                  path: build/test-results/phpunit.xml
+                  if-no-files-found: warn
 
             - name: Smoke-test packaged consumers
               if: ${{ !cancelled() }}

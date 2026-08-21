@@ -58,7 +58,17 @@ jobs:
               run: composer analyse -- --error-format=raw
 
             - name: Run PHPUnit
-              run: composer test -- --colors=never
+              run: |
+                  mkdir -p build/test-results
+                  composer test -- --colors=never --log-junit build/test-results/phpunit.xml
+
+            - name: Upload PHPUnit report
+              if: ${{ !cancelled() }}
+              uses: actions/upload-artifact@v7
+              with:
+                  name: phpunit-conventional-php82
+                  path: build/test-results/phpunit.xml
+                  if-no-files-found: warn
 
     lowest-dependencies:
         name: Lowest dependencies / PHP 8.2
@@ -99,7 +109,17 @@ jobs:
               run: composer analyse -- --error-format=raw
 
             - name: Run PHPUnit
-              run: composer test -- --colors=never
+              run: |
+                  mkdir -p build/test-results
+                  composer test -- --colors=never --log-junit build/test-results/phpunit.xml
+
+            - name: Upload PHPUnit report
+              if: ${{ !cancelled() }}
+              uses: actions/upload-artifact@v7
+              with:
+                  name: phpunit-lowest-php82
+                  path: build/test-results/phpunit.xml
+                  if-no-files-found: warn
 
     highest-dependencies:
         name: Highest dependencies / PHP 8.5
@@ -141,7 +161,17 @@ jobs:
               run: composer analyse -- --error-format=raw
 
             - name: Run PHPUnit
-              run: composer test -- --colors=never
+              run: |
+                  mkdir -p build/test-results
+                  composer test -- --colors=never --log-junit build/test-results/phpunit.xml
+
+            - name: Upload PHPUnit report
+              if: ${{ !cancelled() }}
+              uses: actions/upload-artifact@v7
+              with:
+                  name: phpunit-highest-php85
+                  path: build/test-results/phpunit.xml
+                  if-no-files-found: warn
 
     api-compatibility:
         name: API compatibility
