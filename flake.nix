@@ -238,11 +238,41 @@
 
         mkPhpunitCheck =
           version: php:
-          mkPhpCheck {
+          let
             name = "phpunit-php${version}";
-            inherit php;
-            command = "composer test -- --colors=never";
+            reports = mkPhpCheck {
+              name = "${name}-reports";
+              inherit php;
+              recordFailure = true;
+              command = ''
+                mkdir -p build/test-results
+                composer test -- --colors=never --log-junit build/test-results/phpunit.xml
+              '';
+              installResult = ''
+                if [[ -f build/test-results/phpunit.xml ]]; then
+                  cp build/test-results/phpunit.xml "$out/phpunit.xml"
+                fi
+              '';
+            };
+          in
+          {
+            check = mkCheckGate {
+              inherit name;
+              result = reports;
+            };
+            inherit reports;
           };
+
+        phpunit82 = mkPhpunitCheck "82" php82;
+        phpunit83 = mkPhpunitCheck "83" php83;
+        phpunit84 = mkPhpunitCheck "84" php84;
+        phpunit85 = mkPhpunitCheck "85" php85;
+        phpunitReports = {
+          phpunit-php82-reports = phpunit82.reports;
+          phpunit-php83-reports = phpunit83.reports;
+          phpunit-php84-reports = phpunit84.reports;
+          phpunit-php85-reports = phpunit85.reports;
+        };
 
         mutation-runtime-reports = mkPhpCheck {
           name = "mutation-runtime-reports";
@@ -349,6 +379,14 @@
           checks = lib.getAttrs [ "x86_64-linux" ] self.checks;
           attrPrefix = "checks";
         };
+        normalGithubEntries = map (
+          entry:
+          entry
+          // lib.optionalAttrs (builtins.hasAttr "${entry.name}-reports" phpunitReports) {
+            reportKind = "phpunit";
+            reportAttr = "packages.${entry.system}.\"${entry.name}-reports\"";
+          }
+        ) normalGithubMatrix.matrix.include;
         mutationGithubMatrix = nix-github-actions.lib.mkGithubMatrix {
           checks = {
             x86_64-linux = {
@@ -361,11 +399,12 @@
           entry:
           entry
           // {
+            reportKind = "mutation";
             reportAttr = "packages.${entry.system}.\"${entry.name}-reports\"";
           }
         ) mutationGithubMatrix.matrix.include;
         githubMatrix = {
-          include = normalGithubMatrix.matrix.include ++ mutationGithubEntries;
+          include = normalGithubEntries ++ mutationGithubEntries;
         };
         githubMatrixScript = pkgs.writeShellScript "yumemi-github-actions-matrix" ''
           printf '%s\n' ${lib.escapeShellArg (builtins.toJSON githubMatrix)}
@@ -373,10 +412,10 @@
       in
       rec {
         checks = {
-          phpunit-php82 = mkPhpunitCheck "82" php82;
-          phpunit-php83 = mkPhpunitCheck "83" php83;
-          phpunit-php84 = mkPhpunitCheck "84" php84;
-          phpunit-php85 = mkPhpunitCheck "85" php85;
+          phpunit-php82 = phpunit82.check;
+          phpunit-php83 = phpunit83.check;
+          phpunit-php84 = phpunit84.check;
+          phpunit-php85 = phpunit85.check;
 
           phpstan = mkPhpCheck {
             name = "phpstan";
@@ -471,7 +510,7 @@
           formatting = treefmt.config.build.check src;
         };
 
-        packages = {
+        packages = phpunitReports // {
           inherit
             mutation-runtime
             mutation-runtime-reports

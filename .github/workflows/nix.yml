@@ -71,6 +71,20 @@ jobs:
                   status="${PIPESTATUS[0]}"
                   exit "$status"
 
+            - name: Link cached PHPUnit report
+              if: ${{ !cancelled() && matrix.reportKind == 'phpunit' }}
+              env:
+                  REPORT_ATTR: ${{ matrix.reportAttr }}
+              run: nix build --print-build-logs --out-link result-phpunit-reports ".#$REPORT_ATTR"
+
+            - name: Upload PHPUnit report
+              if: ${{ !cancelled() && matrix.reportKind == 'phpunit' }}
+              uses: actions/upload-artifact@v7
+              with:
+                  name: nix-${{ matrix.name }}
+                  path: result-phpunit-reports/phpunit.xml
+                  if-no-files-found: warn
+
             - name: Report stale Composer dependency hash
               if: failure() && steps.build.outcome == 'failure'
               run: |
@@ -95,19 +109,19 @@ jobs:
                   } | tee -a "$GITHUB_STEP_SUMMARY"
 
             - name: Link cached mutation reports
-              if: failure() && steps.build.outcome == 'failure' && startsWith(matrix.name, 'mutation-')
+              if: failure() && steps.build.outcome == 'failure' && matrix.reportKind == 'mutation'
               env:
                   REPORT_ATTR: ${{ matrix.reportAttr }}
-              run: nix build --print-build-logs --out-link mutation-reports ".#$REPORT_ATTR"
+              run: nix build --print-build-logs --out-link result-mutation-reports ".#$REPORT_ATTR"
 
             - name: Upload mutation reports
-              if: always() && startsWith(matrix.name, 'mutation-')
+              if: always() && matrix.reportKind == 'mutation'
               uses: actions/upload-artifact@v7
               with:
                   name: ${{ matrix.name }}-reports
                   path: |
                       result/*.log
-                      mutation-reports/*.log
+                      result-mutation-reports/*.log
                   if-no-files-found: warn
 
     result:
