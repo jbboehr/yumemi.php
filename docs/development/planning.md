@@ -114,9 +114,9 @@ Current verification:
 - fresh lowest-dependency and highest-dependency solves for released requirements remain separate conventional jobs on
   PHP 8.2 and PHP 8.5, respectively; direct development-branch tools remain pinned to the revisions used by committed
   generated or copied integrations
-- a separate master-focused, manually dispatchable advisory workflow exercises PHP 8.2 on macOS and Windows, including
-  the release-style package consumers; it remains outside ordinary pull-request gates and does not weaken the required
-  Linux matrix
+- a separate advisory workflow exercises PHP 8.2 on macOS and Windows, including the release-style package consumers,
+  for pushes to `master` and `develop`, pull requests targeting `master`, and manual dispatches; it complements but does
+  not weaken the required Linux matrix
 - PHPBench covers representative cold and warm runtime workflows; CI smoke-tests benchmark discovery without timing
   floors, while an optional Linux Perfidious profile captures local `perf_events` counters
 - Infection runs as two explicit Nix package jobs, outside ordinary `nix flake check`, against all handwritten runtime
