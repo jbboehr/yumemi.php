@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\Expr;
 
+use jbboehr\Yumemi\Analyzer\ExpressionContextResolver;
 use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Util\MathTrait;
@@ -54,6 +55,8 @@ final class Product implements Expr
 
     public function dimension(): Dimension
     {
+        ExpressionContextResolver::resolve($this);
+
         $dimension = Dimension::dimensionless();
 
         foreach ($this->factors as $expr) {

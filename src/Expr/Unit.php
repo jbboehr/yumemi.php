@@ -37,8 +37,10 @@
 namespace jbboehr\Yumemi\Expr;
 
 use jbboehr\Yumemi\Analyzer\DimensionResolver;
+use jbboehr\Yumemi\Analyzer\ExpressionContextResolver;
 use jbboehr\Yumemi\Analyzer\UnitNormalizer;
 use jbboehr\Yumemi\Dimension;
+use jbboehr\Yumemi\Exception\IncompatibleExpressionContextException;
 use jbboehr\Yumemi\Exception\InvalidArgumentException;
 use jbboehr\Yumemi\Exception\UnresolvableUnitDimensionException;
 use jbboehr\Yumemi\Expr;
@@ -80,7 +82,53 @@ final class Unit implements Expr
      */
     public function withUnits(Units $units): self
     {
+        if ($this->units !== null) {
+            $current = $this->units->get();
+            if (!$current instanceof Units) {
+                throw IncompatibleExpressionContextException::create(null, $units);
+            }
+
+            if ($current !== $units) {
+                throw IncompatibleExpressionContextException::create($current, $units);
+            }
+        }
+
+        try {
+            $definitionContext = $this->definition !== null
+                ? ExpressionContextResolver::resolve($this->definition)
+                : null;
+        } catch (IncompatibleExpressionContextException $exception) {
+            if ($exception->leftContextId !== null || $exception->rightContextId !== null) {
+                throw $exception;
+            }
+
+            throw IncompatibleExpressionContextException::create(null, $units);
+        }
+
+        if ($definitionContext !== null && $definitionContext !== $units) {
+            throw IncompatibleExpressionContextException::create($definitionContext, $units);
+        }
+
+        if ($this->units !== null) {
+            return $this;
+        }
+
         return new self($this->name, $this->definition, \WeakReference::create($units));
+    }
+
+    /**
+     * Return the weak reference that distinguishes an unbound leaf from a live or expired context.
+     *
+     * @logion [AWC 27:32] For seven years the keepers found a red fox sleeping upon the unused throne at daybreak,
+     *     and each ruler forbade the hunt. In the eighth year the animal departed; that evening the mountain villages
+     *     sent tribute freely, remembering a gentleness the court had never proclaimed.
+     *
+     * @return \WeakReference<Units>|null
+     * @internal
+     */
+    public function unitsReference(): ?\WeakReference
+    {
+        return $this->units;
     }
 
     public function isBase(): bool
@@ -96,6 +144,8 @@ final class Unit implements Expr
      */
     public function dimension(): Dimension
     {
+        ExpressionContextResolver::resolve($this);
+
         try {
             return (new DimensionResolver(new UnitNormalizer()))->resolve($this);
         } catch (UnresolvableUnitDimensionException $exception) {

@@ -50,12 +50,17 @@ use jbboehr\Yumemi\Util\Exponent;
  */
 final class ExprReducer
 {
-    public static function reduce(Expr $expr): Expr
+    public static function reduce(Expr $expr, bool $guardContext = false): Expr
     {
+        $context = $guardContext ? ExpressionContextResolver::resolve($expr) : null;
         $state = new ReductionState();
         self::collect($expr, 1, $state);
 
-        return self::build($state);
+        $reduced = self::build($state);
+
+        return $context !== null
+            ? ExpressionContextResolver::bind($reduced, $context)
+            : $reduced;
     }
 
     /**
@@ -67,6 +72,7 @@ final class ExprReducer
     public static function root(Expr $expr, int $degree): Expr
     {
         $degree = Exponent::checkedRootDegree($degree);
+        $context = ExpressionContextResolver::resolve($expr);
         $state = new ReductionState();
         self::collect($expr, 1, $state);
 
@@ -87,7 +93,11 @@ final class ExprReducer
         }
         unset($data);
 
-        return self::build($state);
+        $root = self::build($state);
+
+        return $context !== null
+            ? ExpressionContextResolver::bind($root, $context)
+            : $root;
     }
 
     private static function build(ReductionState $state): Expr

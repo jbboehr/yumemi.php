@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\Expr;
 
+use jbboehr\Yumemi\Analyzer\ExpressionContextResolver;
 use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Util\MathTrait;
@@ -56,6 +57,8 @@ final class Power implements Expr
 
     public function dimension(): Dimension
     {
+        ExpressionContextResolver::resolve($this);
+
         return $this->base->dimension()->pow($this->exponent);
     }
 

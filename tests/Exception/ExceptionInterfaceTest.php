@@ -38,6 +38,7 @@ namespace jbboehr\Yumemi\Tests\Exception;
 
 use jbboehr\Yumemi\Exception\DivisionByZeroError;
 use jbboehr\Yumemi\Exception\ExceptionInterface;
+use jbboehr\Yumemi\Exception\IncompatibleExpressionContextException;
 use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\Exception\InvalidArgumentException;
@@ -108,6 +109,10 @@ final class ExceptionInterfaceTest extends TestCase
         yield 'underflow exception' => [UnderflowException::class, \UnderflowException::class];
         yield 'unexpected value exception' => [UnexpectedValueException::class, \UnexpectedValueException::class];
 
+        yield 'incompatible expression context' => [
+            IncompatibleExpressionContextException::class,
+            \RuntimeException::class,
+        ];
         yield 'incompatible quantity context' => [IncompatibleQuantityContextException::class, \RuntimeException::class];
         yield 'incompatible unit' => [IncompatibleUnitException::class, \RuntimeException::class];
         yield 'non-multiplicative conversion' => [NonMultiplicativeConversionException::class, \RuntimeException::class];

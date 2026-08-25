@@ -67,6 +67,15 @@ Use `new Units($registry)` for an isolated or customized catalog. Quantities can
 same `Units` instance. Combining quantities from different contexts throws `IncompatibleQuantityContextException`, even
 when their unit strings happen to match.
 
+Resolved expressions returned by `parse()`, `unit()`, `normalize()`, and quantity unit accessors retain the same context
+boundary. Passing one to a different `Units` instance, combining expressions from different contexts, or semantically
+using an expression after its context has been released throws `IncompatibleExpressionContextException`. Structural
+equality and formatting remain context-independent. Low-level expression construction is internal. When such an
+expression contains unbound unit leaves, a semantic operation stamps a context on an immutable copy for that operation;
+the caller's expression remains unbound and can be admitted independently elsewhere. Context admission does not resolve
+a definition-less unit name through the receiving catalog, so application code should obtain named expressions from
+`parse()` or `unit()`.
+
 Native helpers such as `unit()`, `unit_factor()`, and `unit_to()` use the process-wide default context. Applications
 that configure the PHPStan extension with custom units can install the matching runtime context temporarily. Save and
 restore the previous context in `finally`, especially in tests and long-running workers:
@@ -95,6 +104,9 @@ try {
 
 `setDefault(null)` clears the shared context, causing the next `default()` call to create a fresh built-in context.
 Already-created quantities retain their original context.
+
+`Units` objects are not cloneable. Construct another instance when an application needs a separate context; even an
+equivalent registry snapshot does not make independently constructed contexts interchangeable.
 
 Create quantities through the context:
 

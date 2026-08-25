@@ -39,6 +39,7 @@ namespace jbboehr\Yumemi;
 use jbboehr\Yumemi\Analyzer\AstConverter;
 use jbboehr\Yumemi\Analyzer\ExprComparer;
 use jbboehr\Yumemi\Analyzer\ExprReducer;
+use jbboehr\Yumemi\Analyzer\ExpressionContextResolver;
 use jbboehr\Yumemi\Analyzer\NormalizedExpr;
 use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
@@ -73,8 +74,14 @@ final class Quantity implements \JsonSerializable
     ) {
         $this->units = $units;
         $this->value = self::rational($value);
-        $this->unit = ExprReducer::reduce(self::symbolicExprFrom($unit));
-        $this->resolvedUnit = ExprReducer::reduce($resolvedUnit ?? $this->resolvedExprFrom($unit));
+        $this->unit = ExprReducer::reduce(
+            ExpressionContextResolver::bind(self::symbolicExprFrom($unit), $units),
+            guardContext: true,
+        );
+        $this->resolvedUnit = ExprReducer::reduce(
+            ExpressionContextResolver::bind($resolvedUnit ?? $this->resolvedExprFrom($unit), $units),
+            guardContext: true,
+        );
     }
 
     /**

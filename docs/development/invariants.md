@@ -324,8 +324,10 @@ policy is a compatibility change; local and configured escape hatches are accept
 
 **Invariant.** A `Units` instance interprets names, dimensions, prefixes, and conversions through one registry snapshot.
 Builder output and composite layers are treated as immutable after construction. Composite lookup selects one complete
-effective entry from the winning layer. Runtime values may be combined only when they belong to the same `Units` object,
-even if two independent registries currently contain equivalent definitions.
+effective entry from the winning layer. Runtime values and resolved expressions may be combined or interpreted only when
+they belong to the same live `Units` object, even if two independent registries currently contain equivalent
+definitions. During each semantic admission, wholly unbound low-level expressions may be copied into one live context; a
+context-bound expression is never rebound.
 
 PHPStan uses one configured registry and includes its effective semantics in result-cache invalidation. Applications
 that share custom units across runtime and PHPStan must construct both layers from equivalent registry definitions.
@@ -334,17 +336,20 @@ that share custom units across runtime and PHPStan must construct both layers fr
 spelling or dimension would allow values governed by different semantic contexts to mix silently.
 
 **Representative enforcement.** [`UnitRegistryBuilder`](../../src/Registry/UnitRegistryBuilder.php) constructs registry
-snapshots, [`CompositeUnitRegistry`](../../src/Registry/CompositeUnitRegistry.php) applies whole-layer precedence, and
-[`Quantity`](../../src/Quantity.php) and [`PointQuantity`](../../src/PointQuantity.php) enforce `Units` identity.
-[`UnitRegistryResultCacheMetaExtension`](../../src/PHPStan/UnitRegistryResultCacheMetaExtension.php) hashes effective
-registry data deterministically. [`UnitRegistryBuilderTest`](../../tests/Registry/UnitRegistryBuilderTest.php),
+snapshots, [`CompositeUnitRegistry`](../../src/Registry/CompositeUnitRegistry.php) applies whole-layer precedence,
+[`ExpressionContextResolver`](../../src/Analyzer/ExpressionContextResolver.php) protects expression algebra and semantic
+entry points, and [`Quantity`](../../src/Quantity.php) and [`PointQuantity`](../../src/PointQuantity.php) enforce
+`Units` identity. [`UnitRegistryResultCacheMetaExtension`](../../src/PHPStan/UnitRegistryResultCacheMetaExtension.php)
+hashes effective registry data deterministically.
+[`UnitRegistryBuilderTest`](../../tests/Registry/UnitRegistryBuilderTest.php),
 [`CompositeUnitRegistryTest`](../../tests/Registry/CompositeUnitRegistryTest.php),
-[`QuantityTest`](../../tests/QuantityTest.php), and
+[`ExpressionContextTest`](../../tests/ExpressionContextTest.php), [`QuantityTest`](../../tests/QuantityTest.php), and
 [`UnitRegistryResultCacheMetaExtensionTest`](../../tests/PHPStan/UnitRegistryResultCacheMetaExtensionTest.php) cover
 these boundaries.
 
 **Invalid shortcut.** Mutating a registry after installing it, merging prebuilt and catalog representations from
-different composite layers, or accepting cross-context operations because unit names happen to match.
+different composite layers, rebinding an expression after its context expires, or accepting cross-context operations
+because unit names happen to match.
 
 **Classification.** Semantic drift or cross-context mixing is a correctness defect. Deliberately changing registry
 precedence or context identity is also a compatibility break.

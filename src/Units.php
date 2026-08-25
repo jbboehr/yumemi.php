@@ -38,6 +38,7 @@ namespace jbboehr\Yumemi;
 
 use jbboehr\Yumemi\Analyzer\AstConverter;
 use jbboehr\Yumemi\Analyzer\ExprReducer;
+use jbboehr\Yumemi\Analyzer\ExpressionContextResolver;
 use jbboehr\Yumemi\Analyzer\NormalizedExpr;
 use jbboehr\Yumemi\Analyzer\UnitConversionResolver;
 use jbboehr\Yumemi\Analyzer\UnitNormalizer;
@@ -51,8 +52,6 @@ use jbboehr\Yumemi\Exception\OverflowException;
 use jbboehr\Yumemi\Exception\UnderflowException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitCompactionException;
 use jbboehr\Yumemi\Expr\Constant;
-use jbboehr\Yumemi\Expr\Product;
-use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Formatter\ExprFormatter;
 use jbboehr\Yumemi\Formatter\FormatOptions;
@@ -111,6 +110,17 @@ final class Units
     }
 
     /**
+     * Prevent shallow copies from sharing resolvers and expression caches across distinct object identities.
+     *
+     * @logion [RAS 49:72] I saw the brass moon descend into the orchard and hang among the lowest branches, heavy with
+     *     the songs of unborn birds. None dared touch it; and at dawn it ascended bearing one green leaf, while every
+     *     nest beneath it shone with patient fire.
+     */
+    private function __clone()
+    {
+    }
+
+    /**
      * Shared default context backed by Yumemi's bundled catalog.
      *
      * Repeated calls return the same instance, so quantities from separate
@@ -162,19 +172,28 @@ final class Units
 
     public function areCompatible(Expr|string $left, Expr|string $right): bool
     {
-        return $this->unitConversionResolver->areCompatible($left, $right);
+        return $this->unitConversionResolver->areCompatible(
+            $this->bindUnitInput($left),
+            $this->bindUnitInput($right),
+        );
     }
 
     public function conversionFactor(Expr|string $from, Expr|string $to): Rational
     {
-        return $this->unitConversionResolver->conversionFactor($from, $to);
+        return $this->unitConversionResolver->conversionFactor(
+            $this->bindUnitInput($from),
+            $this->bindUnitInput($to),
+        );
     }
 
     public function convert(int|Rational $value, Expr|string $from, Expr|string $to): Rational
     {
         $value = $value instanceof Rational ? $value : new Rational($value);
 
-        return $this->unitConversionResolver->conversion($from, $to)->apply($value);
+        return $this->unitConversionResolver->conversion(
+            $this->bindUnitInput($from),
+            $this->bindUnitInput($to),
+        )->apply($value);
     }
 
     public function convertFloat(float $value, Expr|string $from, Expr|string $to): float
@@ -183,7 +202,10 @@ final class Units
             throw new InvalidArgumentException('convertFloat() requires a finite input value.');
         }
 
-        $conversion = $this->unitConversionResolver->conversion($from, $to);
+        $conversion = $this->unitConversionResolver->conversion(
+            $this->bindUnitInput($from),
+            $this->bindUnitInput($to),
+        );
         $result = $value * $conversion->scale->toFloat() + $conversion->offset->toFloat();
 
         if (!is_finite($result)) {
@@ -199,7 +221,7 @@ final class Units
 
     public function dimension(Expr|string $expr): Dimension
     {
-        return $this->unitConversionResolver->dimension($expr);
+        return $this->unitConversionResolver->dimension($this->bindUnitInput($expr));
     }
 
     /**
@@ -264,7 +286,7 @@ final class Units
 
     public function normalize(Expr|string $expr): Expr
     {
-        return $this->unitNormalizer->normalize($this->expr($expr));
+        return $this->bindContext($this->unitNormalizer->normalize($this->expr($expr)));
     }
 
     public function parse(string $input): Expr
@@ -331,7 +353,7 @@ final class Units
 
         $symbolicBase = ExprReducer::reduce(is_string($baseUnit)
             ? AstConverter::symbolic()->convert(Parser::parseString($baseUnit))
-            : $baseUnit);
+            : $this->bindContext($baseUnit));
 
         if (!$symbolicBase instanceof Unit) {
             throw new UnsupportedUnitCompactionException($symbolicBase);
@@ -505,7 +527,19 @@ final class Units
 
     private function expr(Expr|string $expr): Expr
     {
-        return is_string($expr) ? $this->parse($expr) : $expr;
+        return is_string($expr) ? $this->parse($expr) : $this->bindContext($expr);
+    }
+
+    /**
+     * Preserve string parsing behavior while admitting expression inputs only through this context.
+     *
+     * @logion [AWC 79:14] In the third winter after the harbor froze, the fishermen carried their unused oars to the
+     *     hill chapel and roofed the hospice with them. When spring returned, no man reclaimed his timber; and the
+     *     strangers slept beneath the memory of voyages they had never taken.
+     */
+    private function bindUnitInput(Expr|string $unit): Expr|string
+    {
+        return $unit instanceof Expr ? $this->bindContext($unit) : $unit;
     }
 
     /**
@@ -513,21 +547,6 @@ final class Units
      */
     private function bindContext(Expr $expr): Expr
     {
-        if ($expr instanceof Unit) {
-            return $expr->withUnits($this);
-        }
-
-        if ($expr instanceof Power) {
-            return new Power($this->bindContext($expr->base), $expr->exponent);
-        }
-
-        if ($expr instanceof Product) {
-            return new Product(array_map(
-                fn (Expr $subexpr): Expr => $this->bindContext($subexpr),
-                $expr->factors,
-            ));
-        }
-
-        return $expr;
+        return ExpressionContextResolver::bind($expr, $this);
     }
 }

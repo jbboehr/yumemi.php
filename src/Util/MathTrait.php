@@ -47,7 +47,7 @@ trait MathTrait
 {
     public function reduce(): Expr
     {
-        return ExprReducer::reduce($this);
+        return ExprReducer::reduce($this, guardContext: true);
     }
 
     /**
@@ -66,7 +66,7 @@ trait MathTrait
         return ExprReducer::reduce(new Expr\Product([
             $this,
             new Expr\Power($expr, -1),
-        ]));
+        ]), guardContext: true);
     }
 
     public function equals(Expr $expr): bool
@@ -79,11 +79,11 @@ trait MathTrait
         return ExprReducer::reduce(new Expr\Product([
             $this,
             $expr,
-        ]));
+        ]), guardContext: true);
     }
 
     public function pow(int $power): Expr
     {
-        return ExprReducer::reduce(new Expr\Power($this, $power));
+        return ExprReducer::reduce(new Expr\Power($this, $power), guardContext: true);
     }
 }
