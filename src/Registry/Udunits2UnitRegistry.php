@@ -90,7 +90,6 @@ use jbboehr\Yumemi\Expr\Unit;
  *     base: list<string>,
  *     prefixes: array<string, string>,
  *     prefixMetadata?: array<string, Udunits2Prefix>,
- *     prefixRegex?: string,
  *     unitNameIndex?: UnitNameIndex,
  *     primitiveDimensionIndex: PrimitiveDimensionIndex
  * }
@@ -223,7 +222,7 @@ final class Udunits2UnitRegistry extends UnitRegistry
 
         $unexpectedKeys = array_diff(
             array_keys($catalog),
-            [...$requiredKeys, 'prefixMetadata', 'prefixRegex', 'unitNameIndex', 'primitiveDimensionIndex'],
+            [...$requiredKeys, 'prefixMetadata', 'unitNameIndex', 'primitiveDimensionIndex'],
         );
         if ($unexpectedKeys !== []) {
             throw new UnexpectedValueException(
@@ -313,13 +312,6 @@ final class Udunits2UnitRegistry extends UnitRegistry
                     throw new UnexpectedValueException('Invalid UDUNITS2 prefix metadata for: ' . (string) $name);
                 }
             }
-        }
-
-        if (
-            array_key_exists('prefixRegex', $catalog)
-            && (!is_string($catalog['prefixRegex']) || $catalog['prefixRegex'] === '')
-        ) {
-            throw new UnexpectedValueException('UDUNITS2 catalog prefixRegex must be a non-empty string.');
         }
 
         if (array_key_exists('unitNameIndex', $catalog)) {

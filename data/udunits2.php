@@ -5569,7 +5569,6 @@ return [
             'value' => '1e-24'
         ]
     ],
-    'prefixRegex' => '~^((?:yotta)|(?:Y)|(?:zetta)|(?:Z)|(?:exa)|(?:E)|(?:peta)|(?:P)|(?:tera)|(?:T)|(?:giga)|(?:G)|(?:mega)|(?:M)|(?:kilo)|(?:k)|(?:hecto)|(?:h)|(?:deka)|(?:da)|(?:deci)|(?:d)|(?:centi)|(?:c)|(?:milli)|(?:m)|(?:micro)|(?:u)|(?:nano)|(?:n)|(?:pico)|(?:p)|(?:femto)|(?:f)|(?:atto)|(?:a)|(?:zepto)|(?:z)|(?:yocto)|(?:y))~',
     'unitNameIndex' => [
         'aliases' => [
             'C12_faraday' => [

@@ -721,8 +721,7 @@ repeat the implementation's assumptions:
   work. Runtime, custom-registry, catalog, and PHPStan paths share the same policy and
   `ExpressionLimitExceededException` category. These bounds are defense in depth rather than a substitute for smaller
   application-specific limits at external boundaries.
-- The UDUNITS2 importer still special-cases `cm2` syntax, and generated `prefixRegex` metadata is currently unused by
-  resolution.
+- The UDUNITS2 importer still special-cases `cm2` syntax.
 - Expression arithmetic reduces eagerly. The benchmark suite measures representative reduction and normalization, but no
   cross-machine regression floor or production-workload profile has established that this is a hot path.
 - Paired helper-boundary benchmarks and local hardware-counter profiles identified repeated parsing as a concrete

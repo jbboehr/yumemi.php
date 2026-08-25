@@ -51,7 +51,6 @@ use jbboehr\Yumemi\Registry\UnitRegistry;
  *     base: list<string>,
  *     prefixes: array<string, string>,
  *     prefixMetadata: array<string, array{name: string, kind: 'canonical'|'symbol', value: string}>,
- *     prefixRegex?: string,
  *     unitNameIndex?: UnitNameIndex,
  *     primitiveDimensionIndex?: PrimitiveDimensionIndex
  * }
@@ -91,7 +90,6 @@ final class Udunits2CatalogImporter
         $this->materializeImplicitPluralAliases($catalog, $implicitPluralTargets);
         $this->materializeSemantics($catalog);
         $catalog['units'] += AffineDeltaUnitSynthesizer::synthesize($catalog['units']);
-        $catalog['prefixRegex'] = $this->createPrefixRegex(array_keys($catalog['prefixes']));
         $catalog['unitNameIndex'] = UnitRegistry::indexCatalogRecords($catalog['units']);
         $catalog['primitiveDimensionIndex'] = UnitRegistry::indexCatalogPrimitiveDimensions($catalog['units']);
 
@@ -514,13 +512,5 @@ final class Udunits2CatalogImporter
     private function normalizeDefinition(string $definition): string
     {
         return str_replace('cm2', 'cm ^ 2', $definition);
-    }
-
-    /**
-     * @param list<string> $prefixes
-     */
-    private function createPrefixRegex(array $prefixes): string
-    {
-        return '~^((?:' . implode(')|(?:', array_map(static fn (string $prefix): string => preg_quote($prefix, '~'), $prefixes)) . '))~';
     }
 }

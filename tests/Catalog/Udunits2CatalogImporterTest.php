@@ -446,9 +446,7 @@ final class Udunits2CatalogImporterTest extends TestCase
             $catalog['prefixMetadata']['half'],
         );
 
-        $regex = $catalog['prefixRegex'] ?? null;
-        $this->assertNotNull($regex);
-        $this->assertSame(1, preg_match($regex, 'kilometer'));
+        $this->assertArrayNotHasKey('prefixRegex', $catalog);
     }
 
     public function testTrimsImportedUnitAndAliasText(): void
@@ -669,7 +667,7 @@ final class Udunits2CatalogImporterTest extends TestCase
         $this->assertArrayNotHasKey('widget-s', $units);
     }
 
-    public function testImportsPrefixFallbacksAndEscapesPrefixRegex(): void
+    public function testImportsPrefixFallbacksWithMetacharacters(): void
     {
         $xml = <<<'XML'
             <?xml version="1.0" encoding="UTF-8"?>
@@ -693,12 +691,6 @@ final class Udunits2CatalogImporterTest extends TestCase
             ['name' => 'micro~', 'kind' => 'symbol', 'value' => '0.25'],
             $catalog['prefixMetadata']['u~'],
         );
-
-        $regex = $catalog['prefixRegex'] ?? null;
-        $this->assertNotNull($regex);
-        $this->assertSame(1, preg_match($regex, 'u~meter', $matches));
-        $this->assertSame('u~', $matches[1]);
-        $this->assertSame(0, preg_match($regex, 'xu~meter'));
     }
 
     #[DataProvider('malformedNestedElementProvider')]

@@ -553,9 +553,9 @@ final class Udunits2UnitRegistryTest extends TestCase
             ['units' => [], 'base' => [], 'prefixes' => [], 'prefixMetadata' => 'invalid'],
             'prefixMetadata must be an array',
         ];
-        yield 'null optional value' => [
+        yield 'obsolete prefix regex' => [
             ['units' => [], 'base' => [], 'prefixes' => [], 'prefixRegex' => null],
-            'prefixRegex must be a non-empty string',
+            'contains unexpected key: prefixRegex',
         ];
         yield 'unit name index is not an array' => [
             ['units' => [], 'base' => [], 'prefixes' => [], 'unitNameIndex' => 'invalid'],
