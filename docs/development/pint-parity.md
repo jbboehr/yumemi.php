@@ -418,7 +418,7 @@ comparison are now present.
 
 ### 32. Packaging, CI, And Release Hygiene
 
-Status: **Done for development; release automation absent** | Importance: **P0/P1** | Remaining difficulty: **M**
+Status: **Done for the current manual release policy** | Importance: **P0/P1** | Remaining difficulty: **S**
 
 Composer, Nix, treefmt, pre-commit hooks, PHP-CS-Fixer, PHPStan, PHPUnit, generated artifacts, GitHub Actions, and
 Infection with enforced mutation-score floors are configured. Catalog and parser regeneration are documented. A
@@ -430,8 +430,11 @@ maintenance surface to core. The normal matrix covers PHP 8.2 through PHP 8.5. F
 8.5 verify the declared lower bounds and newest permitted releases, respectively. Direct development-branch tools remain
 at their lock-file revisions because committed generated or copied integrations are verified against those exact inputs.
 
-The project has an initial tagged 0.1 release and a manual release and fork-first succession runbook, but still lacks an
-automated publication workflow.
+The project has tagged 0.1 releases and an explicit manual release and fork-first succession runbook. CI verifies the
+exact release commit, and GitHub Pages deploys automatically from `master`; a human releaser deliberately retains
+responsibility for service-access checks, signed tags, GitHub Releases, and Packagist confirmation. Publication
+automation is not unfinished parity work under the current policy. Reconsider it only if repeated releases demonstrate
+that a narrowly authorized workflow would reduce error without weakening signing, access, or recovery boundaries.
 
 ## Parity Matrix
 
@@ -468,7 +471,7 @@ automated publication workflow.
 | Performance and caching          | Partial                            | P1         | M                    |
 | Errors and developer UX          | Partial but strong                 | P1         | M                    |
 | Documentation                    | Done for current surface           | P1         | S/M                  |
-| Packaging and CI                 | Done except release automation     | P0/P1      | M                    |
+| Packaging and CI                 | Done for manual release policy     | P0/P1      | S                    |
 
 ## Strategic Conclusions
 
