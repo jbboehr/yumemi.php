@@ -13,7 +13,7 @@ Yumemi is one runtime unit engine with a PHPStan adapter, not two dimensional-an
 
 > One expression model. One registry. One normalization engine.
 
-Dependencies point toward the semantic core:
+Semantic authority and the dominant call flow point toward the shared runtime core:
 
 ```text
 PHPStan, commands, documentation, CI, benchmarks, and catalog acquisition
@@ -28,8 +28,11 @@ PHPStan, commands, documentation, CI, benchmarks, and catalog acquisition
        Parser AST, expressions, dimensions, rationals, registries
 ```
 
-An outer layer may adapt or present an inner layer. An inner layer must not depend upon an outer integration merely to
-make that integration convenient.
+These layers describe ownership and the dominant call flow, not a requirement that PHP namespaces form a strictly
+acyclic graph. The expression model owns immutable symbolic structure, while expression operations delegate to semantic
+resolvers for reduction, normalization, dimensions, and registry-context validation. Those resolvers in turn consume
+expression nodes. This narrow collaboration stays within the runtime core; it does not permit foundational types to
+depend on PHPStan, catalog acquisition, presentation tooling, or hosted services merely for integration convenience.
 
 The most important enforced boundary is:
 
@@ -52,7 +55,9 @@ The foundational model represents exact values and unit syntax without knowing a
   rational values and explicit binary64 boundaries.
 - [`Parser`](../../src/Parser/Parser.php), [`Lexer`](../../src/Parser/Lexer.php), and the AST under
   [`src/Parser/Ast`](../../src/Parser/Ast) represent accepted unit syntax and source spans.
-- [`Expr`](../../src/Expr.php) and its expression nodes represent constants, units, products, and integer powers.
+- [`Expr`](../../src/Expr.php) and its expression nodes represent constants, units, products, and integer powers. A
+  resolved unit leaf may retain a weak reference to the `Units` context that assigned meaning to its catalog name; the
+  reference preserves semantic identity without making the registry mutable.
 - [`Dimension`](../../src/Dimension.php) represents the seven SI dimensions plus named extension dimensions.
 - [`UnitRegistry`](../../src/Registry/UnitRegistry.php) and
   [`UnitRegistryEntry`](../../src/Registry/UnitRegistryEntry.php) define the lookup boundary consumed by semantic
@@ -68,6 +73,9 @@ The semantic core assigns meaning to expressions:
   records, and prebuilt units.
 - [`AstConverter`](../../src/Analyzer/AstConverter.php) converts syntax into symbolic expressions while preserving
   source context.
+- [`ExpressionContextResolver`](../../src/Analyzer/ExpressionContextResolver.php) binds unbound leaves to the one live
+  `Units` context governing a semantic operation, rejects mixed, foreign, or expired contexts, and preserves the
+  originating context when algebra rebuilds a tree.
 - [`ExprReducer`](../../src/Analyzer/ExprReducer.php) performs deterministic symbolic cancellation without definition
   substitution.
 - [`UnitNormalizer`](../../src/Analyzer/UnitNormalizer.php) substitutes definitions and reduces the resulting
@@ -87,7 +95,8 @@ This layer is the source of truth for runtime and static analysis. Changes here 
 The runtime surface presents the semantic core to applications:
 
 - [`Units`](../../src/Units.php) binds one registry context to parsing, resolution, conversion, unit selection,
-  formatting, and value construction.
+  formatting, and value construction. Parsed expressions are bound to that context, while low-level expression inputs
+  pass through semantic admission before the facade interprets them.
 - [`Quantity`](../../src/Quantity.php) retains an exact multiplicative magnitude and unit.
 - [`PreferredUnitProfile`](../../src/PreferredUnitProfile.php) binds explicit dimension-to-unit application policy to
   one `Units` context.
@@ -189,6 +198,23 @@ This package boundary is justified by an independent consumer surface, dependenc
 maintenance scope. Core must not acquire framework packages merely to broaden curated stub coverage.
 
 ## Runtime Data Flow
+
+String and low-level expression inputs acquire context through separate paths:
+
+```text
+unit string -> parse and resolve inside Units -> context-bound Expr
+low-level Expr -> ExpressionContextResolver::bind(receiving Units)
+               -> bound copy, same-context reuse, or rejection
+```
+
+Admission copies only the nodes needed to attach a context to unbound leaves; an already bound tree is reused. It never
+rebinds an expression from another context, and an expired or mixed context fails before resolution, reduction,
+dimension derivation, or conversion. Direct expression algebra and `Expr::dimension()` have no receiving facade, so they
+validate the complete tree and permit at most one live bound `Units` context; operations that rebuild the tree retain
+that context. Structural equality and presentation-only formatting do not perform semantic admission: they may inspect
+spelling and presentation policy, but they do not combine catalog meanings. The
+[registry-context invariant](invariants.md#registry-snapshots-define-a-semantic-context) defines the complete behavioral
+contract.
 
 The main multiplicative path is:
 
