@@ -15,6 +15,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Exact `Quantity::rdiv()` scalar-over-quantity division, including reciprocal-unit PHPStan inference.
 - Optional `ext-yumemi` exponentiation and scalar-left division syntax backed by `Quantity::pow()` and `rdiv()`.
 - Composer package metadata suggesting the optional `ext-yumemi` companion for `Quantity` operator syntax.
+- Opt-in PHPStan inference for `ext-yumemi` `Quantity` operators through `yumemi-operators.neon`, including compatible
+  addition and subtraction, unit algebra, scalar multiplication and division, reciprocal division, and integer powers.
 - `IncompatibleExpressionContextException`, with nullable process-local `leftContextId` and `rightContextId` metadata
   identifying the expression contexts involved when they remain available.
 

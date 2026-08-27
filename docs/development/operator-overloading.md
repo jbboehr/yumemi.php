@@ -13,8 +13,8 @@ Yumemi can use this as an optional extension layer while keeping the main runtim
 The method-only library seam and the separate `php-yumemi` native handler are implemented. `Quantity` extends an empty,
 internal `InternalQuantity` PHP fallback when `ext-yumemi` is absent; when the extension is loaded first, Composer uses
 the native base and operators delegate to the existing methods, including power and reverse division. An opt-in
-integration suite verifies the real extension against this library. Matching PHPStan operator support remains future
-work; method-call inference includes `rdiv()`.
+integration suite verifies the real extension against this library. PHPStan models the same operator surface only when
+`yumemi-operators.neon` is explicitly loaded; method-call inference remains available through the primary configuration.
 
 ## Goal
 
@@ -222,14 +222,16 @@ Do not require the extension.
 
 ## PHPStan Integration
 
-The PHPStan extension must understand both forms:
+The PHPStan extension understands both forms:
 
 ```php
 $speed = $distance->div($time);
 $speed = $distance / $time;
 ```
 
-Operator support likely needs custom PHPStan rules or type inference around binary operations.
+The existing operator type-specifying extension performs the inference. Invalid combinations produce PHPStan's standard
+`binaryOp.invalid` identifier, while `yumemi.quantityOperators` remains disabled by default so ordinary analysis matches
+runtime PHP without `ext-yumemi`.
 
 Static-analysis policy should mirror runtime behavior:
 

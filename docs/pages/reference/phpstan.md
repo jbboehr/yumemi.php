@@ -22,16 +22,17 @@ Most applications primarily need branded native types, operator inference, and b
 and optional annotation integration are advanced topics for projects extending the catalog or integrating third-party
 libraries.
 
-| I need to...                            | Start with                                          |
-| --------------------------------------- | --------------------------------------------------- |
-| Add a unit to an existing native number | [`unit()` and branded types](#branded-native-types) |
-| Brand numeric text from a trusted API   | [Numeric Strings](#numeric-strings)                 |
-| Infer units through PHP operators       | [Native Operators](#native-operators)               |
-| Convert a native magnitude              | [Boundary Helpers](#boundary-helpers)               |
-| Track an exact runtime quantity         | [Quantity Types](#quantity-types)                   |
-| Track an exact coordinate point         | [Quantity Types](#quantity-types)                   |
-| Add project-specific units              | [Registry Configuration](#registry-configuration)   |
-| Suppress or baseline an error           | [Diagnostics](#diagnostics)                         |
+| I need to...                            | Start with                                                  |
+| --------------------------------------- | ----------------------------------------------------------- |
+| Add a unit to an existing native number | [`unit()` and branded types](#branded-native-types)         |
+| Brand numeric text from a trusted API   | [Numeric Strings](#numeric-strings)                         |
+| Infer units through PHP operators       | [Native Operators](#native-operators)                       |
+| Convert a native magnitude              | [Boundary Helpers](#boundary-helpers)                       |
+| Track an exact runtime quantity         | [Quantity Types](#quantity-types)                           |
+| Analyze optional `Quantity` operators   | [Optional Quantity Operators](#optional-quantity-operators) |
+| Track an exact coordinate point         | [Quantity Types](#quantity-types)                           |
+| Add project-specific units              | [Registry Configuration](#registry-configuration)           |
+| Suppress or baseline an error           | [Diagnostics](#diagnostics)                                 |
 
 > **Current boundaries:** Genuinely dynamic unit strings cannot receive a precise static unit; native helpers diagnose
 > them by default while runtime object APIs may parse them dynamically. Casts other than explicit integer/float casts
@@ -608,6 +609,51 @@ storeAverageSpeed($speed);
 assert($speed->toString() === '10 * meter / second');
 ```
 
+### Optional Quantity Operators
+
+The companion `ext-yumemi` extension lets `Quantity` objects use PHP arithmetic operators by delegating to the method
+API. This syntax is optional at both boundaries: the native extension must be loaded at runtime, and its PHPStan model
+must be enabled explicitly. Projects that use only `extension.neon` continue to reject object arithmetic, matching PHP
+without the native extension.
+
+Enable operator inference after the primary extension:
+
+```neon
+includes:
+    - vendor/jbboehr/yumemi/extension.neon
+    - vendor/jbboehr/yumemi/yumemi-operators.neon
+```
+
+When `phpstan/extension-installer` already loads `extension.neon`, include only `yumemi-operators.neon` yourself. When
+listing both files manually, keep the order shown: `yumemi-operators.neon` is a parameter overlay and must follow
+`extension.neon`. PHPStan cannot determine whether `ext-yumemi` will be loaded in the deployed runtime; enabling this
+file is the application's declaration that operator-bearing code runs with that extension. The always-available method
+API remains preferable for reusable libraries whose consumers may not install it.
+
+The inferred operations mirror the runtime handler:
+
+| Expression                                   | Accepted operands                       | Inferred unit                                  |
+| -------------------------------------------- | --------------------------------------- | ---------------------------------------------- |
+| `$left + $right`, `$left - $right`           | two dimensionally compatible quantities | the left quantity's unit                       |
+| `$left * $right`                             | two quantities                          | the product of their units                     |
+| `$left / $right`                             | two quantities                          | the quotient of their units                    |
+| `$quantity * $scalar`, `$scalar * $quantity` | `int` or `Rational` scalar              | the quantity's unit                            |
+| `$quantity / $scalar`                        | `int` or `Rational` scalar              | the quantity's unit                            |
+| `$scalar / $quantity`                        | `int` or `Rational` scalar              | the reciprocal quantity unit                   |
+| `$quantity ** $power`                        | integer exponent                        | the powered unit when the exponent is constant |
+
+A dynamic integer exponent produces an unbranded `Quantity` because PHPStan cannot know its result unit. Scalar-left
+addition, subtraction, and exponentiation; float scalars; modulo; incompatible addition or subtraction; and units beyond
+the supported exponent range produce PHPStan's standard `binaryOp.invalid` diagnostic.
+
+```text
+$distance = $units->quantity(100, 'meter');
+$duration = $units->quantity(10, 'second');
+
+$speed = $distance / $duration; // Quantity<'meter / second'>
+$total = $distance + $units->quantity(3, 'foot'); // Quantity<'meter'>
+```
+
 The extension models current unit-sensitive methods, including:
 
 - arithmetic through `abs()`, `add()`, `sub()`, `addWithSameUnit()`, `subWithSameUnit()`, `mul()`, `div()`, `neg()`,
@@ -790,7 +836,7 @@ scope:
 | `yumemi.docTagParameter`               | A parameter name is unknown or an unnamed `@yumemi-var` fallback is ambiguous                                |
 | `yumemi.docTagType`                    | A Yumemi tag contains an invalid unit-bearing type                                                           |
 | `yumemi.docTagTransform`               | Erasing the units does not reproduce the fallback PHPDoc structure                                           |
-| `binaryOp.invalid`                     | Invalid native unit arithmetic; this is PHPStan's standard binary-operation identifier, not Yumemi's         |
+| `binaryOp.invalid`                     | Invalid native unit arithmetic or opt-in `Quantity` operator operands; this identifier belongs to PHPStan    |
 
 Call and operation diagnostics apply even when an invalid call's result is unused. Syntax diagnostics preserve the
 runtime parser's bounded caret excerpt while PHPStan anchors the error to the containing PHP or PHPDoc line.
@@ -801,9 +847,10 @@ semantic joins remain canonical because no single source spelling necessarily su
 
 Use the identifier to choose the first corrective step:
 
-- For `binaryOp.invalid` or `yumemi.invalidUnitComparison`, remember that native PHP does not convert either operand.
-  Convert explicitly with `unit_to()` or `unit_factor()`, or use `Quantity` when the operation should convert compatible
-  units. See [Definitional Equivalence And Compatibility](#definitional-equivalence-and-compatibility).
+- For `binaryOp.invalid` on branded native values, remember that native PHP does not convert either operand. Convert
+  explicitly with `unit_to()` or `unit_factor()`, or use `Quantity` when the operation should convert compatible units.
+  For an opt-in `Quantity` operator, check dimensional compatibility and the supported operand table above. See
+  [Definitional Equivalence And Compatibility](#definitional-equivalence-and-compatibility).
 - For `yumemi.dynamicUnitExpression` or `yumemi.ambiguousUnitExpression`, provide one statically recoverable semantic
   result, use an identifier-specific local suppression for an intentional dynamic boundary, or choose an explicit
   runtime object API. See [Constant Unit Expressions](#constant-unit-expressions).

@@ -36,6 +36,8 @@
 
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
+use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\PHPStan\QuantityType;
 use jbboehr\Yumemi\PHPStan\UnitExpressionParser;
 use jbboehr\Yumemi\PHPStan\UnitConstantFloatType;
 use jbboehr\Yumemi\PHPStan\UnitConstantIntegerType;
@@ -44,12 +46,14 @@ use jbboehr\Yumemi\PHPStan\UnitIntegerType;
 use jbboehr\Yumemi\PHPStan\UnitIntegerTypeHelper;
 use jbboehr\Yumemi\PHPStan\UnitNumericStringType;
 use jbboehr\Yumemi\PHPStan\UnitOperatorTypeSpecifyingExtension;
+use jbboehr\Yumemi\Quantity;
 use PHPStan\Type\BenevolentUnionType;
 use PHPStan\Type\Constant\ConstantFloatType;
 use PHPStan\Type\Constant\ConstantIntegerType;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\FloatType;
 use PHPStan\Type\IntegerType;
+use PHPStan\Type\ObjectType;
 use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\UnionType;
 use PHPStan\Type\VerbosityLevel;
@@ -82,6 +86,74 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
         $union = TypeCombinator::union($this->unitInt('meter'), new IntegerType());
 
         $this->assertTrue($this->extension->isOperatorSupported('*', $union, $this->unitInt('second')));
+    }
+
+    public function testQuantityOperatorsAreOptIn(): void
+    {
+        $meters = $this->quantity('meter');
+
+        $this->assertFalse($this->extension->isOperatorSupported('+', $meters, $meters));
+        $this->assertTrue($this->quantityExtension()->isOperatorSupported('+', $meters, $meters));
+    }
+
+    public function testQuantityAdditionUsesDimensionalCompatibilityAndRetainsTheLeftUnit(): void
+    {
+        $extension = $this->quantityExtension();
+        $result = $extension->specifyType('+', $this->quantity('meter'), $this->quantity('foot'));
+        $invalid = $extension->specifyType('+', $this->quantity('meter'), $this->quantity('second'));
+
+        $this->assertSame("Quantity<'meter'>", $result->describe(VerbosityLevel::precise()));
+        $this->assertInstanceOf(ErrorType::class, $invalid);
+        $this->assertStringContainsString('dimensionally incompatible', $invalid->getReason() ?? '');
+    }
+
+    public function testQuantityScalarAndPowerOperatorsMirrorTheRuntimeMethods(): void
+    {
+        $extension = $this->quantityExtension();
+        $meters = $this->quantity('meter');
+        $rational = new ObjectType(Rational::class);
+        $unbranded = new ObjectType(Quantity::class);
+
+        $this->assertSame(
+            "Quantity<'meter'>",
+            $extension->specifyType('*', $rational, $meters)->describe(VerbosityLevel::precise()),
+        );
+        $this->assertSame(
+            Quantity::class,
+            $extension->specifyType('*', $unbranded, new IntegerType())->describe(VerbosityLevel::precise()),
+        );
+        $this->assertSame(
+            "Quantity<'1 / meter'>",
+            $extension->specifyType('/', new IntegerType(), $meters)->describe(VerbosityLevel::precise()),
+        );
+        $this->assertSame(
+            "Quantity<'meter ^ 2'>",
+            $extension->specifyType('**', $meters, new ConstantIntegerType(2))
+                ->describe(VerbosityLevel::precise()),
+        );
+        $this->assertSame(
+            Quantity::class,
+            $extension->specifyType('**', $meters, new IntegerType())->describe(VerbosityLevel::precise()),
+        );
+    }
+
+    public function testQuantityOperatorsRejectUnsupportedOperandsAndUnitOverflow(): void
+    {
+        $extension = $this->quantityExtension();
+        $meters = $this->quantity('meter');
+        $overflowing = $this->quantity('meter ^ 10000');
+
+        $invalidFloat = $extension->specifyType('*', $meters, new FloatType());
+        $invalidModulo = $extension->specifyType('%', $meters, $meters);
+        $invalidRange = $extension->specifyType('**', $meters, new ConstantIntegerType(10_001));
+        $invalidUnit = $extension->specifyType('*', $overflowing, $meters);
+
+        $this->assertInstanceOf(ErrorType::class, $invalidFloat);
+        $this->assertInstanceOf(ErrorType::class, $invalidModulo);
+        $this->assertInstanceOf(ErrorType::class, $invalidRange);
+        $this->assertStringContainsString('-10000 through 10000', $invalidRange->getReason() ?? '');
+        $this->assertInstanceOf(ErrorType::class, $invalidUnit);
+        $this->assertStringContainsString('outside the supported exponent range', $invalidUnit->getReason() ?? '');
     }
 
     public function testAddSameIntegerUnitAllowsFloatOverflow(): void
@@ -678,6 +750,16 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
         $this->assertTrue($parsed->isOk(), $parsed->errorMessage() ?? '');
 
         return new UnitIntegerType($parsed->expression());
+    }
+
+    private function quantityExtension(): UnitOperatorTypeSpecifyingExtension
+    {
+        return new UnitOperatorTypeSpecifyingExtension(quantityOperators: true);
+    }
+
+    private function quantity(string $unit): QuantityType
+    {
+        return new QuantityType($this->unit($unit));
     }
 
     private function unitFloat(string $unit): UnitFloatType

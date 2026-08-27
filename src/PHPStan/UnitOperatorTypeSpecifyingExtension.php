@@ -37,19 +37,22 @@
 namespace jbboehr\Yumemi\PHPStan;
 
 use jbboehr\Yumemi\Exception\OverflowException;
+use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\Quantity;
 use jbboehr\Yumemi\Util\Exponent;
 use PHPStan\Type\BenevolentUnionType;
 use PHPStan\Type\Constant\ConstantFloatType;
 use PHPStan\Type\Constant\ConstantIntegerType;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\OperatorTypeSpecifyingExtension;
+use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\UnionType;
 use PHPStan\Type\VerbosityLevel;
 
 /**
- * Infers types for +, -, *, /, **, % when at least one operand is unit_int or unit_float.
+ * Infers native branded arithmetic and, when explicitly enabled, ext-yumemi Quantity operators.
  *
  * Rules (exact unit mode):
  * - + / -: both sides must be unit types with equivalent normalized units
@@ -59,6 +62,9 @@ use PHPStan\Type\VerbosityLevel;
  * - unit op bare numeric: treat bare value as dimensionless (* / only)
  * - int / int → unit_float (PHP division always yields float)
  * - overflow-capable integer operations optionally preserve unit_int|unit_float
+ *
+ * Quantity operators mirror the canonical runtime methods. Addition and subtraction convert compatible dimensions,
+ * multiplication and division compose units, and exponentiation accepts an integer power.
  *
  * @phpstan-type UnitMagnitudeMetadata array{
  *     unit: UnitExpression,
@@ -75,13 +81,21 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
     private const SUPPORTED = ['+', '-', '*', '/', '**', '%'];
 
     /**
+     * @logion [OSD 5:81] Set apart the seventh lamp until the dust of the procession hath settled. Then bear it to the
+     *     widow's threshold, for splendor kept in patience becometh shelter, but splendor spent before its hour is smoke.
+     */
+    private readonly bool $quantityOperators;
+
+    /**
      * @logion [AWC 74:69] In the reign of the pearl minister, the court perfumed every petition before reading it. By
      *     autumn the ink had fled from each grievance, and twelve provinces were condemned for the sweetness of their
      *     paper.
      */
     public function __construct(
         private readonly bool $integerOverflowToFloat = true,
+        bool $quantityOperators = false,
     ) {
+        $this->quantityOperators = $quantityOperators;
     }
 
     public function isOperatorSupported(string $operatorSigil, Type $leftSide, Type $rightSide): bool
@@ -90,7 +104,9 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
             return false;
         }
 
-        return $this->hasUnit($leftSide) || $this->hasUnit($rightSide);
+        return $this->hasUnit($leftSide)
+            || $this->hasUnit($rightSide)
+            || ($this->quantityOperators && ($this->hasQuantity($leftSide) || $this->hasQuantity($rightSide)));
     }
 
     public function specifyType(string $operatorSigil, Type $leftSide, Type $rightSide): Type
@@ -123,6 +139,10 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
      */
     private function specifyAtomic(string $operatorSigil, Type $leftSide, Type $rightSide): Type
     {
+        if ($this->quantityOperators && ($this->isQuantity($leftSide) || $this->isQuantity($rightSide))) {
+            return $this->specifyQuantityAtomic($operatorSigil, $leftSide, $rightSide);
+        }
+
         $leftUnit = $this->asUnit($leftSide);
         $rightUnit = $this->asUnit($rightSide);
 
@@ -133,6 +153,151 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
             '%' => $this->specifyMod($leftUnit, $rightUnit),
             default => new ErrorType('Unsupported unit operator: ' . $operatorSigil),
         };
+    }
+
+    /**
+     * @logion [AWC 57:6] The western court received two censers from the ruined province, one bright and one blackened.
+     *     They burned the same myrrh before the empty throne, and the elders restored both to the common treasury.
+     */
+    private function specifyQuantityAtomic(string $operatorSigil, Type $leftSide, Type $rightSide): Type
+    {
+        return match ($operatorSigil) {
+            '+', '-' => $this->specifyQuantityAddSub($operatorSigil, $leftSide, $rightSide),
+            '*', '/' => $this->specifyQuantityMulDiv($operatorSigil, $leftSide, $rightSide),
+            '**' => $this->specifyQuantityPow($leftSide, $rightSide),
+            default => new ErrorType(sprintf('Quantity operator %s is not supported for these operands.', $operatorSigil)),
+        };
+    }
+
+    /**
+     * @logion [SFA 10:39] Two pilgrims may cross the cedar bridge beneath different banners, if both seek the same
+     *     shore. Let the first retain his colors, and charge the keeper to judge their destination rather than their
+     *     cloth.
+     */
+    private function specifyQuantityAddSub(string $operatorSigil, Type $leftSide, Type $rightSide): Type
+    {
+        if (!$this->isQuantity($leftSide) || !$this->isQuantity($rightSide)) {
+            return new ErrorType(sprintf(
+                'Quantity operator %s requires a Quantity on both sides.',
+                $operatorSigil,
+            ));
+        }
+
+        if ($leftSide instanceof QuantityType && $rightSide instanceof QuantityType) {
+            $leftUnit = $leftSide->getUnitExpression();
+            $rightUnit = $rightSide->getUnitExpression();
+            if (!$leftUnit->sameDimension($rightUnit)) {
+                return new ErrorType(sprintf(
+                    'Cannot use %s with dimensionally incompatible Quantity units %s (%s) and %s (%s).',
+                    $operatorSigil,
+                    $leftUnit->displayString,
+                    $leftUnit->dimension->toString(),
+                    $rightUnit->displayString,
+                    $rightUnit->dimension->toString(),
+                ));
+            }
+        }
+
+        return $leftSide instanceof QuantityType
+            ? $leftSide
+            : new ObjectType(Quantity::class);
+    }
+
+    /**
+     * @logion [RAS 22:87] Beyond the copper horizon stood two wheels of cloud, turning without axle or thunder. Where
+     *     their rims crossed, a narrow rain descended, and the salt wilderness brought forth lilies before dawn.
+     */
+    private function specifyQuantityMulDiv(string $operatorSigil, Type $leftSide, Type $rightSide): Type
+    {
+        $leftQuantity = $this->isQuantity($leftSide);
+        $rightQuantity = $this->isQuantity($rightSide);
+        $leftScalar = $this->isQuantityScalar($leftSide);
+        $rightScalar = $this->isQuantityScalar($rightSide);
+
+        if ($leftQuantity && $rightQuantity) {
+            if (!$leftSide instanceof QuantityType || !$rightSide instanceof QuantityType) {
+                return new ObjectType(Quantity::class);
+            }
+
+            try {
+                $unit = $operatorSigil === '*'
+                    ? UnitExpressionAlgebra::multiply(
+                        $leftSide->getUnitExpression(),
+                        $rightSide->getUnitExpression(),
+                    )
+                    : UnitExpressionAlgebra::divide(
+                        $leftSide->getUnitExpression(),
+                        $rightSide->getUnitExpression(),
+                    );
+            } catch (OverflowException) {
+                return new ErrorType(sprintf(
+                    'Quantity %s produces a unit outside the supported exponent range.',
+                    $operatorSigil === '*' ? 'multiplication' : 'division',
+                ));
+            }
+
+            return new QuantityType($unit);
+        }
+
+        if ($leftQuantity && $rightScalar) {
+            return $leftSide instanceof QuantityType
+                ? $leftSide
+                : new ObjectType(Quantity::class);
+        }
+
+        if ($leftScalar && $rightQuantity) {
+            if ($operatorSigil === '*') {
+                return $rightSide instanceof QuantityType
+                    ? $rightSide
+                    : new ObjectType(Quantity::class);
+            }
+
+            if (!$rightSide instanceof QuantityType) {
+                return new ObjectType(Quantity::class);
+            }
+
+            try {
+                return new QuantityType(UnitExpressionAlgebra::invert($rightSide->getUnitExpression()));
+            } catch (OverflowException) {
+                return new ErrorType('Quantity scalar-left division produces a unit outside the supported exponent range.');
+            }
+        }
+
+        return new ErrorType(sprintf(
+            'Quantity operator %s requires Quantity and int or Rational operands supported by the runtime extension.',
+            $operatorSigil,
+        ));
+    }
+
+    /**
+     * @logion [SFA 1:61] The keeper of the eastern stair marked each ascent upon a tablet of ash. Though the wind
+     *     scattered every number by noon, the height remained, and the returning pilgrims knew the mountain by its
+     *     shadow.
+     */
+    private function specifyQuantityPow(Type $leftSide, Type $rightSide): Type
+    {
+        if (!$this->isQuantity($leftSide) || !$rightSide->isInteger()->yes()) {
+            return new ErrorType('Quantity exponentiation requires a Quantity base and an integer exponent.');
+        }
+
+        if (!$leftSide instanceof QuantityType || !$rightSide instanceof ConstantIntegerType) {
+            return new ObjectType(Quantity::class);
+        }
+
+        $exponent = $rightSide->getValue();
+        if (abs($exponent) > Exponent::MAX_ABSOLUTE) {
+            return new ErrorType(sprintf(
+                'Quantity exponentiation supports exponents from -%d through %d.',
+                Exponent::MAX_ABSOLUTE,
+                Exponent::MAX_ABSOLUTE,
+            ));
+        }
+
+        try {
+            return new QuantityType(UnitExpressionAlgebra::power($leftSide->getUnitExpression(), $exponent));
+        } catch (OverflowException) {
+            return new ErrorType('Quantity exponentiation produces a unit outside the supported exponent range.');
+        }
     }
 
     /**
@@ -533,6 +698,41 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
     {
         foreach ($this->atomicTypes($type) as $innerType) {
             if ($this->asUnit($innerType) !== null) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @logion [RAS 35:79] I beheld a vessel of green glass descend through the unlit firmament. No hand upheld it, yet
+     *     the sea withdrew at its coming, and every hidden reef answered with a crown of white fire.
+     */
+    private function isQuantity(Type $type): bool
+    {
+        return $type instanceof QuantityType
+            || in_array(Quantity::class, $type->getObjectClassNames(), true);
+    }
+
+    /**
+     * @logion [AWC 32:73] In the famine year the archivist weighed no gift by the purse that bore it. A copper seed and
+     *     a carved ivory measure were entered alike, for each had crossed the eastern waste unopened for the hungry.
+     */
+    private function isQuantityScalar(Type $type): bool
+    {
+        return $type->isInteger()->yes()
+            || in_array(Rational::class, $type->getObjectClassNames(), true);
+    }
+
+    /**
+     * @logion [OSD 86:35] Count every voice that endureth through the winter hall, though some speak alone and some in
+     *     company. The covenant is not diminished because its witnesses arrive by separate doors.
+     */
+    private function hasQuantity(Type $type): bool
+    {
+        foreach ($this->atomicTypes($type) as $innerType) {
+            if ($this->isQuantity($innerType)) {
                 return true;
             }
         }

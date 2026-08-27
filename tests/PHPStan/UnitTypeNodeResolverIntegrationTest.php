@@ -249,6 +249,29 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $this->assertStringContainsString('Found 6 errors', $output, $output);
     }
 
+    public function testQuantityOperatorsRemainDisabledByDefault(): void
+    {
+        $output = $this->analyse('quantity-operators-default.php');
+
+        $this->assertStringContainsString('binaryOp.invalid', $output, $output);
+        $this->assertStringContainsString('[ERROR] Found 1 error', $output, $output);
+    }
+
+    public function testInvalidOptInQuantityOperatorsUseTheStandardBinaryOperationDiagnostic(): void
+    {
+        $output = $this->analyse('quantity-operators-invalid.php', quantityOperators: true);
+
+        $this->assertStringContainsString('binaryOp.invalid', $output, $output);
+        $this->assertStringContainsString('[ERROR] Found 6 errors', $output, $output);
+    }
+
+    public function testValidOptInQuantityOperatorsHaveNoDiagnostics(): void
+    {
+        $output = $this->analyse('quantity-operators.php', quantityOperators: true);
+
+        $this->assertStringContainsString('[OK] No errors', $output, $output);
+    }
+
     public function testNativeUnitExpressionDiagnosticsHaveStableIdentifiersAndLocalIgnores(): void
     {
         $output = $this->analyse('native-unit-expression-diagnostics.php');
@@ -279,6 +302,7 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         ?string $registryFactory = null,
         ?bool $integerOverflowToFloat = null,
         ?bool $requireConstantNativeUnitExpressions = null,
+        bool $quantityOperators = false,
         string $errorFormat = 'table',
     ): string {
         $fixturePath = __DIR__ . '/data/' . $fixture;
@@ -293,6 +317,12 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
             $this->assertTrue(rename($temporaryFile, $config));
             $extension = realpath(__DIR__ . '/../../extension.neon');
             $this->assertNotFalse($extension);
+            $includes = "    - {$extension}";
+            if ($quantityOperators) {
+                $operatorExtension = realpath(__DIR__ . '/../../yumemi-operators.neon');
+                $this->assertNotFalse($operatorExtension);
+                $includes .= "\n    - {$operatorExtension}";
+            }
 
             $yumemiOptions = [];
             if ($registryFactory !== null) {
@@ -306,14 +336,13 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
                 $yumemiOptions[] = '        requireConstantNativeUnitExpressions: '
                     . ($requireConstantNativeUnitExpressions ? 'true' : 'false');
             }
-
             $yumemi = $yumemiOptions === []
                 ? ''
                 : "    yumemi:\n" . implode("\n", $yumemiOptions);
 
             $neon = <<<NEON
 includes:
-    - {$extension}
+{$includes}
 parameters:
     level: max
     paths:

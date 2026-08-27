@@ -44,6 +44,7 @@ if [[ $PACKAGE_MODE == archive ]]; then
         docs/pages/images/yumemi-banner.png
         extension.neon
         src/Parser/Parser.php
+        yumemi-operators.neon
         yumemi-tags.neon
     )
     for path in "${required_paths[@]}"; do

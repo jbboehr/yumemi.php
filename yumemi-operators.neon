@@ -1,0 +1,6 @@
+# Opt-in PHPStan support for Quantity operator syntax provided at runtime by ext-yumemi.
+# Load extension.neon first (automatically through phpstan/extension-installer, or manually).
+
+parameters:
+    yumemi:
+        quantityOperators: true

@@ -8,11 +8,13 @@
 # Piece 7: Quantity<'...'> object type + Units::quantity() return type
 # Piece 13: Quantity construction/conversion validation + native integer extraction bridges
 # Piece 14: unit_factor() conversion-ratio helper (dynamic return type)
-# Optional @yumemi-* tag promotion is registered separately by yumemi-tags.neon.
+# Optional Quantity operator inference and @yumemi-* tag promotion are registered separately by
+# yumemi-operators.neon and yumemi-tags.neon.
 
 parameters:
     yumemi:
         integerOverflowToFloat: true
+        quantityOperators: false
         requireConstantNativeUnitExpressions: true
         registryFactory: null
     # Symfony's conditional classmap stub also contains its pre-enum integer fallback. Scan the
@@ -23,6 +25,7 @@ parameters:
 parametersSchema:
     yumemi: structure([
         integerOverflowToFloat: bool(),
+        quantityOperators: bool(),
         requireConstantNativeUnitExpressions: bool(),
         registryFactory: schema(string(), nullable()),
     ])
@@ -60,6 +63,7 @@ services:
         class: jbboehr\Yumemi\PHPStan\UnitOperatorTypeSpecifyingExtension
         arguments:
             integerOverflowToFloat: %yumemi.integerOverflowToFloat%
+            quantityOperators: %yumemi.quantityOperators%
         tags:
             - phpstan.broker.operatorTypeSpecifyingExtension
     -

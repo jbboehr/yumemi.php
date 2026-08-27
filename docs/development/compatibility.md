@@ -75,6 +75,7 @@ registry-context, numeric-output, and formatting semantics are part of this cont
 The following surfaces are supported specifically for integration rather than ordinary application use:
 
 - `extension.neon` as the primary PHPStan extension entry point;
+- `yumemi-operators.neon` as the opt-in `Quantity` operator-inference entry point;
 - `yumemi-tags.neon` as the opt-in annotation-promotion entry point;
 - `PHPStan\UnitRegistryFactory` and its static `create(): UnitRegistry` contract;
 - the `parameters.yumemi.*` configuration keys documented below;
@@ -189,11 +190,12 @@ inferred ranges and unions.
 
 The supported configuration keys and current defaults are:
 
-| Key                                           | Default | Contract                                                |
-| --------------------------------------------- | ------- | ------------------------------------------------------- |
-| `yumemi.integerOverflowToFloat`               | `true`  | Model integer operations that may overflow as float     |
-| `yumemi.requireConstantNativeUnitExpressions` | `true`  | Diagnose native helpers without complete constant units |
-| `yumemi.registryFactory`                      | `null`  | Select one `UnitRegistryFactory` for static analysis    |
+| Key                                           | Default | Contract                                                   |
+| --------------------------------------------- | ------- | ---------------------------------------------------------- |
+| `yumemi.integerOverflowToFloat`               | `true`  | Model integer operations that may overflow as float        |
+| `yumemi.quantityOperators`                    | `false` | Model `Quantity` object operators supplied by `ext-yumemi` |
+| `yumemi.requireConstantNativeUnitExpressions` | `true`  | Diagnose native helpers without complete constant units    |
+| `yumemi.registryFactory`                      | `null`  | Select one `UnitRegistryFactory` for static analysis       |
 
 Removing or renaming a key, changing its accepted type, or changing its default is compatibility-sensitive. New optional
 keys with behavior-preserving defaults are normally additive.
@@ -237,8 +239,8 @@ The following Yumemi identifiers are stable integration keys:
 - `yumemi.docTagTransform`
 
 Renaming, removing, or reusing one of these identifiers for a different semantic category is a compatibility break.
-Human-readable diagnostic text may improve. The `binaryOp.invalid` identifier used for invalid native arithmetic belongs
-to PHPStan and is not controlled by Yumemi.
+Human-readable diagnostic text may improve. The `binaryOp.invalid` identifier used for invalid native arithmetic and
+opt-in `Quantity` operators belongs to PHPStan and is not controlled by Yumemi.
 
 Adding a diagnostic to code previously accepted by the documented contract is compatibility-sensitive even when the new
 identifier is additive. Correcting acceptance that was unsound and contradicted the documented rules is a bug fix, but

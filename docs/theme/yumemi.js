@@ -53,7 +53,11 @@
                 title: "Boundary Helpers",
                 children: [{ id: "constant-unit-expressions", title: "Constant Unit Expressions" }],
             },
-            { id: "quantity-types", title: "Quantity Types" },
+            {
+                id: "quantity-types",
+                title: "Quantity Types",
+                children: [{ id: "optional-quantity-operators", title: "Optional Quantity Operators" }],
+            },
             { id: "registry-configuration", title: "Registry Configuration" },
             {
                 id: "extension-optional-annotations",
