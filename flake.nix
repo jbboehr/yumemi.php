@@ -32,6 +32,10 @@
       url = "github:jbboehr/php-perfidious";
       flake = false;
     };
+    php-yumemi = {
+      url = "github:jbboehr/php-yumemi/develop";
+      flake = false;
+    };
   };
 
   outputs =
@@ -45,6 +49,7 @@
       gitignore,
       agent-badge,
       php-perfidious,
+      php-yumemi,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -267,6 +272,23 @@
         phpunit83 = mkPhpunitCheck "83" php83;
         phpunit84 = mkPhpunitCheck "84" php84;
         phpunit85 = mkPhpunitCheck "85" php85;
+        mkExtensionIntegrationCheck =
+          version: phpPackage:
+          let
+            extension = pkgs.callPackage "${php-yumemi}/nix/derivation.nix" {
+              php = phpPackage;
+              src = php-yumemi;
+            };
+          in
+          mkPhpCheck {
+            name = "extension-integration-php${version}";
+            php = buildEnv phpPackage;
+            extraNativeBuildInputs = [ pkgs.gnumake ];
+            command = ''
+              patchShebangs tests/Extension/run
+              make test-extension YUMEMI_EXTENSION_PATH=${extension}/lib/php/extensions/yumemi.so
+            '';
+          };
         phpunitReports = {
           phpunit-php82-reports = phpunit82.reports;
           phpunit-php83-reports = phpunit83.reports;
@@ -416,6 +438,11 @@
           phpunit-php83 = phpunit83.check;
           phpunit-php84 = phpunit84.check;
           phpunit-php85 = phpunit85.check;
+
+          extension-integration-php82 = mkExtensionIntegrationCheck "82" pkgs.php82;
+          extension-integration-php83 = mkExtensionIntegrationCheck "83" pkgs.php83;
+          extension-integration-php84 = mkExtensionIntegrationCheck "84" pkgs.php84;
+          extension-integration-php85 = mkExtensionIntegrationCheck "85" pkgs.php85;
 
           phpstan = mkPhpCheck {
             name = "phpstan";

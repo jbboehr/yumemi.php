@@ -332,7 +332,8 @@ CI:
 
 - Keep extension CI separate from the pure PHP baseline.
 - Do not make the pure PHP package require extension compilation.
-- Add extension CI only after the spike stabilizes.
+- Pin the extension's `develop` branch in the Nix flake and run the opt-in integration suite against PHP 8.2 through 8.5
+  as separate checks. The ordinary PHPUnit matrix remains extension-free.
 
 ## Risks
 
@@ -390,9 +391,9 @@ Operator syntax can hide meaningful errors. Exception messages from delegated me
 
 This is a good experiment, but it should not block the core project.
 
-The feasibility spike, separate extension repository, mechanical handler, method-only library seam, and end-to-end
-operator integration, exponentiation, and scalar-left division are complete. The next slice is to extend PHPStan to
-understand the exact operator surface that the extension implements.
+The feasibility spike, separate extension repository, mechanical handler, method-only library seam, end-to-end operator
+integration, exponentiation, scalar-left division, and separate Nix integration matrix are complete. The next slice is
+to extend PHPStan to understand the exact operator surface that the extension implements.
 
 The spike is now unblocked, but it remains a side quest. The main product value is still static dimensional analysis,
 and the extension must not become a dependency of the pure-PHP package.
@@ -407,5 +408,5 @@ The `InternalQuantity` base-class plan is the selected optional operator-overloa
 - PHPStan can eventually support both method calls and operators
 
 The handler and real `Quantity` integration are now empirical, committed tests rather than an architectural assumption.
-The remaining work is static-analysis support and release integration without making the extension a pure-PHP package
+The remaining work is static-analysis support and release packaging without making the extension a pure-PHP package
 dependency.

@@ -133,6 +133,23 @@
         "type": "github"
       }
     },
+    "php-yumemi": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1787839259,
+        "narHash": "sha256-pz1SAy54TDI5M6C0BPyrjkhPtxa4e49ZQJXu6OyIuAM=",
+        "owner": "jbboehr",
+        "repo": "php-yumemi",
+        "rev": "efc0b2274d320a53aaa2a2ca6c3741f6716f91ef",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jbboehr",
+        "ref": "develop",
+        "repo": "php-yumemi",
+        "type": "github"
+      }
+    },
     "pre-commit-hooks": {
       "inputs": {
         "flake-compat": "flake-compat",
@@ -162,6 +179,7 @@
         "nix-github-actions": "nix-github-actions",
         "nixpkgs": "nixpkgs",
         "php-perfidious": "php-perfidious",
+        "php-yumemi": "php-yumemi",
         "pre-commit-hooks": "pre-commit-hooks",
         "treefmt-nix": "treefmt-nix"
       }

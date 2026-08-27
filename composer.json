@@ -83,6 +83,7 @@
         "symfony/polyfill-php84": "^1.34"
     },
     "suggest": {
+        "ext-yumemi": "Enables optional operator syntax for Quantity objects; method-based arithmetic remains available without it.",
         "jbboehr/yumemi-apocrypha": "Provides curated unit-aware PHPStan integrations for supported third-party packages.",
         "phpstan/phpstan": "Enables the bundled Yumemi unit types extension (extension.neon; requires PHPStan 2.2.5 or later)."
     },
