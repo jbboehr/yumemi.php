@@ -58,7 +58,8 @@ use jbboehr\Yumemi\Util\Exponent;
  *
  * When the receiver is a branded {@see QuantityType}, each unit-bearing method returns a new
  * QuantityType whose unit matches the runtime result (see the table in {@see Quantity}):
- * `mul`/`div` combine units via {@see UnitExpressionAlgebra}; `pow` raises and `root` extracts exact symbolic powers;
+ * `mul`/`div` combine units via {@see UnitExpressionAlgebra}; `rdiv` inverts the receiver's unit; `pow` raises and
+ * `root` extracts exact symbolic powers;
  * `abs`/`neg` keep the left unit; `add`/`sub` accept dimensionally compatible units and keep the left
  * unit; `addWithSameUnit`/`subWithSameUnit` additionally require normalized-equivalent units; comparison
  * methods require compatible dimensions while retaining their native int/bool return types; `to` rebrands
@@ -87,7 +88,7 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
     public function isMethodSupported(MethodReflection $methodReflection): bool
     {
         return in_array($methodReflection->getName(), [
-            'mul', 'div', 'pow', 'root', 'abs', 'neg', 'add', 'sub', 'addWithSameUnit', 'subWithSameUnit', 'to',
+            'mul', 'div', 'rdiv', 'pow', 'root', 'abs', 'neg', 'add', 'sub', 'addWithSameUnit', 'subWithSameUnit', 'to',
             'toPreferred', 'toCompact', 'valueIn', 'intValueIn', 'exactIntValueIn', 'decimalValueIn',
             'significantDecimalValueIn', 'exactDecimalValueIn', 'floatValueIn', 'normalize',
             'simplify', 'compareTo', 'equals', 'lessThan', 'lessThanOrEqualTo', 'greaterThan', 'greaterThanOrEqualTo',
@@ -190,6 +191,7 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
             ),
             'mul' => $this->combine($unit, $args, $scope, true),
             'div' => $this->combine($unit, $args, $scope, false),
+            'rdiv' => new QuantityType(UnitExpressionAlgebra::power($unit, -1)),
             'pow' => $this->power($unit, $args, $scope),
             'root' => $this->root($unit, $args, $scope),
             'normalize' => $this->normalize($unit),

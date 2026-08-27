@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\Tests\Extension;
 
+use jbboehr\Yumemi\Exception\DivisionByZeroError;
 use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
 use jbboehr\Yumemi\InternalQuantity;
 use jbboehr\Yumemi\Number\Rational;
@@ -71,10 +72,18 @@ final class OperatorIntegrationTest extends TestCase
         self::assertSameQuantity($meters->sub($feet), $meters - $feet);
         self::assertSameQuantity($meters->mul($seconds), $meters * $seconds);
         self::assertSameQuantity($meters->div($seconds), $meters / $seconds);
+        self::assertSameQuantity($meters->pow(2), $meters ** 2);
+        self::assertSameQuantity($meters->pow(-1), $meters ** -1);
         self::assertSameQuantity($meters->mul(3), $meters * 3);
         self::assertSameQuantity($meters->div($rational), $meters / $rational);
         self::assertSameQuantity($meters->mul(3), 3 * $meters);
         self::assertSameQuantity($meters->mul($rational), $rational * $meters);
+        self::assertSameQuantity($meters->rdiv(6), 6 / $meters);
+        self::assertSameQuantity($meters->rdiv($rational), $rational / $meters);
+
+        $scalarLeftCompound = 6;
+        $scalarLeftCompound /= $meters;
+        self::assertSameQuantity($meters->rdiv(6), $scalarLeftCompound);
 
         self::assertSameQuantity(
             $units->quantity(2, 'meter')->mul($seconds),
@@ -87,7 +96,15 @@ final class OperatorIntegrationTest extends TestCase
 
         self::assertRejectsUnsupportedOperands(static fn (): mixed => 1 + $meters);
         self::assertRejectsUnsupportedOperands(static fn (): mixed => 1 - $meters);
-        self::assertRejectsUnsupportedOperands(static fn (): mixed => 1 / $meters);
+        self::assertRejectsUnsupportedOperands(static fn (): mixed => [] / $meters);
+        self::assertRejectsUnsupportedOperands(static fn (): mixed => 2 ** $meters);
+
+        try {
+            1 / $units->quantity(0, 'meter');
+            self::fail('Scalar-left division by a zero quantity must retain the method-layer exception.');
+        } catch (DivisionByZeroError) {
+            $this->addToAssertionCount(1);
+        }
 
         $leftContext = new Units(new Udunits2UnitRegistry());
         $rightContext = new Units(new Udunits2UnitRegistry());

@@ -40,6 +40,7 @@ needs arise.
 | Obtain a native binary floating-point result        | `Quantity::floatValueIn()`              |
 | Convert a native scalar                             | `unit_to()`                             |
 | Add compatible quantities                           | `Quantity::add()`                       |
+| Divide a scalar numerator by a quantity             | `Quantity::rdiv()`                      |
 | Reject implicit unit conversion                     | `Quantity::addWithSameUnit()`           |
 | Take the exact absolute value of a quantity         | `Quantity::abs()`                       |
 | Test whether an exact quantity is zero              | `Quantity::isZero()`                    |
@@ -201,9 +202,11 @@ assert(!$displacement->isZero());
 assert($units->quantity(0, 'meter')->isZero());
 ```
 
-`mul()` and `div()` also accept an `int` or `Rational` scalar. `abs()` and `neg()` change only the magnitude, while
-`isZero()` tests that exact magnitude without converting or discarding the unit. `pow()` raises both the magnitude and
-unit expression to an integer power. `pow(0)` returns dimensionless one, including when the original magnitude is zero.
+`mul()` and `div()` also accept an `int` or `Rational` scalar. `rdiv()` divides an `int` or `Rational` numerator by the
+receiver, producing the exact reciprocal magnitude and symbolic unit; a zero receiver magnitude throws
+`DivisionByZeroError`. `abs()` and `neg()` change only the magnitude, while `isZero()` tests that exact magnitude
+without converting or discarding the unit. `pow()` raises both the magnitude and unit expression to an integer power.
+`pow(0)` returns dimensionless one, including when the original magnitude is zero.
 
 `root()` is the exact inverse for a positive integer degree when both the rational magnitude and every reduced symbolic
 unit power have exact roots:

@@ -449,6 +449,18 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
         );
     }
 
+    /**
+     * Divide a scalar numerator by this quantity, producing a quantity with the reciprocal unit.
+     *
+     * @logion [SFA 64:27] Concerning the red umbrella found open beneath the frozen lake: carry it neither to the
+     *     palace nor to the shrine. Set it above the door of the poorest inn, for a wonder that cannot shelter the
+     *     traveler has not yet disclosed its office.
+     */
+    public function rdiv(int|Rational $numerator): self
+    {
+        return $this->pow(-1)->mul($numerator);
+    }
+
     public function simplify(): self
     {
         $unit = $this->normalizedUnit();

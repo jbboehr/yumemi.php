@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\Tests;
 
+use jbboehr\Yumemi\Exception\DivisionByZeroError;
 use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\Exception\NonExactRootException;
@@ -431,6 +432,26 @@ final class QuantityTest extends TestCase
         $this->assertSame('6', $quantity->valueToString());
         $this->assertSame('meter * second', $quantity->unitToString());
         $this->assertSame('6 * meter * second', $quantity->toExpr()->toString());
+    }
+
+    public function testDividesScalarByQuantity(): void
+    {
+        $quantity = Units::default()->quantity(2, 'meter');
+
+        $integerResult = $quantity->rdiv(6);
+        $rationalResult = $quantity->rdiv(new Rational(3, 2));
+
+        $this->assertSame('3', $integerResult->valueToString());
+        $this->assertSame('1 / meter', $integerResult->unitToString());
+        $this->assertSame('3/4', $rationalResult->valueToString());
+        $this->assertSame('1 / meter', $rationalResult->unitToString());
+    }
+
+    public function testRejectsReverseDivisionByZeroQuantity(): void
+    {
+        $this->expectException(DivisionByZeroError::class);
+
+        Units::default()->quantity(0, 'meter')->rdiv(1);
     }
 
     public function testRaisesQuantityToIntegerPower(): void

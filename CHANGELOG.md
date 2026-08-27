@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - An internal, empty `InternalQuantity` fallback base for `Quantity`, establishing the optional `ext-yumemi` integration
   seam without changing the method API.
 - An opt-in integration suite that verifies `ext-yumemi` operators against the canonical `Quantity` methods.
+- Exact `Quantity::rdiv()` scalar-over-quantity division, including reciprocal-unit PHPStan inference.
+- Optional `ext-yumemi` exponentiation and scalar-left division syntax backed by `Quantity::pow()` and `rdiv()`.
 - `IncompatibleExpressionContextException`, with nullable process-local `leftContextId` and `rightContextId` metadata
   identifying the expression contexts involved when they remain available.
 

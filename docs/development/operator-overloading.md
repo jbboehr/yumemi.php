@@ -12,8 +12,9 @@ Yumemi can use this as an optional extension layer while keeping the main runtim
 
 The method-only library seam and the separate `php-yumemi` native handler are implemented. `Quantity` extends an empty,
 internal `InternalQuantity` PHP fallback when `ext-yumemi` is absent; when the extension is loaded first, Composer uses
-the native base and operators delegate to the existing methods. An opt-in integration suite verifies the real extension
-against this library. Matching PHPStan support remains future work.
+the native base and operators delegate to the existing methods, including power and reverse division. An opt-in
+integration suite verifies the real extension against this library. Matching PHPStan operator support remains future
+work; method-call inference includes `rdiv()`.
 
 ## Goal
 
@@ -70,6 +71,10 @@ final class Quantity extends InternalQuantity
     public function mul(self|int|Rational $other): self {}
 
     public function div(self|int|Rational $other): self {}
+
+    public function rdiv(int|Rational $numerator): self {}
+
+    public function pow(int $power): self {}
 }
 ```
 
@@ -81,6 +86,9 @@ The extension's object handler delegates operators to those methods:
 | `-`          | `ZEND_SUB`  | `sub()`         |
 | `*`          | `ZEND_MUL`  | `mul()`         |
 | `/`          | `ZEND_DIV`  | `div()`         |
+| `**`         | `ZEND_POW`  | `pow()`         |
+
+For scalar-left division, `ZEND_DIV` delegates to `rdiv()` on the right-hand quantity instead of `div()`.
 
 This keeps one semantic implementation: the PHP methods. The C extension should not duplicate unit arithmetic rules.
 
@@ -126,6 +134,7 @@ Non-goals for the first version:
 - `ZEND_SUB`
 - `ZEND_MUL`
 - `ZEND_DIV`
+- `ZEND_POW`
 
 Everything else should fail with normal PHP behavior.
 
@@ -136,6 +145,7 @@ ZEND_ADD -> call $left->add($right)
 ZEND_SUB -> call $left->sub($right)
 ZEND_MUL -> call $left->mul($right)
 ZEND_DIV -> call $left->div($right)
+ZEND_POW -> call $left->pow($right)
 ```
 
 The implemented operand policy is:
@@ -144,7 +154,8 @@ The implemented operand policy is:
 - `Quantity * Quantity` and `Quantity / Quantity` delegate to the quantity method.
 - `Quantity * int|Rational` and `Quantity / int|Rational` are supported.
 - `int|Rational * Quantity` is supported because multiplication is commutative.
-- Scalar-left addition, subtraction, and division fail with normal unsupported-operand `TypeError` behavior.
+- `int|Rational / Quantity` delegates to `Quantity::rdiv()` and produces a reciprocal unit.
+- Scalar-left addition, subtraction, and exponentiation fail with normal unsupported-operand `TypeError` behavior.
 - Exceptions thrown by delegated methods propagate unchanged.
 - References and temporary operands are covered by the extension PHPTs and this library's integration suite. Zend may
   select either quantity as the multiplication handler receiver for some temporary/variable forms, but `Quantity::mul()`
@@ -224,6 +235,8 @@ Static-analysis policy should mirror runtime behavior:
 
 - `+` and `-` on `Quantity` use the same dimension-compatible, converting rules as `add()` and `sub()`.
 - `*` and `/` use the same rules as `mul()` and `div()`.
+- `**` uses the same integer-power rules as `pow()`.
+- Scalar-left `/` uses the same reciprocal-unit rules as `rdiv()`.
 - Native `unit_int` / `unit_float` operators remain a separate static-only surface and cannot perform runtime
   conversion; their `+` / `-` policy remains exact-unit unless deliberately configured otherwise.
 
@@ -355,8 +368,10 @@ The methods remain the primitive operations. Operators delegate to methods, neve
 
 ### Scalar-Left Operations
 
-`$quantity * 2` is natural because the quantity object is the left operand. `2 * $quantity` may or may not dispatch in
-the way we need. This should be tested before promising support.
+Scalar-left multiplication and division require Zend to select the right quantity's handler. The committed PHPT and
+real-library integration suites cover literal, variable, `Rational`, compound-assignment, invalid-operand, and exception
+paths. Scalar-left subtraction remains deliberately unsupported because the method API has no useful corresponding
+quantity operation.
 
 ### Installation Friction
 
@@ -376,8 +391,8 @@ Operator syntax can hide meaningful errors. Exception messages from delegated me
 This is a good experiment, but it should not block the core project.
 
 The feasibility spike, separate extension repository, mechanical handler, method-only library seam, and end-to-end
-operator integration are complete. The next slice is to extend PHPStan to understand the exact operator surface that the
-extension implements.
+operator integration, exponentiation, and scalar-left division are complete. The next slice is to extend PHPStan to
+understand the exact operator surface that the extension implements.
 
 The spike is now unblocked, but it remains a side quest. The main product value is still static dimensional analysis,
 and the extension must not become a dependency of the pure-PHP package.

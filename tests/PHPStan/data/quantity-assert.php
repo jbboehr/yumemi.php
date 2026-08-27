@@ -1,15 +1,45 @@
 <?php
 
 /**
- * TypeInferenceTestCase fixture for the Quantity<'...'> object path.
+ * +--------------------------------------------------------------------------------------------------------------+
+ * |        *                 .                         *                  .                         *            |
+ * |   .              *                      .                    *                      .                        |
+ * |             .                 .                  *                         .                 *               |
+ * -      *                    .             *                    .                         .                     -
  *
- * Slice 1: Units::quantity() construction inference and Quantity<'...'> PHPDoc resolution.
+ *                               Iudex Mensurarum Mysticarum『夢見』〜ＹＵＭＥＭＩ〜
+ *
+ * -                                          .----------------.                                                  -
+ * |                                      .--'        __        '--.                                              |
+ * |                                  .--'          .'  '.          '--.                                          |
+ * |                             .---'            .'      '.            '---.                                     |
+ * +--------------------------------------------------------------------------------------------------------------+
+ *
+ * Copyright (c) anno Domini nostri Jesu Christi MMXXVI, John Boehr & contributors
+ *
+ * SPDX-License-Identifier: AGPL-3.0-only WITH romic-exception
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License version 3,
+ * as published by the Free Software Foundation, together with the Romic
+ * Exception (an additional permission under section 7 of that license).
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * and the Romic Exception along with this program.  If not, see
+ * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
 use jbboehr\Yumemi\Number\FloatRangePolicy;
+use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\PreferredUnitProfile;
 use jbboehr\Yumemi\Quantity;
 use jbboehr\Yumemi\Units;
+
 use function jbboehr\Yumemi\unit;
 use function PHPStan\Testing\assertType;
 
@@ -102,6 +132,10 @@ assertType("Quantity<'meter / second'>", $m->div($s));
 // scalar operand preserves the unit
 assertType("Quantity<'meter'>", $m->mul(2));
 assertType("Quantity<'meter'>", $m->div(2));
+
+// reverse division inverts the receiver's unit
+assertType("Quantity<'1 / meter'>", $m->rdiv(2));
+assertType("Quantity<'1 / meter'>", $m->rdiv(new Rational(3, 2)));
 
 // pow raises by a constant integer
 assertType("Quantity<'meter ^ 2'>", $m->pow(2));
