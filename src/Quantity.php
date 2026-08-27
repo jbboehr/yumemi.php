@@ -56,7 +56,7 @@ use jbboehr\Yumemi\Parser\Parser;
 /**
  * @api
  */
-final class Quantity implements \JsonSerializable
+final class Quantity extends InternalQuantity implements \JsonSerializable
 {
     public readonly Rational $value;
     public readonly Expr $unit;

@@ -132,6 +132,9 @@ run_core_fixture() {
 run_core() {
     run_core_fixture automatic
     php "$WORK_DIR/automatic/runtime.php"
+    composer --working-dir="$WORK_DIR/automatic" dump-autoload \
+        --classmap-authoritative --no-interaction --optimize
+    php "$WORK_DIR/automatic/runtime.php"
     run_core_fixture manual
 }
 

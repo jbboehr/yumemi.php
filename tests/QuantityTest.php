@@ -39,6 +39,7 @@ namespace jbboehr\Yumemi\Tests;
 use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\Exception\NonExactRootException;
+use jbboehr\Yumemi\InternalQuantity;
 use jbboehr\Yumemi\Number\DecimalNotation;
 use jbboehr\Yumemi\Number\FloatRangePolicy;
 use jbboehr\Yumemi\Number\Rational;
@@ -50,6 +51,21 @@ use PHPUnit\Framework\TestCase;
 
 final class QuantityTest extends TestCase
 {
+    public function testUsesAbstractPhpFallbackWhenExtensionIsAbsent(): void
+    {
+        if (extension_loaded('yumemi')) {
+            self::markTestSkipped('The PHP fallback is only loaded when ext-yumemi is absent.');
+        }
+
+        $fallback = new \ReflectionClass(InternalQuantity::class);
+        $parent = (new \ReflectionClass(Quantity::class))->getParentClass();
+
+        $this->assertTrue($fallback->isAbstract());
+        $this->assertFalse($fallback->isInternal());
+        $this->assertInstanceOf(\ReflectionClass::class, $parent);
+        $this->assertSame(InternalQuantity::class, $parent->getName());
+    }
+
     public function testConvertsToCompatibleUnit(): void
     {
         $units = Units::default();

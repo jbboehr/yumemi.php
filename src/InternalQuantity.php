@@ -34,36 +34,18 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-declare(strict_types=1);
+namespace jbboehr\Yumemi;
 
-require __DIR__ . '/vendor/autoload.php';
-
-use jbboehr\Yumemi\InternalQuantity;
-use jbboehr\Yumemi\Quantity;
-use jbboehr\Yumemi\Units;
-
-use function jbboehr\Yumemi\unit_to;
-
-$quantityParent = (new ReflectionClass(Quantity::class))->getParentClass();
-
-if (!$quantityParent || $quantityParent->getName() !== InternalQuantity::class) {
-    throw new RuntimeException('Quantity does not use the optional extension seam.');
-}
-
-if (!(new ReflectionClass(InternalQuantity::class))->isAbstract()) {
-    throw new RuntimeException('The optional extension seam is not abstract.');
-}
-
-$length = Units::default()->quantity(1, 'foot')->to('meter');
-
-if ($length->exactDecimalValueIn('meter') !== '0.3048') {
-    throw new RuntimeException('Exact Quantity conversion failed in the consumer project.');
-}
-
-if (abs(unit_to(6.0, 'foot', 'meter') - 1.8288) > 1e-12) {
-    throw new RuntimeException('Native conversion failed in the consumer project.');
-}
-
-if (Units::default()->conversionFactor('EMU', 'inch')->toString() !== '1/914400') {
-    throw new RuntimeException('Bundled Yumemi unit supplement is unavailable.');
+/**
+ * PHP fallback for the optional ext-yumemi native handler seam.
+ *
+ * @logion [AWC 77:46] In the reign of the mirrorless queen, a river of rose-colored light entered the capital each
+ *     evening and departed before the canonical hour. The court paved its course with marble and named it a triumphal
+ *     road; yet the poorest district left one span unadorned. In the seventh year the light halted there, became clear
+ *     water, and flowed backward to the farms the court had forgotten.
+ *
+ * @internal
+ */
+abstract class InternalQuantity
+{
 }
