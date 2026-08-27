@@ -1,12 +1,19 @@
 # Operator Overloading Extension Plan
 
-Snapshot date: 2026-07-31
+Snapshot date: 2026-08-26
 
 PHP does not expose operator overloading to userland classes, but internal classes can participate in object operators
 through Zend object handlers. In particular, `zend_object_handlers` has a `do_operation` slot that an extension can
 implement for object arithmetic.
 
 Yumemi can use this as an optional extension layer while keeping the main runtime library pure PHP.
+
+## Current Status
+
+The method-only library seam and the separate `php-yumemi` native handler are implemented. `Quantity` extends an empty,
+internal `InternalQuantity` PHP fallback when `ext-yumemi` is absent; when the extension is loaded first, Composer uses
+the native base and operators delegate to the existing methods. An opt-in integration suite verifies the real extension
+against this library. Matching PHPStan support remains future work.
 
 ## Goal
 
@@ -31,9 +38,9 @@ $total = $distance->add($units->quantity(5, 'meter'));
 
 Operators are sugar. They should not be required for correctness, static analysis, or basic package use.
 
-## Proposed Class Shape
+## Class Shape
 
-Define an internal hook base class:
+The library defines an internal hook base class:
 
 ```php
 namespace jbboehr\Yumemi;
@@ -88,9 +95,9 @@ The base-class strategy has better ergonomics than replacing `Quantity` with an 
 - The extension only supplies object handlers.
 - The extension can be optional without creating two unrelated `Quantity` implementations.
 
-The expectation is that a userland subclass of an internal base class inherits the internal allocation/handler behavior,
-similar to how userland classes can extend SPL internal classes. This should still be verified with a small spike across
-supported PHP versions.
+The extension's committed PHPT suite verifies that a userland subclass inherits the internal allocation and handler
+behavior on supported PHP 8.2 through 8.5 NTS builds. This library's extension integration suite separately exercises
+the real `Quantity` class and its Composer autoload boundary.
 
 ## Extension Responsibilities
 
@@ -131,29 +138,21 @@ ZEND_MUL -> call $left->mul($right)
 ZEND_DIV -> call $left->div($right)
 ```
 
-Questions to settle in the spike:
+The implemented operand policy is:
 
-- What happens when the quantity is on the right-hand side of a scalar operation?
-- Should `2 * $quantity` work, or only `$quantity * 2`?
-- Should `$quantity / 2` work, but `2 / $quantity` fail?
-- Can error messages preserve the normal exception behavior from the called PHP methods?
-- Are references, temporary zvals, and return-value lifetimes handled cleanly?
-
-Recommended first semantic policy:
-
-- Support `Quantity + Quantity`.
-- Support `Quantity - Quantity`.
-- Support `Quantity * Quantity`.
-- Support `Quantity / Quantity`.
-- Support `Quantity * int`.
-- Support `Quantity / int`.
-- Support `Quantity * Rational`.
-- Support `Quantity / Rational`.
-- Defer scalar-left operations until the basic path is stable.
+- `Quantity + Quantity` and `Quantity - Quantity` delegate to the left quantity.
+- `Quantity * Quantity` and `Quantity / Quantity` delegate to the quantity method.
+- `Quantity * int|Rational` and `Quantity / int|Rational` are supported.
+- `int|Rational * Quantity` is supported because multiplication is commutative.
+- Scalar-left addition, subtraction, and division fail with normal unsupported-operand `TypeError` behavior.
+- Exceptions thrown by delegated methods propagate unchanged.
+- References and temporary operands are covered by the extension PHPTs and this library's integration suite. Zend may
+  select either quantity as the multiplication handler receiver for some temporary/variable forms, but `Quantity::mul()`
+  is commutative and `ExprReducer` canonicalizes symbolic factors, so the observable result matches method semantics.
 
 ## PHP Fallback
 
-The PHP fallback class should be intentionally empty:
+The PHP fallback class is intentionally empty:
 
 ```php
 namespace jbboehr\Yumemi;
@@ -195,8 +194,7 @@ the fallback file for normal class lookup.
 Important constraints:
 
 - Do not directly `require src/InternalQuantity.php` when the extension may be loaded.
-- Avoid authoritative classmap assumptions until tested.
-- Add tests for normal Composer autoload and optimized Composer autoload.
+- Keep both normal and authoritative Composer autoload coverage.
 - Keep extension class name exactly identical to the fallback FQCN.
 
 Potential Composer suggestion:
@@ -310,6 +308,13 @@ Integration tests:
 - Run additional operator tests with the extension.
 - Run PHPStan tests for method calls and operators once the PHPStan layer exists.
 
+The opt-in extension suite accepts an explicit module path so the pure-PHP package does not compile or discover the
+extension implicitly:
+
+```shell
+make test-extension YUMEMI_EXTENSION_PATH=/path/to/yumemi.so
+```
+
 CI:
 
 - Keep extension CI separate from the pure PHP baseline.
@@ -320,8 +325,9 @@ CI:
 
 ### Handler Inheritance
 
-The whole design depends on `Quantity extends InternalQuantity` receiving the internal base class handlers. This is
-expected, but it must be tested across PHP versions.
+The whole design depends on `Quantity extends InternalQuantity` receiving the internal base class handlers. The
+extension PHPT matrix covers inheritance across PHP 8.2 through 8.5, and the opt-in integration suite covers the real
+`Quantity` class when a matching module is available.
 
 If this fails, fallback options are:
 
@@ -369,25 +375,22 @@ Operator syntax can hide meaningful errors. Exception messages from delegated me
 
 This is a good experiment, but it should not block the core project.
 
-The pure-PHP runtime methods and their PHPStan method-call inference are now stable enough for the empirical spike. The
-remaining sequence is:
-
-1. Spike `InternalQuantity` handler inheritance and userland-subclass property behavior across supported PHP versions.
-2. If the spike works, choose the extension package and repository shape.
-3. Add optional operator support while preserving method delegation as the semantic source of truth.
-4. Extend PHPStan to understand the exact operator surface that the extension implements.
+The feasibility spike, separate extension repository, mechanical handler, method-only library seam, and end-to-end
+operator integration are complete. The next slice is to extend PHPStan to understand the exact operator surface that the
+extension implements.
 
 The spike is now unblocked, but it remains a side quest. The main product value is still static dimensional analysis,
 and the extension must not become a dependency of the pure-PHP package.
 
 ## Strategic Conclusion
 
-The `InternalQuantity` base-class plan is probably the best optional operator-overloading architecture:
+The `InternalQuantity` base-class plan is the selected optional operator-overloading architecture:
 
 - pure PHP remains the source of truth
 - Composer users are not forced to compile anything
 - extension users get natural arithmetic syntax
 - PHPStan can eventually support both method calls and operators
 
-The first decision point is empirical: prove the handler inheritance and userland-subclass property behavior in a tiny
-extension. If that works, the rest is normal extension engineering.
+The handler and real `Quantity` integration are now empirical, committed tests rather than an architectural assumption.
+The remaining work is static-analysis support and release integration without making the extension a pure-PHP package
+dependency.

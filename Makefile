@@ -1,6 +1,6 @@
 .DEFAULT: all
 .PHONY: all clean coverage-branch coverage-branch-parallel docs docs-check docs-serve generate-catalog \
-	probator-unit-parser test-consumer test-consumer-archive test-consumer-locks test-udunits2 \
+	probator-unit-parser test-consumer test-consumer-archive test-consumer-locks test-extension test-udunits2 \
 	update-consumer-locks
 
 BRANCH_COVERAGE_OUTPUT ?= coverage/branch
@@ -11,6 +11,7 @@ PROBATOR_OPTIONS ?=
 PROBATOR_UNIT_PARSER_WORKDIR ?= tmp/probator/unit-expression
 UDUNITS2_BIN ?= udunits2
 UDUNITS2_XML ?= $(UDUNITS_XML_DIR)/udunits2.xml
+YUMEMI_EXTENSION_PATH ?=
 
 UDUNITS_XML_FILES := \
 	$(UDUNITS_XML_DIR)/udunits2-prefixes.xml \
@@ -70,6 +71,13 @@ test-consumer-archive:
 
 test-consumer-locks:
 	php tests/Consumer/check-locks.php
+
+test-extension:
+	@test -n "$(YUMEMI_EXTENSION_PATH)" || { \
+		echo 'YUMEMI_EXTENSION_PATH is not set; provide the path to yumemi.so.' >&2; \
+		exit 1; \
+	}
+	tests/Extension/run "$(YUMEMI_EXTENSION_PATH)"
 
 update-consumer-locks:
 	tests/Consumer/update-locks

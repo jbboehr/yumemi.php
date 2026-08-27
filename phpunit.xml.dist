@@ -35,6 +35,7 @@
     <testsuites>
         <testsuite name="Test Suite">
             <directory>./tests</directory>
+            <exclude>./tests/Extension</exclude>
         </testsuite>
     </testsuites>
 </phpunit>

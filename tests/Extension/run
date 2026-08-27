@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+TESTS_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+readonly TESTS_DIR
+PROJECT_ROOT=$(cd -- "$TESTS_DIR/../.." && pwd)
+readonly PROJECT_ROOT
+
+if [[ $# -ne 1 ]]; then
+    printf 'Usage: %s /path/to/yumemi.so\n' "$0" >&2
+    exit 2
+fi
+
+if [[ ! -f $1 ]]; then
+    printf 'Yumemi extension module not found: %s\n' "$1" >&2
+    exit 1
+fi
+
+EXTENSION_DIR=$(cd -- "$(dirname -- "$1")" && pwd)
+readonly EXTENSION_DIR
+EXTENSION_PATH=$EXTENSION_DIR/$(basename -- "$1")
+readonly EXTENSION_PATH
+
+cd -- "$PROJECT_ROOT"
+php -d "extension=$EXTENSION_PATH" vendor/bin/phpunit \
+    --configuration tests/Extension/phpunit.xml.dist

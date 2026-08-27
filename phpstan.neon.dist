@@ -18,6 +18,8 @@ parameters:
         - src/Parser/Parser.php
         # Intentionally invalid / analysed only via PHPUnit fixtures.
         - tests/Consumer
+        # Requires ext-yumemi; PHPStan operator support is tracked separately.
+        - tests/Extension
         - tests/PHPStan/data
         - tests/PHPStan/Fixtures
     ignoreErrors:
