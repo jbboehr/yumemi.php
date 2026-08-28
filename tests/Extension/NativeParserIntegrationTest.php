@@ -57,6 +57,29 @@ final class NativeParserIntegrationTest extends TestCase
         self::assertTrue(\jbboehr\Yumemi\Parser\NativeParser::isCompatible());
     }
 
+    public function testEnvironmentFlagCanDisableRealNativeSelection(): void
+    {
+        $previous = getenv('YUMEMI_NATIVE_PARSER');
+
+        try {
+            putenv('YUMEMI_NATIVE_PARSER=0');
+
+            self::assertFalse(NativeParserAdapter::isAvailable());
+            self::assertAstSame(
+                self::parseWithPhpBackend('real_native_flag_fallback_probe'),
+                Parser::parseString('real_native_flag_fallback_probe'),
+            );
+        } finally {
+            if ($previous === false) {
+                putenv('YUMEMI_NATIVE_PARSER');
+            } else {
+                putenv('YUMEMI_NATIVE_PARSER=' . $previous);
+            }
+        }
+
+        self::assertTrue(NativeParserAdapter::isAvailable());
+    }
+
     #[DataProvider('expressionProvider')]
     public function testNativeBackendMatchesThePhpParser(string $input): void
     {

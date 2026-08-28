@@ -287,6 +287,9 @@
             command = ''
               patchShebangs tests/Extension/run
               make test-extension YUMEMI_EXTENSION_PATH=${extension}/lib/php/extensions/yumemi.so
+              make benchmark-native-parser \
+                YUMEMI_EXTENSION_PATH=${extension}/lib/php/extensions/yumemi.so \
+                PHPBENCH_OPTIONS='--iterations=1 --revs=1 --warmup=1 --progress=none'
             '';
           };
         phpunitReports = {

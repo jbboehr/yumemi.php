@@ -55,6 +55,10 @@ final class NativeParserAdapter
      */
     public static function isAvailable(): bool
     {
+        if (getenv('YUMEMI_NATIVE_PARSER') === '0') {
+            return false;
+        }
+
         if (!class_exists(NativeParser::class, false)) {
             return false;
         }

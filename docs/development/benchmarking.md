@@ -32,6 +32,32 @@ composer benchmark:smoke
 
 It verifies benchmark discovery, setup, and execution. It does not establish a performance floor.
 
+## Native Parser Comparison
+
+The native-parser comparison is deliberately separate from the ordinary suite because it requires a compatible
+`ext-yumemi` shared library. Run it against a locally built extension:
+
+```console
+make benchmark-native-parser YUMEMI_EXTENSION_PATH=/path/to/yumemi.so
+```
+
+Pass temporary PHPBench overrides through `PHPBENCH_OPTIONS`, for example:
+
+```console
+make benchmark-native-parser \
+    YUMEMI_EXTENSION_PATH=/path/to/yumemi.so \
+    PHPBENCH_OPTIONS='--iterations=10 --revs=200'
+```
+
+The paired subjects run both parsers with the same extension-loaded PHP configuration over simple, compound, and nested
+Unicode expressions. They compare syntax-only parsing and parsing followed by catalog resolution and reduction. Both
+paths bypass the process-local AST cache; the native path includes the ABI and Unicode compatibility gate used on a real
+cache miss. The parse-and-resolve subjects create a fresh resolver for every measured revolution so catalog lookups are
+not satisfied by its process-local cache; the immutable catalog registry is prepared outside the timing window. Setup
+verifies that both backends produce equal AST classes, exact lexemes, tree shapes, and source spans before any timing is
+accepted. Existing warm parsing subjects remain the evidence for cache-hit behavior, which returns before backend
+selection.
+
 ## PHPStan Analysis
 
 The PHPStan benchmark is a separate end-to-end harness because its subjects are complete analyzer processes rather than

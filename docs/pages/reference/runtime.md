@@ -59,6 +59,18 @@ covered by this marker. Direct parser-backed APIs report the shared
 `LengthException` subtype. The native helpers retain their existing `InvalidArgumentException` boundary and chain the
 limit exception as the cause.
 
+### Native Parser Selection
+
+When a compatible `ext-yumemi` parser ABI is loaded, Yumemi automatically uses it for syntax parsing while retaining the
+generated PHP parser as its grammar authority and fallback. Both paths produce the same AST, source-span, exception, and
+resource-limit contracts; unit resolution and arithmetic remain in PHP.
+
+Set `YUMEMI_NATIVE_PARSER=0` in the process environment to force the PHP parser even when the extension is loaded. Leave
+the variable unset, or set it to `1`, for automatic native selection. Configure the flag before application or worker
+startup so every parse in that process follows one policy; already-cached successful ASTs are backend-neutral values.
+This switch also affects unit expressions parsed during PHPStan analysis because the runtime and analyzer share the same
+parser boundary.
+
 ## Contexts And Construction
 
 `Units::default()` returns one shared context backed by the generated UDUNITS2 catalog. Repeated calls return the same

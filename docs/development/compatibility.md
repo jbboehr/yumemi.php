@@ -77,6 +77,7 @@ The following surfaces are supported specifically for integration rather than or
 - `extension.neon` as the primary PHPStan extension entry point;
 - `yumemi-operators.neon` as the opt-in `Quantity` operator-inference entry point;
 - `yumemi-tags.neon` as the opt-in annotation-promotion entry point;
+- `YUMEMI_NATIVE_PARSER=0` as the process-level native-parser opt-out;
 - `PHPStan\UnitRegistryFactory` and its static `create(): UnitRegistry` contract;
 - the `parameters.yumemi.*` configuration keys documented below;
 - the PHPStan pseudo-types, optional annotation tags, and diagnostic identifiers documented below.
@@ -152,6 +153,11 @@ The following changes are compatibility-sensitive:
 - changing parser resource or exponent limits, source-span conventions, or exact numeric interpretation;
 - changing reduction or normalization results represented by the conformance corpus; and
 - changing documented parser-compatible formatter output so that it no longer round-trips.
+
+When a compatible `ext-yumemi` parser ABI is loaded, leaving `YUMEMI_NATIVE_PARSER` unset or setting it to `1` selects
+the native syntax adapter automatically. Setting it to the exact string `0` is the supported process-level opt-out and
+forces the generated PHP fallback. Changing that variable's name, accepted disable value, or default selection policy is
+compatibility-sensitive.
 
 `Expr::toString()` is documented as a structural/debug representation rather than the configurable display API. Exact
 structural strings committed to a conformance-corpus version remain evidence for that version, but callers needing

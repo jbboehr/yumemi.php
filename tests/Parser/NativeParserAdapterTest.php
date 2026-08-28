@@ -131,6 +131,55 @@ final class NativeParserAdapterTest extends TestCase
         self::assertSame('fallback_string_abi', Parser::parseString('fallback_string_abi')->toString());
     }
 
+    public function testEnvironmentFlagCanForceAndReleaseThePhpFallback(): void
+    {
+        eval(<<<'PHP'
+            namespace jbboehr\Yumemi\Parser;
+
+            final class NativeParser
+            {
+                public const ABI_VERSION = 1;
+
+                public static function isCompatible(): bool
+                {
+                    return true;
+                }
+
+                /** @return array<string, mixed> */
+                public static function parse(string $input): array
+                {
+                    return [
+                        'kind' => 'identifier',
+                        'start' => 0,
+                        'end' => strlen($input),
+                        'text' => 'native_flag_result',
+                    ];
+                }
+            }
+
+            final class NativeParseException extends \RuntimeException {}
+            final class NativeLimitException extends \LengthException {}
+            PHP);
+
+        $previous = getenv('YUMEMI_NATIVE_PARSER');
+
+        try {
+            putenv('YUMEMI_NATIVE_PARSER=0');
+            self::assertFalse(NativeParserAdapter::isAvailable());
+            self::assertSame('flag_forced_php_fallback', Parser::parseString('flag_forced_php_fallback')->toString());
+
+            putenv('YUMEMI_NATIVE_PARSER=1');
+            self::assertTrue(NativeParserAdapter::isAvailable());
+            self::assertSame('native_flag_result', Parser::parseString('flag_enabled_native_backend')->toString());
+        } finally {
+            if ($previous === false) {
+                putenv('YUMEMI_NATIVE_PARSER');
+            } else {
+                putenv('YUMEMI_NATIVE_PARSER=' . $previous);
+            }
+        }
+    }
+
     public function testFallsBackWhenTheNativeLexerIsIncompatible(): void
     {
         eval(<<<'PHP'

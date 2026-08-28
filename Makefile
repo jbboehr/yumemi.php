@@ -1,12 +1,13 @@
 .DEFAULT: all
-.PHONY: all clean coverage-branch coverage-branch-parallel docs docs-check docs-serve generate-catalog \
-	probator-unit-parser test-consumer test-consumer-archive test-consumer-locks test-extension test-udunits2 \
-	update-consumer-locks
+.PHONY: all benchmark-native-parser clean coverage-branch coverage-branch-parallel docs docs-check docs-serve \
+	generate-catalog probator-unit-parser test-consumer test-consumer-archive test-consumer-locks test-extension \
+	test-udunits2 update-consumer-locks
 
 BRANCH_COVERAGE_OUTPUT ?= coverage/branch
 BRANCH_COVERAGE_SOURCE ?= src/Number
 BRANCH_COVERAGE_TESTS ?=
 BRANCH_COVERAGE_XDEBUG_ERROR := Xdebug is not loaded; enter nix develop .\#xdebug.
+PHPBENCH_OPTIONS ?=
 PROBATOR_OPTIONS ?=
 PROBATOR_UNIT_PARSER_WORKDIR ?= tmp/probator/unit-expression
 UDUNITS2_BIN ?= udunits2
@@ -21,6 +22,19 @@ UDUNITS_XML_FILES := \
 	$(UDUNITS_XML_DIR)/udunits2-common.xml
 
 all: src/Parser/Parser.php
+
+benchmark-native-parser:
+	@test -n "$(YUMEMI_EXTENSION_PATH)" || { \
+		echo 'YUMEMI_EXTENSION_PATH is not set; provide the path to yumemi.so.' >&2; \
+		exit 1; \
+	}
+	@test -f "$(YUMEMI_EXTENSION_PATH)" || { \
+		echo 'YUMEMI_EXTENSION_PATH does not name a file.' >&2; \
+		exit 1; \
+	}
+	php vendor/bin/phpbench run benchmarks/NativeParserComparison.php \
+		--php-config='{"extension":"$(YUMEMI_EXTENSION_PATH)"}' \
+		--report=aggregate $(PHPBENCH_OPTIONS)
 
 clean:
 	rm -f src/Parser/Parser.php

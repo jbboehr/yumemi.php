@@ -78,7 +78,11 @@
             { id: "errors-and-source-locations", title: "Errors And Source Locations" },
         ],
         "reference/runtime.html": [
-            { id: "common-tasks", title: "Common Tasks" },
+            {
+                id: "common-tasks",
+                title: "Common Tasks",
+                children: [{ id: "native-parser-selection", title: "Native Parser Selection" }],
+            },
             {
                 id: "contexts-and-construction",
                 title: "Contexts And Construction",
