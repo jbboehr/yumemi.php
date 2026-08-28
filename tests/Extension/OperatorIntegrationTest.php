@@ -47,13 +47,16 @@ use PHPUnit\Framework\TestCase;
 
 final class OperatorIntegrationTest extends TestCase
 {
-    public function testNativeHandlerDelegatesToQuantityMethods(): void
+    protected function setUp(): void
     {
         self::assertTrue(
             extension_loaded('yumemi'),
             'Run the extension integration suite with ext-yumemi loaded before Composer.',
         );
+    }
 
+    public function testQuantityExtendsTheExtensionBaseClass(): void
+    {
         $base = new \ReflectionClass(InternalQuantity::class);
         $parent = (new \ReflectionClass(Quantity::class))->getParentClass();
 
@@ -61,12 +64,14 @@ final class OperatorIntegrationTest extends TestCase
         self::assertTrue($base->isAbstract());
         self::assertInstanceOf(\ReflectionClass::class, $parent);
         self::assertSame(InternalQuantity::class, $parent->getName());
+    }
 
+    public function testQuantityArithmeticOperatorsDelegateToMethods(): void
+    {
         $units = Units::default();
         $meters = $units->quantity(2, 'meter');
         $feet = $units->quantity(1, 'foot');
         $seconds = $units->quantity(3, 'second');
-        $rational = new Rational(3, 2);
 
         self::assertSameQuantity($meters->add($feet), $meters + $feet);
         self::assertSameQuantity($meters->sub($feet), $meters - $feet);
@@ -74,6 +79,13 @@ final class OperatorIntegrationTest extends TestCase
         self::assertSameQuantity($meters->div($seconds), $meters / $seconds);
         self::assertSameQuantity($meters->pow(2), $meters ** 2);
         self::assertSameQuantity($meters->pow(-1), $meters ** -1);
+    }
+
+    public function testQuantityScalarOperatorsDelegateToMethods(): void
+    {
+        $meters = Units::default()->quantity(2, 'meter');
+        $rational = new Rational(3, 2);
+
         self::assertSameQuantity($meters->mul(3), $meters * 3);
         self::assertSameQuantity($meters->div($rational), $meters / $rational);
         self::assertSameQuantity($meters->mul(3), 3 * $meters);
@@ -84,6 +96,13 @@ final class OperatorIntegrationTest extends TestCase
         $scalarLeftCompound = 6;
         $scalarLeftCompound /= $meters;
         self::assertSameQuantity($meters->rdiv(6), $scalarLeftCompound);
+    }
+
+    public function testTemporaryQuantityOperandsRemainValid(): void
+    {
+        $units = Units::default();
+        $meters = $units->quantity(2, 'meter');
+        $seconds = $units->quantity(3, 'second');
 
         self::assertSameQuantity(
             $units->quantity(2, 'meter')->mul($seconds),
@@ -93,11 +112,21 @@ final class OperatorIntegrationTest extends TestCase
             $meters->mul($units->quantity(3, 'second')),
             $meters * $units->quantity(3, 'second'),
         );
+    }
+
+    public function testUnsupportedOperandsAreRejected(): void
+    {
+        $meters = Units::default()->quantity(2, 'meter');
 
         self::assertRejectsUnsupportedOperands(static fn (): mixed => 1 + $meters);
         self::assertRejectsUnsupportedOperands(static fn (): mixed => 1 - $meters);
         self::assertRejectsUnsupportedOperands(static fn (): mixed => [] / $meters);
         self::assertRejectsUnsupportedOperands(static fn (): mixed => 2 ** $meters);
+    }
+
+    public function testScalarLeftDivisionByZeroRetainsTheMethodException(): void
+    {
+        $units = Units::default();
 
         try {
             1 / $units->quantity(0, 'meter');
@@ -105,7 +134,10 @@ final class OperatorIntegrationTest extends TestCase
         } catch (DivisionByZeroError) {
             $this->addToAssertionCount(1);
         }
+    }
 
+    public function testCrossContextMultiplicationRetainsTheMethodException(): void
+    {
         $leftContext = new Units(new Udunits2UnitRegistry());
         $rightContext = new Units(new Udunits2UnitRegistry());
 

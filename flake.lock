@@ -136,11 +136,11 @@
     "php-yumemi": {
       "flake": false,
       "locked": {
-        "lastModified": 1787839259,
-        "narHash": "sha256-pz1SAy54TDI5M6C0BPyrjkhPtxa4e49ZQJXu6OyIuAM=",
+        "lastModified": 1787875839,
+        "narHash": "sha256-H3xtK4nRh4fGkv69qrizFsp1gjZEwvY5x0X7uSEYkMQ=",
         "owner": "jbboehr",
         "repo": "php-yumemi",
-        "rev": "efc0b2274d320a53aaa2a2ca6c3741f6716f91ef",
+        "rev": "06909cf9cac252c902766b6fc7eb87e6c7ab1383",
         "type": "github"
       },
       "original": {

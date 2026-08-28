@@ -311,6 +311,7 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $temporaryFile = tempnam(sys_get_temp_dir(), 'yumemi-phpstan-');
         $this->assertNotFalse($temporaryFile);
         $config = $temporaryFile . '.neon';
+        $cache = PhpStanProcessCache::directory();
         $stderr = $temporaryFile . '.stderr';
 
         try {
@@ -345,6 +346,7 @@ includes:
 {$includes}
 parameters:
     level: max
+    tmpDir: {$cache}
     paths:
         - {$fixturePath}
     reportUnmatchedIgnoredErrors: false

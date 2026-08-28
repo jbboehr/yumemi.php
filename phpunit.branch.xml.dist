@@ -20,6 +20,7 @@
     <testsuites>
         <testsuite name="Branch Coverage">
             <directory>./tests</directory>
+            <exclude>./tests/Extension</exclude>
         </testsuite>
     </testsuites>
 </phpunit>

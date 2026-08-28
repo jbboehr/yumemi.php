@@ -137,6 +137,7 @@ final class YumemiReturnTagExtensionTest extends TypeInferenceTestCase
         $temporaryFile = tempnam(sys_get_temp_dir(), 'yumemi-tag-');
         $this->assertNotFalse($temporaryFile);
         $config = $temporaryFile . '.neon';
+        $cache = PhpStanProcessCache::directory();
 
         try {
             $this->assertTrue(rename($temporaryFile, $config));
@@ -161,6 +162,7 @@ final class YumemiReturnTagExtensionTest extends TypeInferenceTestCase
             $neon = <<<NEON
 {$includes}parameters:
     level: max
+    tmpDir: {$cache}
     paths:
         - {$fixturePath}
 {$stubFiles}    treatPhpDocTypesAsCertain: true
