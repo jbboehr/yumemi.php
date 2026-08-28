@@ -136,18 +136,20 @@
     "php-yumemi": {
       "flake": false,
       "locked": {
+        "exportIgnore": true,
         "lastModified": 1787875839,
-        "narHash": "sha256-H3xtK4nRh4fGkv69qrizFsp1gjZEwvY5x0X7uSEYkMQ=",
-        "owner": "jbboehr",
-        "repo": "php-yumemi",
+        "narHash": "sha256-ueUd7VUapqwxox7YZ1yXGF8826vFegnK12EmHNYmz2I=",
+        "ref": "develop",
         "rev": "06909cf9cac252c902766b6fc7eb87e6c7ab1383",
-        "type": "github"
+        "revCount": 7,
+        "type": "git",
+        "url": "https://github.com/jbboehr/php-yumemi.git"
       },
       "original": {
-        "owner": "jbboehr",
+        "exportIgnore": true,
         "ref": "develop",
-        "repo": "php-yumemi",
-        "type": "github"
+        "type": "git",
+        "url": "https://github.com/jbboehr/php-yumemi.git"
       }
     },
     "pre-commit-hooks": {

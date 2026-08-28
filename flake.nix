@@ -33,7 +33,7 @@
       flake = false;
     };
     php-yumemi = {
-      url = "github:jbboehr/php-yumemi/develop";
+      url = "git+https://github.com/jbboehr/php-yumemi.git?ref=develop&exportIgnore=1";
       flake = false;
     };
   };
