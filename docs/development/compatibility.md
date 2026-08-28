@@ -105,7 +105,8 @@ Declarations marked `@internal` are not compatibility promises. The same applies
 
 - the `InternalQuantity` native-extension seam;
 - analyzer and resolver implementation classes;
-- parser AST nodes, the generated parser implementation, lexer plumbing, and parser-generator interfaces;
+- parser AST nodes, the generated parser implementation, lexer plumbing, parser-generator interfaces, and the optional
+  native-parser ABI and adapter;
 - every class under `src/PHPStan` except `UnitRegistryFactory`;
 - catalog importers, exporters, classifiers, synthesis helpers, and command implementations;
 - internal deserialization, arithmetic, and rendering helpers;

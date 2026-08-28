@@ -87,15 +87,20 @@ trait ParserUtils
             return $ast;
         }
 
-        $lexer = new Lexer($input);
-        $parser = new Parser($lexer);
-        if (!$parser->parse()) {
-            $end = strlen($input);
+        if (NativeParserAdapter::isAvailable()) {
+            $ast = NativeParserAdapter::parse($input);
+        } else {
+            $lexer = new Lexer($input);
+            $parser = new Parser($lexer);
+            if (!$parser->parse()) {
+                $end = strlen($input);
 
-            throw new ParseException('Syntax error', 0, new SourceSpan($end, $end), $input);
+                throw new ParseException('Syntax error', 0, new SourceSpan($end, $end), $input);
+            }
+
+            $ast = $parser->getAst();
         }
 
-        $ast = $parser->getAst();
         $cache->put($input, $ast, strlen($input));
 
         return $ast;

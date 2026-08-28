@@ -80,8 +80,9 @@ all generated notices when changing the generator.
 ### Consumer Requirement
 
 [`composer.json`](../../composer.json) classmaps `src/Parser/Parser.php`, and both runtime parsing and PHPStan analysis
-load it. The release-style consumer test verifies that the generated parser is present in the Composer archive. Users do
-not need Bison or `mrsuh/php-bison-skeleton`.
+can use it. A compatible optional `ext-yumemi` installation may accelerate parsing through an internal neutral-AST ABI,
+but this generated parser remains the grammar authority and automatic fallback. The release-style consumer test verifies
+that it is present in the Composer archive. Users do not need the extension, Bison, or `mrsuh/php-bison-skeleton`.
 
 ## Generated UDUNITS2 Catalog
 

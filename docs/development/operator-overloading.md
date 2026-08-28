@@ -100,16 +100,17 @@ The base-class strategy has better ergonomics than replacing `Quantity` with an 
 - Public API docs remain accurate without the extension.
 - Composer autoloading stays conventional.
 - Runtime semantics stay in PHP.
-- The extension only supplies object handlers.
+- The `Quantity` seam only supplies object handlers; the extension's later syntax-only parser remains a separate
+  optional adapter.
 - The extension can be optional without creating two unrelated `Quantity` implementations.
 
 The extension's committed PHPT suite verifies that a userland subclass inherits the internal allocation and handler
 behavior on supported PHP 8.2 through 8.5 NTS builds. This library's extension integration suite separately exercises
 the real `Quantity` class and its Composer autoload boundary.
 
-## Extension Responsibilities
+## Operator-Handler Responsibilities
 
-The extension should do as little as possible:
+The operator handler should do as little as possible:
 
 - Register `jbboehr\Yumemi\InternalQuantity`.
 - Install a custom object handlers table for that class.
@@ -125,6 +126,11 @@ Non-goals for the first version:
 - Reimplement unit parsing or registry lookup in C.
 - Make operators work without the extension.
 - Support every PHP operator.
+
+The later native lexer/parser does not change these operator boundaries. It returns a neutral syntax tree through an
+internal, versioned ABI and performs no unit lookup, normalization, conversion, registry access, or `Quantity`
+construction. Yumemi selects it only when the ABI and Unicode compatibility gate match, adapts its results into the
+existing PHP AST and exception contracts, and otherwise retains the generated PHP lexer/parser automatically.
 
 ## Handler Behavior
 

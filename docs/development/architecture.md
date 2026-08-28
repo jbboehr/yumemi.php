@@ -54,7 +54,10 @@ The foundational model represents exact values and unit syntax without knowing a
 - [`Rational`](../../src/Number/Rational.php) and [`BinaryFloat`](../../src/Number/BinaryFloat.php) define exact
   rational values and explicit binary64 boundaries.
 - [`Parser`](../../src/Parser/Parser.php), [`Lexer`](../../src/Parser/Lexer.php), and the AST under
-  [`src/Parser/Ast`](../../src/Parser/Ast) represent accepted unit syntax and source spans.
+  [`src/Parser/Ast`](../../src/Parser/Ast) represent accepted unit syntax and source spans. When a compatible
+  `ext-yumemi` parser ABI is loaded, [`NativeParserAdapter`](../../src/Parser/NativeParserAdapter.php) translates its
+  syntax-only neutral tree and structured failures into those same PHP contracts; the generated PHP parser remains the
+  required fallback and grammar authority.
 - [`Expr`](../../src/Expr.php) and its expression nodes represent constants, units, products, and integer powers. A
   resolved unit leaf may retain a weak reference to the `Units` context that assigned meaning to its catalog name; the
   reference preserves semantic identity without making the registry mutable.
@@ -283,6 +286,7 @@ Expected replacement boundaries are deliberately narrow:
 | ----------------------- | ------------------------------------------------- | ----------------------------------------- |
 | PHPStan adapter         | Internal PHPStan API and type-system changes      | Unit semantics, inferred contracts, IDs   |
 | Parser generator        | Bison skeleton or generation-environment changes  | Grammar, spans, precedence, round-trips   |
+| Native parser adapter   | Optional extension ABI or Unicode-table changes   | PHP AST/errors and generated fallback     |
 | UDUNITS2 acquisition    | XML schema, package layout, or upstream changes   | Provenance, imported semantics, fixtures  |
 | Documentation toolchain | mdBook, theme, or hosting changes                 | Markdown sources, examples, link validity |
 | Nix and CI              | Package expressions, actions, or hosted services  | Local commands and reproducible checks    |
