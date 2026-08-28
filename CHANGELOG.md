@@ -14,7 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - An opt-in integration suite that verifies `ext-yumemi` operators against the canonical `Quantity` methods.
 - Exact `Quantity::rdiv()` scalar-over-quantity division, including reciprocal-unit PHPStan inference.
 - Optional `ext-yumemi` exponentiation and scalar-left division syntax backed by `Quantity::pow()` and `rdiv()`.
-- Composer package metadata suggesting the optional `ext-yumemi` companion for `Quantity` operator syntax.
+- Composer package metadata suggesting the optional `ext-yumemi` companion for `Quantity` operator syntax and native
+  unit-expression parsing.
 - Automatic syntax parsing through a compatible `ext-yumemi` parser ABI, with the generated PHP parser retained as a
   fallback and `YUMEMI_NATIVE_PARSER=0` as a process-level opt-out.
 - Opt-in PHPStan inference for `ext-yumemi` `Quantity` operators through `yumemi-operators.neon`, including compatible
