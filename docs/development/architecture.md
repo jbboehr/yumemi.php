@@ -57,8 +57,8 @@ The foundational model represents exact values and unit syntax without knowing a
   [`src/Parser/Ast`](../../src/Parser/Ast) represent accepted unit syntax and source spans. When a compatible
   `ext-yumemi` parser ABI is loaded, [`NativeParserAdapter`](../../src/Parser/NativeParserAdapter.php) translates its
   syntax-only neutral tree and structured failures into those same PHP contracts; the generated PHP parser remains the
-  required fallback and grammar authority. The `YUMEMI_NATIVE_PARSER=0` process flag provides an operational rollback to
-  that fallback without unloading the extension.
+  required fallback and grammar authority. A false `YUMEMI_NATIVE_PARSER` process setting provides an operational
+  rollback to that fallback without unloading the extension.
 - [`Expr`](../../src/Expr.php) and its expression nodes represent constants, units, products, and integer powers. A
   resolved unit leaf may retain a weak reference to the `Units` context that assigned meaning to its catalog name; the
   reference preserves semantic identity without making the registry mutable.

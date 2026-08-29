@@ -131,7 +131,7 @@ final class NativeParserAdapterTest extends TestCase
         self::assertSame('fallback_string_abi', Parser::parseString('fallback_string_abi')->toString());
     }
 
-    public function testEnvironmentFlagCanForceAndReleaseThePhpFallback(): void
+    public function testEnvironmentFlagUsesConventionalBooleanValuesAndFailsClosed(): void
     {
         eval(<<<'PHP'
             namespace jbboehr\Yumemi\Parser;
@@ -164,13 +164,98 @@ final class NativeParserAdapterTest extends TestCase
         $previous = getenv('YUMEMI_NATIVE_PARSER');
 
         try {
-            putenv('YUMEMI_NATIVE_PARSER=0');
-            self::assertFalse(NativeParserAdapter::isAvailable());
-            self::assertSame('flag_forced_php_fallback', Parser::parseString('flag_forced_php_fallback')->toString());
+            foreach (
+                ['0', 'false', 'FaLsE', 'oFf', 'nO', '', 'invalid', ' true', 'true ', '00', '2', '-1'] as $index => $value
+            ) {
+                putenv('YUMEMI_NATIVE_PARSER=' . $value);
+                $input = sprintf('flag_forced_php_fallback_%d', $index);
 
-            putenv('YUMEMI_NATIVE_PARSER=1');
-            self::assertTrue(NativeParserAdapter::isAvailable());
-            self::assertSame('native_flag_result', Parser::parseString('flag_enabled_native_backend')->toString());
+                self::assertFalse(NativeParserAdapter::isAvailable(), sprintf('value: %s', var_export($value, true)));
+                self::assertSame($input, Parser::parseString($input)->toString());
+            }
+
+            foreach (['1', 'true', 'TrUe', 'oN', 'YeS'] as $index => $value) {
+                putenv('YUMEMI_NATIVE_PARSER=' . $value);
+
+                self::assertTrue(NativeParserAdapter::isAvailable(), sprintf('value: %s', var_export($value, true)));
+                self::assertSame(
+                    'native_flag_result',
+                    Parser::parseString(sprintf('flag_enabled_native_backend_%d', $index))->toString(),
+                );
+            }
+
+            putenv('YUMEMI_NATIVE_PARSER');
+            self::assertTrue(NativeParserAdapter::isAvailable(), 'unset');
+            self::assertSame('native_flag_result', Parser::parseString('flag_unset_native_backend')->toString());
+        } finally {
+            if ($previous === false) {
+                putenv('YUMEMI_NATIVE_PARSER');
+            } else {
+                putenv('YUMEMI_NATIVE_PARSER=' . $previous);
+            }
+        }
+    }
+
+    public function testAFlagTransitionCanRollBackAfterANativeFailureWithoutCachingTheFailure(): void
+    {
+        eval(<<<'PHP'
+            namespace jbboehr\Yumemi\Parser;
+
+            final class NativeParser
+            {
+                public const ABI_VERSION = 1;
+
+                public static function isCompatible(): bool
+                {
+                    return true;
+                }
+
+                /** @return array<string, mixed> */
+                public static function parse(string $input): array
+                {
+                    $GLOBALS['yumemi_native_parser_calls'] = ($GLOBALS['yumemi_native_parser_calls'] ?? 0) + 1;
+
+                    throw new NativeParseException($input, 0, strlen($input), 'identifier', []);
+                }
+            }
+
+            final class NativeParseException extends \RuntimeException
+            {
+                /** @param list<string> $expected */
+                public function __construct(
+                    public readonly string $input,
+                    public readonly int $start,
+                    public readonly int $end,
+                    public readonly ?string $unexpected,
+                    public readonly array $expected,
+                ) {
+                    parent::__construct('syntax error');
+                }
+            }
+
+            final class NativeLimitException extends \LengthException {}
+            PHP);
+
+        $previous = getenv('YUMEMI_NATIVE_PARSER');
+        $input = 'rollback_after_native_failure_probe';
+
+        try {
+            putenv('YUMEMI_NATIVE_PARSER=on');
+            try {
+                Parser::parseString($input);
+                self::fail('Expected the enabled native backend to fail.');
+            } catch (ParseException) {
+            }
+
+            putenv('YUMEMI_NATIVE_PARSER=off');
+            $fallback = Parser::parseString($input);
+
+            self::assertSame($input, $fallback->toString());
+            self::assertSame(1, $GLOBALS['yumemi_native_parser_calls']);
+
+            putenv('YUMEMI_NATIVE_PARSER=YES');
+            self::assertSame($fallback, Parser::parseString($input));
+            self::assertSame(1, $GLOBALS['yumemi_native_parser_calls']);
         } finally {
             if ($previous === false) {
                 putenv('YUMEMI_NATIVE_PARSER');
@@ -687,6 +772,45 @@ final class NativeParserAdapterTest extends TestCase
         $this->expectException(\UnexpectedValueException::class);
 
         NativeParserAdapter::parse('partial_native_limit_span');
+    }
+
+    public function testRejectsNativeLimitWithUninitializedTypedSpanMetadata(): void
+    {
+        eval(<<<'PHP'
+            namespace jbboehr\Yumemi\Parser;
+
+            final class NativeParser
+            {
+                public const ABI_VERSION = 1;
+
+                public static function isCompatible(): bool
+                {
+                    return true;
+                }
+
+                /** @return array<string, mixed> */
+                public static function parse(string $input): array
+                {
+                    throw new NativeLimitException();
+                }
+            }
+
+            final class NativeParseException extends \RuntimeException {}
+
+            final class NativeLimitException extends \LengthException
+            {
+                public string $limit = 'token-count';
+                public int $maximum = 256;
+                public int $observed = 257;
+                public int $start;
+                public int $end;
+            }
+            PHP);
+
+        $this->expectException(\UnexpectedValueException::class);
+        $this->expectExceptionMessage('Native parser returned a resource error with an invalid source span.');
+
+        NativeParserAdapter::parse('uninitialized_native_limit_span');
     }
 
     public function testRejectsNativeErrorSpansOutsideInputAtTheAdapterBoundary(): void

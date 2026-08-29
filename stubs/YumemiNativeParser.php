@@ -37,6 +37,6 @@ final class NativeLimitException extends \LengthException
     public readonly string $limit;
     public readonly int $maximum;
     public readonly int $observed;
-    public readonly ?int $start;
-    public readonly ?int $end;
+    public readonly int $start;
+    public readonly int $end;
 }

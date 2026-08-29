@@ -282,8 +282,8 @@ requiring an application to know which public API eventually invokes the shared 
 **Representative enforcement.** The handwritten [`Lexer`](../../src/Parser/Lexer.php) owns the limits and counters,
 while [`ParserUtils`](../../src/Parser/ParserUtils.php) checks input size before consulting the process-wide AST cache.
 [`NativeParserAdapter`](../../src/Parser/NativeParserAdapter.php) admits only the matching, Unicode-compatible extension
-ABI when the process has not set `YUMEMI_NATIVE_PARSER=0`, and translates its structured limit failures into the same
-exception contract; otherwise parsing stays on the PHP implementation.
+ABI when the process selection setting permits native parsing, and translates its structured limit failures into the
+same exception contract; otherwise parsing stays on the PHP implementation.
 [`ParserTest`](../../tests/Parser/ParserTest.php),
 [`UnitRegistryBuilderTest`](../../tests/Registry/UnitRegistryBuilderTest.php),
 [`UnitExpressionParserTest`](../../tests/PHPStan/UnitExpressionParserTest.php), and the versioned conformance corpus

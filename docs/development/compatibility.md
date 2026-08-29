@@ -77,7 +77,7 @@ The following surfaces are supported specifically for integration rather than or
 - `extension.neon` as the primary PHPStan extension entry point;
 - `yumemi-operators.neon` as the opt-in `Quantity` operator-inference entry point;
 - `yumemi-tags.neon` as the opt-in annotation-promotion entry point;
-- `YUMEMI_NATIVE_PARSER=0` as the process-level native-parser opt-out;
+- `YUMEMI_NATIVE_PARSER` as the process-level native-parser selection control;
 - `PHPStan\UnitRegistryFactory` and its static `create(): UnitRegistry` contract;
 - the `parameters.yumemi.*` configuration keys documented below;
 - the PHPStan pseudo-types, optional annotation tags, and diagnostic identifiers documented below.
@@ -154,10 +154,10 @@ The following changes are compatibility-sensitive:
 - changing reduction or normalization results represented by the conformance corpus; and
 - changing documented parser-compatible formatter output so that it no longer round-trips.
 
-When a compatible `ext-yumemi` parser ABI is loaded, leaving `YUMEMI_NATIVE_PARSER` unset or setting it to `1` selects
-the native syntax adapter automatically. Setting it to the exact string `0` is the supported process-level opt-out and
-forces the generated PHP fallback. Changing that variable's name, accepted disable value, or default selection policy is
-compatibility-sensitive.
+When a compatible `ext-yumemi` parser ABI is loaded, leaving `YUMEMI_NATIVE_PARSER` unset or setting it to `1`, `true`,
+`on`, or `yes` (case-insensitive) selects the native syntax adapter automatically. Setting it to `0`, `false`, `off`,
+`no`, or an empty string forces the generated PHP fallback. Any other explicit value also fails closed to the fallback.
+Changing that variable's name, accepted values, or default selection policy is compatibility-sensitive.
 
 `Expr::toString()` is documented as a structural/debug representation rather than the configurable display API. Exact
 structural strings committed to a conformance-corpus version remain evidence for that version, but callers needing

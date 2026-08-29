@@ -55,7 +55,11 @@ final class NativeParserAdapter
      */
     public static function isAvailable(): bool
     {
-        if (getenv('YUMEMI_NATIVE_PARSER') === '0') {
+        $nativeParserSetting = getenv('YUMEMI_NATIVE_PARSER');
+        if (
+            $nativeParserSetting !== false
+            && !in_array(strtolower($nativeParserSetting), ['1', 'true', 'on', 'yes'], true)
+        ) {
             return false;
         }
 
@@ -108,18 +112,22 @@ final class NativeParserAdapter
             if ($exception->limit === 'input-bytes') {
                 $span = null;
             } else {
-                if ($exception->start === null
-                    || $exception->end === null
-                    || $exception->start < 0
-                    || $exception->end < $exception->start
-                    || $exception->end > strlen($input)
+                $metadata = get_object_vars($exception);
+                $start = $metadata['start'] ?? null;
+                $end = $metadata['end'] ?? null;
+
+                if (!is_int($start)
+                    || !is_int($end)
+                    || $start < 0
+                    || $end < $start
+                    || $end > strlen($input)
                 ) {
                     throw new \UnexpectedValueException(
                         'Native parser returned a resource error with an invalid source span.',
                     );
                 }
 
-                $span = new SourceSpan($exception->start, $exception->end);
+                $span = new SourceSpan($start, $end);
             }
 
             throw new ExpressionLimitExceededException(

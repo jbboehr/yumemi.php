@@ -57,18 +57,29 @@ final class NativeParserIntegrationTest extends TestCase
         self::assertTrue(\jbboehr\Yumemi\Parser\NativeParser::isCompatible());
     }
 
-    public function testEnvironmentFlagCanDisableRealNativeSelection(): void
+    public function testEnvironmentFlagCanControlRealNativeSelection(): void
     {
         $previous = getenv('YUMEMI_NATIVE_PARSER');
 
         try {
-            putenv('YUMEMI_NATIVE_PARSER=0');
+            foreach (['0', 'false', 'FALSE', 'off', 'no', '', 'invalid'] as $value) {
+                putenv('YUMEMI_NATIVE_PARSER=' . $value);
+                self::assertFalse(
+                    NativeParserAdapter::isAvailable(),
+                    sprintf('value: %s', var_export($value, true)),
+                );
+            }
 
-            self::assertFalse(NativeParserAdapter::isAvailable());
-            self::assertAstSame(
-                self::parseWithPhpBackend('real_native_flag_fallback_probe'),
-                Parser::parseString('real_native_flag_fallback_probe'),
-            );
+            foreach (['1', 'true', 'TRUE', 'on', 'yes'] as $value) {
+                putenv('YUMEMI_NATIVE_PARSER=' . $value);
+                self::assertTrue(
+                    NativeParserAdapter::isAvailable(),
+                    sprintf('value: %s', var_export($value, true)),
+                );
+            }
+
+            putenv('YUMEMI_NATIVE_PARSER');
+            self::assertTrue(NativeParserAdapter::isAvailable(), 'unset');
         } finally {
             if ($previous === false) {
                 putenv('YUMEMI_NATIVE_PARSER');
@@ -76,8 +87,6 @@ final class NativeParserIntegrationTest extends TestCase
                 putenv('YUMEMI_NATIVE_PARSER=' . $previous);
             }
         }
-
-        self::assertTrue(NativeParserAdapter::isAvailable());
     }
 
     #[DataProvider('expressionProvider')]

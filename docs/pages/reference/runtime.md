@@ -65,8 +65,10 @@ When a compatible `ext-yumemi` parser ABI is loaded, Yumemi automatically uses i
 generated PHP parser as its grammar authority and fallback. Both paths produce the same AST, source-span, exception, and
 resource-limit contracts; unit resolution and arithmetic remain in PHP.
 
-Set `YUMEMI_NATIVE_PARSER=0` in the process environment to force the PHP parser even when the extension is loaded. Leave
-the variable unset, or set it to `1`, for automatic native selection. Configure the flag before application or worker
+Set `YUMEMI_NATIVE_PARSER` to `0`, `false`, `off`, `no`, or an empty string in the process environment to force the PHP
+parser even when the extension is loaded. Values are case-insensitive. Leave the variable unset, or set it to `1`,
+`true`, `on`, or `yes`, for automatic native selection. Any other explicit value fails closed to the PHP fallback so a
+misspelled setting cannot unexpectedly enable the optional native path. Configure the flag before application or worker
 startup so every parse in that process follows one policy; already-cached successful ASTs are backend-neutral values.
 This switch also affects unit expressions parsed during PHPStan analysis because the runtime and analyzer share the same
 parser boundary.
