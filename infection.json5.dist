@@ -8,7 +8,7 @@
             "Parser/Parser.php",
         ],
     },
-    timeout: 20,
+    timeout: 60,
     threads: "max",
     logs: {
         text: "infection.log",

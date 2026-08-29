@@ -5,7 +5,7 @@
             "src/PHPStan",
         ],
     },
-    timeout: 20,
+    timeout: 60,
     threads: "max",
     logs: {
         text: "infection-phpstan.log",

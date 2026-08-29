@@ -304,6 +304,11 @@
             substituteInPlace phpunit.xml.dist \
               --replace-fail 'https://schema.phpunit.de/11.5/phpunit.xsd' 'vendor/phpunit/phpunit/phpunit.xsd'
             COMPOSER_PROCESS_TIMEOUT=0 composer infection:ci
+            if ! grep -Fxq 'Skipped: 0' infection-summary.log; then
+              echo 'Runtime mutation testing must not skip generated mutants.' >&2
+              cat infection-summary.log >&2
+              exit 1
+            fi
           '';
           installResult = ''
             for report in infection.log infection-summary.log; do
@@ -321,6 +326,11 @@
             substituteInPlace phpunit.xml.dist \
               --replace-fail 'https://schema.phpunit.de/11.5/phpunit.xsd' 'vendor/phpunit/phpunit/phpunit.xsd'
             COMPOSER_PROCESS_TIMEOUT=0 composer infection:phpstan:ci
+            if ! grep -Fxq 'Skipped: 0' infection-phpstan-summary.log; then
+              echo 'PHPStan mutation testing must not skip generated mutants.' >&2
+              cat infection-phpstan-summary.log >&2
+              exit 1
+            fi
           '';
           installResult = ''
             for report in infection-phpstan.log infection-phpstan-summary.log; do
