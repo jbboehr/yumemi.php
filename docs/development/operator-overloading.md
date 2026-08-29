@@ -115,17 +115,20 @@ The operator handler should do as little as possible:
 - Register `jbboehr\Yumemi\InternalQuantity`.
 - Install a custom object handlers table for that class.
 - Implement `do_operation`.
-- Optionally implement `compare` later.
 - Allocate objects in a way that still supports normal userland subclass properties.
 - Delegate arithmetic to existing userland methods.
 
-Non-goals for the first version:
+Non-goals:
 
 - Reimplement `Quantity` in C.
 - Reimplement `Rational` in C.
 - Reimplement unit parsing or registry lookup in C.
 - Make operators work without the extension.
 - Support every PHP operator.
+- Install a `compare` handler or make PHP object comparison unit-aware. Zend exposes one general object-comparison
+  relation to explicit operators and implicit consumers such as regular array sorting. Delegating that relation to
+  `compareTo()` would therefore make unrelated consumers convert compatible quantities and throw for incompatible
+  dimensions or registry contexts. The named comparison methods remain the deliberate boundary.
 
 The later native lexer/parser does not change these operator boundaries. It returns a neutral syntax tree through an
 internal, versioned ABI and performs no unit lookup, normalization, conversion, registry access, or `Quantity`
@@ -418,8 +421,9 @@ The `InternalQuantity` base-class plan is the selected optional operator-overloa
 
 - pure PHP remains the source of truth
 - Composer users are not forced to compile anything
-- extension users get natural arithmetic syntax
-- PHPStan supports both method calls and the extension's opt-in operator surface
+- extension users get natural arithmetic syntax while comparison remains method-based
+- PHPStan supports the extension's opt-in arithmetic surface while rejecting native object comparison as a substitute
+  for the named methods
 
 The handler and real `Quantity` integration are now empirical, committed tests rather than an architectural assumption.
 The integration matrix covers named variables, reversed source order, helper-return and expression temporaries, compound

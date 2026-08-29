@@ -829,7 +829,7 @@ repeat the implementation's assumptions:
 - Stable registry identifiers and an application resolver for serialized graphs containing values from several custom
   `Units` contexts. Native serialization currently supports the default context plus one dynamically scoped custom
   context through `Units::deserialize()` and rejects semantic drift. Broader ecosystem integrations remain deferred.
-- Strict same-unit comparison variants and PHP object comparison operators unless a concrete use case appears
+- Strict same-unit comparison variants unless a concrete use case appears
 - Removing mandatory GMP remains deferred until supported users demonstrate a material installation or deployment
   barrier. The completed [backend evaluation](rational-backend-evaluation.md) found that Brick offers a viable portable
   integer representation but does not justify the current performance, compatibility, persistence, and adapter costs.
