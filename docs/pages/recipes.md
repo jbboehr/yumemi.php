@@ -152,15 +152,11 @@ $width = $units->quantity(2, 'shipping_pallets');
 
 assert($width->exactDecimalValueIn('meter') === '2.4384');
 
-$previous = Units::setDefault($units);
+Units::setDefault($units);
 
-try {
-    $nativeWidth = unit(2, 'shipping_pallets');
+$nativeWidth = unit(2, 'shipping_pallets');
 
-    assert(abs(unit_to($nativeWidth, 'shipping_pallets', 'meter') - 2.4384) < 1e-12);
-} finally {
-    Units::setDefault($previous);
-}
+assert(abs(unit_to($nativeWidth, 'shipping_pallets', 'meter') - 2.4384) < 1e-12);
 ```
 
 Select the same factory for PHPStan:
@@ -176,8 +172,9 @@ the remaining units through exact definitions. The [custom-registry reference](r
 shows this pattern for an application-owned currency-rate snapshot.
 
 Instance methods use the registry attached to their `Units` context. Native helpers use the process-wide default
-instead; an application may install that context once during bootstrap, while tests and scoped workers should restore
-the previous context in `finally`. See [Registry Configuration](reference/phpstan.md#registry-configuration),
+instead; install that context once during synchronous process bootstrap, before starting Fibers or other request
+scheduling. Concurrent work that needs an isolated registry should retain a `Units` instance and use its methods. See
+[Registry Configuration](reference/phpstan.md#registry-configuration),
 [Custom Registries](reference/catalog.md#custom-registries), and
 [Contexts And Construction](reference/runtime.md#contexts-and-construction) for the complete lifecycle and overlay
 rules.

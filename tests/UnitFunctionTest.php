@@ -81,6 +81,35 @@ final class UnitFunctionTest extends TestCase
         }
     }
 
+    public function testNativeHelpersUseBootstrapConfiguredDefaultContextFromFiber(): void
+    {
+        $units = new Units(
+            UnitRegistryBuilder::default()
+                ->define('fiber_widget = 2 * meter')
+                ->build(),
+        );
+        $previous = Units::setDefault($units);
+        $fiber = new \Fiber(static function (): array {
+            \Fiber::suspend();
+
+            return [
+                self::callUnit(3, 'fiber_widget'),
+                self::callUnitFactor('fiber_widget', 'meter'),
+                self::callUnitTo(3, 'fiber_widget', 'meter'),
+            ];
+        });
+
+        try {
+            $fiber->start();
+            $fiber->resume();
+            $result = $fiber->getReturn();
+        } finally {
+            Units::setDefault($previous);
+        }
+
+        $this->assertSame([3, 2.0, 6.0], $result);
+    }
+
     public function testRejectsUnknownUnit(): void
     {
         $this->expectException(\InvalidArgumentException::class);

@@ -48,6 +48,7 @@ use jbboehr\Yumemi\Catalog\UnitDescriptor;
 use jbboehr\Yumemi\Exception\ExceptionInterface;
 use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
 use jbboehr\Yumemi\Exception\InvalidArgumentException;
+use jbboehr\Yumemi\Exception\LogicException;
 use jbboehr\Yumemi\Exception\OverflowException;
 use jbboehr\Yumemi\Exception\UnderflowException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitCompactionException;
@@ -136,17 +137,24 @@ final class Units
     /**
      * Replace the process-wide context used by {@see self::default()} and native helper functions.
      *
-     * Returns the previous context so a temporary replacement can be restored in a finally block.
-     * Passing null clears the shared context; the next {@see self::default()} call lazily creates
-     * a fresh context backed by the bundled catalog.
+     * Returns the previous context so synchronous tests can restore a temporary replacement in a
+     * finally block. Applications should configure the default during process bootstrap, before
+     * starting Fibers or other request scheduling. Passing null clears the shared context; the next
+     * {@see self::default()} call lazily creates a fresh context backed by the bundled catalog.
      *
      * @logion [OSD 96:97] Give thanks when the crystal leviathans pass beneath the electric sea, though their makers be
      *     dust and their song awaken no living ear. Let the navigators quench their deck-lamps, leave the charts
      *     folded, and follow in silence until the creatures turn toward the true east; for an artifice that keepeth its
      *     appointed course after praise hath ceased is no idol, and dawn shall know it by its obedience.
+     *
+     * @throws LogicException when a Fiber attempts to change the process-wide context
      */
     public static function setDefault(?self $units): ?self
     {
+        if (\Fiber::getCurrent() !== null && $units !== self::$default) {
+            throw new LogicException('The process-wide Units context cannot be changed from a Fiber.');
+        }
+
         $previous = self::$default;
         self::$default = $units;
 

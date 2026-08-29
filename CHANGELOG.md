@@ -23,6 +23,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `IncompatibleExpressionContextException`, with nullable process-local `leftContextId` and `rightContextId` metadata
   identifying the expression contexts involved when they remain available.
 
+### Changed
+
+- Calls to `Units::setDefault()` that would change the process-wide default are rejected from Fibers; configure it
+  during synchronous bootstrap, while Fiber code may continue to read the installed context.
+
 ### Fixed
 
 - Quantity multiplication now reports cross-context failures in a canonical process-local context-ID order, preserving

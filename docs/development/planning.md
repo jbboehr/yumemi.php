@@ -671,8 +671,9 @@ repeat the implementation's assumptions:
 - `unit_to()` returns plain `float` for affine targets because native affine brands cannot yet express absolute-versus-
   delta semantics. Affine sources converted to multiplicative targets retain the target brand.
 - PHPStan assumes one authoritative registry. Flow-sensitive tracking of several runtime registry identities is not
-  implemented. Native runtime helpers can be aligned with that registry through the process-wide `Units::setDefault()`;
-  instance APIs remain preferable when an application uses several registries concurrently.
+  implemented. Native runtime helpers can be aligned with that registry by calling the process-wide
+  `Units::setDefault()` during synchronous bootstrap; instance APIs remain preferable when an application uses several
+  registries concurrently.
 - The opt-in `@yumemi-*` parser integration depends on internal PHPStan parser services and may conflict with another
   parser-replacing extension.
 - Yumemi intentionally does not declare a Composer conflict with PHPStan versions older than 2.2.5 because runtime-only

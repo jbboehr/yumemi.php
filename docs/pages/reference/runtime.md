@@ -93,8 +93,10 @@ a definition-less unit name through the receiving catalog, so application code s
 `parse()` or `unit()`.
 
 Native helpers such as `unit()`, `unit_factor()`, and `unit_to()` use the process-wide default context. Applications
-that configure the PHPStan extension with custom units can install the matching runtime context temporarily. Save and
-restore the previous context in `finally`, especially in tests and long-running workers:
+that configure the PHPStan extension with custom units should install the matching runtime context during synchronous
+process bootstrap, before starting Fibers or other request scheduling:
+
+<!-- akashi: separate-process -->
 
 ```php
 <?php
@@ -109,17 +111,18 @@ $units = new Units(
         ->define('widget = 2 * meter')
         ->build(),
 );
-$previous = Units::setDefault($units);
+Units::setDefault($units);
 
-try {
-    assert(unit_to(3, 'widget', 'meter') === 6.0);
-} finally {
-    Units::setDefault($previous);
-}
+assert(unit_to(3, 'widget', 'meter') === 6.0);
 ```
 
 `setDefault(null)` clears the shared context, causing the next `default()` call to create a fresh built-in context.
-Already-created quantities retain their original context.
+Already-created quantities retain their original context. A `setDefault()` call that would change the context from
+inside a Fiber throws Yumemi's `Exception\LogicException`; idempotently setting the already-installed instance remains
+permitted. Native helpers may read a bootstrap-configured default from a Fiber, but the main execution context can still
+replace that global while a Fiber is suspended. Applications must therefore treat `setDefault()` as bootstrap or
+synchronous test configuration, not as request-local scope. Pass a captured `Units` instance into concurrent work and
+call its conversion methods when work needs an isolated registry.
 
 `Units` objects are not cloneable. Construct another instance when an application needs a separate context; even an
 equivalent registry snapshot does not make independently constructed contexts interchangeable.

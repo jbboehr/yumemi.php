@@ -336,6 +336,12 @@ context-bound expression is never rebound.
 PHPStan uses one configured registry and includes its effective semantics in result-cache invalidation. Applications
 that share custom units across runtime and PHPStan must construct both layers from equivalent registry definitions.
 
+The process-wide default `Units` context is synchronous bootstrap configuration, not Fiber-local state. Native helpers
+may read a configured default from a Fiber, but `Units::setDefault()` rejects an actual context change from inside one.
+Applications must not replace the default from the main execution context after Fiber scheduling begins, because PHP
+does not expose that global lifecycle through the `setDefault()` call. Concurrent work that needs an isolated registry
+must retain and use an explicit `Units` instance.
+
 **Reason.** A unit name can have different definitions in different registries or rate snapshots. Comparing only the
 spelling or dimension would allow values governed by different semantic contexts to mix silently.
 
@@ -353,7 +359,8 @@ these boundaries.
 
 **Invalid shortcut.** Mutating a registry after installing it, merging prebuilt and catalog representations from
 different composite layers, rebinding an expression after its context expires, or accepting cross-context operations
-because unit names happen to match.
+because unit names happen to match. Treating `setDefault()` save/restore as request-local scope in concurrent code is
+likewise invalid.
 
 **Classification.** Semantic drift or cross-context mixing is a correctness defect. Deliberately changing registry
 precedence or context identity is also a compatibility break.

@@ -38,7 +38,9 @@ namespace jbboehr\Yumemi\Tests;
 
 use jbboehr\Yumemi\Catalog\UnitSemantics;
 use jbboehr\Yumemi\Dimension;
+use jbboehr\Yumemi\Exception\ExceptionInterface;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
+use jbboehr\Yumemi\Exception\LogicException;
 use jbboehr\Yumemi\Exception\OverflowException;
 use jbboehr\Yumemi\Exception\RuntimeException;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
@@ -92,6 +94,173 @@ final class UnitsTest extends TestCase
         }
 
         $this->assertSame($custom, $replaced);
+        $this->assertSame($original, Units::default());
+    }
+
+    public function testDefaultContextCannotBeChangedFromFiber(): void
+    {
+        $original = Units::default();
+        $custom = new Units(
+            UnitRegistryBuilder::default()
+                ->define('widget = 2 * meter')
+                ->build(),
+        );
+        $fiber = new \Fiber(static fn (): ?Units => Units::setDefault($custom));
+
+        try {
+            $fiber->start();
+            self::fail('Changing the process-wide Units context from a Fiber should fail.');
+        } catch (LogicException $exception) {
+            $this->assertStringContainsString('cannot be changed from a Fiber', $exception->getMessage());
+        } finally {
+            $replaced = Units::setDefault($original);
+        }
+
+        $this->assertSame($original, $replaced);
+        $this->assertSame($original, Units::default());
+    }
+
+    public function testDefaultContextCannotBeClearedFromFiber(): void
+    {
+        $original = Units::default();
+        $fiber = new \Fiber(static fn (): ?Units => Units::setDefault(null));
+
+        try {
+            $fiber->start();
+            self::fail('Clearing the process-wide Units context from a Fiber should fail.');
+        } catch (LogicException $exception) {
+            $this->assertStringContainsString('cannot be changed from a Fiber', $exception->getMessage());
+        }
+
+        $this->assertSame($original, Units::default());
+    }
+
+    public function testDefaultContextCanBeSetIdempotentlyFromFiber(): void
+    {
+        $original = Units::default();
+        $fiber = new \Fiber(static fn (): ?Units => Units::setDefault($original));
+
+        $fiber->start();
+
+        $this->assertSame($original, $fiber->getReturn());
+        $this->assertSame($original, Units::default());
+    }
+
+    public function testFiberRejectionPreservesDefaultAndAllowsIdempotentRecovery(): void
+    {
+        $original = Units::default();
+        $custom = new Units(UnitRegistry::bundled());
+        $fiber = new \Fiber(static function () use ($custom, $original): array {
+            $exception = null;
+
+            try {
+                Units::setDefault($custom);
+            } catch (\Throwable $throwable) {
+                $exception = $throwable;
+            }
+
+            return [$exception, Units::setDefault($original), Units::default()];
+        });
+
+        $fiber->start();
+        $result = $fiber->getReturn();
+
+        $this->assertIsArray($result);
+        [$exception, $previous, $current] = $result;
+        $this->assertInstanceOf(ExceptionInterface::class, $exception);
+        $this->assertSame(LogicException::class, $exception::class);
+        $this->assertSame($original, $previous);
+        $this->assertSame($original, $current);
+        $this->assertSame($original, Units::default());
+    }
+
+    public function testFiberNoOpAndRejectionObserveNullDefaultState(): void
+    {
+        $original = Units::default();
+        $this->assertSame($original, Units::setDefault(null));
+        $custom = new Units(UnitRegistry::bundled());
+        $fiber = new \Fiber(static function () use ($custom): array {
+            $previous = Units::setDefault(null);
+            $exception = null;
+
+            try {
+                Units::setDefault($custom);
+            } catch (\Throwable $throwable) {
+                $exception = $throwable;
+            }
+
+            return [$previous, $exception];
+        });
+
+        try {
+            $fiber->start();
+            $result = $fiber->getReturn();
+            $this->assertIsArray($result);
+            [$previous, $exception] = $result;
+            $stateAfterFailure = Units::setDefault($original);
+        } finally {
+            Units::setDefault($original);
+        }
+
+        $this->assertNull($previous);
+        $this->assertInstanceOf(ExceptionInterface::class, $exception);
+        $this->assertSame(LogicException::class, $exception::class);
+        $this->assertNull($stateAfterFailure);
+        $this->assertSame($original, Units::default());
+    }
+
+    public function testFiberGuardAppliesInNestedAndResumedExecution(): void
+    {
+        $original = Units::default();
+        $custom = new Units(UnitRegistry::bundled());
+        $outer = new \Fiber(static function () use ($custom, $original): array {
+            $inner = new \Fiber(static function () use ($custom, $original): array {
+                $exception = null;
+
+                try {
+                    Units::setDefault($custom);
+                } catch (\Throwable $throwable) {
+                    $exception = $throwable;
+                }
+
+                return [$exception, Units::setDefault($original)];
+            });
+
+            $inner->start();
+            \Fiber::suspend([$inner->getReturn(), Units::setDefault($original)]);
+            $exception = null;
+
+            try {
+                Units::setDefault($custom);
+            } catch (\Throwable $throwable) {
+                $exception = $throwable;
+            }
+
+            return [$exception, Units::setDefault($original), Units::default()];
+        });
+
+        $suspended = $outer->start();
+
+        $this->assertIsArray($suspended);
+        [$innerResult, $beforeSuspension] = $suspended;
+        $this->assertIsArray($innerResult);
+        [$innerException, $innerPrevious] = $innerResult;
+
+        $this->assertInstanceOf(ExceptionInterface::class, $innerException);
+        $this->assertSame(LogicException::class, $innerException::class);
+        $this->assertSame($original, $innerPrevious);
+        $this->assertSame($original, $beforeSuspension);
+        $this->assertSame($original, Units::default());
+
+        $outer->resume();
+        $result = $outer->getReturn();
+
+        $this->assertIsArray($result);
+        [$resumedException, $resumedPrevious, $resumedCurrent] = $result;
+        $this->assertInstanceOf(ExceptionInterface::class, $resumedException);
+        $this->assertSame(LogicException::class, $resumedException::class);
+        $this->assertSame($original, $resumedPrevious);
+        $this->assertSame($original, $resumedCurrent);
         $this->assertSame($original, Units::default());
     }
 
