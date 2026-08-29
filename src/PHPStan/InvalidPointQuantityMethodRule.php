@@ -103,6 +103,7 @@ final class InvalidPointQuantityMethodRule implements Rule
                 'add',
                 'sub',
                 'difference',
+                'differenceFrom',
                 'to',
                 'valueIn',
                 'intValueIn',

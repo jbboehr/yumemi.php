@@ -63,3 +63,5 @@ function compareIncompatiblePointOperandUnion(PointQuantity $other): void
 
 // @phpstan-ignore yumemi.invalidPointQuantityOperation (exercise identifier-specific suppression)
 $celsius->to('meter');
+
+$celsius->differenceFrom($meters);

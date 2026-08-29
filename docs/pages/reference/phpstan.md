@@ -698,7 +698,8 @@ definitionally equivalent, but different scales such as Celsius, Fahrenheit, and
 even though their points can be converted and compared. PHPStan models the affine operation rules:
 
 - `PointQuantity::add()` and `sub()` accept a dimensionally compatible `Quantity` and preserve the point type;
-- `difference()` accepts a compatible point and returns `Quantity<'delta-unit'>` in the receiver's scale;
+- `differenceFrom()` accepts a compatible origin point and returns `Quantity<'delta-unit'>` in the receiver's scale;
+  `difference()` has identical inference for compatibility;
 - `to()` returns a point branded with the target coordinate scale;
 - point comparisons and numeric extraction validate constant targets and preserve their native return types.
 

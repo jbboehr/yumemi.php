@@ -33,6 +33,7 @@ needs arise.
 | Apply application-preferred units                   | `Quantity::toPreferred()`               |
 | Choose an engineering prefix in a named unit family | `Quantity::toCompact()`                 |
 | Convert a coordinate point                          | `PointQuantity::to()`                   |
+| Subtract an origin point from a destination point   | `PointQuantity::differenceFrom()`       |
 | Preserve the exact rational result after conversion | `Quantity::valueIn()`                   |
 | Obtain a minimal exact terminating decimal          | `Quantity::exactDecimalValueIn()`       |
 | Obtain a rounded decimal with a requested scale     | `Quantity::decimalValueIn()`            |
@@ -473,7 +474,7 @@ $units = Units::default();
 $freezing = $units->point(0, 'celsius');
 $rise = $units->deltaQuantity(18, 'fahrenheit');
 $warmer = $freezing->add($rise);
-$interval = $units->point(100, 'celsius')->difference($freezing);
+$interval = $units->point(100, 'celsius')->differenceFrom(origin: $freezing);
 
 assert($freezing->valueIn('kelvin')->toString() === '5463/20');
 assert($freezing->isCompatibleWith($units->point(32, 'fahrenheit')));
@@ -484,11 +485,12 @@ assert($interval->valueIn('delta_fahrenheit')->toString() === '180');
 ```
 
 A `PointQuantity` retains an exact `Rational` coordinate and a named scale. `to()`, `valueIn()`, comparisons, and native
-numeric output apply full scale-and-offset conversion. `difference()` subtracts another compatible point and returns a
-`Quantity` in the receiver's delta unit. `add()` and `sub()` translate the point by a compatible `Quantity` while
-preserving the point's coordinate unit. `isCompatibleWith()` checks for the same `Units` context and compatible
-coordinate dimensions without converting either value; a different context or dimension returns `false`. Operations that
-combine points still throw for context or dimension incompatibility.
+numeric output apply full scale-and-offset conversion. `$destination->differenceFrom($origin)` subtracts the compatible
+origin point and returns a `Quantity` in the destination's delta unit. The older `difference()` spelling has identical
+behavior and remains supported. `add()` and `sub()` translate the point by a compatible `Quantity` while preserving the
+point's coordinate unit. `isCompatibleWith()` checks for the same `Units` context and compatible coordinate dimensions
+without converting either value; a different context or dimension returns `false`. Operations that combine points still
+throw for context or dimension incompatibility.
 
 The catalog provides explicit multiplicative difference units such as `delta_celsius`, `delta_fahrenheit`, `Δ°C`, and
 `Δ°F`. They participate in ordinary quantity and expression algebra, so `delta_celsius / second` is valid. Formatter

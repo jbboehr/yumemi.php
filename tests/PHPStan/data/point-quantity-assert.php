@@ -16,6 +16,7 @@ assertType("Quantity<'delta_fahrenheit'>", $rise);
 assertType("PointQuantity<'celsius'>", $freezing->add($rise));
 assertType("PointQuantity<'celsius'>", $freezing->sub($rise));
 assertType("Quantity<'delta_fahrenheit'>", $boilingFahrenheit->difference($freezing));
+assertType("Quantity<'delta_fahrenheit'>", $boilingFahrenheit->differenceFrom($freezing));
 assertType("PointQuantity<'fahrenheit'>", $freezing->to('fahrenheit'));
 
 $summit = $units->point(4410, 'meter');
@@ -51,6 +52,7 @@ assertType('bool', $freezing->isCompatibleWith($units->point(1, 'meter')));
 
 assertType('*ERROR*', $freezing->add($units->quantity(1, 'meter')));
 assertType('*ERROR*', $freezing->difference($units->point(1, 'meter')));
+assertType('*ERROR*', $freezing->differenceFrom($units->point(1, 'meter')));
 assertType('*ERROR*', $freezing->to('meter'));
 assertType('*ERROR*', $freezing->compareTo($units->point(1, 'meter')));
 assertType('*ERROR*', $units->point(1, 'celsius / second'));

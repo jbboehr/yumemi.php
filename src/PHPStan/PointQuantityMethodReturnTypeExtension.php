@@ -101,6 +101,7 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
             'add',
             'sub',
             'difference',
+            'differenceFrom',
             'to',
             'valueIn',
             'intValueIn',
@@ -180,7 +181,8 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
         foreach ($receivers as $receiverType) {
             $result = match ($methodName) {
                 'add', 'sub' => $this->translate($receiverType, $args, $scope, $methodName),
-                'difference' => $this->difference($receiverType, $args, $scope),
+                'difference',
+                'differenceFrom' => $this->difference($receiverType, $args, $scope, $methodName),
                 'compareTo',
                 'equals',
                 'lessThan',
@@ -304,8 +306,12 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
      *     emblem nor petition. At the cedar summit, release one white moth for each forgiven year; and if the moths
      *     descend toward the city, return and govern gently, for mercy hath chosen labor rather than forgetfulness.
      */
-    private function difference(PointQuantityType $receiver, array $args, Scope $scope): ?Type
-    {
+    private function difference(
+        PointQuantityType $receiver,
+        array $args,
+        Scope $scope,
+        string $methodName,
+    ): ?Type {
         if (count($args) < 1) {
             return null;
         }
@@ -317,7 +323,7 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
             foreach ($others as $otherType) {
                 $right = $otherType->getPointUnitExpression();
                 if (!$left->sameDimension($right)) {
-                    return self::incompatiblePointError('difference', $left, $right);
+                    return self::incompatiblePointError($methodName, $left, $right);
                 }
             }
         }

@@ -133,6 +133,11 @@ final class InvalidPointQuantityMethodRuleTest extends RuleTestCase
                     . '(temperature) and meter (length).',
                 61,
             ],
+            [
+                'Cannot call PointQuantity::differenceFrom() with dimensionally incompatible point units celsius '
+                    . '(temperature) and meter (length).',
+                67,
+            ],
         ]);
     }
 }

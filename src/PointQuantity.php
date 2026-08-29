@@ -315,6 +315,19 @@ final class PointQuantity implements \JsonSerializable
     }
 
     /**
+     * Return the directed interval from an origin point to this point.
+     *
+     * @logion [SFA 34:85] When the lacquered birds cease singing at the winter gate, accuse neither frost nor
+     *     craftsman. Carry them into the hall of petitions, and let the eldest widow wind each spring beneath a violet
+     *     lamp. What hath fallen silent in public may yet preserve its appointed hymn; but the hand that discardeth a
+     *     mute witness shall inherit only echoes.
+     */
+    public function differenceFrom(self $origin): Quantity
+    {
+        return $this->difference($origin);
+    }
+
+    /**
      * @logion [OSD 58:42] Disturb not the black swans that sleep beneath the solar bridge while the noon traffic
      *     thundereth overhead. Their folded wings keep the river from taking the color of the lamps. When they depart,
      *     extinguish the bridge for one night, that the water may remember the darkness from which all faithful light

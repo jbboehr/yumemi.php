@@ -110,7 +110,7 @@ $rise = $units->deltaQuantity(18, 'fahrenheit');
 assert(abs(unit_to(98.6, 'fahrenheit', 'celsius') - 37.0) < 1e-12);
 assert($freezing->valueIn('kelvin')->toString() === '5463/20');
 assert($freezing->add($rise)->valueToString() === '10');
-assert($units->point(100, 'celsius')->difference($freezing)->toString() === '100 * delta_celsius');
+assert($units->point(100, 'celsius')->differenceFrom($freezing)->toString() === '100 * delta_celsius');
 ```
 
 Do not use `celsius` itself in products or quotients. `delta_celsius` is multiplicative, and symbol formatting renders

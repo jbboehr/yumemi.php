@@ -135,6 +135,21 @@ final class PointQuantityTest extends TestCase
         $this->assertSame('180', $difference->valueIn('delta_fahrenheit')->toString());
     }
 
+    public function testDifferenceFromMakesTheSubtractionDirectionExplicit(): void
+    {
+        $units = Units::default();
+        $boiling = $units->point(212, 'fahrenheit');
+        $freezing = $units->point(0, 'celsius');
+
+        $rise = $boiling->differenceFrom(origin: $freezing);
+        $fall = $freezing->differenceFrom($boiling);
+
+        $this->assertSame('180', $rise->valueToString());
+        $this->assertSame('delta_fahrenheit', $rise->unitToString());
+        $this->assertSame('-100', $fall->valueToString());
+        $this->assertSame('delta_celsius', $fall->unitToString());
+    }
+
     public function testPointComparisonConvertsCoordinatesExactly(): void
     {
         $units = Units::default();
@@ -284,6 +299,18 @@ final class PointQuantityTest extends TestCase
         $this->expectException(IncompatibleQuantityContextException::class);
 
         $left->difference($right);
+    }
+
+    public function testDifferenceFromPreservesTheRegistryContextBoundary(): void
+    {
+        $leftUnits = new Units(UnitRegistryBuilder::default()->build());
+        $rightUnits = new Units(UnitRegistryBuilder::default()->build());
+        $left = $leftUnits->point(0, 'celsius');
+        $right = $rightUnits->point(32, 'fahrenheit');
+
+        $this->expectException(IncompatibleQuantityContextException::class);
+
+        $left->differenceFrom($right);
     }
 
     public function testPointAndDeltaMustShareRegistryContextForSubtraction(): void

@@ -117,6 +117,7 @@ value remains a string until an explicit integer or float cast moves it into num
 | Parse one string containing a magnitude and unit           | `Units::parseQuantity()`                             |
 | Construct an exact coordinate point                        | `Units::point()`                                     |
 | Construct a multiplicative coordinate difference           | `Units::deltaQuantity()`                             |
+| Subtract an origin point from a destination point          | `PointQuantity::differenceFrom()`                    |
 | Check whether two units share a dimension                  | `Units::areCompatible()`                             |
 | Check whether two quantities share a context and dimension | `Quantity::isCompatibleWith()`                       |
 | Check whether two points share a context and dimension     | `PointQuantity::isCompatibleWith()`                  |
