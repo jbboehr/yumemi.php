@@ -434,6 +434,30 @@ final class QuantityTest extends TestCase
         $this->assertSame('6 * meter * second', $quantity->toExpr()->toString());
     }
 
+    public function testQuantityMultiplicationIsCommutativeForSymbolicResults(): void
+    {
+        $units = Units::default();
+        $left = $units->quantity(2, 'second');
+        $right = $units->quantity(3, 'meter');
+        $forward = $left->mul($right);
+        $reverse = $right->mul($left);
+
+        self::assertSame('meter * second', $forward->unitToString());
+        self::assertSame($forward->valueToString(), $reverse->valueToString());
+        self::assertSame($forward->unit()->toString(), $reverse->unit()->toString());
+        self::assertSame($forward->unitToString(), $reverse->unitToString());
+        self::assertSame($forward->toString(), $reverse->toString());
+        self::assertSame($forward->toExpr()->toString(), $reverse->toExpr()->toString());
+        self::assertSame($forward->units(), $reverse->units());
+
+        $forwardNormalized = $forward->normalize();
+        $reverseNormalized = $reverse->normalize();
+        self::assertSame($forwardNormalized->valueToString(), $reverseNormalized->valueToString());
+        self::assertSame($forwardNormalized->unit()->toString(), $reverseNormalized->unit()->toString());
+        self::assertSame($forwardNormalized->unitToString(), $reverseNormalized->unitToString());
+        self::assertSame($forwardNormalized->toString(), $reverseNormalized->toString());
+    }
+
     public function testDividesScalarByQuantity(): void
     {
         $quantity = Units::default()->quantity(2, 'meter');
@@ -613,6 +637,58 @@ final class QuantityTest extends TestCase
         $right = new Units(new Udunits2UnitRegistry());
 
         $left->quantity(1, 'meter')->mul($right->quantity(1, 'meter'));
+    }
+
+    public function testMultiplicationContextFailureIsCommutative(): void
+    {
+        $left = new Units(new Udunits2UnitRegistry());
+        $right = new Units(new Udunits2UnitRegistry());
+        $leftQuantity = $left->quantity(2, 'meter');
+        $rightQuantity = $right->quantity(3, 'second');
+        $failures = [];
+
+        foreach (
+            [
+                static fn (): Quantity => $leftQuantity->mul($rightQuantity),
+                static fn (): Quantity => $rightQuantity->mul($leftQuantity),
+            ] as $operation
+        ) {
+            try {
+                $operation();
+                self::fail('Expected IncompatibleQuantityContextException');
+            } catch (IncompatibleQuantityContextException $exception) {
+                $failures[] = $exception;
+            }
+        }
+
+        self::assertSame($failures[0]->getMessage(), $failures[1]->getMessage());
+        self::assertSame($failures[0]->leftContextId, $failures[1]->leftContextId);
+        self::assertSame($failures[0]->rightContextId, $failures[1]->rightContextId);
+        self::assertSame(min(spl_object_id($left), spl_object_id($right)), $failures[0]->leftContextId);
+        self::assertSame(max(spl_object_id($left), spl_object_id($right)), $failures[0]->rightContextId);
+    }
+
+    public function testDivisionContextFailureRetainsReceiverOrder(): void
+    {
+        $left = new Units(new Udunits2UnitRegistry());
+        $right = new Units(new Udunits2UnitRegistry());
+        $leftQuantity = $left->quantity(2, 'meter');
+        $rightQuantity = $right->quantity(3, 'second');
+
+        foreach (
+            [
+                [$leftQuantity, $rightQuantity, $left, $right],
+                [$rightQuantity, $leftQuantity, $right, $left],
+            ] as [$receiver, $other, $expectedLeft, $expectedRight]
+        ) {
+            try {
+                $receiver->div($other);
+                self::fail('Expected IncompatibleQuantityContextException');
+            } catch (IncompatibleQuantityContextException $exception) {
+                self::assertSame(spl_object_id($expectedLeft), $exception->leftContextId);
+                self::assertSame(spl_object_id($expectedRight), $exception->rightContextId);
+            }
+        }
     }
 
     public function testDividesByQuantity(): void

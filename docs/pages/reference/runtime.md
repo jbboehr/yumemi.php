@@ -78,7 +78,10 @@ instance, so quantities created by separate calls can be combined.
 
 Use `new Units($registry)` for an isolated or customized catalog. Quantities can interact only when they belong to the
 same `Units` instance. Combining quantities from different contexts throws `IncompatibleQuantityContextException`, even
-when their unit strings happen to match.
+when their unit strings happen to match. For cross-context multiplication, the exception records the two process-local
+context IDs in ascending order rather than method-receiver order. This keeps `left->mul(right)` and `right->mul(left)`
+observably equivalent without permitting either operation. Other quantity operations retain receiver-then-argument
+ordering in `leftContextId` and `rightContextId`.
 
 Resolved expressions returned by `parse()`, `unit()`, `normalize()`, and quantity unit accessors retain the same context
 boundary. Passing one to a different `Units` instance, combining expressions from different contexts, or semantically

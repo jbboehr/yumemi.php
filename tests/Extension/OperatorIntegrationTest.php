@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\Tests\Extension;
 
+use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\Exception\DivisionByZeroError;
 use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
@@ -43,6 +44,7 @@ use jbboehr\Yumemi\InternalQuantity;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Quantity;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
+use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
 use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\TestCase;
 
@@ -233,6 +235,105 @@ final class OperatorIntegrationTest extends TestCase
         );
     }
 
+    public function testQuantityMultiplicationMatchesSourceReceiverAcrossOperandForms(): void
+    {
+        $units = self::multiplicationUnits();
+        $left = $units->quantity(2, 'zeta_factor');
+        $right = $units->quantity(3, 'alpha_factor');
+        $forward = $left->mul($right);
+        $reverse = $right->mul($left);
+
+        self::assertSame('alpha_factor * zeta_factor', $forward->unitToString());
+        self::assertSameQuantity($forward, $reverse, 'The fixture must expose canonical symbolic factor ordering.');
+
+        $scenarios = [
+            'named variables' => [$forward, static fn (): Quantity => $left * $right],
+            'named variables reversed' => [$reverse, static fn (): Quantity => $right * $left],
+            'left helper return' => [
+                $forward,
+                static fn (): Quantity => self::makeQuantity($units, 2, 'zeta_factor') * $right,
+            ],
+            'right helper return' => [
+                $forward,
+                static fn (): Quantity => $left * self::makeQuantity($units, 3, 'alpha_factor'),
+            ],
+            'both helper returns' => [
+                $forward,
+                static fn (): Quantity => self::makeQuantity($units, 2, 'zeta_factor')
+                    * self::makeQuantity($units, 3, 'alpha_factor'),
+            ],
+            'left expression temporary' => [
+                $forward,
+                static fn (): Quantity => $left->mul(1) * $right,
+            ],
+            'right expression temporary' => [
+                $forward,
+                static fn (): Quantity => $left * $right->mul(1),
+            ],
+            'both expression temporaries' => [
+                $forward,
+                static fn (): Quantity => $left->mul(1) * $right->mul(1),
+            ],
+            'reversed left helper return' => [
+                $reverse,
+                static fn (): Quantity => self::makeQuantity($units, 3, 'alpha_factor') * $left,
+            ],
+            'reversed right helper return' => [
+                $reverse,
+                static fn (): Quantity => $right * self::makeQuantity($units, 2, 'zeta_factor'),
+            ],
+            'reversed both helper returns' => [
+                $reverse,
+                static fn (): Quantity => self::makeQuantity($units, 3, 'alpha_factor')
+                    * self::makeQuantity($units, 2, 'zeta_factor'),
+            ],
+            'reversed left expression temporary' => [
+                $reverse,
+                static fn (): Quantity => $right->mul(1) * $left,
+            ],
+            'reversed right expression temporary' => [
+                $reverse,
+                static fn (): Quantity => $right * $left->mul(1),
+            ],
+            'reversed both expression temporaries' => [
+                $reverse,
+                static fn (): Quantity => $right->mul(1) * $left->mul(1),
+            ],
+        ];
+
+        foreach ($scenarios as $label => [$expected, $operation]) {
+            self::assertSameQuantity($expected, $operation(), $label);
+        }
+    }
+
+    public function testQuantityMultiplicationCompoundAssignmentMatchesSourceReceiver(): void
+    {
+        $units = self::multiplicationUnits();
+        $left = $units->quantity(2, 'zeta_factor');
+        $right = $units->quantity(3, 'alpha_factor');
+
+        $actual = $left;
+        $prior = $actual;
+        $actual *= $right;
+        self::assertNotSame($prior, $actual);
+        self::assertSameQuantity($left->mul($right), $actual, 'forward compound assignment');
+        self::assertSameQuantity($units->quantity(2, 'zeta_factor'), $prior, 'forward prior value');
+
+        $actual = $right;
+        $prior = $actual;
+        $actual *= $left;
+        self::assertNotSame($prior, $actual);
+        self::assertSameQuantity($right->mul($left), $actual, 'reversed compound assignment');
+        self::assertSameQuantity($units->quantity(3, 'alpha_factor'), $prior, 'reversed prior value');
+
+        $actual = $left;
+        $prior = $actual;
+        $actual *= self::makeQuantity($units, 3, 'alpha_factor');
+        self::assertNotSame($prior, $actual);
+        self::assertSameQuantity($left->mul($right), $actual, 'temporary-right compound assignment');
+        self::assertSameQuantity($units->quantity(2, 'zeta_factor'), $prior, 'temporary-right prior value');
+    }
+
     public function testUnsupportedOperandsAreRejected(): void
     {
         $meters = Units::default()->quantity(2, 'meter');
@@ -268,10 +369,182 @@ final class OperatorIntegrationTest extends TestCase
         }
     }
 
-    private static function assertSameQuantity(Quantity $expected, Quantity $actual): void
+    public function testCrossContextQuantityMultiplicationMatchesSourceReceiverFailure(): void
     {
-        self::assertSame($expected->valueToString(), $actual->valueToString());
-        self::assertSame($expected->unitToString(), $actual->unitToString());
+        $sharedRegistry = UnitRegistryBuilder::default()->build();
+        $contextPairs = [
+            'distinct contexts sharing one registry' => [
+                new Units($sharedRegistry),
+                new Units($sharedRegistry),
+                'meter',
+                'second',
+            ],
+            'distinct registry semantics' => [
+                new Units(UnitRegistryBuilder::empty()
+                    ->baseUnit('context_factor', Dimension::CURRENCY)
+                    ->build()),
+                new Units(UnitRegistryBuilder::empty()
+                    ->baseUnit('context_factor', Dimension::IMAGE_SAMPLE)
+                    ->build()),
+                'context_factor',
+                'context_factor',
+            ],
+        ];
+
+        foreach ($contextPairs as $fixture => [$leftUnits, $rightUnits, $leftUnit, $rightUnit]) {
+            $left = $leftUnits->quantity(2, $leftUnit);
+            $right = $rightUnits->quantity(3, $rightUnit);
+            $scenarios = [
+                'named variables' => [
+                    static fn (): Quantity => $left->mul($right),
+                    static fn (): Quantity => $left * $right,
+                ],
+                'named variables reversed' => [
+                    static fn (): Quantity => $right->mul($left),
+                    static fn (): Quantity => $right * $left,
+                ],
+                'left helper return' => [
+                    static fn (): Quantity => self::makeQuantity($leftUnits, 2, $leftUnit)->mul($right),
+                    static fn (): Quantity => self::makeQuantity($leftUnits, 2, $leftUnit) * $right,
+                ],
+                'right helper return' => [
+                    static fn (): Quantity => $left->mul(self::makeQuantity($rightUnits, 3, $rightUnit)),
+                    static fn (): Quantity => $left * self::makeQuantity($rightUnits, 3, $rightUnit),
+                ],
+                'both helper returns' => [
+                    static fn (): Quantity => self::makeQuantity($leftUnits, 2, $leftUnit)
+                        ->mul(self::makeQuantity($rightUnits, 3, $rightUnit)),
+                    static fn (): Quantity => self::makeQuantity($leftUnits, 2, $leftUnit)
+                        * self::makeQuantity($rightUnits, 3, $rightUnit),
+                ],
+                'left expression temporary' => [
+                    static fn (): Quantity => $left->mul(1)->mul($right),
+                    static fn (): Quantity => $left->mul(1) * $right,
+                ],
+                'right expression temporary' => [
+                    static fn (): Quantity => $left->mul($right->mul(1)),
+                    static fn (): Quantity => $left * $right->mul(1),
+                ],
+                'both expression temporaries' => [
+                    static fn (): Quantity => $left->mul(1)->mul($right->mul(1)),
+                    static fn (): Quantity => $left->mul(1) * $right->mul(1),
+                ],
+                'reversed left helper return' => [
+                    static fn (): Quantity => self::makeQuantity($rightUnits, 3, $rightUnit)->mul($left),
+                    static fn (): Quantity => self::makeQuantity($rightUnits, 3, $rightUnit) * $left,
+                ],
+                'reversed right helper return' => [
+                    static fn (): Quantity => $right->mul(self::makeQuantity($leftUnits, 2, $leftUnit)),
+                    static fn (): Quantity => $right * self::makeQuantity($leftUnits, 2, $leftUnit),
+                ],
+                'reversed both helper returns' => [
+                    static fn (): Quantity => self::makeQuantity($rightUnits, 3, $rightUnit)
+                        ->mul(self::makeQuantity($leftUnits, 2, $leftUnit)),
+                    static fn (): Quantity => self::makeQuantity($rightUnits, 3, $rightUnit)
+                        * self::makeQuantity($leftUnits, 2, $leftUnit),
+                ],
+                'reversed left expression temporary' => [
+                    static fn (): Quantity => $right->mul(1)->mul($left),
+                    static fn (): Quantity => $right->mul(1) * $left,
+                ],
+                'reversed right expression temporary' => [
+                    static fn (): Quantity => $right->mul($left->mul(1)),
+                    static fn (): Quantity => $right * $left->mul(1),
+                ],
+                'reversed both expression temporaries' => [
+                    static fn (): Quantity => $right->mul(1)->mul($left->mul(1)),
+                    static fn (): Quantity => $right->mul(1) * $left->mul(1),
+                ],
+            ];
+
+            foreach ($scenarios as $scenario => [$method, $operator]) {
+                $message = $fixture . ': ' . $scenario;
+                self::assertSameQuantityFailure(
+                    self::quantityContextFailure($method),
+                    self::quantityContextFailure($operator),
+                    $message,
+                );
+            }
+        }
+    }
+
+    public function testFailedCrossContextCompoundMultiplicationPreservesTheOriginalSlotAndAlias(): void
+    {
+        $leftUnits = new Units(UnitRegistryBuilder::default()->build());
+        $rightUnits = new Units(UnitRegistryBuilder::default()->build());
+        $left = $leftUnits->quantity(2, 'meter');
+        $right = $rightUnits->quantity(3, 'second');
+
+        foreach ([[$left, $right], [$right, $left]] as $index => [$sourceLeft, $sourceRight]) {
+            $actual = $sourceLeft;
+            $alias = &$actual;
+            $expectedFailure = self::quantityContextFailure(
+                static fn (): Quantity => $sourceLeft->mul($sourceRight),
+            );
+            $actualFailure = self::quantityContextFailure(
+                static function () use (&$actual, $sourceRight): Quantity {
+                    return $actual *= $sourceRight->mul(1);
+                },
+            );
+            $message = $index === 0 ? 'forward compound assignment' : 'reversed compound assignment';
+
+            self::assertSameQuantityFailure($expectedFailure, $actualFailure, $message);
+            self::assertSame($sourceLeft, $actual, $message);
+            self::assertSame($actual, $alias, $message);
+        }
+    }
+
+    private static function assertSameQuantity(Quantity $expected, Quantity $actual, string $message = ''): void
+    {
+        self::assertSame($expected::class, $actual::class, $message);
+        self::assertSame($expected->valueToString(), $actual->valueToString(), $message);
+        self::assertSame($expected->unit()->toString(), $actual->unit()->toString(), $message);
+        self::assertSame($expected->unitToString(), $actual->unitToString(), $message);
+        self::assertSame($expected->toString(), $actual->toString(), $message);
+        self::assertSame($expected->toExpr()->toString(), $actual->toExpr()->toString(), $message);
+        self::assertSame($expected->units(), $actual->units(), $message);
+
+        $expectedNormalized = $expected->normalize();
+        $actualNormalized = $actual->normalize();
+        self::assertSame($expectedNormalized->valueToString(), $actualNormalized->valueToString(), $message);
+        self::assertSame($expectedNormalized->unitToString(), $actualNormalized->unitToString(), $message);
+        self::assertSame($expectedNormalized->toString(), $actualNormalized->toString(), $message);
+    }
+
+    private static function assertSameQuantityFailure(
+        IncompatibleQuantityContextException $expected,
+        IncompatibleQuantityContextException $actual,
+        string $message,
+    ): void {
+        self::assertSame($expected::class, $actual::class, $message);
+        self::assertSame($expected->getMessage(), $actual->getMessage(), $message);
+        self::assertSame($expected->leftContextId, $actual->leftContextId, $message);
+        self::assertSame($expected->rightContextId, $actual->rightContextId, $message);
+    }
+
+    /** @param \Closure(): Quantity $operation */
+    private static function quantityContextFailure(\Closure $operation): IncompatibleQuantityContextException
+    {
+        try {
+            $operation();
+        } catch (IncompatibleQuantityContextException $exception) {
+            return $exception;
+        }
+
+        self::fail('Expected quantity multiplication across Units contexts to fail.');
+    }
+
+    private static function multiplicationUnits(): Units
+    {
+        return new Units(UnitRegistryBuilder::empty()
+            ->baseUnit('zeta_factor', Dimension::CURRENCY)
+            ->baseUnit('alpha_factor', Dimension::IMAGE_SAMPLE)
+            ->build());
+    }
+
+    private static function makeQuantity(Units $units, int $value, string $unit): Quantity
+    {
+        return $units->quantity($value, $unit);
     }
 
     /**

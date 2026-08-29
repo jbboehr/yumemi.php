@@ -1,6 +1,6 @@
 # Operator Overloading Extension Plan
 
-Snapshot date: 2026-08-26
+Snapshot date: 2026-08-29
 
 PHP does not expose operator overloading to userland classes, but internal classes can participate in object operators
 through Zend object handlers. In particular, `zend_object_handlers` has a `do_operation` slot that an extension can
@@ -164,8 +164,12 @@ The implemented operand policy is:
 - Scalar-left addition, subtraction, and exponentiation fail with normal unsupported-operand `TypeError` behavior.
 - Exceptions thrown by delegated methods propagate unchanged.
 - References and temporary operands are covered by the extension PHPTs and this library's integration suite. Zend may
-  select either quantity as the multiplication handler receiver for some temporary/variable forms, but `Quantity::mul()`
-  is commutative and `ExprReducer` canonicalizes symbolic factors, so the observable result matches method semantics.
+  select either quantity as the multiplication handler receiver for some temporary/variable forms. For accepted
+  operands, both quantities necessarily share one `Units` object, `Quantity` is final, exact magnitude multiplication is
+  commutative, and `ExprReducer` canonicalizes symbolic and resolved factors. The result therefore has the same concrete
+  type, value, symbolic unit, formatted unit, normalized form, and context identity whichever quantity receives `mul()`.
+  For rejected cross-context operands, `Quantity::mul()` orders the two process-local context IDs canonically, so the
+  exception class, message, and structured metadata also remain independent of handler receiver selection.
 
 ## PHP Fallback
 
@@ -416,4 +420,7 @@ The `InternalQuantity` base-class plan is the selected optional operator-overloa
 - PHPStan supports both method calls and the extension's opt-in operator surface
 
 The handler and real `Quantity` integration are now empirical, committed tests rather than an architectural assumption.
-The remaining work is release packaging without making the extension a pure-PHP package dependency.
+The integration matrix covers named variables, reversed source order, helper-return and expression temporaries, compound
+assignment, deliberately non-alphabetical symbolic factors, shared-registry/different-context failures, and
+different-registry failures. Receiver reordering is therefore a resolved semantic question rather than a release
+blocker. The remaining work is release packaging without making the extension a pure-PHP package dependency.

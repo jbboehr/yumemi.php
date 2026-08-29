@@ -25,6 +25,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Quantity multiplication now reports cross-context failures in a canonical process-local context-ID order, preserving
+  identical method and optional operator behavior when Zend reorders multiplication operands.
 - Unit-expression entry points now reject malformed UTF-8 with a syntax error at the first invalid byte instead of
   treating the complete source as one identifier.
 - Runtime unit expressions now reject mixing, rebinding, or interpretation through a different or expired `Units`

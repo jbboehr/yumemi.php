@@ -378,7 +378,7 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
     public function mul(self|int|Rational $other): self
     {
         if ($other instanceof self) {
-            $this->assertSameContext($other);
+            $this->assertSameContext($other, commutative: true);
 
             $unit = $this->unit->mul($other->unit);
 
@@ -621,13 +621,20 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
         return $this->toString();
     }
 
-    private function assertSameContext(self $other): void
+    private function assertSameContext(self $other, bool $commutative = false): void
     {
         if ($this->units === $other->units) {
             return;
         }
 
-        throw IncompatibleQuantityContextException::create($this->units, $other->units);
+        $left = $this->units;
+        $right = $other->units;
+
+        if ($commutative && spl_object_id($left) > spl_object_id($right)) {
+            [$left, $right] = [$right, $left];
+        }
+
+        throw IncompatibleQuantityContextException::create($left, $right);
     }
 
     private function assertSameUnit(self $other): void
