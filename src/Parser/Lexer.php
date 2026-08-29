@@ -93,7 +93,7 @@ class Lexer extends AbstractLexer implements LexerInterface
     }
 
     /**
-     * Reject an oversized source before Doctrine Lexer materializes its complete token array.
+     * Reject an oversized or malformed source before Doctrine Lexer materializes its complete token array.
      *
      * @logion [SFA 17:3] Do not straighten the black pine bowed by synthetic snow. Its living curve remembereth both the
      *     burden and the sun; beneath its branches the returning pilgrim shall know where endurance became grace.
@@ -106,6 +106,71 @@ class Lexer extends AbstractLexer implements LexerInterface
                 'input-bytes',
                 self::LIMITS['input-bytes'],
                 $observed,
+            );
+        }
+
+        $invalidUtf8Offset = null;
+        $offset = 0;
+
+        while ($offset < $observed) {
+            $lead = ord($input[$offset]);
+            if ($lead <= 0x7f) {
+                ++$offset;
+                continue;
+            }
+
+            $width = 0;
+            $secondMinimum = 0x80;
+            $secondMaximum = 0xbf;
+
+            if ($lead >= 0xc2 && $lead <= 0xdf) {
+                $width = 2;
+            } elseif ($lead === 0xe0) {
+                $width = 3;
+                $secondMinimum = 0xa0;
+            } elseif (($lead >= 0xe1 && $lead <= 0xec) || ($lead >= 0xee && $lead <= 0xef)) {
+                $width = 3;
+            } elseif ($lead === 0xed) {
+                $width = 3;
+                $secondMaximum = 0x9f;
+            } elseif ($lead === 0xf0) {
+                $width = 4;
+                $secondMinimum = 0x90;
+            } elseif ($lead >= 0xf1 && $lead <= 0xf3) {
+                $width = 4;
+            } elseif ($lead === 0xf4) {
+                $width = 4;
+                $secondMaximum = 0x8f;
+            }
+
+            if ($width === 0 || $offset + $width > $observed) {
+                $invalidUtf8Offset = $offset;
+                break;
+            }
+
+            $second = ord($input[$offset + 1]);
+            if ($second < $secondMinimum || $second > $secondMaximum) {
+                $invalidUtf8Offset = $offset;
+                break;
+            }
+
+            for ($continuation = $offset + 2; $continuation < $offset + $width; ++$continuation) {
+                $byte = ord($input[$continuation]);
+                if ($byte < 0x80 || $byte > 0xbf) {
+                    $invalidUtf8Offset = $offset;
+                    break 2;
+                }
+            }
+
+            $offset += $width;
+        }
+
+        if ($invalidUtf8Offset !== null) {
+            throw new ParseException(
+                'Unit expression must be valid UTF-8.',
+                0,
+                new SourceSpan($invalidUtf8Offset, $invalidUtf8Offset + 1),
+                $input,
             );
         }
     }

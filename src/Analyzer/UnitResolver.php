@@ -47,6 +47,7 @@ use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Parser\ExpressionLimitExceededException;
+use jbboehr\Yumemi\Parser\Lexer;
 use jbboehr\Yumemi\Parser\Parser;
 use jbboehr\Yumemi\Parser\SourceSpan;
 use jbboehr\Yumemi\Registry\UnitRegistry;
@@ -90,6 +91,22 @@ final class UnitResolver
 
     public function resolve(string $name, ?SourceSpan $sourceSpan = null): ?Expr
     {
+        try {
+            Lexer::assertInputLength($name);
+        } catch (ExpressionLimitExceededException $exception) {
+            if ($sourceSpan === null) {
+                throw $exception;
+            }
+
+            throw new ExpressionLimitExceededException(
+                $exception->limit,
+                $exception->maximum,
+                $exception->observed,
+                $sourceSpan,
+                $exception,
+            );
+        }
+
         if (array_key_exists($name, $this->cache)) {
             return $this->cache[$name];
         }

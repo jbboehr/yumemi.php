@@ -204,6 +204,126 @@ final class NativeParserIntegrationTest extends TestCase
         }
     }
 
+    public function testDeterministicAdversarialCorpusMatchesThePhpParser(): void
+    {
+        $cases = 0;
+
+        foreach (self::adversarialExpressionCorpus() as $label => $input) {
+            $message = sprintf('%s; bytes=%s', $label, bin2hex($input));
+            self::assertAstSame(
+                self::parseWithPhpBackend($input),
+                NativeParserAdapter::parse($input),
+                $message,
+            );
+            ++$cases;
+        }
+
+        self::assertGreaterThanOrEqual(200, $cases, 'The differential corpus unexpectedly lost breadth.');
+    }
+
+    public function testDeterministicInvalidCorpusMatchesThePhpParser(): void
+    {
+        $cases = 0;
+
+        foreach (self::adversarialInvalidExpressionCorpus() as $label => $input) {
+            $message = sprintf('%s; bytes=%s', $label, bin2hex($input));
+            $php = self::parseFailureWithPhpBackend($input);
+
+            try {
+                NativeParserAdapter::parse($input);
+                self::fail('Expected malformed input to fail through the native backend. ' . $message);
+            } catch (ParseException $native) {
+                self::assertSame($php->getMessage(), $native->getMessage(), $message);
+                self::assertSame($php->source, $native->source, $message);
+                self::assertEquals($php->span, $native->span, $message);
+            }
+
+            ++$cases;
+        }
+
+        self::assertGreaterThanOrEqual(100, $cases, 'The invalid differential corpus unexpectedly lost breadth.');
+    }
+
+    /** @return iterable<string, string> */
+    private static function adversarialExpressionCorpus(): iterable
+    {
+        $atoms = [
+            'meter',
+            'μs',
+            '°C',
+            'a_b',
+            '𐐀',
+            '0001',
+            '1.25',
+            '1e-3',
+            "a\0b",
+            '中文',
+        ];
+        $operators = [' + ', ' - ', ' * ', ' / ', '^', ' ', '.', ' · '];
+        $atomCount = count($atoms);
+
+        foreach ($atoms as $index => $atom) {
+            yield sprintf('atom-%02d', $index) => $atom;
+            yield sprintf('grouped-atom-%02d', $index) => '(' . $atom . ')';
+            yield sprintf('double-negated-atom-%02d', $index) => '--(' . $atom . ')';
+
+            if ($index < 5) {
+                yield sprintf('offset-atom-%02d', $index) => sprintf(
+                    '%s @ %s',
+                    $atom,
+                    $index % 2 === 0 ? '-273.15' : '0',
+                );
+            }
+        }
+
+        foreach ($operators as $operatorIndex => $operator) {
+            foreach ($atoms as $atomIndex => $left) {
+                $right = $atoms[($atomIndex + $operatorIndex + 1) % $atomCount];
+
+                yield sprintf('binary-%02d-%02d', $operatorIndex, $atomIndex) => $left . $operator . $right;
+                yield sprintf('grouped-binary-%02d-%02d', $operatorIndex, $atomIndex) => sprintf(
+                    '(%s%s%s)',
+                    $left,
+                    $operator,
+                    $right,
+                );
+            }
+        }
+
+        foreach ($atoms as $index => $left) {
+            $middle = $atoms[($index + 3) % $atomCount];
+            $right = $atoms[($index + 7) % $atomCount];
+
+            yield sprintf('left-product-%02d', $index) => sprintf('%s / %s * %s', $left, $middle, $right);
+            yield sprintf('right-power-%02d', $index) => sprintf('%s^%s^%s', $left, $middle, $right);
+            yield sprintf('negated-power-%02d', $index) => sprintf('-%s^%s', $left, $right);
+        }
+    }
+
+    /** @return iterable<string, string> */
+    private static function adversarialInvalidExpressionCorpus(): iterable
+    {
+        $atoms = ['meter', 'μs', '°C', 'a_b', '𐐀', '0001', '1.25', '1e-3', "a\0b", "a\xffb"];
+        $templates = [
+            'unclosed-group' => static fn (string $atom): string => '(' . $atom,
+            'unopened-group' => static fn (string $atom): string => $atom . ')',
+            'missing-addend' => static fn (string $atom): string => $atom . ' +',
+            'missing-factor' => static fn (string $atom): string => $atom . ' *',
+            'missing-divisor' => static fn (string $atom): string => $atom . ' /',
+            'missing-exponent' => static fn (string $atom): string => $atom . ' ^',
+            'missing-offset' => static fn (string $atom): string => $atom . ' @',
+            'nonnumeric-offset' => static fn (string $atom): string => $atom . ' @ meter',
+            'adjacent-operators' => static fn (string $atom): string => $atom . ' * / second',
+            'operator-before-close' => static fn (string $atom): string => '(' . $atom . ' + )',
+        ];
+
+        foreach ($atoms as $atomIndex => $atom) {
+            foreach ($templates as $templateName => $template) {
+                yield sprintf('%s-%02d', $templateName, $atomIndex) => $template($atom);
+            }
+        }
+    }
+
     private static function parseWithPhpBackend(string $input): Ast
     {
         Lexer::assertInputLength($input);
@@ -233,21 +353,21 @@ final class NativeParserIntegrationTest extends TestCase
         }
     }
 
-    private static function assertAstSame(Ast $expected, Ast $actual): void
+    private static function assertAstSame(Ast $expected, Ast $actual, string $message = ''): void
     {
-        self::assertSame($expected::class, $actual::class);
-        self::assertSame($expected->toString(), $actual->toString());
+        self::assertSame($expected::class, $actual::class, $message);
+        self::assertSame($expected->toString(), $actual->toString(), $message);
 
         if ($expected instanceof AstNode && $actual instanceof AstNode) {
-            self::assertEquals($expected->span, $actual->span);
+            self::assertEquals($expected->span, $actual->span, $message);
         }
 
         if ($expected instanceof Ast\Add || $expected instanceof Ast\Sub || $expected instanceof Ast\Mul
             || $expected instanceof Ast\Div || $expected instanceof Ast\Pow || $expected instanceof Ast\At
         ) {
-            self::assertInstanceOf($expected::class, $actual);
-            self::assertAstSame($expected->left, $actual->left);
-            self::assertAstSame($expected->right, $actual->right);
+            self::assertInstanceOf($expected::class, $actual, $message);
+            self::assertAstSame($expected->left, $actual->left, $message);
+            self::assertAstSame($expected->right, $actual->right, $message);
         }
     }
 }

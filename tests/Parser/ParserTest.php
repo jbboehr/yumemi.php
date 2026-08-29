@@ -40,7 +40,9 @@ use jbboehr\Yumemi\Parser\Ast;
 use jbboehr\Yumemi\Parser\AstNode;
 use jbboehr\Yumemi\Parser\ExpressionLimitExceededException;
 use jbboehr\Yumemi\Parser\Lexer;
+use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Parser\Parser;
+use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
 use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\TestCase;
 
@@ -497,6 +499,79 @@ final class ParserTest extends TestCase
         $this->expectExceptionMessage('identifier or numeric token byte length limit of 1024');
 
         Units::default()->parse(str_repeat('a', 1025));
+    }
+
+    public function testNamedUnitLookupUsesSharedInputAdmission(): void
+    {
+        $units = new Units(UnitRegistryBuilder::empty()->build());
+
+        try {
+            $units->unit("\xff");
+            self::fail('Expected malformed UTF-8 to be rejected before named-unit lookup.');
+        } catch (ParseException $exception) {
+            $this->assertSame("\xff", $exception->source);
+            $this->assertNotNull($exception->span);
+            $this->assertSame(0, $exception->span->start);
+            $this->assertSame(1, $exception->span->end);
+        }
+
+        try {
+            $units->unit(str_repeat('a', 4097));
+            self::fail('Expected oversized input to be rejected before named-unit lookup.');
+        } catch (ExpressionLimitExceededException $exception) {
+            $this->assertSame('input-bytes', $exception->limit);
+            $this->assertSame(4096, $exception->maximum);
+            $this->assertSame(4097, $exception->observed);
+            $this->assertNull($exception->span);
+        }
+    }
+
+    public function testAliasTargetsUseSharedInputAdmission(): void
+    {
+        $operations = [
+            'parse' => static function (Units $units, string $input): void {
+                $units->parse($input);
+            },
+            'dimension' => static function (Units $units, string $input): void {
+                $units->dimension($input);
+            },
+        ];
+
+        foreach ($operations as $operationName => $operation) {
+            $units = new Units(UnitRegistryBuilder::empty()
+                ->alias('malformed_alias_probe', "\xff")
+                ->build());
+
+            try {
+                $operation($units, 'malformed_alias_probe');
+                self::fail('Expected a malformed alias target to be rejected during ' . $operationName . '().');
+            } catch (ParseException $exception) {
+                $this->assertSame("\xff", $exception->source);
+                $this->assertNotNull($exception->span);
+                $this->assertSame(0, $exception->span->start);
+                $this->assertSame(1, $exception->span->end);
+            }
+        }
+
+        foreach ($operations as $operationName => $operation) {
+            $units = new Units(UnitRegistryBuilder::empty()
+                ->alias('oversized_alias_probe', str_repeat('a', 4097))
+                ->build());
+
+            try {
+                $operation($units, 'oversized_alias_probe');
+                self::fail('Expected an oversized alias target to be rejected during ' . $operationName . '().');
+            } catch (ExpressionLimitExceededException $exception) {
+                $this->assertSame('input-bytes', $exception->limit);
+                $this->assertSame(4096, $exception->maximum);
+                $this->assertSame(4097, $exception->observed);
+                $this->assertNotNull($exception->span);
+                $this->assertSame(0, $exception->span->start);
+                $this->assertSame(strlen('oversized_alias_probe'), $exception->span->end);
+                $this->assertInstanceOf(ExpressionLimitExceededException::class, $exception->getPrevious());
+                $this->assertNull($exception->getPrevious()->span);
+            }
+        }
     }
 
     public function testLimitFailuresDoNotEvictSuccessfulCacheEntries(): void

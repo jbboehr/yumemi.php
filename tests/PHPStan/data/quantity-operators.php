@@ -28,6 +28,39 @@ assertType("Quantity<'1 / meter'>", $rational / $meters);
 
 assertType("Quantity<'meter ^ 2'>", $meters ** 2);
 assertType("Quantity<'1 / meter'>", $meters ** -1);
+assertType("Quantity<'meter / second ^ 2'>", ($meters + $feet) / $seconds ** 2);
+
+$compoundLength = $meters;
+$compoundLength += $feet;
+assertType("Quantity<'meter'>", $compoundLength);
+
+$compoundDifference = $meters;
+$compoundDifference -= $feet;
+assertType("Quantity<'meter'>", $compoundDifference);
+
+$compoundProduct = $meters;
+$compoundProduct *= $seconds;
+assertType("Quantity<'meter * second'>", $compoundProduct);
+
+$compoundQuotient = $meters;
+$compoundQuotient /= $seconds;
+assertType("Quantity<'meter / second'>", $compoundQuotient);
+
+$compoundPower = $meters;
+$compoundPower **= -1;
+assertType("Quantity<'1 / meter'>", $compoundPower);
+
+$scalarLeftProduct = 2;
+$scalarLeftProduct *= $meters;
+assertType("Quantity<'meter'>", $scalarLeftProduct);
+
+$scalarLeftQuotient = 2;
+$scalarLeftQuotient /= $meters;
+assertType("Quantity<'1 / meter'>", $scalarLeftQuotient);
+
+$rationalLeftQuotient = $rational;
+$rationalLeftQuotient /= $meters;
+assertType("Quantity<'1 / meter'>", $rationalLeftQuotient);
 
 /**
  * @param Quantity<'international_foot'>|Quantity<'meter'> $length

@@ -59,6 +59,7 @@ use jbboehr\Yumemi\Internal\BoundedLruCache;
 use jbboehr\Yumemi\Internal\DeserializationContext;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Number\BinaryFloat;
+use jbboehr\Yumemi\Parser\Lexer;
 use jbboehr\Yumemi\Parser\Parser;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 
@@ -291,6 +292,8 @@ final class Units
 
     public function parse(string $input): Expr
     {
+        Lexer::assertInputLength($input);
+
         if (($expr = $this->parsedExpressionCache->get($input)) !== null) {
             return $expr;
         }

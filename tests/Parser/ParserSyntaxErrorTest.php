@@ -40,10 +40,82 @@ use jbboehr\Yumemi\Parser\Lexer;
 use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Parser\Parser;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 
 final class ParserSyntaxErrorTest extends TestCase
 {
+    #[DataProvider('invalidUtf8Provider')]
+    public function testRejectsInvalidUtf8BeforeTokenization(string $source, int $expectedOffset): void
+    {
+        try {
+            Parser::parseString($source);
+            self::fail('Expected malformed UTF-8 to be rejected.');
+        } catch (ParseException $exception) {
+            self::assertSame($source, $exception->source);
+            self::assertNotNull($exception->span);
+            self::assertSame($expectedOffset, $exception->span->start);
+            self::assertSame($expectedOffset + 1, $exception->span->end);
+            self::assertStringStartsWith('Unit expression must be valid UTF-8', $exception->getMessage());
+        }
+    }
+
+    /** @return iterable<string, array{string, int}> */
+    public static function invalidUtf8Provider(): iterable
+    {
+        yield 'lone high byte' => ["\xff", 0];
+        yield 'overlong encoding' => ["meter\xc0\xaf", 5];
+        yield 'truncated sequence' => ["meter\xe2\x82", 5];
+        yield 'code point above Unicode range' => ["meter\xf4\x90\x80\x80", 5];
+    }
+
+    #[RunInSeparateProcess]
+    public function testRejectsInvalidUtf8IndependentlyOfThePcreBudgets(): void
+    {
+        $previousJit = ini_set('pcre.jit', '0');
+        $previousBacktrackLimit = ini_set('pcre.backtrack_limit', '1000');
+        $previousRecursionLimit = ini_set('pcre.recursion_limit', '1000');
+        $source = "αβ\xff";
+
+        try {
+            self::assertNotFalse($previousJit);
+            self::assertNotFalse($previousBacktrackLimit);
+            self::assertNotFalse($previousRecursionLimit);
+            self::assertSame('0', ini_get('pcre.jit'));
+            self::assertSame('1000', ini_get('pcre.backtrack_limit'));
+            self::assertSame('1000', ini_get('pcre.recursion_limit'));
+
+            $baseline = $this->parseFailure($source);
+            self::assertNotNull($baseline->span);
+            self::assertSame(4, $baseline->span->start);
+            self::assertSame(5, $baseline->span->end);
+            self::assertStringContainsString('column 3 (byte offset 4)', $baseline->getMessage());
+
+            foreach (['pcre.backtrack_limit', 'pcre.recursion_limit'] as $setting) {
+                self::assertNotFalse(ini_set($setting, '1'));
+                self::assertSame('1', ini_get($setting));
+
+                $restricted = $this->parseFailure($source);
+                self::assertSame($baseline->getMessage(), $restricted->getMessage());
+                self::assertEquals($baseline->span, $restricted->span);
+
+                self::assertNotFalse(ini_set($setting, '1000'));
+            }
+        } finally {
+            if ($previousRecursionLimit !== false) {
+                ini_set('pcre.recursion_limit', $previousRecursionLimit);
+            }
+
+            if ($previousBacktrackLimit !== false) {
+                ini_set('pcre.backtrack_limit', $previousBacktrackLimit);
+            }
+
+            if ($previousJit !== false) {
+                ini_set('pcre.jit', $previousJit);
+            }
+        }
+    }
+
     public function testReportsAnUnformattedErrorWhenNoLocationIsAvailable(): void
     {
         $lexer = new Lexer('meter');

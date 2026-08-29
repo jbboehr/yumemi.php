@@ -270,10 +270,10 @@ compatibility break.
 
 ## Unit Expression Work Is Bounded
 
-**Invariant.** Every unit-expression entry point enforces one shared parser budget before admitting an expression to
-runtime resolution or PHPStan analysis. Inputs are limited to 4,096 bytes, 256 non-whitespace lexical tokens, 64 nested
-parentheses, and 1,024 bytes in one identifier or numeric token. Successful parser-cache entries have already passed
-that budget; failures never enter the cache.
+**Invariant.** Every unit-expression entry point rejects malformed UTF-8 and enforces one shared parser budget before
+admitting an expression to runtime resolution or PHPStan analysis. Inputs are limited to 4,096 bytes, 256 non-whitespace
+lexical tokens, 64 nested parentheses, and 1,024 bytes in one identifier or numeric token. Successful parser-cache
+entries have already passed those checks; failures never enter the cache.
 
 **Reason.** Doctrine Lexer materializes its token stream before the generated parser consumes it, while later expression
 processing traverses the resulting tree. Explicit byte, token, token-size, and nesting limits bound those costs without
@@ -289,8 +289,9 @@ exception contract; otherwise parsing stays on the PHP implementation.
 [`UnitExpressionParserTest`](../../tests/PHPStan/UnitExpressionParserTest.php), and the versioned conformance corpus
 cover direct parsing, custom definitions, PHPStan adaptation, cache behavior, exact boundaries, and multibyte inputs.
 
-**Invalid shortcut.** Applying limits only in a controller, checking after tokenization, allowing cached input to bypass
-the policy, or maintaining a separate PHPStan budget that can disagree with runtime parsing.
+**Invalid shortcut.** Applying limits or encoding checks only in a controller, checking after tokenization, allowing
+cached input to bypass the policy, or maintaining a separate PHPStan admission rule that can disagree with runtime
+parsing.
 
 **Classification.** Unbounded work through a documented parser path is a correctness defect. Changing a documented limit
 or its failure category is a compatibility-sensitive runtime policy change.

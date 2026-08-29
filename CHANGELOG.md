@@ -25,6 +25,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Unit-expression entry points now reject malformed UTF-8 with a syntax error at the first invalid byte instead of
+  treating the complete source as one identifier.
 - Runtime unit expressions now reject mixing, rebinding, or interpretation through a different or expired `Units`
   context; `Units` objects are non-cloneable to preserve that identity boundary.
 

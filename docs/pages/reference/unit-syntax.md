@@ -183,6 +183,8 @@ the smaller input and complexity policy appropriate to that boundary.
 Malformed syntax throws `Parser\ParseException`. When available, its `SourceSpan` is a zero-based, half-open byte range
 in the decoded unit expression. The exception message renders a one-based line and column plus a bounded caret excerpt.
 Malformed numeric text such as `1.2.3` is reported as syntax, and the source span covers the complete malformed token.
+Input must be valid UTF-8: a malformed byte sequence produces the same exception with a span marking its first invalid
+byte, before either parser backend or the successful-expression cache sees the input.
 
 Unknown names throw `UnitNotFoundException`. Parsed but unsupported constructs throw `UnsupportedSyntaxException` or a
 more specific semantic exception. These runtime exceptions expose an optional `span` property using the same zero-based,

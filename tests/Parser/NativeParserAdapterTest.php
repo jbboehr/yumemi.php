@@ -583,6 +583,31 @@ final class NativeParserAdapterTest extends TestCase
                     return match ($input) {
                         'missing_kind' => [],
                         'partial_span' => ['kind' => 'identifier', 'start' => null, 'end' => 1, 'text' => 'x'],
+                        'out_of_bounds_span' => [
+                            'kind' => 'identifier',
+                            'start' => 0,
+                            'end' => strlen($input) + 1,
+                            'text' => 'x',
+                        ],
+                        'invalid_utf8_text' => [
+                            'kind' => 'identifier',
+                            'start' => 0,
+                            'end' => 1,
+                            'text' => "\xff",
+                        ],
+                        'spanless_identifier' => [
+                            'kind' => 'identifier',
+                            'start' => null,
+                            'end' => null,
+                            'text' => 'x',
+                        ],
+                        'spanless_binary' => [
+                            'kind' => 'add',
+                            'start' => null,
+                            'end' => null,
+                            'left' => $leaf,
+                            'right' => $leaf,
+                        ],
                         'missing_text' => ['kind' => 'identifier', 'start' => 0, 'end' => 1],
                         'missing_child' => ['kind' => 'add', 'start' => 0, 'end' => 1, 'left' => $leaf],
                         'unknown_kind' => [
@@ -600,7 +625,17 @@ final class NativeParserAdapterTest extends TestCase
             final class NativeLimitException extends \LengthException {}
             PHP);
 
-        $cases = ['missing_kind', 'partial_span', 'missing_text', 'missing_child', 'unknown_kind'];
+        $cases = [
+            'missing_kind',
+            'partial_span',
+            'out_of_bounds_span',
+            'invalid_utf8_text',
+            'spanless_identifier',
+            'spanless_binary',
+            'missing_text',
+            'missing_child',
+            'unknown_kind',
+        ];
         foreach ($cases as $input) {
             try {
                 NativeParserAdapter::parse($input);
@@ -610,6 +645,170 @@ final class NativeParserAdapterTest extends TestCase
         }
 
         self::addToAssertionCount(count($cases));
+    }
+
+    public function testRejectsNativeLimitWithOnlyOneSpanEndpoint(): void
+    {
+        eval(<<<'PHP'
+            namespace jbboehr\Yumemi\Parser;
+
+            final class NativeParser
+            {
+                public const ABI_VERSION = 1;
+
+                public static function isCompatible(): bool
+                {
+                    return true;
+                }
+
+                /** @return array<string, mixed> */
+                public static function parse(string $input): array
+                {
+                    throw new NativeLimitException('token-count', 256, 257, 0, null);
+                }
+            }
+
+            final class NativeParseException extends \RuntimeException {}
+
+            final class NativeLimitException extends \LengthException
+            {
+                public function __construct(
+                    public readonly string $limit,
+                    public readonly int $maximum,
+                    public readonly int $observed,
+                    public readonly ?int $start,
+                    public readonly ?int $end,
+                ) {
+                    parent::__construct();
+                }
+            }
+            PHP);
+
+        $this->expectException(\UnexpectedValueException::class);
+
+        NativeParserAdapter::parse('partial_native_limit_span');
+    }
+
+    public function testRejectsNativeErrorSpansOutsideInputAtTheAdapterBoundary(): void
+    {
+        eval(<<<'PHP'
+            namespace jbboehr\Yumemi\Parser;
+
+            final class NativeParser
+            {
+                public const ABI_VERSION = 1;
+
+                public static function isCompatible(): bool
+                {
+                    return true;
+                }
+
+                /** @return array<string, mixed> */
+                public static function parse(string $input): array
+                {
+                    throw match ($input) {
+                        'syntax' => new NativeParseException($input, 0, strlen($input) + 1, ')', []),
+                        default => new NativeLimitException(
+                            'token-bytes',
+                            1024,
+                            1025,
+                            0,
+                            strlen($input) + 1,
+                        ),
+                    };
+                }
+            }
+
+            final class NativeParseException extends \RuntimeException
+            {
+                /** @param list<string> $expected */
+                public function __construct(
+                    public readonly string $input,
+                    public readonly int $start,
+                    public readonly int $end,
+                    public readonly ?string $unexpected,
+                    public readonly array $expected,
+                ) {
+                    parent::__construct();
+                }
+            }
+
+            final class NativeLimitException extends \LengthException
+            {
+                public function __construct(
+                    public readonly string $limit,
+                    public readonly int $maximum,
+                    public readonly int $observed,
+                    public readonly ?int $start,
+                    public readonly ?int $end,
+                ) {
+                    parent::__construct();
+                }
+            }
+            PHP);
+
+        foreach (['syntax', 'limit'] as $input) {
+            try {
+                NativeParserAdapter::parse($input);
+                self::fail(sprintf('Expected the native %s span to be rejected.', $input));
+            } catch (\Throwable $exception) {
+                self::assertInstanceOf(\UnexpectedValueException::class, $exception);
+            }
+        }
+    }
+
+    public function testAcceptsValidNativeLeafTextIndependentlyOfPcreBudgets(): void
+    {
+        eval(<<<'PHP'
+            namespace jbboehr\Yumemi\Parser;
+
+            final class NativeParser
+            {
+                public const ABI_VERSION = 1;
+
+                public static function isCompatible(): bool
+                {
+                    return true;
+                }
+
+                /** @return array<string, mixed> */
+                public static function parse(string $input): array
+                {
+                    return [
+                        'kind' => 'identifier',
+                        'start' => 0,
+                        'end' => strlen($input),
+                        'text' => $input,
+                    ];
+                }
+            }
+
+            final class NativeParseException extends \RuntimeException {}
+            final class NativeLimitException extends \LengthException {}
+            PHP);
+
+        $previousJit = ini_set('pcre.jit', '0');
+        $previousBacktrackLimit = ini_set('pcre.backtrack_limit', '1');
+        $previousRecursionLimit = ini_set('pcre.recursion_limit', '1');
+
+        try {
+            self::assertNotFalse($previousJit);
+            self::assertNotFalse($previousBacktrackLimit);
+            self::assertNotFalse($previousRecursionLimit);
+            self::assertSame('α', NativeParserAdapter::parse('α')->toString());
+        } finally {
+            if ($previousRecursionLimit !== false) {
+                ini_set('pcre.recursion_limit', $previousRecursionLimit);
+            }
+
+            if ($previousBacktrackLimit !== false) {
+                ini_set('pcre.backtrack_limit', $previousBacktrackLimit);
+            }
+
+            if ($previousJit !== false) {
+                ini_set('pcre.jit', $previousJit);
+            }
+        }
     }
 
     private function assertSyntaxError(string $input, int $start, int $end, string $message): void

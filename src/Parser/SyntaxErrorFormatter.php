@@ -141,8 +141,46 @@ final class SyntaxErrorFormatter
      */
     private static function characters(string $value): array
     {
-        $characters = preg_split('//u', $value, -1, PREG_SPLIT_NO_EMPTY);
+        $characters = [];
+        $length = strlen($value);
+        $offset = 0;
 
-        return $characters === false ? str_split($value) : $characters;
+        while ($offset < $length) {
+            $remaining = $length - $offset;
+            $lead = ord($value[$offset]);
+            $second = $remaining >= 2 ? ord($value[$offset + 1]) : -1;
+            $third = $remaining >= 3 ? ord($value[$offset + 2]) : -1;
+            $fourth = $remaining >= 4 ? ord($value[$offset + 3]) : -1;
+            $width = 1;
+
+            if ($lead >= 0xc2 && $lead <= 0xdf && $second >= 0x80 && $second <= 0xbf) {
+                $width = 2;
+            } elseif (
+                $third >= 0x80 && $third <= 0xbf
+                && (
+                    ($lead === 0xe0 && $second >= 0xa0 && $second <= 0xbf)
+                    || (($lead >= 0xe1 && $lead <= 0xec) && $second >= 0x80 && $second <= 0xbf)
+                    || ($lead === 0xed && $second >= 0x80 && $second <= 0x9f)
+                    || (($lead >= 0xee && $lead <= 0xef) && $second >= 0x80 && $second <= 0xbf)
+                )
+            ) {
+                $width = 3;
+            } elseif (
+                $third >= 0x80 && $third <= 0xbf
+                && $fourth >= 0x80 && $fourth <= 0xbf
+                && (
+                    ($lead === 0xf0 && $second >= 0x90 && $second <= 0xbf)
+                    || (($lead >= 0xf1 && $lead <= 0xf3) && $second >= 0x80 && $second <= 0xbf)
+                    || ($lead === 0xf4 && $second >= 0x80 && $second <= 0x8f)
+                )
+            ) {
+                $width = 4;
+            }
+
+            $characters[] = substr($value, $offset, $width);
+            $offset += $width;
+        }
+
+        return $characters;
     }
 }

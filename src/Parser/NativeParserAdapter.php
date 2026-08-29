@@ -79,9 +79,15 @@ final class NativeParserAdapter
      */
     public static function parse(string $input): Ast
     {
+        Lexer::assertInputLength($input);
+
         try {
             $node = NativeParser::parse($input);
         } catch (NativeParseException $exception) {
+            if ($exception->start < 0 || $exception->end < $exception->start || $exception->end > strlen($input)) {
+                throw new \UnexpectedValueException('Native parser returned a syntax error with an invalid source span.');
+            }
+
             $unexpected = $exception->unexpected;
             $expected = $exception->expected;
             $message = 'syntax error';
@@ -99,9 +105,22 @@ final class NativeParserAdapter
                 $input,
             );
         } catch (NativeLimitException $exception) {
-            $span = $exception->limit === 'input-bytes' || $exception->start === null || $exception->end === null
-                ? null
-                : new SourceSpan($exception->start, $exception->end);
+            if ($exception->limit === 'input-bytes') {
+                $span = null;
+            } else {
+                if ($exception->start === null
+                    || $exception->end === null
+                    || $exception->start < 0
+                    || $exception->end < $exception->start
+                    || $exception->end > strlen($input)
+                ) {
+                    throw new \UnexpectedValueException(
+                        'Native parser returned a resource error with an invalid source span.',
+                    );
+                }
+
+                $span = new SourceSpan($exception->start, $exception->end);
+            }
 
             throw new ExpressionLimitExceededException(
                 $exception->limit,
@@ -112,7 +131,7 @@ final class NativeParserAdapter
             );
         }
 
-        return self::adaptNode($node);
+        return self::adaptNode($node, strlen($input));
     }
 
     /**
@@ -123,7 +142,7 @@ final class NativeParserAdapter
      *     their fragments through the firmament; thereafter each shard governed one hour, and the widows alone knew
      *     when evening had begun.
      */
-    private static function adaptNode(array $node): Ast
+    private static function adaptNode(array $node, int $inputLength): Ast
     {
         $kind = $node['kind'] ?? null;
         $start = $node['start'] ?? null;
@@ -135,7 +154,7 @@ final class NativeParserAdapter
 
         if ($start === null && $end === null) {
             $span = null;
-        } elseif (!is_int($start) || !is_int($end)) {
+        } elseif (!is_int($start) || !is_int($end) || $start < 0 || $end < $start || $end > $inputLength) {
             throw new \UnexpectedValueException('Native parser returned an AST node with an invalid source span.');
         } else {
             $span = new SourceSpan($start, $end);
@@ -147,11 +166,29 @@ final class NativeParserAdapter
                 throw new \UnexpectedValueException('Native parser returned a leaf AST node without string text.');
             }
 
+            try {
+                Lexer::assertInputLength($text);
+            } catch (ExpressionLimitExceededException | ParseException $exception) {
+                throw new \UnexpectedValueException(
+                    'Native parser returned a leaf AST node with invalid string text.',
+                    0,
+                    $exception,
+                );
+            }
+
+            if ($span === null && $kind === 'identifier') {
+                throw new \UnexpectedValueException('Native parser returned a non-synthetic AST node without a span.');
+            }
+
             return match ($kind) {
                 'integer' => new Ast\Integer_($text, $span),
                 'decimal-number' => new Ast\Float_($text, $span),
                 'identifier' => new Ast\Identifier($text, $span),
             };
+        }
+
+        if ($span === null) {
+            throw new \UnexpectedValueException('Native parser returned a non-synthetic AST node without a span.');
         }
 
         $left = $node['left'] ?? null;
@@ -160,8 +197,8 @@ final class NativeParserAdapter
             throw new \UnexpectedValueException('Native parser returned a binary AST node without child nodes.');
         }
 
-        $left = self::adaptNode($left);
-        $right = self::adaptNode($right);
+        $left = self::adaptNode($left, $inputLength);
+        $right = self::adaptNode($right, $inputLength);
 
         return match ($kind) {
             'add' => new Ast\Add($left, $right, $span),

@@ -62,6 +62,8 @@ use jbboehr\Yumemi\Parser\Ast\Mul;
 use jbboehr\Yumemi\Parser\Ast\Number;
 use jbboehr\Yumemi\Parser\Ast\Pow;
 use jbboehr\Yumemi\Parser\Ast\Sub;
+use jbboehr\Yumemi\Parser\ExpressionLimitExceededException;
+use jbboehr\Yumemi\Parser\Lexer;
 use jbboehr\Yumemi\Parser\Parser;
 use jbboehr\Yumemi\Parser\SourceSpan;
 use jbboehr\Yumemi\Registry\UnitRegistry;
@@ -187,6 +189,8 @@ final class UnitConversionResolver
             return $this->resolveExpr($unit);
         }
 
+        Lexer::assertInputLength($unit);
+
         if (isset($this->stringCache[$unit])) {
             return $this->stringCache[$unit];
         }
@@ -305,6 +309,22 @@ final class UnitConversionResolver
 
     private function resolveName(string $name, ?SourceSpan $sourceSpan = null): ResolvedConversionUnit
     {
+        try {
+            Lexer::assertInputLength($name);
+        } catch (ExpressionLimitExceededException $exception) {
+            if ($sourceSpan === null) {
+                throw $exception;
+            }
+
+            throw new ExpressionLimitExceededException(
+                $exception->limit,
+                $exception->maximum,
+                $exception->observed,
+                $sourceSpan,
+                $exception,
+            );
+        }
+
         if (isset($this->cache[$name])) {
             return $this->cache[$name];
         }

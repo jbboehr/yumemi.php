@@ -38,6 +38,7 @@ namespace jbboehr\Yumemi\Tests\Extension;
 
 use jbboehr\Yumemi\Exception\DivisionByZeroError;
 use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
+use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\InternalQuantity;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Quantity;
@@ -96,6 +97,124 @@ final class OperatorIntegrationTest extends TestCase
         $scalarLeftCompound = 6;
         $scalarLeftCompound /= $meters;
         self::assertSameQuantity($meters->rdiv(6), $scalarLeftCompound);
+
+        $scalarLeftProduct = 6;
+        $scalarLeftProduct *= $meters;
+        self::assertSameQuantity($meters->mul(6), $scalarLeftProduct);
+
+        $rationalLeftCompound = $rational;
+        $rationalLeftCompound /= $meters;
+        self::assertSameQuantity($meters->rdiv($rational), $rationalLeftCompound);
+    }
+
+    public function testCompoundAssignmentsMatchCanonicalMethodsWithoutMutatingPriorValues(): void
+    {
+        $units = Units::default();
+        $original = $units->quantity(2, 'meter');
+        $feet = $units->quantity(3, 'foot');
+        $seconds = $units->quantity(4, 'second');
+        $actual = $original;
+
+        $prior = $actual;
+        $expected = $actual->add($feet);
+        $actual += $feet;
+        self::assertNotSame($prior, $actual);
+        self::assertSameQuantity($expected, $actual);
+
+        $prior = $actual;
+        $expected = $actual->sub($feet);
+        $actual -= $feet;
+        self::assertNotSame($prior, $actual);
+        self::assertSameQuantity($expected, $actual);
+
+        $prior = $actual;
+        $expected = $actual->mul($seconds);
+        $actual *= $seconds;
+        self::assertNotSame($prior, $actual);
+        self::assertSameQuantity($expected, $actual);
+
+        $prior = $actual;
+        $expected = $actual->div($seconds);
+        $actual /= $seconds;
+        self::assertNotSame($prior, $actual);
+        self::assertSameQuantity($expected, $actual);
+
+        $prior = $actual;
+        $expected = $actual->pow(-1);
+        $actual **= -1;
+        self::assertNotSame($prior, $actual);
+        self::assertSameQuantity($expected, $actual);
+
+        self::assertNotSame($original, $actual);
+        self::assertSame('2', $original->valueToString());
+        self::assertSame('meter', $original->unitToString());
+    }
+
+    public function testCompoundAssignmentHandlesAliasedAndSelfOperands(): void
+    {
+        $units = Units::default();
+        $original = $units->quantity(2, 'meter');
+        $slot = $original;
+        $alias = &$slot;
+
+        $expected = $slot->add($units->quantity(3, 'foot'));
+        $slot += $units->quantity(3, 'foot');
+
+        self::assertSame($slot, $alias);
+        self::assertNotSame($original, $slot);
+        self::assertSameQuantity($expected, $slot);
+        self::assertSameQuantity($units->quantity(2, 'meter'), $original);
+
+        $prior = $slot;
+        $expected = $slot->add($slot);
+        $slot += $slot;
+
+        self::assertNotSame($prior, $slot);
+        self::assertSameQuantity($expected, $slot);
+    }
+
+    public function testFailedCompoundAssignmentPreservesTheOriginalSlot(): void
+    {
+        $units = Units::default();
+        $actual = $units->quantity(2, 'meter');
+        $original = $actual;
+
+        try {
+            $actual += $units->quantity(3, 'second');
+            self::fail('Expected incompatible compound addition to fail.');
+        } catch (IncompatibleUnitException) {
+        }
+
+        self::assertSame($original, $actual);
+        self::assertSameQuantity($units->quantity(2, 'meter'), $actual);
+    }
+
+    public function testChainedOperatorPrecedenceMatchesCanonicalMethods(): void
+    {
+        $units = Units::default();
+        $meters = $units->quantity(2, 'meter');
+        $feet = $units->quantity(3, 'foot');
+        $seconds = $units->quantity(4, 'second');
+
+        self::assertSameQuantity(
+            $meters->add($feet)->div($seconds->pow(2)),
+            ($meters + $feet) / $seconds ** 2,
+        );
+    }
+
+    public function testQuantityCloneAndSerializationPreserveExtensionManagedState(): void
+    {
+        $quantity = Units::default()->quantity(new Rational(3, 2), 'meter / second');
+        $clone = clone $quantity;
+        $serialized = serialize($quantity);
+        $restored = unserialize($serialized, ['allowed_classes' => true]);
+
+        self::assertNotSame($quantity, $clone);
+        self::assertSameQuantity($quantity, $clone);
+        self::assertInstanceOf(Quantity::class, $restored);
+        self::assertNotSame($quantity, $restored);
+        self::assertSameQuantity($quantity, $restored);
+        self::assertTrue($quantity->equals($restored));
     }
 
     public function testTemporaryQuantityOperandsRemainValid(): void
