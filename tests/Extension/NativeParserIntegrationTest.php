@@ -95,7 +95,9 @@ final class NativeParserIntegrationTest extends TestCase
     {
         yield 'identifier' => ['meter'];
         yield 'all binary operators' => ['2 + 1.5 - kelvin @ -273.15 * meter / second^2'];
+        yield 'dot multiplication' => ['meter.second'];
         yield 'implicit multiplication' => ['meter second kilogram'];
+        yield 'left-associative multiplication and division with adjacency' => ['meter / second * kilogram ampere'];
         yield 'parentheses and repeated negation' => ['--((meter / μs)^-2)'];
         yield 'unicode multiplication and superscript' => ['meter · second⁻²'];
         yield 'unicode identifier adjacency' => ['αβ γδ'];

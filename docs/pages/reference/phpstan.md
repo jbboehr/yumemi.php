@@ -656,8 +656,8 @@ $total = $distance + $units->quantity(3, 'foot'); // Quantity<'meter'>
 
 The extension models current unit-sensitive methods, including:
 
-- arithmetic through `abs()`, `add()`, `sub()`, `addWithSameUnit()`, `subWithSameUnit()`, `mul()`, `div()`, `neg()`,
-  `pow()`, and exact `root()`;
+- arithmetic through `abs()`, `add()`, `sub()`, `addWithSameUnit()`, `subWithSameUnit()`, `mul()`, `div()`, `rdiv()`,
+  `neg()`, `pow()`, and exact `root()`;
 - conversion through `to()`, `toPreferred()`, `toCompact()`, and `valueIn()`;
 - native extraction through `intValueIn()`, `exactIntValueIn()`, `decimalValueIn()`, `significantDecimalValueIn()`,
   `exactDecimalValueIn()`, and `floatValueIn()`;

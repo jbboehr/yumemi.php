@@ -400,8 +400,8 @@ Operator syntax can hide meaningful errors. Exception messages from delegated me
 This is a good experiment, but it should not block the core project.
 
 The feasibility spike, separate extension repository, mechanical handler, method-only library seam, end-to-end operator
-integration, exponentiation, scalar-left division, and separate Nix integration matrix are complete. The next slice is
-to extend PHPStan to understand the exact operator surface that the extension implements.
+integration, exponentiation, scalar-left division, opt-in PHPStan operator inference, and separate Nix integration
+matrix are complete. The next slice is release packaging and version coordination between the library and extension.
 
 The spike is now unblocked, but it remains a side quest. The main product value is still static dimensional analysis,
 and the extension must not become a dependency of the pure-PHP package.
@@ -413,8 +413,7 @@ The `InternalQuantity` base-class plan is the selected optional operator-overloa
 - pure PHP remains the source of truth
 - Composer users are not forced to compile anything
 - extension users get natural arithmetic syntax
-- PHPStan can eventually support both method calls and operators
+- PHPStan supports both method calls and the extension's opt-in operator surface
 
 The handler and real `Quantity` integration are now empirical, committed tests rather than an architectural assumption.
-The remaining work is static-analysis support and release packaging without making the extension a pure-PHP package
-dependency.
+The remaining work is release packaging without making the extension a pure-PHP package dependency.
