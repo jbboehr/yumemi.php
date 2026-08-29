@@ -665,6 +665,14 @@ The extension models current unit-sensitive methods, including:
 - comparisons through `compareTo()`, `equals()`, `lessThan()`, `lessThanOrEqualTo()`, `greaterThan()`, and
   `greaterThanOrEqualTo()`.
 
+PHP object comparison operators do not call those methods. Loose equality and ordering compare object state, while
+strict identity compares object identity; neither converts compatible units. Yumemi therefore reports
+`yumemi.nativeQuantityComparison` for `==`, `!=`, `===`, `!==`, `<`, `<=`, `>`, `>=`, and `<=>` whenever either operand
+is statically known to include a `Quantity` or `PointQuantity`. This remains true when only one arm of a union is a
+runtime quantity, except that equality and identity checks against an operand that is definitely `null` remain valid
+nullable-value presence checks. Use the named methods for semantic comparison; optional arithmetic operator overloading
+does not change this boundary.
+
 `Quantity::isZero()`, `Quantity::isCompatibleWith()`, and `PointQuantity::isCompatibleWith()` return ordinary native
 `bool` values from their declared signatures and require no unit-specific return-type inference. A compatibility check
 remains valid when PHPStan knows the dimensions differ: its result is `false`, not a diagnostic.
@@ -830,6 +838,7 @@ scope:
 | `yumemi.invalidQuantityArithmetic`     | Invalid quantity arithmetic operands, powers, or exact-root degrees and unit expressions                     |
 | `yumemi.invalidQuantityConversion`     | An invalid or incompatible `Quantity` conversion or native-extraction target                                 |
 | `yumemi.invalidQuantityComparison`     | A `Quantity` comparison whose statically known units are incompatible                                        |
+| `yumemi.nativeQuantityComparison`      | A native PHP object comparison involving a runtime `Quantity` or `PointQuantity`                             |
 | `yumemi.invalidPointQuantityOperation` | An invalid point translation, difference, conversion, extraction, or comparison                              |
 | `yumemi.docTagSyntax`                  | Invalid `@yumemi-param`, `@yumemi-return`, or `@yumemi-var` syntax                                           |
 | `yumemi.docTagDuplicate`               | More than one Yumemi tag targets the same fallback position                                                  |
@@ -879,6 +888,9 @@ Use the identifier to choose the first corrective step:
 - For `yumemi.invalidUnitAggregation`, ensure every possible `array_sum()` value has one definitionally equivalent
   numeric brand. For `array_product()`, use a sealed, statically known shape whose possible nonempty paths include a
   unit-bearing factor. Convert summands where required and explicitly cast branded numeric strings before aggregation.
+- For `yumemi.nativeQuantityComparison`, replace native object comparison operators with `equals()`, `compareTo()`, or a
+  named ordering method. Use `=== null` or `!== null` for nullable-value presence checks, and use `Quantity::isZero()`
+  when testing a quantity's magnitude against zero.
 - For quantity arithmetic, comparison, or point diagnostics, verify the statically known dimensions and distinguish a
   `PointQuantity` coordinate from a multiplicative difference. Static generic types do not establish runtime context
   identity; objects combined at runtime must also belong to the same `Units` context.

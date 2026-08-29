@@ -238,6 +238,7 @@ The following Yumemi identifiers are stable integration keys:
 - `yumemi.invalidQuantityConversion`
 - `yumemi.invalidQuantityComparison`
 - `yumemi.invalidPointQuantityOperation`
+- `yumemi.nativeQuantityComparison`
 - `yumemi.docTagSyntax`
 - `yumemi.docTagDuplicate`
 - `yumemi.docTagUnsupported`

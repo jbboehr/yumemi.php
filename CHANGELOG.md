@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- The stable `yumemi.nativeQuantityComparison` PHPStan diagnostic for native object comparisons involving runtime
+  `Quantity` or `PointQuantity` values.
 - An internal, empty `InternalQuantity` fallback base for `Quantity`, establishing the optional `ext-yumemi` integration
   seam without changing the method API.
 - An opt-in integration suite that verifies `ext-yumemi` operators against the canonical `Quantity` methods.

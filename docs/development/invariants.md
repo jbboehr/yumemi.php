@@ -99,18 +99,25 @@ Native `intdiv()` follows quotient unit algebra and truncates only the stored in
 either operand. `Quantity` addition, subtraction, and comparison may convert a dimensionally compatible right operand
 into the left operand's unit. Strict `*WithSameUnit()` methods retain the definitional-equivalence rule.
 
+`Quantity` and `PointQuantity` comparison semantics live in their named methods. PHP's loose equality and ordering
+operators inspect object state, while strict identity operators compare object identity; neither applies Yumemi's
+compatible-unit conversion. The PHPStan extension therefore rejects those operators when either operand is statically
+known to include a runtime quantity object. Equality and identity checks against a definitely `null` operand remain
+available for nullable-value presence checks.
+
 **Reason.** `meter` and `foot` measure the same dimension but represent different native magnitudes. Treating
 compatibility as interchangeability would silently calculate the wrong number.
 
 **Representative enforcement.** [`UnitExpression`](../../src/PHPStan/UnitExpression.php) exposes the three relations,
 [`UnitOperatorTypeSpecifyingExtension`](../../src/PHPStan/UnitOperatorTypeSpecifyingExtension.php) applies the native
-rule, and [`Quantity`](../../src/Quantity.php) performs exact compatible conversion.
-[`QuantityTest`](../../tests/QuantityTest.php),
+rule, [`InvalidNativeQuantityComparisonRule`](../../src/PHPStan/InvalidNativeQuantityComparisonRule.php) prevents PHP
+object comparison from masquerading as unit-aware comparison, and [`Quantity`](../../src/Quantity.php) performs exact
+compatible conversion. [`QuantityTest`](../../tests/QuantityTest.php),
 [`UnitOperatorTypeSpecifyingExtensionTest`](../../tests/PHPStan/UnitOperatorTypeSpecifyingExtensionTest.php), and
 [`RuntimeInvariantTest`](../../tests/RuntimeInvariantTest.php) cover both accepted and rejected paths.
 
 **Invalid shortcut.** Allowing native `meter + foot` because the dimensions match, or requiring identical display text
-where exact normalized definitions are equivalent.
+where exact normalized definitions are equivalent, or treating PHP object comparison as a quantity comparison.
 
 **Classification.** Confusing these relations is a correctness defect. Changing which public operation uses which
 relation is also a compatibility break.

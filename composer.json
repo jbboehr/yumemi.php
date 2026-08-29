@@ -113,7 +113,7 @@
         "phpbench/phpbench": "^1.7",
         "phpstan/phpstan": "^2.2.5",
         "phpstan/phpstan-deprecation-rules": "^2.0",
-        "phpstan/phpstan-phpunit": "^2.0.13",
+        "phpstan/phpstan-phpunit": "^2.0.18",
         "phpstan/phpstan-strict-rules": "^2.0",
         "phpunit/phpunit": "^11.5"
     },

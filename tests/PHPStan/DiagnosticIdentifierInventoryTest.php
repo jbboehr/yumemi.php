@@ -63,6 +63,7 @@ final class DiagnosticIdentifierInventoryTest extends TestCase
         'yumemi.invalidUnitRange',
         'yumemi.invalidUnitRoot',
         'yumemi.invalidUnitSelection',
+        'yumemi.nativeQuantityComparison',
     ];
 
     /** @var list<string> */

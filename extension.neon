@@ -186,6 +186,10 @@ services:
         tags:
             - phpstan.rules.rule
     -
+        class: jbboehr\Yumemi\PHPStan\InvalidNativeQuantityComparisonRule
+        tags:
+            - phpstan.rules.rule
+    -
         class: jbboehr\Yumemi\PHPStan\InvalidQuantityConstructionRule
         tags:
             - phpstan.rules.rule

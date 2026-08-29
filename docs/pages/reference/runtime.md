@@ -279,8 +279,11 @@ compatible right operand exactly before comparing. Incompatible dimensions throw
 returns `false` for a different context or dimension; it does not convert either magnitude or throw merely because the
 quantities are incompatible.
 
-Do not use PHP's object comparison operators as unit-aware comparisons. They compare PHP object state rather than
-Yumemi's conversion semantics.
+Do not use PHP's object comparison operators as unit-aware comparisons. Loose equality and ordering inspect object
+state, while strict identity compares object identity; neither uses Yumemi's conversion semantics. When PHPStan can see
+a `Quantity` or `PointQuantity` operand, Yumemi reports `yumemi.nativeQuantityComparison` and directs the caller to the
+named comparison methods. Equality and identity checks against a definitely `null` operand remain available for
+nullable-value presence checks.
 
 ```php
 <?php
