@@ -405,7 +405,9 @@ This is a good experiment, but it should not block the core project.
 
 The feasibility spike, separate extension repository, mechanical handler, method-only library seam, end-to-end operator
 integration, exponentiation, scalar-left division, opt-in PHPStan operator inference, and separate Nix integration
-matrix are complete. The next slice is release packaging and version coordination between the library and extension.
+matrix are complete. The extension's release policy now fixes the initial support envelope, provisional seams, version
+coordination, release-note ownership, and tagged-release gate. The remaining release work is operational: verify and
+publish the first immutable PIE tag, then prove a clean install with its named compatible Yumemi release.
 
 The spike is now unblocked, but it remains a side quest. The main product value is still static dimensional analysis,
 and the extension must not become a dependency of the pure-PHP package.
@@ -423,4 +425,5 @@ The handler and real `Quantity` integration are now empirical, committed tests r
 The integration matrix covers named variables, reversed source order, helper-return and expression temporaries, compound
 assignment, deliberately non-alphabetical symbolic factors, shared-registry/different-context failures, and
 different-registry failures. Receiver reordering is therefore a resolved semantic question rather than a release
-blocker. The remaining work is release packaging without making the extension a pure-PHP package dependency.
+blocker. Release packaging is now qualified without making the extension a pure-PHP package dependency; only the first
+tag, Packagist indexing of that tag, and clean paired-install verification remain.

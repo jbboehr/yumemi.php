@@ -297,6 +297,13 @@ regenerated with a newer implementation.
 ## Supported Environments
 
 - The runtime package requires PHP `^8.2` and GMP.
+- `ext-yumemi` is an optional, independently versioned companion. Yumemi's supported application API, method-based
+  quantity arithmetic, and generated PHP parser do not require it. This repository's locked x86_64 Linux integration
+  matrix verifies compatible extension behavior on PHP 8.2 through 8.5 without transferring the extension's platform
+  support policy into this package.
+- The companion's `InternalQuantity` class name and native parser ABI remain coordinated internal seams. Applications
+  receive compatibility through Yumemi's public `Quantity` and parser contracts, explicit ABI/Unicode gates, and PHP
+  fallback rather than by calling those native declarations directly.
 - The exhaustive Nix matrix tests PHP 8.2, 8.3, 8.4, and 8.5 from the lock file. Separate conventional jobs perform
   fresh lowest- and highest-dependency solves for released requirements on PHP 8.2 and PHP 8.5. Direct tools required
   from development branches remain at their lock-file revisions because committed generated or copied integrations are

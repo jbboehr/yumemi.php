@@ -46,6 +46,27 @@ settings, Packagist maintainers, and update hooks in their respective services b
 The release commit must be a clean, synchronized `master` checkout. Record its full commit SHA before testing and use
 that SHA when comparing local results, GitHub Actions, the tag, the GitHub Release, and Packagist.
 
+## Coordinate the Optional Native Extension
+
+Yumemi releases do not require an `ext-yumemi` release. The method API and generated PHP parser remain the supported
+baseline, and the primary PHPUnit and consumer gates must continue to run without the extension.
+
+When a release changes `InternalQuantity`, operator delegation, native parser selection, ABI expectations, Unicode
+compatibility, or fallback behavior:
+
+1. implement and review the corresponding change in its owning repository;
+2. update the locked `php-yumemi` flake input to the exact extension release candidate;
+3. run the real extension integration checks on PHP 8.2 through 8.5 and the complete Nix gate;
+4. name the compatible extension version or commit in both repositories' release notes; and
+5. preserve automatic PHP fallback for an absent, incompatible, or explicitly disabled native parser.
+
+The extension repository owns its native implementation, build and platform support, PIE installation, and ABI release
+notes. Yumemi owns application semantics, PHPStan configuration, parser fallback, and migration guidance. The
+extension's
+[current status and platform envelope](https://github.com/jbboehr/php-yumemi/blob/develop/README.md#status-and-platforms)
+distinguish the published Linux PIE target from native source-build qualifications. Do not broaden Yumemi's own platform
+promise merely because an extension source-build job passes elsewhere.
+
 ## Verify the Release Commit
 
 Install the locked development dependencies and run the ordinary local gate:
