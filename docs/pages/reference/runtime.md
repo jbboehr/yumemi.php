@@ -49,8 +49,11 @@ needs arise.
 | Check whether two coordinate points are compatible  | `PointQuantity::isCompatibleWith()`     |
 | Select symbols or Unicode notation                  | `FormatOptions` and formatting methods  |
 
-`exactDecimalValueIn()` throws when the exact rational result has a non-terminating decimal expansion. Use
-`decimalValueIn()` or `significantDecimalValueIn()` with an explicit rounding mode in that case.
+`exactDecimalValueIn()` throws `NonTerminatingDecimalException` when the exact rational result has a non-terminating
+decimal expansion. Use `decimalValueIn()` or `significantDecimalValueIn()` with an explicit rounding mode in that case.
+`exactIntValueIn()` similarly throws `NonIntegralValueException` for a fractional result. Both exceptions extend
+`NonExactOutputException`, which provides one recovery boundary for callers that can accept an explicitly rounded or
+truncated fallback.
 
 Every throwable explicitly created by Yumemi implements `jbboehr\Yumemi\Exception\ExceptionInterface`. Yumemi's wrappers
 also extend their corresponding native PHP classes, so callers may catch the common interface, a specific Yumemi
@@ -402,6 +405,7 @@ PHP 8.2 and 8.3 receive the PHP 8.4 `RoundingMode` enum through `symfony/polyfil
 <?php
 
 use jbboehr\Yumemi\Units;
+use jbboehr\Yumemi\Exception\NonExactOutputException;
 use jbboehr\Yumemi\Number\DecimalNotation;
 use jbboehr\Yumemi\Number\FloatRangePolicy;
 use jbboehr\Yumemi\Number\Rational;
@@ -423,6 +427,14 @@ assert($length->floatValueIn('meter') === 0.3048);
 $large = Units::default()->quantity(new Rational(gmp_pow(2, 1024)), 'meter');
 
 assert($large->floatValueIn('meter', FloatRangePolicy::Ieee754) === INF);
+
+try {
+    $display = Units::default()->quantity(1, 'meter')->exactDecimalValueIn('foot');
+} catch (NonExactOutputException) {
+    $display = Units::default()->quantity(1, 'meter')->decimalValueIn('foot', 2, \RoundingMode::HalfEven);
+}
+
+assert($display === '3.28');
 ```
 
 Scale and precision answer different questions. A scale of `2` requests two places after the decimal point, while a

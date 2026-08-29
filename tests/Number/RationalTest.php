@@ -36,7 +36,9 @@
 
 namespace jbboehr\Yumemi\Tests\Number;
 
+use jbboehr\Yumemi\Exception\NonIntegralValueException;
 use jbboehr\Yumemi\Exception\NonExactRootException;
+use jbboehr\Yumemi\Exception\NonTerminatingDecimalException;
 use jbboehr\Yumemi\Number\DecimalNotation;
 use jbboehr\Yumemi\Number\FloatRangePolicy;
 use jbboehr\Yumemi\Number\Rational;
@@ -278,7 +280,7 @@ final class RationalTest extends TestCase
 
     public function testExactIntegerConversionRejectsFraction(): void
     {
-        $this->expectException(\UnexpectedValueException::class);
+        $this->expectException(NonIntegralValueException::class);
 
         (new Rational(3, 2))->toIntExact();
     }
@@ -648,7 +650,7 @@ final class RationalTest extends TestCase
 
     public function testExactDecimalRejectsNonTerminatingRepresentation(): void
     {
-        $this->expectException(\UnexpectedValueException::class);
+        $this->expectException(NonTerminatingDecimalException::class);
         $this->expectExceptionMessage('does not have a terminating decimal representation');
 
         (new Rational(1, 3))->toDecimalExact();

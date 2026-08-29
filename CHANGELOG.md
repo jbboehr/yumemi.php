@@ -9,6 +9,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Catchable `NonExactOutputException`, `NonIntegralValueException`, and `NonTerminatingDecimalException` categories for
+  unavailable exact integer and terminating-decimal representations; existing `UnexpectedValueException` catches remain
+  valid.
 - Direction-explicit `PointQuantity::differenceFrom()` point subtraction with matching branded PHPStan inference;
   `difference()` remains supported with identical behavior.
 - The stable `yumemi.nativeQuantityComparison` PHPStan diagnostic for native object comparisons involving runtime

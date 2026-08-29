@@ -31,6 +31,18 @@
             "error": "incompatible-unit"
         },
         {
+            "id": "non-integral-exact-integer-output",
+            "operation": "rational-exact-int",
+            "value": { "numerator": "3", "denominator": "2" },
+            "error": "non-integral-value"
+        },
+        {
+            "id": "non-terminating-exact-decimal-output",
+            "operation": "rational-exact-decimal",
+            "value": { "numerator": "1", "denominator": "3" },
+            "error": "non-terminating-decimal"
+        },
+        {
             "id": "affine-unit-in-multiplicative-algebra",
             "operation": "parse",
             "input": "celsius / second",

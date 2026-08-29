@@ -43,7 +43,10 @@ use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\Exception\InvalidArgumentException;
 use jbboehr\Yumemi\Exception\LogicException;
+use jbboehr\Yumemi\Exception\NonExactOutputException;
+use jbboehr\Yumemi\Exception\NonIntegralValueException;
 use jbboehr\Yumemi\Exception\NonMultiplicativeConversionException;
+use jbboehr\Yumemi\Exception\NonTerminatingDecimalException;
 use jbboehr\Yumemi\Exception\OverflowException;
 use jbboehr\Yumemi\Exception\RuntimeException;
 use jbboehr\Yumemi\Exception\UnderflowException;
@@ -69,13 +72,13 @@ final class ExceptionInterfaceTest extends TestCase
 {
     /**
      * @param class-string<\Throwable> $exceptionClass
-     * @param class-string<\Throwable> $nativeClass
+     * @param class-string<\Throwable> $parentClass
      */
     #[DataProvider('exceptionClassProvider')]
-    public function testExceptionImplementsCommonAndNativeContracts(string $exceptionClass, string $nativeClass): void
+    public function testExceptionImplementsExpectedContracts(string $exceptionClass, string $parentClass): void
     {
         $this->assertTrue(is_a($exceptionClass, ExceptionInterface::class, true));
-        $this->assertTrue(is_a($exceptionClass, $nativeClass, true));
+        $this->assertTrue(is_a($exceptionClass, $parentClass, true));
     }
 
     /**
@@ -108,6 +111,9 @@ final class ExceptionInterfaceTest extends TestCase
         yield 'should not happen exception' => [ShouldNotHappenException::class, \RuntimeException::class];
         yield 'underflow exception' => [UnderflowException::class, \UnderflowException::class];
         yield 'unexpected value exception' => [UnexpectedValueException::class, \UnexpectedValueException::class];
+        yield 'non-exact output' => [NonExactOutputException::class, \UnexpectedValueException::class];
+        yield 'non-integral value' => [NonIntegralValueException::class, NonExactOutputException::class];
+        yield 'non-terminating decimal' => [NonTerminatingDecimalException::class, NonExactOutputException::class];
 
         yield 'incompatible expression context' => [
             IncompatibleExpressionContextException::class,
@@ -180,11 +186,18 @@ final class ExceptionInterfaceTest extends TestCase
             UnderflowException::class,
         ];
 
-        yield 'unexpected value exception' => [
+        yield 'non-terminating decimal exception' => [
             static function (): void {
                 (new Rational(1, 3))->toDecimalExact();
             },
-            UnexpectedValueException::class,
+            NonTerminatingDecimalException::class,
+        ];
+
+        yield 'non-integral value exception' => [
+            static function (): void {
+                (new Rational(3, 2))->toIntExact();
+            },
+            NonIntegralValueException::class,
         ];
 
         yield 'parse exception' => [

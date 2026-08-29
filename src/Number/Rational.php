@@ -39,7 +39,9 @@ namespace jbboehr\Yumemi\Number;
 use GMP;
 use jbboehr\Yumemi\Exception\DivisionByZeroError;
 use jbboehr\Yumemi\Exception\InvalidArgumentException;
+use jbboehr\Yumemi\Exception\NonIntegralValueException;
 use jbboehr\Yumemi\Exception\NonExactRootException;
+use jbboehr\Yumemi\Exception\NonTerminatingDecimalException;
 use jbboehr\Yumemi\Exception\OverflowException;
 use jbboehr\Yumemi\Exception\UnderflowException;
 use jbboehr\Yumemi\Exception\UnexpectedValueException;
@@ -400,7 +402,7 @@ final class Rational implements \JsonSerializable
         }
 
         if (gmp_cmp($denominator, 1) !== 0) {
-            throw new UnexpectedValueException(
+            throw new NonTerminatingDecimalException(
                 'Rational value does not have a terminating decimal representation: ' . $this->toString(),
             );
         }
@@ -506,7 +508,7 @@ final class Rational implements \JsonSerializable
     public function toIntExact(): int
     {
         if (gmp_cmp($this->denominator, 1) !== 0) {
-            throw new UnexpectedValueException('Rational value is not an exact integer: ' . $this->toString());
+            throw new NonIntegralValueException('Rational value is not an exact integer: ' . $this->toString());
         }
 
         return self::nativeInt($this->numerator);

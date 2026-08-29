@@ -50,7 +50,7 @@ The principal supported surfaces are:
 - `FormatOptions`, `ExprFormatter`, `DecimalNotation`, and the formatting policy enums;
 - descriptors and backed enums returned by `describe()` and `describePrefix()`; and
 - `ExceptionInterface`, documented exception categories and metadata, `ParseException`,
-  `ExpressionLimitExceededException`, and `SourceSpan`.
+  `ExpressionLimitExceededException`, the exact-output exception hierarchy, and `SourceSpan`.
 
 The documented JSON representations and native serialization round trips of `Rational`, `Dimension`, `Quantity`,
 `PointQuantity`, and catalog descriptors are application persistence contracts under the constraints in

@@ -38,6 +38,8 @@ namespace jbboehr\Yumemi\Tests;
 
 use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
+use jbboehr\Yumemi\Exception\NonIntegralValueException;
+use jbboehr\Yumemi\Exception\NonTerminatingDecimalException;
 use jbboehr\Yumemi\Formatter\FormatOptions;
 use jbboehr\Yumemi\Formatter\Typography;
 use jbboehr\Yumemi\Formatter\UnitNameStyle;
@@ -208,6 +210,24 @@ final class PointQuantityTest extends TestCase
             ),
         );
         $this->assertSame(0.0, $point->floatValueIn('celsius'));
+    }
+
+    public function testExactPointIntegerExtractionReportsANonIntegralValue(): void
+    {
+        $point = Units::default()->point(1, 'fahrenheit');
+
+        $this->expectException(NonIntegralValueException::class);
+
+        $point->exactIntValueIn('celsius');
+    }
+
+    public function testExactPointDecimalExtractionReportsANonTerminatingExpansion(): void
+    {
+        $point = Units::default()->point(1, 'fahrenheit');
+
+        $this->expectException(NonTerminatingDecimalException::class);
+
+        $point->exactDecimalValueIn('celsius');
     }
 
     public function testFloatValueCanReturnSignedZeroAfterConversion(): void

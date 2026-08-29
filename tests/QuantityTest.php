@@ -39,7 +39,9 @@ namespace jbboehr\Yumemi\Tests;
 use jbboehr\Yumemi\Exception\DivisionByZeroError;
 use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
+use jbboehr\Yumemi\Exception\NonIntegralValueException;
 use jbboehr\Yumemi\Exception\NonExactRootException;
+use jbboehr\Yumemi\Exception\NonTerminatingDecimalException;
 use jbboehr\Yumemi\InternalQuantity;
 use jbboehr\Yumemi\Number\DecimalNotation;
 use jbboehr\Yumemi\Number\FloatRangePolicy;
@@ -101,7 +103,7 @@ final class QuantityTest extends TestCase
     {
         $units = Units::default();
 
-        $this->expectException(\UnexpectedValueException::class);
+        $this->expectException(NonIntegralValueException::class);
 
         $units->quantity(5, 'foot')->exactIntValueIn('meter');
     }
@@ -862,7 +864,7 @@ final class QuantityTest extends TestCase
     {
         $quantity = Units::default()->quantity(1, 'meter');
 
-        $this->expectException(\UnexpectedValueException::class);
+        $this->expectException(NonTerminatingDecimalException::class);
 
         $quantity->exactDecimalValueIn('foot');
     }

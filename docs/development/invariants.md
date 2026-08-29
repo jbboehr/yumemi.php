@@ -139,9 +139,10 @@ output methods expose integer, decimal, and float policies. `Rational::root()` a
 `NonExactRootException` when the requested result cannot remain exact. Significant-decimal output computes one exact
 rounded coefficient and decimal exponent before rendering either plain or scientific notation. Exact float output is
 strict by default; an explicit `FloatRangePolicy` may instead select signed infinity or signed zero for binary64 range
-loss. [`RationalTest`](../../tests/Number/RationalTest.php),
-[`BinaryFloatTest`](../../tests/Number/BinaryFloatTest.php), and [`QuantityTest`](../../tests/QuantityTest.php) cover
-roots, rounding, non-terminating decimals, overflow, and underflow.
+loss. Exact integer and decimal extraction throw `NonIntegralValueException` and `NonTerminatingDecimalException`,
+respectively, beneath the shared `NonExactOutputException` recovery category.
+[`RationalTest`](../../tests/Number/RationalTest.php), [`BinaryFloatTest`](../../tests/Number/BinaryFloatTest.php), and
+[`QuantityTest`](../../tests/QuantityTest.php) cover roots, rounding, non-terminating decimals, overflow, and underflow.
 
 **Invalid shortcut.** Storing a `Quantity` magnitude as `float`, approximating a non-exact root, returning an
 approximate decimal from an exact method, or mapping a nonzero exact value to zero or infinity at a native boundary

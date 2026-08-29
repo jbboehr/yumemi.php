@@ -37,8 +37,10 @@
 namespace jbboehr\Yumemi\Tests\Conformance;
 
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
+use jbboehr\Yumemi\Exception\NonIntegralValueException;
 use jbboehr\Yumemi\Exception\NonMultiplicativeConversionException;
 use jbboehr\Yumemi\Exception\NonExactRootException;
+use jbboehr\Yumemi\Exception\NonTerminatingDecimalException;
 use jbboehr\Yumemi\Exception\RuntimeException;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
@@ -94,6 +96,8 @@ final class RuntimeConformanceTest extends TestCase
         'unsupported-unit-conversion' => UnsupportedUnitConversionException::class,
         'non-multiplicative-conversion' => NonMultiplicativeConversionException::class,
         'non-exact-root' => NonExactRootException::class,
+        'non-integral-value' => NonIntegralValueException::class,
+        'non-terminating-decimal' => NonTerminatingDecimalException::class,
     ];
 
     /**
@@ -423,6 +427,8 @@ final class RuntimeConformanceTest extends TestCase
             'parse' => ['id', 'operation', 'input', 'error'],
             'factor' => ['id', 'operation', 'from', 'to', 'error'],
             'convert' => ['id', 'operation', 'value', 'from', 'to', 'error'],
+            'rational-exact-int',
+            'rational-exact-decimal' => ['id', 'operation', 'value', 'error'],
             'expression-root' => ['id', 'operation', 'input', 'degree', 'error'],
             'quantity-root' => ['id', 'operation', 'quantity', 'degree', 'error'],
             default => throw new \UnexpectedValueException(sprintf('%s.operation is not supported: %s', $context, $operation)),
@@ -652,6 +658,11 @@ final class RuntimeConformanceTest extends TestCase
                 self::string($case, 'from', $context),
                 self::string($case, 'to', $context),
             ),
+            'rational-exact-int' => self::rational($case['value'] ?? null, $context . '.value')->toIntExact(),
+            'rational-exact-decimal' => self::rational(
+                $case['value'] ?? null,
+                $context . '.value',
+            )->toDecimalExact(),
             'expression-root' => $units
                 ->parse(self::string($case, 'input', $context))
                 ->root(self::integer($case, 'degree', $context)),
