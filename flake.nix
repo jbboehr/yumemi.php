@@ -108,7 +108,7 @@
           cp ${./composer.json} "$out/composer.json"
           cp ${./composer.lock} "$out/composer.lock"
         '';
-        vendorHash = "sha256-Bm8oai+kNMr0gRamIdE+um3fLnV7WUm4dl/tQ0WKEyU=";
+        vendorHash = "sha256-MQzGX+dV6AHtUJSl27WPynKrzUIM1S/eAFZQUwJYyA8=";
         composerRepository = php-unwrapped.mkComposerRepository {
           pname = "yumemi-dependencies";
           version = "0";

@@ -38,6 +38,8 @@ declare(strict_types=1);
 
 namespace jbboehr\Yumemi\Benchmarks;
 
+use Symfony\Component\Filesystem\Filesystem;
+
 const PHPSTAN_WORKLOADS = [
     'baseline',
     'bootstrap',
@@ -85,6 +87,7 @@ function main(array $options): int
     $workloads = workloadOption($options['workload'] ?? null);
     $root = dirname(__DIR__);
     $temporaryRoot = sys_get_temp_dir() . '/yumemi-phpstan-benchmark-' . bin2hex(random_bytes(6));
+    $filesystem = new Filesystem();
 
     if (!mkdir($temporaryRoot, 0700, true) && !is_dir($temporaryRoot)) {
         throw new \RuntimeException(sprintf('Unable to create benchmark directory %s.', $temporaryRoot));
@@ -116,7 +119,7 @@ function main(array $options): int
                     $workload === 'tags' || $workload === 'mixed',
                 );
                 $elapsed = analyseFixture($root, $configuration, $fixture);
-                removeDirectory($temporaryRoot . '/cache-' . $run);
+                $filesystem->remove($temporaryRoot . '/cache-' . $run);
                 if ($iteration >= 0) {
                     $samples[] = $elapsed;
                 }
@@ -128,7 +131,7 @@ function main(array $options): int
             $results[$workload] = $samples;
         }
     } finally {
-        removeDirectory($temporaryRoot);
+        $filesystem->remove($temporaryRoot);
     }
 
     printf("%-15s %12s %12s %12s\n", 'workload', 'median', 'minimum', 'maximum');
@@ -720,29 +723,6 @@ function writeFile(string $path, string $contents): void
     if (file_put_contents($path, $contents) === false) {
         throw new \RuntimeException(sprintf('Unable to write benchmark file %s.', $path));
     }
-}
-
-function removeDirectory(string $directory): void
-{
-    if (!is_dir($directory)) {
-        return;
-    }
-
-    $iterator = new \RecursiveIteratorIterator(
-        new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS),
-        \RecursiveIteratorIterator::CHILD_FIRST,
-    );
-    foreach ($iterator as $item) {
-        if (!$item instanceof \SplFileInfo) {
-            throw new \LogicException('Recursive directory iteration returned an unexpected value.');
-        }
-        if ($item->isDir()) {
-            rmdir($item->getPathname());
-        } else {
-            unlink($item->getPathname());
-        }
-    }
-    rmdir($directory);
 }
 
 /** @var array<string, false|string|list<string>> $options */

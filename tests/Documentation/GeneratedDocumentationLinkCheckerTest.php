@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\Tests\Documentation;
 
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Filesystem\Filesystem;
 
 final class GeneratedDocumentationLinkCheckerTest extends TestCase
 {
@@ -50,20 +51,7 @@ final class GeneratedDocumentationLinkCheckerTest extends TestCase
 
     protected function tearDown(): void
     {
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($this->root, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
-        );
-
-        foreach ($iterator as $path) {
-            if (!$path instanceof \SplFileInfo) {
-                continue;
-            }
-
-            $path->isDir() ? rmdir($path->getPathname()) : unlink($path->getPathname());
-        }
-
-        rmdir($this->root);
+        (new Filesystem())->remove($this->root);
     }
 
     public function testAcceptsExistingLocalTargetsFragmentsAssetsAndExternalUrls(): void

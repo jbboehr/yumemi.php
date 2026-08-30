@@ -36,6 +36,8 @@
 
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
+use Symfony\Component\Filesystem\Filesystem;
+
 final class PhpStanProcessCache
 {
     private static ?string $directory = null;
@@ -60,23 +62,9 @@ final class PhpStanProcessCache
             return;
         }
 
-        $entries = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator(self::$directory, \FilesystemIterator::SKIP_DOTS),
-            \RecursiveIteratorIterator::CHILD_FIRST,
-        );
-
-        foreach ($entries as $entry) {
-            if (!$entry instanceof \SplFileInfo) {
-                continue;
-            }
-
-            if ($entry->isDir() && !$entry->isLink()) {
-                @rmdir($entry->getPathname());
-            } else {
-                @unlink($entry->getPathname());
-            }
+        try {
+            (new Filesystem())->remove(self::$directory);
+        } catch (\Throwable) {
         }
-
-        @rmdir(self::$directory);
     }
 }

@@ -36,6 +36,10 @@
 
 namespace jbboehr\Yumemi\Tests\Differential;
 
+use Symfony\Component\Process\Exception\ProcessTimedOutException;
+use Symfony\Component\Process\ExecutableFinder;
+use Symfony\Component\Process\Process;
+
 /**
  * @phpstan-type ConversionResult array{
  *     status: 'converted'|'incompatible'|'unrecognized',
@@ -104,55 +108,25 @@ final class Udunits2Cli
         $environment['LANG'] = 'C';
         $environment['LC_ALL'] = 'C';
 
-        $descriptors = [
-            0 => ['pipe', 'r'],
-            1 => ['pipe', 'w'],
-            2 => ['pipe', 'w'],
-        ];
-        $process = proc_open($command, $descriptors, $pipes, null, $environment, ['bypass_shell' => true]);
+        $process = new Process(
+            $command,
+            env: $environment,
+            timeout: self::TIMEOUT_SECONDS,
+        );
 
-        if (!is_resource($process)) {
-            throw new \RuntimeException('Unable to start the UDUNITS2 executable.');
+        try {
+            $exitCode = $process->run();
+        } catch (ProcessTimedOutException $exception) {
+            throw new \RuntimeException(sprintf(
+                'UDUNITS2 timed out while converting %s %s to %s.',
+                $value,
+                $from,
+                $to,
+            ), 0, $exception);
         }
 
-        fclose($pipes[0]);
-        stream_set_blocking($pipes[1], false);
-        stream_set_blocking($pipes[2], false);
-
-        $stdout = '';
-        $stderr = '';
-        $deadline = microtime(true) + self::TIMEOUT_SECONDS;
-        $status = proc_get_status($process);
-
-        while ($status['running']) {
-            self::appendAvailableOutput($pipes[1], $stdout);
-            self::appendAvailableOutput($pipes[2], $stderr);
-
-            if (microtime(true) >= $deadline) {
-                proc_terminate($process);
-                fclose($pipes[1]);
-                fclose($pipes[2]);
-                proc_close($process);
-
-                throw new \RuntimeException(sprintf(
-                    'UDUNITS2 timed out while converting %s %s to %s.',
-                    $value,
-                    $from,
-                    $to,
-                ));
-            }
-
-            usleep(10_000);
-            $status = proc_get_status($process);
-        }
-
-        self::appendAvailableOutput($pipes[1], $stdout);
-        self::appendAvailableOutput($pipes[2], $stderr);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-
-        $closeExitCode = proc_close($process);
-        $exitCode = $status['exitcode'] >= 0 ? $status['exitcode'] : $closeExitCode;
+        $stdout = $process->getOutput();
+        $stderr = $process->getErrorOutput();
         $output = $stdout . "\n" . $stderr;
 
         if (str_contains($output, 'Units are not convertible')) {
@@ -190,30 +164,7 @@ final class Udunits2Cli
             return is_file($command) && is_executable($command) ? $command : null;
         }
 
-        $path = getenv('PATH');
-        if ($path === false) {
-            return null;
-        }
-
-        foreach (explode(PATH_SEPARATOR, $path) as $directory) {
-            $candidate = $directory . DIRECTORY_SEPARATOR . $command;
-            if (is_file($candidate) && is_executable($candidate)) {
-                return $candidate;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @param resource $stream
-     */
-    private static function appendAvailableOutput($stream, string &$output): void
-    {
-        $chunk = stream_get_contents($stream);
-        if ($chunk !== false) {
-            $output .= $chunk;
-        }
+        return (new ExecutableFinder())->find($command);
     }
 
     /**
