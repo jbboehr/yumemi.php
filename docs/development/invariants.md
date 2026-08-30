@@ -405,15 +405,17 @@ The [generated-artifact inventory](generated-artifacts.md) consolidates the pinn
 consumer requirements, and exact checks. The Nix `generated-artifacts` check independently verifies byte-identical
 parser and catalog output before running the UDUNITS2 differential cases.
 
-## Serialization Rejects Semantic Drift
+## Serialization And JSON Restoration Preserve Their Boundaries
 
 **Invariant.** Native serialized payloads are explicitly versioned and structurally validated. `Quantity` and
 `PointQuantity` restoration must select the default or an explicitly scoped custom `Units` context and verify that the
 restored unit, normalized form, dimension, and affine transform still have the serialized meaning. Unknown versions,
 malformed fields, wrong registries, and custom values restored without `Units::deserialize()` must fail closed.
 
-PHP serialization and JSON serve different purposes: JSON exposes exact inspectable data but is not an implicit native
-round-trip protocol.
+PHP serialization and JSON serve different purposes. `Units::quantityFromJson()` and `pointFromJson()` admit only the
+documented exact value-and-unit object, bind the result to the receiving context, and reject malformed JSON structures.
+JSON does not claim the source registry's identity or semantics; the receiving registry deliberately interprets its unit
+string. Other JSON representations remain inspectable rather than implicit arbitrary-graph hydration APIs.
 
 **Reason.** Restoring a magnitude under a changed registry can silently alter its physical meaning even when the unit
 string remains unchanged. Version fields make payload evolution deliberate rather than dependent on private property
@@ -423,15 +425,18 @@ layout.
 [`Quantity`](../../src/Quantity.php), and [`PointQuantity`](../../src/PointQuantity.php) define strict payload schemas.
 [`DeserializationContext`](../../src/Internal/DeserializationContext.php) provides nested dynamic scoping, and
 [`Units::deserialize()`](../../src/Units.php) forwards native `allowed_classes` and `max_depth` options.
-[`SerializationTest`](../../tests/SerializationTest.php) covers default and custom contexts, nested graphs, legacy
-versions, malformed payloads, semantic seals, and native options.
+[`SerializationTest`](../../tests/SerializationTest.php) covers typed JSON restoration, receiving-context semantics,
+default and custom native contexts, nested graphs, legacy versions, malformed payloads, semantic seals, and native
+options. [`ReleasePersistenceCompatibilityTest`](../../tests/Compatibility/ReleasePersistenceCompatibilityTest.php)
+restores the quantity and point JSON shapes emitted by tagged releases.
 
 **Invalid shortcut.** Serializing the entire registry object graph, restoring every quantity through the current default
-registry without verification, accepting unknown fields, or using `jsonSerialize()` as an undocumented unserializer.
+registry without verification, accepting unknown JSON fields, or treating JSON as though it carried the source
+registry's identity.
 
-**Classification.** Accepting a payload with changed semantics is a correctness defect. Removing support for a
-documented payload version or changing its meaning is a compatibility break. Supporting graphs containing several custom
-registries remains an accepted deferred limitation.
+**Classification.** Accepting a native payload with changed semantics or accepting a malformed JSON value shape is a
+correctness defect. Removing support for a documented payload version or changing its meaning is a compatibility break.
+Supporting native graphs containing several custom registries remains an accepted deferred limitation.
 
 ## Diagnostic Identifiers Are Stable; Prose May Evolve
 

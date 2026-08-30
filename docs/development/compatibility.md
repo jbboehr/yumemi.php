@@ -263,8 +263,11 @@ values are supported inspectable representations. Exact integers remain decimal 
 precision loss. Adding, removing, renaming, or changing the meaning or type of documented keys is
 compatibility-sensitive.
 
-JSON is not a native round-trip protocol. Yumemi does not infer a registry or reconstruct runtime objects implicitly
-from these arrays.
+`Units::quantityFromJson()` and `pointFromJson()` are supported typed readers for the corresponding complete JSON
+objects. They validate the documented structure and construct the value in the receiving `Units` context without PHP
+object deserialization. The JSON representation carries neither registry identity nor a semantic fingerprint, so the
+receiving registry deliberately supplies the unit's meaning. Other documented JSON objects remain inspectable
+representations rather than implicit arbitrary-graph hydration APIs.
 
 ### Native Serialization
 

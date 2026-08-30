@@ -313,13 +313,14 @@ static contracts and explicit runtime conversion prove insufficient.
 Status: **Done for current value objects** | Importance: **P2** | Remaining difficulty: **S/M**
 
 `Rational`, `Dimension`, `Quantity`, `PointQuantity`, and catalog descriptor value objects expose exact JSON and compact
-debug representations. Versioned native serialization preserves exact rational state and symbolic unit syntax. Default
-quantities restore through the shared default `Units`; custom-context values restore through `Units::deserialize()`,
-which validates unit semantics against the selected immutable registry.
+debug representations. `Units::quantityFromJson()` and `pointFromJson()` strictly restore the two runtime value shapes
+in an explicit receiving registry. Versioned native serialization preserves exact rational state and symbolic unit
+syntax. Default quantities restore through the shared default `Units`; custom-context values restore through
+`Units::deserialize()`, which validates unit semantics against the selected immutable registry.
 
 One serialized graph may contain default values and values from one custom context. Graphs containing several custom
-contexts still need stable registry identifiers and an application resolver. JSON intentionally represents value state
-rather than embedding or reconstructing a registry.
+contexts still need stable registry identifiers and an application resolver. JSON intentionally represents value state;
+its explicit reader uses the receiving registry rather than embedding or reconstructing one.
 
 ### 24. Arrays, Collections, And Scientific Ecosystems
 

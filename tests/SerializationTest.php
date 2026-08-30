@@ -40,12 +40,16 @@ use jbboehr\Yumemi\Catalog\PrefixDecomposition;
 use jbboehr\Yumemi\Catalog\PrefixDescriptor;
 use jbboehr\Yumemi\Catalog\UnitDescriptor;
 use jbboehr\Yumemi\Dimension;
+use jbboehr\Yumemi\Exception\InvalidArgumentException;
+use jbboehr\Yumemi\Exception\UnitNotFoundException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
 use jbboehr\Yumemi\Exception\UnexpectedValueException;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\PointQuantity;
 use jbboehr\Yumemi\Quantity;
 use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
 use jbboehr\Yumemi\Units;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class SerializationTest extends TestCase
@@ -89,6 +93,250 @@ final class SerializationTest extends TestCase
 
         $this->assertStringNotContainsString('Udunits2UnitRegistry', $output);
         $this->assertStringNotContainsString('prefixMetadata', $output);
+    }
+
+    public function testQuantityJsonRoundTripUsesTheReceivingContext(): void
+    {
+        $units = $this->customUnits(2, 10);
+        $quantity = $units->quantity(new Rational(-7, 3), 'widget / second');
+
+        $restored = $units->quantityFromJson(
+            json_encode($quantity, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES),
+        );
+
+        $this->assertSame($units, $restored->units());
+        $this->assertSame('-7/3', $restored->valueToString());
+        $this->assertSame('widget / second', $restored->unitToString());
+        $this->assertSame('-14/3', $restored->valueIn('meter / second')->toString());
+    }
+
+    public function testPointQuantityJsonRoundTripUsesTheReceivingContext(): void
+    {
+        $units = $this->customUnits(2, 10);
+        $point = $units->point(new Rational(9, 2), $this->customPointName());
+
+        $restored = $units->pointFromJson(json_encode($point, JSON_THROW_ON_ERROR));
+
+        $this->assertSame($units, $restored->units());
+        $this->assertSame('9/2', $restored->valueToString());
+        $this->assertSame('widget_point', $restored->unitToString());
+        $this->assertSame('29/2', $restored->valueIn('meter')->toString());
+    }
+
+    public function testJsonRestorationAcceptsObjectKeysInAnyOrder(): void
+    {
+        $restored = Units::default()->quantityFromJson(
+            '{"unit":"meter","value":{"denominator":"3","numerator":"1"}}',
+        );
+
+        $this->assertSame('1/3', $restored->valueToString());
+        $this->assertSame('meter', $restored->unitToString());
+    }
+
+    public function testJsonRestorationAcceptsEscapedKeysValuesAndJsonWhitespace(): void
+    {
+        $restored = Units::default()->quantityFromJson(
+            "{\n\t\"\\u0075nit\" : \"meter\\/second\",\r\n"
+            . '"v\u0061lue" : {"den\u006fminator":"3","num\u0065rator":"\u0031"}}',
+        );
+
+        $this->assertSame('1/3', $restored->valueToString());
+        $this->assertSame('meter / second', $restored->unitToString());
+    }
+
+    #[DataProvider('nonCanonicalJsonRationalProvider')]
+    public function testJsonRestorationNormalizesValidNonCanonicalRationalStrings(
+        string $numerator,
+        string $denominator,
+        string $expected,
+    ): void {
+        $value = ['numerator' => $numerator, 'denominator' => $denominator];
+
+        $quantity = Units::default()->quantityFromJson(json_encode([
+            'value' => $value,
+            'unit' => 'meter',
+        ], JSON_THROW_ON_ERROR));
+        $point = Units::default()->pointFromJson(json_encode([
+            'value' => $value,
+            'unit' => 'celsius',
+        ], JSON_THROW_ON_ERROR));
+
+        $this->assertSame($expected, $quantity->valueToString());
+        $this->assertSame($expected, $point->valueToString());
+    }
+
+    public function testJsonScannerLeavesStructuralStringContentToOrdinaryUnitValidation(): void
+    {
+        $json = json_encode([
+            'value' => ['numerator' => '1', 'denominator' => '2'],
+            'unit' => 'meter"}]}:{\\second',
+        ], JSON_THROW_ON_ERROR);
+
+        $this->expectException(UnitNotFoundException::class);
+
+        Units::default()->quantityFromJson($json);
+    }
+
+    public function testJsonRestorationAssignsMeaningFromTheReceivingContext(): void
+    {
+        $source = $this->customUnits(2, 10);
+        $receiver = $this->customUnits(3, 20);
+        $json = json_encode($source->quantity(1, 'widget'), JSON_THROW_ON_ERROR);
+
+        $restored = $receiver->quantityFromJson($json);
+
+        $this->assertSame($receiver, $restored->units());
+        $this->assertSame('3', $restored->valueIn('meter')->toString());
+    }
+
+    public function testPointJsonRestorationRetainsPointAdmissionRules(): void
+    {
+        $json = json_encode(Units::default()->quantity(1, 'meter / second'), JSON_THROW_ON_ERROR);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Point quantities require a single named coordinate unit.');
+
+        Units::default()->pointFromJson($json);
+    }
+
+    public function testQuantityJsonRestorationRetainsMultiplicativeAdmissionRules(): void
+    {
+        $json = json_encode(Units::default()->point(1, 'celsius'), JSON_THROW_ON_ERROR);
+
+        $this->expectException(UnsupportedUnitAlgebraException::class);
+        $this->expectExceptionMessage('affine semantics');
+
+        Units::default()->quantityFromJson($json);
+    }
+
+    #[DataProvider('invalidValueJsonProvider')]
+    public function testJsonRestorationRejectsMalformedValueShapes(string $json): void
+    {
+        $restorers = [
+            'quantityFromJson' => static fn (string $payload): Quantity => Units::default()->quantityFromJson($payload),
+            'pointFromJson' => static fn (string $payload): PointQuantity => Units::default()->pointFromJson($payload),
+        ];
+
+        foreach ($restorers as $method => $restore) {
+            try {
+                $restore($json);
+                self::fail($method . '() should reject malformed JSON value data.');
+            } catch (InvalidArgumentException $exception) {
+                $this->assertStringContainsString('Invalid JSON value payload', $exception->getMessage());
+            }
+        }
+    }
+
+    public function testJsonRestorationNeverInvokesNativeObjectDeserialization(): void
+    {
+        $payload = serialize(new JsonReaderNativeDeserializationTrap());
+        JsonReaderNativeDeserializationTrap::$wakeups = 0;
+
+        $restorers = [
+            'quantityFromJson' => static fn (string $input): Quantity => Units::default()->quantityFromJson($input),
+            'pointFromJson' => static fn (string $input): PointQuantity => Units::default()->pointFromJson($input),
+        ];
+
+        foreach ($restorers as $method => $restore) {
+            try {
+                $restore($payload);
+                self::fail($method . '() should reject native PHP serialization data.');
+            } catch (InvalidArgumentException) {
+                $this->assertSame(0, JsonReaderNativeDeserializationTrap::$wakeups);
+            }
+        }
+    }
+
+    #[DataProvider('duplicateObjectMemberProvider')]
+    public function testJsonRestorationRejectsDuplicateObjectMembers(string $method, string $json): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid JSON value payload');
+
+        if ($method === 'quantityFromJson') {
+            Units::default()->quantityFromJson($json);
+
+            return;
+        }
+
+        Units::default()->pointFromJson($json);
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function duplicateObjectMemberProvider(): iterable
+    {
+        $nestedDiscardedValue = json_encode([
+            ['text' => 'discarded"}]}:{\\tail', 'items' => [1, 2]],
+        ], JSON_THROW_ON_ERROR);
+        $syntaxLikeString = json_encode('discarded"}]}:{\\tail', JSON_THROW_ON_ERROR);
+
+        $payloads = [
+            'root value' => '{"value":{"numerator":"999","denominator":"1"},'
+                . '"value":{"numerator":"1","denominator":"2"},"unit":"meter"}',
+            'root unit' => '{"value":{"numerator":"1","denominator":"2"},'
+                . '"unit":null,"unit":"meter"}',
+            'root value after another key' => '{"value":null,"unit":"meter",'
+                . '"value":{"numerator":"1","denominator":"2"}}',
+            'nested numerator' => '{"value":{"numerator":"999","numerator":"1","denominator":"2"},'
+                . '"unit":"meter"}',
+            'nested denominator after another key' => '{"value":{"denominator":"999","numerator":"1",'
+                . '"denominator":"2"},"unit":"meter"}',
+            'escaped equivalent key' => '{"value":{"numerator":"1","denominator":"2"},'
+                . '"unit":"second","\u0075nit":"meter"}',
+            'escaped equivalent root value key' => '{"v\u0061lue":null,"unit":"meter",'
+                . '"value":{"numerator":"1","denominator":"2"}}',
+            'escaped equivalent nested numerator key' => '{"value":{"num\u0065rator":null,'
+                . '"denominator":"2","numerator":"1"},"unit":"meter"}',
+            'discarded nested objects and arrays' => '{"value":' . $nestedDiscardedValue
+                . ',"unit":"meter","value":{"numerator":"1","denominator":"2"}}',
+            'discarded syntax-like string' => '{"unit":' . $syntaxLikeString
+                . ',"value":{"numerator":"1","denominator":"2"},"unit":"meter"}',
+        ];
+
+        foreach (['quantityFromJson', 'pointFromJson'] as $method) {
+            foreach ($payloads as $name => $payload) {
+                yield $method . ' / ' . $name => [$method, $payload];
+            }
+        }
+    }
+
+    /**
+     * @return iterable<string, array{string, string, string}>
+     */
+    public static function nonCanonicalJsonRationalProvider(): iterable
+    {
+        yield 'common factor' => ['2', '4', '1/2'];
+        yield 'leading zeroes' => ['007', '0001', '7'];
+        yield 'negative denominator' => ['1', '-2', '-1/2'];
+        yield 'negative zero numerator' => ['-0', '7', '0'];
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function invalidValueJsonProvider(): iterable
+    {
+        yield 'malformed JSON' => ['{'];
+        yield 'invalid UTF-8' => [
+            "{\"value\":{\"numerator\":\"1\",\"denominator\":\"1\"},\"unit\":\"meter\xB1\"}",
+        ];
+        yield 'excessive depth' => ['[[[[[]]]]]'];
+        yield 'null' => ['null'];
+        yield 'list' => ['[]'];
+        yield 'missing value' => ['{"unit":"meter"}'];
+        yield 'extra field' => ['{"value":{"numerator":"1","denominator":"1"},"unit":"meter","extra":true}'];
+        yield 'value list' => ['{"value":[],"unit":"meter"}'];
+        yield 'missing numerator' => ['{"value":{"denominator":"1"},"unit":"meter"}'];
+        yield 'extra rational field' => [
+            '{"value":{"numerator":"1","denominator":"1","extra":true},"unit":"meter"}',
+        ];
+        yield 'numeric numerator' => ['{"value":{"numerator":1,"denominator":"1"},"unit":"meter"}'];
+        yield 'malformed numerator' => ['{"value":{"numerator":"1.5","denominator":"1"},"unit":"meter"}'];
+        yield 'numeric denominator' => ['{"value":{"numerator":"1","denominator":1},"unit":"meter"}'];
+        yield 'zero denominator' => ['{"value":{"numerator":"1","denominator":"0"},"unit":"meter"}'];
+        yield 'non-string unit' => ['{"value":{"numerator":"1","denominator":"1"},"unit":null}'];
     }
 
     public function testDefaultQuantityRoundTripPreservesBehaviorAndDefaultContext(): void
@@ -765,5 +1013,15 @@ final class NestedDeserializationFixture
                 ->build(),
         );
         $this->value = $units->deserialize($this->serialized);
+    }
+}
+
+final class JsonReaderNativeDeserializationTrap
+{
+    public static int $wakeups = 0;
+
+    public function __wakeup(): void
+    {
+        ++self::$wakeups;
     }
 }

@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Typed `Units::quantityFromJson()` and `pointFromJson()` restoration for the documented exact JSON value shapes,
+  without invoking native PHP object deserialization.
 - Catchable `NonExactOutputException`, `NonIntegralValueException`, and `NonTerminatingDecimalException` categories for
   unavailable exact integer and terminating-decimal representations; existing `UnexpectedValueException` catches remain
   valid.

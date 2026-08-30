@@ -281,6 +281,14 @@ final class ReleasePersistenceCompatibilityTest extends TestCase
             }
 
             $this->assertJsonShape($directory, $id, $value);
+
+            if ($value instanceof Quantity) {
+                $restored = $value->units()->quantityFromJson(self::jsonFixture($directory, $id));
+                $this->assertDefaultSemantics($id, $restored);
+            } elseif ($value instanceof PointQuantity) {
+                $restored = $value->units()->pointFromJson(self::jsonFixture($directory, $id));
+                $this->assertDefaultSemantics($id, $restored);
+            }
         }
     }
 
@@ -425,13 +433,21 @@ final class ReleasePersistenceCompatibilityTest extends TestCase
      */
     private static function readJson(string $directory, string $path): array
     {
-        $json = file_get_contents(self::fixturePath($directory, $path));
-
-        self::assertIsString($json);
+        $json = self::jsonFixture($directory, $path);
         $decoded = json_decode($json, true, flags: JSON_THROW_ON_ERROR);
         self::assertIsArray($decoded);
 
         return $decoded;
+    }
+
+    private static function jsonFixture(string $directory, string $id): string
+    {
+        $path = str_ends_with($id, '.json') ? $id : 'json/' . $id . '.json';
+        $json = file_get_contents(self::fixturePath($directory, $path));
+
+        self::assertIsString($json);
+
+        return $json;
     }
 
     /**

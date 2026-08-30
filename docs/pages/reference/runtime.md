@@ -689,7 +689,7 @@ $json = json_encode($quantity, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
 
 assert($json === '{"value":{"numerator":"1","denominator":"3"},"unit":"meter / second"}');
 
-$restored = unserialize(serialize($quantity));
+$restored = Units::default()->quantityFromJson($json);
 
 assert($restored->units() === Units::default());
 assert($restored->valueToString() === '1/3');
@@ -713,13 +713,27 @@ The supported JSON keys are:
 Descriptor JSON follows these documented properties, renders backed enums as strings, and nests dynamic prefix
 decomposition. JSON object key order and insignificant whitespace are not compatibility guarantees.
 
+`Units::quantityFromJson()` and `pointFromJson()` restore the corresponding runtime value from its complete documented
+JSON object. They require the exact `value` and `unit` structure, reject missing, extra, or incorrectly typed fields,
+and then apply the ordinary quantity or point admission rules. The return type identifies which value is expected, and
+neither method invokes PHP object deserialization. Valid signed decimal integer components are normalized through
+`Rational`: output uses a positive denominator, removes common factors and leading zeroes, and represents zero without
+a sign.
+
+The receiving `Units` supplies the registry context and therefore the meaning of the unit string. JSON carries no
+registry identity or semantic fingerprint: decoding the same custom unit name through a registry with a different
+definition deliberately uses that receiving definition. Use the matching registry when persisted data must retain its
+original meaning. For external or potentially untrusted data, prefer these JSON entry points over native PHP
+deserialization and apply the application's normal request-size limits.
+
 Compact `__debugInfo()` output follows the same representation. Quantities add only a short context identity; dumping a
 quantity does not recursively print its `Units` registry and catalog.
 
-Native serialization is versioned and verifies normalized unit semantics and resolved dimensions when restoring a
-quantity or point. This detects a custom base-unit name being reassigned to another extension axis. Values created
-through `Units::default()` may use PHP's ordinary `serialize()` and `unserialize()` and always return to the shared
-default context. A quantity from a custom registry must be restored through that context:
+Native serialization remains available for trusted PHP persistence and arbitrary trusted graphs. It is versioned and
+verifies normalized unit semantics and resolved dimensions when restoring a quantity or point. This detects a custom
+base-unit name being reassigned to another extension axis. Values created through `Units::default()` may use PHP's
+ordinary `serialize()` and `unserialize()` and always return to the shared default context. A quantity from a custom
+registry must be restored through that context:
 
 ```php
 <?php

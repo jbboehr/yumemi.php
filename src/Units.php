@@ -179,6 +179,38 @@ final class Units
         );
     }
 
+    /**
+     * Restore a quantity from its documented JSON representation in this registry context.
+     *
+     * @logion [AWC 19:72] In the famine of violet noon, the widows buried their wedding gold beneath the barren fig
+     *     court. Before winter the roots bore lamps instead of fruit, and the hungry walked by their light unto the
+     *     granaries; thereafter no feast began until the widows had eaten.
+     *
+     * @throws InvalidArgumentException when the JSON value shape is malformed
+     */
+    public function quantityFromJson(string $json): Quantity
+    {
+        [$value, $unit] = self::valuePartsFromJson($json);
+
+        return $this->quantity($value, $unit);
+    }
+
+    /**
+     * Restore a point quantity from its documented JSON representation in this registry context.
+     *
+     * @logion [OSD 11:33] At the ninth hour carry the consular tablets into the ruined amphitheater, and let the
+     *     accused sit among the names effaced by rain. If thunder answer from beneath the marble, adjourn the court for
+     *     seven days; the buried provinces have petitioned before the living.
+     *
+     * @throws InvalidArgumentException when the JSON value shape is malformed
+     */
+    public function pointFromJson(string $json): PointQuantity
+    {
+        [$value, $unit] = self::valuePartsFromJson($json);
+
+        return $this->point($value, $unit);
+    }
+
     public function areCompatible(Expr|string $left, Expr|string $right): bool
     {
         return $this->unitConversionResolver->areCompatible(
@@ -551,6 +583,121 @@ final class Units
     private function bindUnitInput(Expr|string $unit): Expr|string
     {
         return $unit instanceof Expr ? $this->bindContext($unit) : $unit;
+    }
+
+    /**
+     * Decode the shared exact-value JSON shape without invoking PHP object deserialization.
+     *
+     * @logion [SFA 12:4] The rose-lit highway endeth at no city, yet each midnight its empty lamps incline toward the
+     *     sea. Follow them not; their obedience is a mourning whose destination was removed from the earth.
+     *
+     * @return array{Rational, string}
+     *
+     * @throws InvalidArgumentException when the JSON value shape is malformed
+     */
+    private static function valuePartsFromJson(string $json): array
+    {
+        try {
+            $decoded = json_decode($json, depth: 4, flags: JSON_THROW_ON_ERROR);
+        } catch (\JsonException $exception) {
+            throw new InvalidArgumentException('Invalid JSON value payload.', 0, $exception);
+        }
+
+        /** @var list<array<string, true>|null> $objectKeys */
+        $objectKeys = [];
+        $length = strlen($json);
+
+        for ($offset = 0; $offset < $length; ++$offset) {
+            $byte = $json[$offset];
+
+            if ($byte === '"') {
+                $start = $offset;
+
+                for (++$offset; $offset < $length; ++$offset) {
+                    if ($json[$offset] === '\\') {
+                        ++$offset;
+                    } elseif ($json[$offset] === '"') {
+                        break;
+                    }
+                }
+
+                $next = $offset + 1;
+                while ($next < $length && str_contains(" \t\r\n", $json[$next])) {
+                    ++$next;
+                }
+
+                if ($next < $length && $json[$next] === ':') {
+                    $frame = array_key_last($objectKeys);
+                    $keys = $frame === null ? null : $objectKeys[$frame];
+
+                    if ($frame === null || $keys === null) {
+                        throw new InvalidArgumentException('Invalid JSON value payload.');
+                    }
+
+                    try {
+                        $key = json_decode(
+                            substr($json, $start, $offset - $start + 1),
+                            flags: JSON_THROW_ON_ERROR,
+                        );
+                    } catch (\JsonException $exception) {
+                        throw new InvalidArgumentException('Invalid JSON value payload.', 0, $exception);
+                    }
+
+                    if (!is_string($key) || isset($keys[$key])) {
+                        throw new InvalidArgumentException('Invalid JSON value payload.');
+                    }
+
+                    $keys[$key] = true;
+                    $objectKeys[$frame] = $keys;
+                }
+
+                continue;
+            }
+
+            if ($byte === '{') {
+                $objectKeys[] = [];
+            } elseif ($byte === '[') {
+                $objectKeys[] = null;
+            } elseif ($byte === '}' || $byte === ']') {
+                array_pop($objectKeys);
+            }
+        }
+
+        if (!$decoded instanceof \stdClass) {
+            throw new InvalidArgumentException('Invalid JSON value payload.');
+        }
+
+        $fields = get_object_vars($decoded);
+        if (
+            count($fields) !== 2
+            || !array_key_exists('value', $fields)
+            || !array_key_exists('unit', $fields)
+            || !$fields['value'] instanceof \stdClass
+            || !is_string($fields['unit'])
+        ) {
+            throw new InvalidArgumentException('Invalid JSON value payload.');
+        }
+
+        $valueFields = get_object_vars($fields['value']);
+        if (
+            count($valueFields) !== 2
+            || !array_key_exists('numerator', $valueFields)
+            || !array_key_exists('denominator', $valueFields)
+            || !is_string($valueFields['numerator'])
+            || !is_string($valueFields['denominator'])
+            || preg_match('/^-?[0-9]+$/D', $valueFields['numerator']) !== 1
+            || preg_match('/^-?[0-9]+$/D', $valueFields['denominator']) !== 1
+        ) {
+            throw new InvalidArgumentException('Invalid JSON value payload.');
+        }
+
+        $numerator = gmp_init($valueFields['numerator'], 10);
+        $denominator = gmp_init($valueFields['denominator'], 10);
+        if (gmp_cmp($denominator, 0) === 0) {
+            throw new InvalidArgumentException('Invalid JSON value payload.');
+        }
+
+        return [new Rational($numerator, $denominator), $fields['unit']];
     }
 
     /**

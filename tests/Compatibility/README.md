@@ -11,9 +11,9 @@ Each immutable release directory contains:
 - the producer script used with an isolated installation of that exact release.
 
 The current test suite restores the historical native payloads and verifies their behavior against the supported
-persistence contract. It compares JSON structurally because object-key order is not part of that contract. Current
-re-serialization only needs to produce another valid payload; byte-for-byte equality with historical output is not
-required.
+persistence contract. It compares JSON structurally because object-key order is not part of that contract, and restores
+historical quantity and point JSON through the current typed readers. Current re-serialization only needs to produce
+another valid payload; byte-for-byte equality with historical output is not required.
 
 ## Adding A Tagged Release
 
