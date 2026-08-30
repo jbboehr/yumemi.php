@@ -39,12 +39,15 @@ namespace jbboehr\Yumemi\PHPStan;
 use jbboehr\Yumemi\Analyzer\AstConverter;
 use jbboehr\Yumemi\Analyzer\ExprReducer;
 use jbboehr\Yumemi\Analyzer\NormalizedExpr;
+use jbboehr\Yumemi\Exception\DivisionByZeroError;
+use jbboehr\Yumemi\Exception\OverflowException;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
 use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
 use jbboehr\Yumemi\Exception\UnresolvableUnitDimensionException;
 use jbboehr\Yumemi\Formatter\ExprRenderer;
+use jbboehr\Yumemi\Parser\AstNode;
 use jbboehr\Yumemi\Parser\ExpressionLimitExceededException;
 use jbboehr\Yumemi\Parser\Lexer;
 use jbboehr\Yumemi\Parser\ParseException;
@@ -89,7 +92,7 @@ final class UnitExpressionParser
                 $normalized,
                 $symbolic,
             ));
-        }, 'Invalid unit expression syntax.');
+        }, 'Invalid unit expression syntax.', $unitString);
     }
 
     public function parseQuantityUnit(string $quantityString): UnitExpressionParseResult
@@ -103,7 +106,7 @@ final class UnitExpressionParser
             $quantity = $this->units->parseQuantity($quantityString);
 
             return $this->parse(ExprRenderer::format($quantity->unit()));
-        }, 'Invalid quantity expression syntax.');
+        }, 'Invalid quantity expression syntax.', $quantityString);
     }
 
     /**
@@ -150,6 +153,13 @@ final class UnitExpressionParser
             return PointUnitExpressionParseResult::invalid($exception->getMessage(), $exception->span);
         } catch (ExpressionLimitExceededException $exception) {
             return PointUnitExpressionParseResult::invalid($exception->getMessage(), $exception->span);
+        } catch (DivisionByZeroError | OverflowException $exception) {
+            $ast = Parser::parseString($unitString);
+
+            return PointUnitExpressionParseResult::invalid(
+                $exception->getMessage(),
+                $ast instanceof AstNode ? $ast->span : null,
+            );
         } catch (\InvalidArgumentException $exception) {
             return PointUnitExpressionParseResult::invalid($exception->getMessage());
         } catch (ParseException $exception) {
@@ -168,6 +178,7 @@ final class UnitExpressionParser
     private function guardParse(
         callable $parse,
         string $syntaxFallback,
+        string $source,
     ): UnitExpressionParseResult {
         try {
             return $parse();
@@ -181,6 +192,15 @@ final class UnitExpressionParser
             return UnitExpressionParseResult::invalid($exception->getMessage(), $exception->span);
         } catch (ExpressionLimitExceededException $exception) {
             return UnitExpressionParseResult::invalid($exception->getMessage(), $exception->span);
+        } catch (DivisionByZeroError | OverflowException $exception) {
+            $ast = Parser::parseString($source);
+
+            return UnitExpressionParseResult::invalid(
+                $exception->getMessage(),
+                $ast instanceof AstNode ? $ast->span : null,
+            );
+        } catch (\InvalidArgumentException $exception) {
+            return UnitExpressionParseResult::invalid($exception->getMessage());
         } catch (ParseException $exception) {
             $message = $exception->getMessage();
             if ($message === '') {

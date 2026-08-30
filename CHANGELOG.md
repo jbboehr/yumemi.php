@@ -34,11 +34,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Supported runtime declarations now expose curated `@throws` metadata for stable, caller-actionable failure categories.
 - Calls to `Units::setDefault()` that would change the process-wide default are rejected from Fibers; configure it
   during synchronous bootstrap, while Fiber code may continue to read the installed context.
 
 ### Fixed
 
+- PHPStan unit-expression parsing now reports exact numeric domain failures, such as division by zero or exponent
+  overflow, as invalid unit expressions instead of allowing exceptions to escape analysis.
 - Native parser selection now recognizes conventional boolean environment values and fails closed to the PHP parser for
   invalid explicit `YUMEMI_NATIVE_PARSER` values.
 - Quantity multiplication now reports cross-context failures in a canonical process-local context-ID order, preserving

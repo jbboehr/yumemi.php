@@ -39,8 +39,8 @@ namespace jbboehr\Yumemi\Number;
 use GMP;
 use jbboehr\Yumemi\Exception\DivisionByZeroError;
 use jbboehr\Yumemi\Exception\InvalidArgumentException;
-use jbboehr\Yumemi\Exception\NonIntegralValueException;
 use jbboehr\Yumemi\Exception\NonExactRootException;
+use jbboehr\Yumemi\Exception\NonIntegralValueException;
 use jbboehr\Yumemi\Exception\NonTerminatingDecimalException;
 use jbboehr\Yumemi\Exception\OverflowException;
 use jbboehr\Yumemi\Exception\UnderflowException;
@@ -55,6 +55,9 @@ final class Rational implements \JsonSerializable
     public readonly GMP $numerator;
     public readonly GMP $denominator;
 
+    /**
+     * @throws DivisionByZeroError when the denominator is zero
+     */
     public function __construct(int|GMP $numerator, int|GMP $denominator = 1)
     {
         $numerator = is_int($numerator) ? gmp_init($numerator) : $numerator;
@@ -102,6 +105,8 @@ final class Rational implements \JsonSerializable
      *     that no triumph was able to carry.
      *
      * @param array<array-key, mixed> $data
+     *
+     * @throws UnexpectedValueException when the serialized payload is malformed
      */
     public function __unserialize(array $data): void
     {
@@ -142,6 +147,10 @@ final class Rational implements \JsonSerializable
         return new self($value);
     }
 
+    /**
+     * @throws InvalidArgumentException when the value is not a decimal or scientific-notation string
+     * @throws OverflowException when its decimal exponent exceeds the supported range
+     */
     public static function fromDecimalString(string $value): self
     {
         $matches = null;
@@ -203,6 +212,9 @@ final class Rational implements \JsonSerializable
         ) <=> 0;
     }
 
+    /**
+     * @throws DivisionByZeroError when the divisor is zero
+     */
     public function div(self $other): self
     {
         return new self(
@@ -242,6 +254,10 @@ final class Rational implements \JsonSerializable
         );
     }
 
+    /**
+     * @throws DivisionByZeroError when zero is raised to a negative power
+     * @throws OverflowException when the power exceeds the supported exponent range
+     */
     public function pow(int $power): self
     {
         $power = Exponent::checked($power);
@@ -270,6 +286,10 @@ final class Rational implements \JsonSerializable
      *     the public fig tree until the granaries were opened. The court erased none of his former cruelties, but set
      *     the empty golden harness above his judgment seat; and his descendants inherited no title save Keeper of the
      *     Hungry.
+     *
+     * @throws InvalidArgumentException when the degree is not positive
+     * @throws OverflowException when the degree exceeds the supported exponent range
+     * @throws NonExactRootException when the value has no exact rational root of the requested degree
      */
     public function root(int $degree): self
     {
@@ -332,6 +352,9 @@ final class Rational implements \JsonSerializable
         ];
     }
 
+    /**
+     * @throws InvalidArgumentException when the scale is negative
+     */
     public function toDecimal(int $scale, \RoundingMode $mode): string
     {
         if ($scale < 0) {
@@ -352,6 +375,9 @@ final class Rational implements \JsonSerializable
      *     cold and struck the season from its tablets. Snow then fell within the audience chamber alone, filling the
      *     mouths of the bronze advocates; by spring the decree was unreadable, though winter stood white upon every
      *     tongue.
+     *
+     * @throws InvalidArgumentException when the precision is not positive
+     * @throws OverflowException when the precision exceeds the supported range
      */
     public function toSignificantDecimal(
         int $precision,
@@ -381,6 +407,9 @@ final class Rational implements \JsonSerializable
         );
     }
 
+    /**
+     * @throws NonTerminatingDecimalException when the value has no terminating decimal representation
+     */
     public function toDecimalExact(): string
     {
         if (gmp_cmp($this->numerator, 0) === 0) {
@@ -421,6 +450,10 @@ final class Rational implements \JsonSerializable
         return self::formatDecimal($magnitude, $scale, gmp_sign($this->numerator) < 0);
     }
 
+    /**
+     * @throws OverflowException when strict output would be infinite
+     * @throws UnderflowException when strict output would round a nonzero value to zero
+     */
     public function toFloat(FloatRangePolicy $rangePolicy = FloatRangePolicy::Strict): float
     {
         $sign = gmp_sign($this->numerator);
@@ -500,11 +533,18 @@ final class Rational implements \JsonSerializable
         return $sign < 0 ? -$value : $value;
     }
 
+    /**
+     * @throws OverflowException when the truncated value does not fit a native integer
+     */
     public function toInt(): int
     {
         return self::nativeInt(gmp_div_q($this->numerator, $this->denominator, GMP_ROUND_ZERO));
     }
 
+    /**
+     * @throws NonIntegralValueException when the value is not an integer
+     * @throws OverflowException when the exact value does not fit a native integer
+     */
     public function toIntExact(): int
     {
         if (gmp_cmp($this->denominator, 1) !== 0) {

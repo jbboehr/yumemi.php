@@ -287,6 +287,68 @@ final class UnitExpressionParserTest extends TestCase
         $this->assertStringContainsString('empty', strtolower($result->errorMessage() ?? ''));
     }
 
+    #[DataProvider('invalidExactNumericExpressionProvider')]
+    public function testRejectsInvalidExactNumericExpressions(
+        string $unit,
+        string $message,
+        int $expectedStart,
+        int $expectedEnd,
+    ): void {
+        $parser = new UnitExpressionParser();
+
+        foreach ([$parser->parse($unit), $parser->parseQuantityUnit($unit)] as $result) {
+            $this->assertFalse($result->isOk());
+            $this->assertStringContainsString($message, $result->errorMessage() ?? '');
+            $this->assertNotNull($result->errorSpan());
+            $this->assertSame($expectedStart, $result->errorSpan()->start);
+            $this->assertSame($expectedEnd, $result->errorSpan()->end);
+        }
+    }
+
+    #[DataProvider('invalidExactNumericPointDefinitionProvider')]
+    public function testRejectsInvalidExactNumericPointDefinitions(string $definition, string $message): void
+    {
+        $units = new Units(new UnitRegistry([], [
+            'kelvin' => ['type' => 'base', 'name' => 'kelvin'],
+            'broken_scale' => [
+                'type' => 'unit',
+                'name' => 'broken_scale',
+                'def' => $definition,
+            ],
+            'broken_point' => [
+                'type' => 'unit',
+                'name' => 'broken_point',
+                'def' => 'broken_scale @ 1',
+                'semantics' => 'affine',
+            ],
+        ]));
+        $result = (new UnitExpressionParser($units))->parsePoint(' broken_point ');
+
+        $this->assertFalse($result->isOk());
+        $this->assertStringContainsString($message, $result->errorMessage() ?? '');
+        $this->assertNotNull($result->errorSpan());
+        $this->assertSame(1, $result->errorSpan()->start);
+        $this->assertSame(13, $result->errorSpan()->end);
+    }
+
+    /**
+     * @return iterable<string, array{string, string, int, int}>
+     */
+    public static function invalidExactNumericExpressionProvider(): iterable
+    {
+        yield 'division by zero' => [' 1 / 0 ', 'denominator must not be zero', 1, 6];
+        yield 'exponent overflow' => [' meter ^ 10001 ', 'exceeds the supported range', 1, 14];
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function invalidExactNumericPointDefinitionProvider(): iterable
+    {
+        yield 'division by zero' => ['kelvin / 0', 'denominator must not be zero'];
+        yield 'exponent overflow' => ['kelvin ^ 10001', 'exceeds the supported range'];
+    }
+
     #[DataProvider('unsupportedUnitProvider')]
     public function testRejectsKnownUnsupportedCatalogUnits(string $unit, string $reason): void
     {

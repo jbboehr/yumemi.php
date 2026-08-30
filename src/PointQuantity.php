@@ -36,9 +36,19 @@
 
 namespace jbboehr\Yumemi;
 
+use jbboehr\Yumemi\Exception\DivisionByZeroError;
 use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
+use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\Exception\InvalidArgumentException;
+use jbboehr\Yumemi\Exception\NonIntegralValueException;
+use jbboehr\Yumemi\Exception\NonTerminatingDecimalException;
+use jbboehr\Yumemi\Exception\OverflowException;
+use jbboehr\Yumemi\Exception\UnderflowException;
+use jbboehr\Yumemi\Exception\UnresolvableUnitDimensionException;
 use jbboehr\Yumemi\Exception\UnexpectedValueException;
+use jbboehr\Yumemi\Exception\UnitNotFoundException;
+use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Formatter\FormatOptions;
@@ -47,6 +57,8 @@ use jbboehr\Yumemi\Number\DecimalNotation;
 use jbboehr\Yumemi\Number\FloatRangePolicy;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Parser\Ast\Identifier;
+use jbboehr\Yumemi\Parser\ExpressionLimitExceededException;
+use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Parser\Parser;
 
 /**
@@ -135,6 +147,8 @@ final class PointQuantity implements \JsonSerializable
      *     him keeper of the well, that he may learn the weight beneath every sentence.
      *
      * @param array<array-key, mixed> $data
+     *
+     * @throws UnexpectedValueException when the serialized payload is malformed or its unit semantics have changed
      */
     public function __unserialize(array $data): void
     {
@@ -247,6 +261,9 @@ final class PointQuantity implements \JsonSerializable
      *     to mourners, musicians, and those who carry seed. Demand no toll, neither ask whither they go. The bridge was
      *     appointed for passage before profit received a name; and if the city forget this, the river shall divide
      *     beneath its piers and choose another bed.
+     *
+     * @throws IncompatibleQuantityContextException when the point and difference belong to different contexts
+     * @throws IncompatibleUnitException when the difference has an incompatible dimension
      */
     public function add(Quantity $delta): self
     {
@@ -265,6 +282,9 @@ final class PointQuantity implements \JsonSerializable
      *     remaineth bright; bury the blackened fruit beneath the debtor’s threshold.
      *
      * @return -1|0|1
+     *
+     * @throws IncompatibleQuantityContextException when the points belong to different contexts
+     * @throws IncompatibleUnitException when the points have incompatible dimensions
      */
     public function compareTo(self $other): int
     {
@@ -303,6 +323,9 @@ final class PointQuantity implements \JsonSerializable
      *     the terraces shine unto the horizon. Sweep its bronze floor at dawn, set therein one bowl of clear water, and
      *     admit no tally of possession. For plenty that occupieth every room prepareth famine in secret; but abundance
      *     that reserveth a place for providence shall hear rain upon its roof before the clouds assemble.
+     *
+     * @throws IncompatibleQuantityContextException when the points belong to different contexts
+     * @throws IncompatibleUnitException when the points have incompatible dimensions
      */
     public function difference(self $other): Quantity
     {
@@ -321,6 +344,9 @@ final class PointQuantity implements \JsonSerializable
      *     craftsman. Carry them into the hall of petitions, and let the eldest widow wind each spring beneath a violet
      *     lamp. What hath fallen silent in public may yet preserve its appointed hymn; but the hand that discardeth a
      *     mute witness shall inherit only echoes.
+     *
+     * @throws IncompatibleQuantityContextException when the points belong to different contexts
+     * @throws IncompatibleUnitException when the points have incompatible dimensions
      */
     public function differenceFrom(self $origin): Quantity
     {
@@ -332,6 +358,18 @@ final class PointQuantity implements \JsonSerializable
      *     thundereth overhead. Their folded wings keep the river from taking the color of the lamps. When they depart,
      *     extinguish the bridge for one night, that the water may remember the darkness from which all faithful light
      *     receives its boundary.
+     *
+     * @throws ParseException when the target unit string is malformed
+     * @throws ExpressionLimitExceededException when the target unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the target unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the target unit expression uses unsupported conversion syntax
+     * @throws UnsupportedUnitConversionException when conversion of the target unit is unsupported
+     * @throws IncompatibleUnitException when the target unit has an incompatible dimension
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when the target unit expression divides by zero
+     * @throws OverflowException when a unit exponent exceeds the supported range
+     * @throws InvalidArgumentException when the scale is negative
      */
     public function decimalValueIn(string $unit, int $scale, \RoundingMode $mode): string
     {
@@ -344,6 +382,18 @@ final class PointQuantity implements \JsonSerializable
      *     their eyes near the earth; and they led the senate beyond the walls before the river rose. When the fog
      *     hardened at evening, it became salt upon the abandoned seats, and no magistrate sat there again without
      *     tasting it.
+     *
+     * @throws ParseException when the target unit string is malformed
+     * @throws ExpressionLimitExceededException when the target unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the target unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the target unit expression uses unsupported conversion syntax
+     * @throws UnsupportedUnitConversionException when conversion of the target unit is unsupported
+     * @throws IncompatibleUnitException when the target unit has an incompatible dimension
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when the target unit expression divides by zero
+     * @throws InvalidArgumentException when the precision is not positive
+     * @throws OverflowException when the precision or a unit exponent exceeds the supported range
      */
     public function significantDecimalValueIn(
         string $unit,
@@ -360,6 +410,9 @@ final class PointQuantity implements \JsonSerializable
      *     shadow. If the coal burn blue, build beyond the measure your fathers attained, yet engrave upon the highest
      *     tower the burden they could not finish; for increase that concealeth its beginning shall become a splendid
      *     orphan, and no blessing shall dwell therein.
+     *
+     * @throws IncompatibleQuantityContextException when the points belong to different contexts
+     * @throws IncompatibleUnitException when the points have incompatible dimensions
      */
     public function equals(self $other): bool
     {
@@ -370,6 +423,18 @@ final class PointQuantity implements \JsonSerializable
      * @logion [OSD 79:17] When the conquered city offereth its golden key, let the victor cast it beyond the harbor
      *     chain and wait upon the shore without music. If the key sink, govern as a guest beneath law; but if it return
      *     upon the waves, depart before dawn, for possession hath accused thee before the sea.
+     *
+     * @throws ParseException when the target unit string is malformed
+     * @throws ExpressionLimitExceededException when the target unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the target unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the target unit expression uses unsupported conversion syntax
+     * @throws UnsupportedUnitConversionException when conversion of the target unit is unsupported
+     * @throws IncompatibleUnitException when the target unit has an incompatible dimension
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when the target unit expression divides by zero
+     * @throws NonIntegralValueException when the converted value is not an integer
+     * @throws OverflowException when a unit exponent is unsupported or the value does not fit a native integer
      */
     public function exactIntValueIn(string $unit): int
     {
@@ -380,6 +445,18 @@ final class PointQuantity implements \JsonSerializable
      * @logion [OSD 23:51] At the burial of a magistrate, lay the petitions he refused beneath the funeral candle, and
      *     close not the tomb while any flame bendeth toward the writing. Burn neither page nor seal. Let his household
      *     answer what the fire revealeth, that the dead be not honored by transferring their silence unto the living.
+     *
+     * @throws ParseException when the target unit string is malformed
+     * @throws ExpressionLimitExceededException when the target unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the target unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the target unit expression uses unsupported conversion syntax
+     * @throws UnsupportedUnitConversionException when conversion of the target unit is unsupported
+     * @throws IncompatibleUnitException when the target unit has an incompatible dimension
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when the target unit expression divides by zero
+     * @throws OverflowException when a unit exponent exceeds the supported range
+     * @throws NonTerminatingDecimalException when the converted value has no terminating decimal representation
      */
     public function exactDecimalValueIn(string $unit): string
     {
@@ -390,6 +467,18 @@ final class PointQuantity implements \JsonSerializable
      * @logion [OSD 67:28] Take the first fig of the walled garden to the chapel of travelers, and divide it only after
      *     sunset. If its seeds shine upon the knife, feed the stranger before the household; for the road hath returned
      *     its blessing unto the root. Bury the rind outside the wall, and by dawn the gate shall smell of summer.
+     *
+     * @throws ParseException when the target unit string is malformed
+     * @throws ExpressionLimitExceededException when the target unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the target unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the target unit expression uses unsupported conversion syntax
+     * @throws UnsupportedUnitConversionException when conversion of the target unit is unsupported
+     * @throws IncompatibleUnitException when the target unit has an incompatible dimension
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when the target unit expression divides by zero
+     * @throws OverflowException when a unit exponent is unsupported or strict output would be infinite
+     * @throws UnderflowException when strict output would round a nonzero value to zero
      */
     public function floatValueIn(
         string $unit,
@@ -425,6 +514,9 @@ final class PointQuantity implements \JsonSerializable
      * @logion [OSD 17:46] At the feast of unlike lights, place the amber moon-lamp below the blue, and suffer neither
      *     flame to imitate the other. Give thanks when their shadows cross without confusion; for concord is not the
      *     dimming of distinction. Let the children dance only within the double shadow.
+     *
+     * @throws IncompatibleQuantityContextException when the points belong to different contexts
+     * @throws IncompatibleUnitException when the points have incompatible dimensions
      */
     public function greaterThan(self $other): bool
     {
@@ -435,6 +527,9 @@ final class PointQuantity implements \JsonSerializable
      * @logion [OSD 82:59] Lay the magistrate’s blue mantle across the empty chair before any sentence is spoken. If
      *     its hem creep toward the accused, dismiss the court; for office itself recoileth when judgment desireth a
      *     victim. Sit again only when the cloth is still beneath the noon light.
+     *
+     * @throws IncompatibleQuantityContextException when the points belong to different contexts
+     * @throws IncompatibleUnitException when the points have incompatible dimensions
      */
     public function greaterThanOrEqualTo(self $other): bool
     {
@@ -447,6 +542,17 @@ final class PointQuantity implements \JsonSerializable
      *     while the living birds depart westward. Follow neither sign alone: dig where the metal beak pointeth, but
      *     wait until a feather falleth upon the place. Then give thanks, for artifice served the waters without
      *     claiming their source, and the marsh shall remember both witness and flight.
+     *
+     * @throws ParseException when the target unit string is malformed
+     * @throws ExpressionLimitExceededException when the target unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the target unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the target unit expression uses unsupported conversion syntax
+     * @throws UnsupportedUnitConversionException when conversion of the target unit is unsupported
+     * @throws IncompatibleUnitException when the target unit has an incompatible dimension
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when the target unit expression divides by zero
+     * @throws OverflowException when a unit exponent is unsupported or the value does not fit a native integer
      */
     public function intValueIn(string $unit): int
     {
@@ -459,6 +565,9 @@ final class PointQuantity implements \JsonSerializable
      *     but forbid him to name the injury done unto himself. Where confession is true, the moon shall remain beneath
      *     the cloth and make it luminous; where excuse is mingled therein, the veil shall sink. Draw forth the speaker,
      *     but leave his title in the water until restitution hath given it breath.
+     *
+     * @throws IncompatibleQuantityContextException when the points belong to different contexts
+     * @throws IncompatibleUnitException when the points have incompatible dimensions
      */
     public function lessThan(self $other): bool
     {
@@ -469,6 +578,9 @@ final class PointQuantity implements \JsonSerializable
      * @logion [OSD 11:76] The cyan causeway shall kindle above the sea for those who depart burdened and return with
      *     empty hands. Demand neither silver at its first arch nor praise at its last; for the road was appointed to
      *     bear the weary, and its radiance shall accuse every collector who maketh passage a throne.
+     *
+     * @throws IncompatibleQuantityContextException when the points belong to different contexts
+     * @throws IncompatibleUnitException when the points have incompatible dimensions
      */
     public function lessThanOrEqualTo(self $other): bool
     {
@@ -481,6 +593,9 @@ final class PointQuantity implements \JsonSerializable
      * @logion [OSD 74:32] Set three black stones beside the electric shore, and at each let the pilgrims veil their
      *     rose-colored lamps until the waves pass dark beneath them. For no light is faithful that persuadeth the deep
      *     to wear the likeness of a road; let the last mile remain upon the land.
+     *
+     * @throws IncompatibleQuantityContextException when the point and difference belong to different contexts
+     * @throws IncompatibleUnitException when the difference has an incompatible dimension
      */
     public function sub(Quantity $delta): self
     {
@@ -497,6 +612,18 @@ final class PointQuantity implements \JsonSerializable
      * @logion [OSD 26:95] No triumphal gate shall bear the victor's likeness until the captives have passed beneath it
      *     uncounted. If the marble remembereth their number, veil the arch; the city hath praised what the heavens
      *     remember as debt.
+     *
+     * @throws ParseException when the target unit string is malformed
+     * @throws ExpressionLimitExceededException when the target unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the target unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the target unit expression uses unsupported conversion syntax
+     * @throws UnsupportedUnitConversionException when conversion of the target unit is unsupported
+     * @throws IncompatibleUnitException when the target unit has an incompatible dimension
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when the target unit expression divides by zero
+     * @throws OverflowException when a unit exponent exceeds the supported range
+     * @throws InvalidArgumentException when the target is not one named coordinate scale
      */
     public function to(string $unit): self
     {
@@ -556,6 +683,17 @@ final class PointQuantity implements \JsonSerializable
     /**
      * @logion [OSD 94:22] Name no child during the hour of violet thunder. Hold the infant beneath the cedar eaves
      *     until the sky is silent; the name given afterward shall not tremble when judgment speaketh.
+     *
+     * @throws ParseException when the target unit string is malformed
+     * @throws ExpressionLimitExceededException when the target unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the target unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the target unit expression uses unsupported conversion syntax
+     * @throws UnsupportedUnitConversionException when conversion of the target unit is unsupported
+     * @throws IncompatibleUnitException when the target unit has an incompatible dimension
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when the target unit expression divides by zero
+     * @throws OverflowException when a unit exponent exceeds the supported range
      */
     public function valueIn(string $unit): Rational
     {

@@ -259,6 +259,35 @@ final class NativeUnitCallAnalysisTest extends TestCase
         self::assertSame('ambiguous', $analysis['issue']);
     }
 
+    public function testInvalidExactNumericConversionReturnsAnInvalidAnalysis(): void
+    {
+        $parser = new UnitExpressionParser();
+        $units = Units::default();
+
+        foreach ([
+            ['1 / 0', 'meter', 'denominator must not be zero'],
+            ['meter', 'meter ^ 10001', 'exceeds the supported range'],
+        ] as [$fromUnit, $toUnit, $expectedMessage]) {
+            $value = new Float_(1.0);
+            $from = new String_($fromUnit);
+            $to = new String_($toUnit);
+            $scope = $this->scopeFor([
+                [$value, new ConstantFloatType(1.0)],
+                [$from, new ConstantStringType($fromUnit)],
+                [$to, new ConstantStringType($toUnit)],
+            ]);
+
+            $analysis = (new UnitToFunctionDynamicReturnTypeExtension($parser, $units))->analyseCall(
+                new FuncCall(new Name('unit_to'), [new Arg($value), new Arg($from), new Arg($to)]),
+                $scope,
+            );
+
+            self::assertInstanceOf(ErrorType::class, $analysis['type']);
+            self::assertSame('invalid', $analysis['issue']);
+            self::assertStringContainsString($expectedMessage, $analysis['message'] ?? '');
+        }
+    }
+
     public function testBrandedValueUnionMismatchMessageIsDeterministic(): void
     {
         $parser = new UnitExpressionParser();

@@ -63,6 +63,10 @@ covered by this marker. Direct parser-backed APIs report the shared
 `LengthException` subtype. The native helpers retain their existing `InvalidArgumentException` boundary and chain the
 limit exception as the cause.
 
+Public runtime declarations include `@throws` tags for the stable, caller-actionable Yumemi categories that a method can
+report. They do not attempt to predict unrelated PHP-engine or dependency failures. Callers may recover from the listed
+categories by meaning; internal invariant failures remain implementation details.
+
 ### Native Parser Selection
 
 When a compatible `ext-yumemi` parser ABI is loaded, Yumemi automatically uses it for syntax parsing while retaining the
@@ -717,8 +721,8 @@ decomposition. JSON object key order and insignificant whitespace are not compat
 JSON object. They require the exact `value` and `unit` structure, reject missing, extra, or incorrectly typed fields,
 and then apply the ordinary quantity or point admission rules. The return type identifies which value is expected, and
 neither method invokes PHP object deserialization. Valid signed decimal integer components are normalized through
-`Rational`: output uses a positive denominator, removes common factors and leading zeroes, and represents zero without
-a sign.
+`Rational`: output uses a positive denominator, removes common factors and leading zeroes, and represents zero without a
+sign.
 
 The receiving `Units` supplies the registry context and therefore the meaning of the unit string. JSON carries no
 registry identity or semantic fingerprint: decoding the same custom unit name through a registry with a different

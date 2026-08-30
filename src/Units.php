@@ -45,22 +45,34 @@ use jbboehr\Yumemi\Analyzer\UnitNormalizer;
 use jbboehr\Yumemi\Analyzer\UnitResolver;
 use jbboehr\Yumemi\Catalog\PrefixDescriptor;
 use jbboehr\Yumemi\Catalog\UnitDescriptor;
+use jbboehr\Yumemi\Exception\DivisionByZeroError;
 use jbboehr\Yumemi\Exception\ExceptionInterface;
+use jbboehr\Yumemi\Exception\IncompatibleExpressionContextException;
 use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
+use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\Exception\InvalidArgumentException;
 use jbboehr\Yumemi\Exception\LogicException;
+use jbboehr\Yumemi\Exception\NonMultiplicativeConversionException;
 use jbboehr\Yumemi\Exception\OverflowException;
 use jbboehr\Yumemi\Exception\UnderflowException;
+use jbboehr\Yumemi\Exception\UnresolvableUnitDimensionException;
+use jbboehr\Yumemi\Exception\UnexpectedValueException;
+use jbboehr\Yumemi\Exception\UnitNotFoundException;
+use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitCompactionException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Formatter\ExprFormatter;
 use jbboehr\Yumemi\Formatter\FormatOptions;
 use jbboehr\Yumemi\Internal\BoundedLruCache;
 use jbboehr\Yumemi\Internal\DeserializationContext;
-use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Number\BinaryFloat;
+use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\Parser\ExpressionLimitExceededException;
 use jbboehr\Yumemi\Parser\Lexer;
+use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Parser\Parser;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 
@@ -168,7 +180,12 @@ final class Units
      *     name nor flame. Should one return before the mourners depart, bury no map with the dead; give it to the
      *     youngest exile, and let grief appoint a farther shore.
      *
+     * Exceptions raised by other permitted classes follow those classes' own contracts rather than Yumemi's.
+     *
      * @param array{allowed_classes?: bool|list<class-string>, max_depth?: int<0, max>} $options
+     *
+     * @throws UnexpectedValueException when a Yumemi payload is malformed or its unit semantics do not match this
+     *     context
      */
     public function deserialize(string $serialized, array $options = []): mixed
     {
@@ -187,6 +204,14 @@ final class Units
      *     granaries; thereafter no feast began until the widows had eaten.
      *
      * @throws InvalidArgumentException when the JSON value shape is malformed
+     * @throws ParseException when the unit string is malformed
+     * @throws ExpressionLimitExceededException when the unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the unit expression uses unsupported syntax
+     * @throws UnsupportedUnitAlgebraException when the unit does not support multiplicative quantity algebra
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when the unit expression divides by zero
+     * @throws OverflowException when the payload value or a unit exponent exceeds the supported range
      */
     public function quantityFromJson(string $json): Quantity
     {
@@ -202,7 +227,17 @@ final class Units
      *     accused sit among the names effaced by rain. If thunder answer from beneath the marble, adjourn the court for
      *     seven days; the buried provinces have petitioned before the living.
      *
-     * @throws InvalidArgumentException when the JSON value shape is malformed
+     * @throws InvalidArgumentException when the JSON value shape is malformed or the unit is not one named coordinate
+     *     scale
+     * @throws ParseException when the unit string is malformed
+     * @throws ExpressionLimitExceededException when the unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the named unit cannot be used as a coordinate scale
+     * @throws UnsupportedUnitConversionException when conversion of the named unit is unsupported
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when a custom unit definition divides by zero
+     * @throws OverflowException when the payload value or a custom unit exponent exceeds the supported range
      */
     public function pointFromJson(string $json): PointQuantity
     {
@@ -211,6 +246,18 @@ final class Units
         return $this->point($value, $unit);
     }
 
+    /**
+     * @throws ParseException when either unit string is malformed
+     * @throws ExpressionLimitExceededException when either unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when either unit is unknown in this context
+     * @throws UnsupportedSyntaxException when either unit expression uses unsupported conversion syntax
+     * @throws UnsupportedUnitConversionException when conversion of either unit is unsupported
+     * @throws IncompatibleExpressionContextException when an expression belongs to another or expired context
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when either unit expression divides by zero
+     * @throws OverflowException when a unit exponent exceeds the supported range
+     */
     public function areCompatible(Expr|string $left, Expr|string $right): bool
     {
         return $this->unitConversionResolver->areCompatible(
@@ -219,6 +266,20 @@ final class Units
         );
     }
 
+    /**
+     * @throws ParseException when either unit string is malformed
+     * @throws ExpressionLimitExceededException when either unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when either unit is unknown in this context
+     * @throws UnsupportedSyntaxException when either unit expression uses unsupported conversion syntax
+     * @throws UnsupportedUnitConversionException when conversion of either unit is unsupported
+     * @throws IncompatibleExpressionContextException when an expression belongs to another or expired context
+     * @throws IncompatibleUnitException when the units have incompatible dimensions
+     * @throws NonMultiplicativeConversionException when the conversion includes an offset
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when either unit expression divides by zero
+     * @throws OverflowException when a unit exponent exceeds the supported range
+     */
     public function conversionFactor(Expr|string $from, Expr|string $to): Rational
     {
         return $this->unitConversionResolver->conversionFactor(
@@ -227,6 +288,19 @@ final class Units
         );
     }
 
+    /**
+     * @throws ParseException when either unit string is malformed
+     * @throws ExpressionLimitExceededException when either unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when either unit is unknown in this context
+     * @throws UnsupportedSyntaxException when either unit expression uses unsupported conversion syntax
+     * @throws UnsupportedUnitConversionException when conversion of either unit is unsupported
+     * @throws IncompatibleExpressionContextException when an expression belongs to another or expired context
+     * @throws IncompatibleUnitException when the units have incompatible dimensions
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when either unit expression divides by zero
+     * @throws OverflowException when a unit exponent exceeds the supported range
+     */
     public function convert(int|Rational $value, Expr|string $from, Expr|string $to): Rational
     {
         $value = $value instanceof Rational ? $value : new Rational($value);
@@ -237,6 +311,21 @@ final class Units
         )->apply($value);
     }
 
+    /**
+     * @throws InvalidArgumentException when the input value is not finite
+     * @throws ParseException when either unit string is malformed
+     * @throws ExpressionLimitExceededException when either unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when either unit is unknown in this context
+     * @throws UnsupportedSyntaxException when either unit expression uses unsupported conversion syntax
+     * @throws UnsupportedUnitConversionException when conversion of either unit is unsupported
+     * @throws IncompatibleExpressionContextException when an expression belongs to another or expired context
+     * @throws IncompatibleUnitException when the units have incompatible dimensions
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws OverflowException when a unit exponent exceeds the supported range or the converted value is not finite
+     * @throws UnderflowException when a nonzero converted value rounds to zero
+     * @throws DivisionByZeroError when either unit expression divides by zero
+     */
     public function convertFloat(float $value, Expr|string $from, Expr|string $to): float
     {
         if (!is_finite($value)) {
@@ -260,6 +349,18 @@ final class Units
         return $result;
     }
 
+    /**
+     * @throws ParseException when the unit string is malformed
+     * @throws ExpressionLimitExceededException when the unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the unit expression uses unsupported conversion syntax
+     * @throws UnsupportedUnitConversionException when conversion of the unit is unsupported
+     * @throws IncompatibleExpressionContextException when the expression belongs to another or expired context
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when the unit expression divides by zero
+     * @throws OverflowException when a unit exponent exceeds the supported range
+     */
     public function dimension(Expr|string $expr): Dimension
     {
         return $this->unitConversionResolver->dimension($this->bindUnitInput($expr));
@@ -272,6 +373,16 @@ final class Units
      *     no branch groweth in that court. Let the widows gather it in woven baskets, but suffer the princes only to
      *     behold; for providence hath hands unknown to inheritance, and hunger shall recognize its ministers before
      *     heraldry doth.
+     *
+     * @throws ParseException when the unit string is malformed
+     * @throws ExpressionLimitExceededException when the unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the unit cannot be represented as a multiplicative difference
+     * @throws UnsupportedUnitConversionException when conversion of the unit is unsupported
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when the unit expression divides by zero
+     * @throws OverflowException when a unit exponent exceeds the supported range
      */
     public function deltaUnit(string $unit): Expr
     {
@@ -285,6 +396,16 @@ final class Units
      *     the children of both villages sow it with mustard seed. Return when the flowers rise: where their roots have
      *     crossed the cloth, join the lands by covenant; where they have turned aside, raise no marker. For the earth
      *     answereth neither conquest nor affection, and every forbidden banner shall flower without a province.
+     *
+     * @throws ParseException when the unit string is malformed
+     * @throws ExpressionLimitExceededException when the unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the unit cannot be represented as a multiplicative difference
+     * @throws UnsupportedUnitConversionException when conversion of the unit is unsupported
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when the unit expression divides by zero
+     * @throws OverflowException when a unit exponent exceeds the supported range
      */
     public function deltaQuantity(int|Rational $value, string $unit): Quantity
     {
@@ -293,6 +414,13 @@ final class Units
         return new Quantity($value, $deltaUnit, $this, $this->parse($deltaUnit));
     }
 
+    /**
+     * @throws ParseException when the expression string is malformed
+     * @throws ExpressionLimitExceededException when the expression string exceeds a parser resource limit
+     * @throws UnsupportedSyntaxException when the expression uses unsupported formatting syntax
+     * @throws DivisionByZeroError when the expression divides by zero
+     * @throws OverflowException when an expression exponent exceeds the supported range
+     */
     public function format(Expr|string $expr, ?FormatOptions $options = null): string
     {
         $symbolicExpr = is_string($expr)
@@ -325,11 +453,32 @@ final class Units
         return $this->unitRegistry->describePrefix($name);
     }
 
+    /**
+     * @throws ParseException when the unit string is malformed
+     * @throws ExpressionLimitExceededException when the unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the unit expression uses unsupported syntax
+     * @throws UnsupportedUnitAlgebraException when a unit does not support multiplicative algebra
+     * @throws IncompatibleExpressionContextException when the expression belongs to another or expired context
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when the unit expression divides by zero
+     * @throws OverflowException when a unit exponent exceeds the supported range
+     */
     public function normalize(Expr|string $expr): Expr
     {
         return $this->bindContext($this->unitNormalizer->normalize($this->expr($expr)));
     }
 
+    /**
+     * @throws ParseException when the unit expression is malformed
+     * @throws ExpressionLimitExceededException when the unit expression exceeds a parser resource limit
+     * @throws UnitNotFoundException when a unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the unit expression uses unsupported syntax
+     * @throws UnsupportedUnitAlgebraException when a unit does not support multiplicative algebra
+     * @throws DivisionByZeroError when the unit expression divides by zero
+     * @throws OverflowException when a unit exponent exceeds the supported range
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     */
     public function parse(string $input): Expr
     {
         Lexer::assertInputLength($input);
@@ -349,6 +498,15 @@ final class Units
 
     /**
      * Explicit alias for parsing a unit expression.
+     *
+     * @throws ParseException when the unit expression is malformed
+     * @throws ExpressionLimitExceededException when the unit expression exceeds a parser resource limit
+     * @throws UnitNotFoundException when a unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the unit expression uses unsupported syntax
+     * @throws UnsupportedUnitAlgebraException when a unit does not support multiplicative algebra
+     * @throws DivisionByZeroError when the unit expression divides by zero
+     * @throws OverflowException when a unit exponent exceeds the supported range
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
      */
     public function parseUnit(string $input): Expr
     {
@@ -357,6 +515,15 @@ final class Units
 
     /**
      * Parse a quantity, folding explicit constants into its exact magnitude.
+     *
+     * @throws ParseException when the quantity expression is malformed
+     * @throws ExpressionLimitExceededException when the quantity expression exceeds a parser resource limit
+     * @throws UnitNotFoundException when a unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the quantity expression uses unsupported syntax
+     * @throws UnsupportedUnitAlgebraException when a unit does not support multiplicative algebra
+     * @throws DivisionByZeroError when the quantity expression divides by zero
+     * @throws OverflowException when a unit exponent exceeds the supported range
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
      */
     public function parseQuantity(string $input): Quantity
     {
@@ -375,6 +542,17 @@ final class Units
         );
     }
 
+    /**
+     * @throws ParseException when the unit string is malformed
+     * @throws ExpressionLimitExceededException when the unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when a unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the unit expression uses unsupported syntax
+     * @throws UnsupportedUnitAlgebraException when a unit does not support multiplicative quantity algebra
+     * @throws IncompatibleExpressionContextException when an expression belongs to another or expired context
+     * @throws DivisionByZeroError when the unit expression divides by zero
+     * @throws OverflowException when a unit exponent exceeds the supported range
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     */
     public function quantity(int|Rational $value, Expr|string $unit): Quantity
     {
         return new Quantity($value, $unit, $this);
@@ -387,6 +565,20 @@ final class Units
      *     the carp swam through the streets, and no judgment pronounced above the buried water reached its hearer.
      *
      * @internal Applications should call Quantity::toCompact().
+     *
+     * @throws IncompatibleQuantityContextException when the quantity belongs to another context
+     * @throws IncompatibleExpressionContextException when the base expression belongs to another or expired context
+     * @throws ParseException when the base unit string is malformed
+     * @throws ExpressionLimitExceededException when the base unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the base unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the base unit expression uses unsupported syntax
+     * @throws UnsupportedUnitAlgebraException when the base unit does not support multiplicative algebra
+     * @throws UnsupportedUnitCompactionException when the base does not identify one named unit family
+     * @throws IncompatibleUnitException when the quantity cannot be converted to the base unit
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when the base unit expression divides by zero
+     * @throws OverflowException when a unit exponent exceeds the supported range
      */
     public function compactQuantity(Quantity $quantity, Expr|string $baseUnit): Quantity
     {
@@ -536,6 +728,17 @@ final class Units
      *     penitent and no army.
      *
      * @param iterable<string> $targets
+     *
+     * @throws InvalidArgumentException when targets are not distinct unit strings without numeric multipliers
+     * @throws ParseException when a target unit string is malformed
+     * @throws ExpressionLimitExceededException when a target unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when a target unit is unknown in this context
+     * @throws UnsupportedSyntaxException when a target unit expression uses unsupported syntax
+     * @throws UnsupportedUnitAlgebraException when a target unit does not support multiplicative algebra
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when a target unit expression divides by zero
+     * @throws OverflowException when a unit exponent exceeds the supported range
      */
     public function preferredUnitProfile(iterable $targets): PreferredUnitProfile
     {
@@ -549,6 +752,17 @@ final class Units
      *     upon no brow for thirteen mornings. Feed the household from the royal table, hear every petition he delayed,
      *     and open the debtor’s court before the treasury. Only then may the heir ascend, for sovereignty passeth not
      *     through blood alone; and if he refuse these burdens, the empty litter shall enter the palace before him.
+     *
+     * @throws InvalidArgumentException when the unit is not one named coordinate scale
+     * @throws ParseException when the unit string is malformed
+     * @throws ExpressionLimitExceededException when the unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the named unit cannot be used as a coordinate scale
+     * @throws UnsupportedUnitConversionException when conversion of the named unit is unsupported
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when a custom unit definition divides by zero
+     * @throws OverflowException when a custom unit exponent exceeds the supported range
      */
     public function point(int|Rational $value, string $unit): PointQuantity
     {
@@ -560,6 +774,15 @@ final class Units
      *
      * This is the supported way for application code to obtain {@see Unit} values.
      * Constructing {@see Unit} directly is internal and may not be dimensionable.
+     *
+     * @throws ParseException when the unit name contains malformed UTF-8
+     * @throws ExpressionLimitExceededException when the unit name exceeds a parser resource limit
+     * @throws UnitNotFoundException when the unit is unknown in this context
+     * @throws UnsupportedSyntaxException when a custom unit definition uses unsupported syntax
+     * @throws UnsupportedUnitAlgebraException when the unit does not support multiplicative algebra
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when a custom unit definition divides by zero
+     * @throws OverflowException when a custom unit exponent exceeds the supported range
      */
     public function unit(string $name): Expr
     {

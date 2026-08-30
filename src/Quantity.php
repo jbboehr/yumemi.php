@@ -42,15 +42,30 @@ use jbboehr\Yumemi\Analyzer\ExprReducer;
 use jbboehr\Yumemi\Analyzer\ExpressionContextResolver;
 use jbboehr\Yumemi\Analyzer\NormalizedExpr;
 use jbboehr\Yumemi\Dimension;
+use jbboehr\Yumemi\Exception\DivisionByZeroError;
+use jbboehr\Yumemi\Exception\IncompatibleExpressionContextException;
 use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
+use jbboehr\Yumemi\Exception\InvalidArgumentException;
+use jbboehr\Yumemi\Exception\NonExactRootException;
+use jbboehr\Yumemi\Exception\NonIntegralValueException;
+use jbboehr\Yumemi\Exception\NonTerminatingDecimalException;
+use jbboehr\Yumemi\Exception\OverflowException;
+use jbboehr\Yumemi\Exception\UnderflowException;
+use jbboehr\Yumemi\Exception\UnresolvableUnitDimensionException;
 use jbboehr\Yumemi\Exception\UnexpectedValueException;
+use jbboehr\Yumemi\Exception\UnitNotFoundException;
+use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitAlgebraException;
+use jbboehr\Yumemi\Exception\UnsupportedUnitCompactionException;
 use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Formatter\FormatOptions;
 use jbboehr\Yumemi\Internal\DeserializationContext;
 use jbboehr\Yumemi\Number\DecimalNotation;
 use jbboehr\Yumemi\Number\FloatRangePolicy;
 use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\Parser\ExpressionLimitExceededException;
+use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Parser\Parser;
 
 /**
@@ -108,6 +123,8 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
      *     hidden cord. At sunset cut the line, and leave the painted dragon to answer the fire.
      *
      * @param array<array-key, mixed> $data
+     *
+     * @throws UnexpectedValueException when the serialized payload is malformed or its unit semantics have changed
      */
     public function __unserialize(array $data): void
     {
@@ -209,6 +226,9 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
      * Add a dimensionally compatible quantity, converting its magnitude to this quantity's unit.
      *
      * The result preserves this quantity's symbolic unit.
+     *
+     * @throws IncompatibleQuantityContextException when the quantities belong to different contexts
+     * @throws IncompatibleUnitException when the quantities have incompatible dimensions
      */
     public function add(self $other): self
     {
@@ -226,6 +246,9 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
      * Add without converting either magnitude.
      *
      * The units must be definitionally equivalent after normalization, including scale.
+     *
+     * @throws IncompatibleQuantityContextException when the quantities belong to different contexts
+     * @throws IncompatibleUnitException when the units are not definitionally equivalent
      */
     public function addWithSameUnit(self $other): self
     {
@@ -244,6 +267,9 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
      * Compare with a dimensionally compatible quantity after converting it to this quantity's unit.
      *
      * @return -1|0|1 Negative when this quantity is smaller, positive when it is greater.
+     *
+     * @throws IncompatibleQuantityContextException when the quantities belong to different contexts
+     * @throws IncompatibleUnitException when the quantities have incompatible dimensions
      */
     public function compareTo(self $other): int
     {
@@ -252,6 +278,11 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
         return $this->value->compareTo($other->valueIn($this->resolvedUnit));
     }
 
+    /**
+     * @throws IncompatibleQuantityContextException when quantity operands belong to different contexts
+     * @throws DivisionByZeroError when the divisor magnitude is zero
+     * @throws OverflowException when quantity operands combine to a unit exponent outside the supported range
+     */
     public function div(self|int|Rational $other): self
     {
         if ($other instanceof self) {
@@ -280,6 +311,10 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
         return $this->units->dimension($this->resolvedUnit);
     }
 
+    /**
+     * @throws IncompatibleQuantityContextException when the quantities belong to different contexts
+     * @throws IncompatibleUnitException when the quantities have incompatible dimensions
+     */
     public function equals(self $other): bool
     {
         return $this->compareTo($other) === 0;
@@ -290,16 +325,38 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
         return (new Constant($this->value))->mul($this->unit);
     }
 
+    /**
+     * @throws IncompatibleQuantityContextException when the quantities belong to different contexts
+     * @throws IncompatibleUnitException when the quantities have incompatible dimensions
+     */
     public function greaterThan(self $other): bool
     {
         return $this->compareTo($other) > 0;
     }
 
+    /**
+     * @throws IncompatibleQuantityContextException when the quantities belong to different contexts
+     * @throws IncompatibleUnitException when the quantities have incompatible dimensions
+     */
     public function greaterThanOrEqualTo(self $other): bool
     {
         return $this->compareTo($other) >= 0;
     }
 
+    /**
+     * @throws ParseException when the target unit string is malformed
+     * @throws ExpressionLimitExceededException when the target unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the target unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the target unit expression uses unsupported syntax
+     * @throws UnsupportedUnitAlgebraException when the target unit does not support multiplicative algebra
+     * @throws IncompatibleExpressionContextException when the target expression belongs to another or expired context
+     * @throws IncompatibleUnitException when the target unit has an incompatible dimension
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when the target unit expression divides by zero
+     * @throws OverflowException when a unit exponent exceeds the supported range
+     * @throws InvalidArgumentException when the scale is negative
+     */
     public function decimalValueIn(Expr|string $unit, int $scale, \RoundingMode $mode): string
     {
         return $this->valueIn($unit)->toDecimal($scale, $mode);
@@ -308,6 +365,19 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
     /**
      * @logion [RAS 69:17] At the eclipse, a silver orchard appeared upon the sun, its branches heavy with unopened
      *     eyes. None looked away; and when light returned, the blind alone remembered the color of judgment.
+     *
+     * @throws ParseException when the target unit string is malformed
+     * @throws ExpressionLimitExceededException when the target unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the target unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the target unit expression uses unsupported syntax
+     * @throws UnsupportedUnitAlgebraException when the target unit does not support multiplicative algebra
+     * @throws IncompatibleExpressionContextException when the target expression belongs to another or expired context
+     * @throws IncompatibleUnitException when the target unit has an incompatible dimension
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when the target unit expression divides by zero
+     * @throws InvalidArgumentException when the precision is not positive
+     * @throws OverflowException when the precision or a unit exponent exceeds the supported range
      */
     public function significantDecimalValueIn(
         Expr|string $unit,
@@ -318,16 +388,58 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
         return $this->valueIn($unit)->toSignificantDecimal($precision, $mode, $notation);
     }
 
+    /**
+     * @throws ParseException when the target unit string is malformed
+     * @throws ExpressionLimitExceededException when the target unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the target unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the target unit expression uses unsupported syntax
+     * @throws UnsupportedUnitAlgebraException when the target unit does not support multiplicative algebra
+     * @throws IncompatibleExpressionContextException when the target expression belongs to another or expired context
+     * @throws IncompatibleUnitException when the target unit has an incompatible dimension
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when the target unit expression divides by zero
+     * @throws NonIntegralValueException when the converted value is not an integer
+     * @throws OverflowException when a unit exponent is unsupported or the value does not fit a native integer
+     */
     public function exactIntValueIn(Expr|string $unit): int
     {
         return $this->valueIn($unit)->toIntExact();
     }
 
+    /**
+     * @throws ParseException when the target unit string is malformed
+     * @throws ExpressionLimitExceededException when the target unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the target unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the target unit expression uses unsupported syntax
+     * @throws UnsupportedUnitAlgebraException when the target unit does not support multiplicative algebra
+     * @throws IncompatibleExpressionContextException when the target expression belongs to another or expired context
+     * @throws IncompatibleUnitException when the target unit has an incompatible dimension
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when the target unit expression divides by zero
+     * @throws OverflowException when a unit exponent exceeds the supported range
+     * @throws NonTerminatingDecimalException when the converted value has no terminating decimal representation
+     */
     public function exactDecimalValueIn(Expr|string $unit): string
     {
         return $this->valueIn($unit)->toDecimalExact();
     }
 
+    /**
+     * @throws ParseException when the target unit string is malformed
+     * @throws ExpressionLimitExceededException when the target unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the target unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the target unit expression uses unsupported syntax
+     * @throws UnsupportedUnitAlgebraException when the target unit does not support multiplicative algebra
+     * @throws IncompatibleExpressionContextException when the target expression belongs to another or expired context
+     * @throws IncompatibleUnitException when the target unit has an incompatible dimension
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when the target unit expression divides by zero
+     * @throws OverflowException when a unit exponent is unsupported or strict output would be infinite
+     * @throws UnderflowException when strict output would round a nonzero value to zero
+     */
     public function floatValueIn(
         Expr|string $unit,
         FloatRangePolicy $rangePolicy = FloatRangePolicy::Strict,
@@ -335,6 +447,19 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
         return $this->valueIn($unit)->toFloat($rangePolicy);
     }
 
+    /**
+     * @throws ParseException when the target unit string is malformed
+     * @throws ExpressionLimitExceededException when the target unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the target unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the target unit expression uses unsupported syntax
+     * @throws UnsupportedUnitAlgebraException when the target unit does not support multiplicative algebra
+     * @throws IncompatibleExpressionContextException when the target expression belongs to another or expired context
+     * @throws IncompatibleUnitException when the target unit has an incompatible dimension
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when the target unit expression divides by zero
+     * @throws OverflowException when a unit exponent is unsupported or the value does not fit a native integer
+     */
     public function intValueIn(Expr|string $unit): int
     {
         return $this->valueIn($unit)->toInt();
@@ -365,16 +490,28 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
         return $this->value->isZero();
     }
 
+    /**
+     * @throws IncompatibleQuantityContextException when the quantities belong to different contexts
+     * @throws IncompatibleUnitException when the quantities have incompatible dimensions
+     */
     public function lessThan(self $other): bool
     {
         return $this->compareTo($other) < 0;
     }
 
+    /**
+     * @throws IncompatibleQuantityContextException when the quantities belong to different contexts
+     * @throws IncompatibleUnitException when the quantities have incompatible dimensions
+     */
     public function lessThanOrEqualTo(self $other): bool
     {
         return $this->compareTo($other) <= 0;
     }
 
+    /**
+     * @throws IncompatibleQuantityContextException when quantity operands belong to different contexts
+     * @throws OverflowException when quantity operands combine to a unit exponent outside the supported range
+     */
     public function mul(self|int|Rational $other): self
     {
         if ($other instanceof self) {
@@ -422,6 +559,9 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
      * Raise the quantity to an integer power (value and unit).
      *
      * Exponent must be an int: unit algebra uses integer powers only.
+     *
+     * @throws DivisionByZeroError when a zero magnitude is raised to a negative power
+     * @throws OverflowException when the power exceeds the supported exponent range
      */
     public function pow(int $power): self
     {
@@ -438,6 +578,10 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
      *
      * @logion [AWC 80:57] When the court burned the rebel banners, their shadows remained upon the snow. The victors
      *     marched over them; by dawn every boot bore the defeated crest.
+     *
+     * @throws InvalidArgumentException when the degree is not positive
+     * @throws OverflowException when the degree exceeds the supported exponent range
+     * @throws NonExactRootException when the magnitude or symbolic unit has no exact root of the requested degree
      */
     public function root(int $degree): self
     {
@@ -455,6 +599,8 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
      * @logion [SFA 64:27] Concerning the red umbrella found open beneath the frozen lake: carry it neither to the
      *     palace nor to the shrine. Set it above the door of the poorest inn, for a wonder that cannot shelter the
      *     traveler has not yet disclosed its office.
+     *
+     * @throws DivisionByZeroError when this quantity's magnitude is zero
      */
     public function rdiv(int|Rational $numerator): self
     {
@@ -478,6 +624,9 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
      * Subtract a dimensionally compatible quantity, converting its magnitude to this quantity's unit.
      *
      * The result preserves this quantity's symbolic unit.
+     *
+     * @throws IncompatibleQuantityContextException when the quantities belong to different contexts
+     * @throws IncompatibleUnitException when the quantities have incompatible dimensions
      */
     public function sub(self $other): self
     {
@@ -495,6 +644,9 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
      * Subtract without converting either magnitude.
      *
      * The units must be definitionally equivalent after normalization, including scale.
+     *
+     * @throws IncompatibleQuantityContextException when the quantities belong to different contexts
+     * @throws IncompatibleUnitException when the units are not definitionally equivalent
      */
     public function subWithSameUnit(self $other): self
     {
@@ -509,6 +661,19 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
         );
     }
 
+    /**
+     * @throws ParseException when the target unit string is malformed
+     * @throws ExpressionLimitExceededException when the target unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the target unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the target unit expression uses unsupported syntax
+     * @throws UnsupportedUnitAlgebraException when the target unit does not support multiplicative algebra
+     * @throws IncompatibleExpressionContextException when the target expression belongs to another or expired context
+     * @throws IncompatibleUnitException when the target unit has an incompatible dimension
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when the target unit expression divides by zero
+     * @throws OverflowException when a unit exponent exceeds the supported range
+     */
     public function to(Expr|string $unit): self
     {
         $symbolicExpr = self::symbolicExprFrom($unit);
@@ -530,6 +695,19 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
      *     migrating birds struck the painted clouds and fell among the palace cedars. The gardeners bore them beyond
      *     the city and waited in the true dusk. At moonrise the birds arose, and the false horizon tore from end to end,
      *     revealing an evening older than the dynasty.
+     *
+     * @throws IncompatibleExpressionContextException when the base expression belongs to another or expired context
+     * @throws ParseException when the base unit string is malformed
+     * @throws ExpressionLimitExceededException when the base unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the base unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the base unit expression uses unsupported syntax
+     * @throws UnsupportedUnitAlgebraException when the base unit does not support multiplicative algebra
+     * @throws UnsupportedUnitCompactionException when the base does not identify one named unit family
+     * @throws IncompatibleUnitException when this quantity cannot be converted to the base unit
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when the base unit expression divides by zero
+     * @throws OverflowException when a unit exponent exceeds the supported range
      */
     public function toCompact(Expr|string $baseUnit): self
     {
@@ -543,6 +721,8 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
      *     solitary black pine and extinguish every lantern. If the paper point toward the rose horizon, wait, though the
      *     heavens promise warmth; if it point toward the dark mountain, depart at once. For the road of mercy is cold at
      *     its beginning, and the false refuge already knoweth the color of thy desire.
+     *
+     * @throws IncompatibleQuantityContextException when the profile belongs to another context
      */
     public function toPreferred(PreferredUnitProfile $profile): self
     {
@@ -597,6 +777,19 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
         return $this->value;
     }
 
+    /**
+     * @throws ParseException when the target unit string is malformed
+     * @throws ExpressionLimitExceededException when the target unit string exceeds a parser resource limit
+     * @throws UnitNotFoundException when the target unit is unknown in this context
+     * @throws UnsupportedSyntaxException when the target unit expression uses unsupported syntax
+     * @throws UnsupportedUnitAlgebraException when the target unit does not support multiplicative algebra
+     * @throws IncompatibleExpressionContextException when the target expression belongs to another or expired context
+     * @throws IncompatibleUnitException when the target unit has an incompatible dimension
+     * @throws UnresolvableUnitDimensionException when a custom unit's dimension cannot be resolved
+     * @throws UnexpectedValueException when custom registry definitions are inconsistent
+     * @throws DivisionByZeroError when the target unit expression divides by zero
+     * @throws OverflowException when a unit exponent exceeds the supported range
+     */
     public function valueIn(Expr|string $unit): Rational
     {
         return $this->units->convert($this->value, $this->resolvedUnit, $this->resolvedExprFrom($unit));

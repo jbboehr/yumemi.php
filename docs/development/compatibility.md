@@ -136,9 +136,12 @@ preserving:
 - deterministic canonical behavior represented by the conformance corpus; and
 - half-open byte source spans when a runtime failure can be attributed to user input.
 
-Exception categories and documented structured metadata are supported. Complete English messages, suggestion ordering
-unless specifically documented, stack traces, and internal exception-construction paths are not exact compatibility
-contracts. Message changes must remain accurate and should not be used to merge semantically distinct failures.
+Exception categories, documented structured metadata, and public `@throws` recovery categories are supported. A method's
+tags enumerate its stable Yumemi failure categories; PHP-engine failures, dependency failures, and internal invariant
+failures are not promoted to supported API merely because they can escape a call. Complete English messages, suggestion
+ordering unless specifically documented, stack traces, and internal exception-construction paths are not exact
+compatibility contracts. Message changes must remain accurate and should not be used to merge semantically distinct
+failures.
 
 ## Unit Language and Catalog
 

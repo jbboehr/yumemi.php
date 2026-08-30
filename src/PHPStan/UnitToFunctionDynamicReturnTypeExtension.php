@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
+use jbboehr\Yumemi\Exception\DivisionByZeroError;
 use jbboehr\Yumemi\Exception\OverflowException;
 use jbboehr\Yumemi\Exception\UnderflowException;
 use jbboehr\Yumemi\Exception\UnitNotFoundException;
@@ -174,8 +175,9 @@ final class UnitToFunctionDynamicReturnTypeExtension implements DynamicFunctionR
                     | UnsupportedSyntaxException
                     | UnsupportedUnitConversionException
                     | ExpressionLimitExceededException
-                    | ParseException
-                    | \InvalidArgumentException $exception
+                    | DivisionByZeroError
+                    | OverflowException
+                    | ParseException $exception
                 ) {
                     $message = $exception->getMessage();
 
