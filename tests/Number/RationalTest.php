@@ -240,6 +240,13 @@ final class RationalTest extends TestCase
         $this->assertSame('2', gmp_strval($rational->denominator));
     }
 
+    public function testCastsToItsCanonicalString(): void
+    {
+        $rational = new Rational(-6, 8);
+
+        $this->assertSame('-3/4', (string) $rational);
+    }
+
     public function testSubtractsRationals(): void
     {
         $this->assertSame('1/6', (new Rational(1, 2))->sub(new Rational(1, 3))->toString());

@@ -50,7 +50,7 @@ use jbboehr\Yumemi\Util\Exponent;
 /**
  * @api
  */
-final class Rational implements \JsonSerializable
+final class Rational implements \JsonSerializable, \Stringable
 {
     public readonly GMP $numerator;
     public readonly GMP $denominator;
@@ -336,6 +336,16 @@ final class Rational implements \JsonSerializable
         }
 
         return gmp_strval($this->numerator) . '/' . gmp_strval($this->denominator);
+    }
+
+    /**
+     * @logion [SFA 73:46] The pilgrim who slept beneath the bronze cypress dreamed of a river ascending into the moon.
+     *     At dawn he found no water on his garments, yet every thorn along the road bore a silver fish; therefore the
+     *     elders delayed judgment until the birds had eaten.
+     */
+    public function __toString(): string
+    {
+        return $this->toString();
     }
 
     /**
