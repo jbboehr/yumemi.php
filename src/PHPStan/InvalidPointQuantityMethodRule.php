@@ -113,7 +113,6 @@ final class InvalidPointQuantityMethodRule implements Rule
                 'exactDecimalValueIn',
                 'floatValueIn',
                 'compareTo',
-                'equals',
                 'lessThan',
                 'lessThanOrEqualTo',
                 'greaterThan',

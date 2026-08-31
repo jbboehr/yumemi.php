@@ -43,9 +43,7 @@ use PhpParser\Node\Expr\BinaryOp;
 use PhpParser\Node\Expr\BinaryOp\Equal;
 use PhpParser\Node\Expr\BinaryOp\Greater;
 use PhpParser\Node\Expr\BinaryOp\GreaterOrEqual;
-use PhpParser\Node\Expr\BinaryOp\Identical;
 use PhpParser\Node\Expr\BinaryOp\NotEqual;
-use PhpParser\Node\Expr\BinaryOp\NotIdentical;
 use PhpParser\Node\Expr\BinaryOp\Smaller;
 use PhpParser\Node\Expr\BinaryOp\SmallerOrEqual;
 use PhpParser\Node\Expr\BinaryOp\Spaceship;
@@ -55,7 +53,7 @@ use PHPStan\Rules\RuleErrorBuilder;
 use PHPStan\Type\UnionType;
 
 /**
- * Rejects PHP object comparisons on runtime quantity values.
+ * Rejects loose equality and ordering on runtime quantity values.
  *
  * @logion [AWC 41:73] In the year of the hollow comet, the western court opened every granary and found one measure
  *     absent from each. The judges accused no steward, but carried the empty measures through the villages until the
@@ -88,8 +86,6 @@ final class InvalidNativeQuantityComparisonRule implements Rule
         try {
             if (!$node instanceof Equal
                 && !$node instanceof NotEqual
-                && !$node instanceof Identical
-                && !$node instanceof NotIdentical
                 && !$node instanceof Smaller
                 && !$node instanceof SmallerOrEqual
                 && !$node instanceof Greater
@@ -102,10 +98,7 @@ final class InvalidNativeQuantityComparisonRule implements Rule
             $leftType = $scope->getType($node->left);
             $rightType = $scope->getType($node->right);
 
-            if (($node instanceof Equal
-                    || $node instanceof NotEqual
-                    || $node instanceof Identical
-                    || $node instanceof NotIdentical)
+            if (($node instanceof Equal || $node instanceof NotEqual)
                 && ($leftType->isNull()->yes() || $rightType->isNull()->yes())
             ) {
                 return [];

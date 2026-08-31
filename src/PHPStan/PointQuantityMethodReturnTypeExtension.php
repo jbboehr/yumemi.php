@@ -40,6 +40,8 @@ use jbboehr\Yumemi\PointQuantity;
 use PhpParser\Node\Expr\MethodCall;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\MethodReflection;
+use PHPStan\Type\BooleanType;
+use PHPStan\Type\Constant\ConstantBooleanType;
 use PHPStan\Type\DynamicMethodReturnTypeExtension;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\ObjectType;
@@ -354,14 +356,24 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
         }
 
         $left = $receiver->getPointUnitExpression();
+        $hasCompatibleOperand = false;
         foreach ($others as $otherType) {
             $right = $otherType->getPointUnitExpression();
             if (!$left->sameDimension($right)) {
+                if ($methodName === 'equals') {
+                    continue;
+                }
+
                 return self::incompatiblePointError($methodName, $left, $right);
             }
+
+            $hasCompatibleOperand = true;
         }
 
-        return null;
+        return match ($methodName) {
+            'equals' => $hasCompatibleOperand ? new BooleanType() : new ConstantBooleanType(false),
+            default => null,
+        };
     }
 
     /**

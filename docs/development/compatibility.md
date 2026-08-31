@@ -132,7 +132,8 @@ preserving:
 - exact preferred-unit conversion through an explicit application profile bound to the same registry context;
 - exact engineering-prefix compaction within a caller-selected named unit family;
 - affine points, multiplicative differences, and their permitted operations;
-- immutable registry snapshots and rejection of cross-context expression, quantity, and point operations;
+- immutable registry snapshots, rejection of cross-context operations that combine values, and `false` compatibility or
+  equality predicates across contexts;
 - deterministic canonical behavior represented by the conformance corpus; and
 - half-open byte source spans when a runtime failure can be attributed to user input.
 

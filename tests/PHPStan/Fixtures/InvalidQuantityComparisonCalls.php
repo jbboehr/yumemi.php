@@ -45,4 +45,4 @@ function compareOperandUnion(Quantity $other): void
 }
 
 // @phpstan-ignore yumemi.invalidQuantityComparison (exercise identifier-specific suppression)
-$meters->equals($seconds);
+$meters->lessThan($seconds);

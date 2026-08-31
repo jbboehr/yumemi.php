@@ -46,6 +46,7 @@ use jbboehr\Yumemi\Formatter\UnitNameStyle;
 use jbboehr\Yumemi\Number\DecimalNotation;
 use jbboehr\Yumemi\Number\FloatRangePolicy;
 use jbboehr\Yumemi\Number\Rational;
+use jbboehr\Yumemi\PointQuantity;
 use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
 use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -130,7 +131,7 @@ final class PointQuantityTest extends TestCase
         $boiling = $units->point(100, 'celsius');
         $freezingFahrenheit = $units->point(32, 'fahrenheit');
 
-        $difference = $boiling->difference($freezingFahrenheit);
+        $difference = $boiling->differenceFrom($freezingFahrenheit);
 
         $this->assertSame('100', $difference->valueToString());
         $this->assertSame('delta_celsius', $difference->unitToString());
@@ -150,6 +151,19 @@ final class PointQuantityTest extends TestCase
         $this->assertSame('delta_fahrenheit', $rise->unitToString());
         $this->assertSame('-100', $fall->valueToString());
         $this->assertSame('delta_celsius', $fall->unitToString());
+    }
+
+    public function testDifferenceRemainsAnAliasForDifferenceFrom(): void
+    {
+        $units = Units::default();
+        $boiling = $units->point(100, 'celsius');
+        $freezing = $units->point(32, 'fahrenheit');
+
+        // @phpstan-ignore method.deprecated (legacy compatibility is the behavior under test)
+        $legacy = $boiling->difference(other: $freezing);
+
+        $this->assertTrue($legacy->equals($boiling->differenceFrom($freezing)));
+        $this->assertSame('delta_celsius', $legacy->unitToString());
     }
 
     public function testPointComparisonConvertsCoordinatesExactly(): void
@@ -189,6 +203,93 @@ final class PointQuantityTest extends TestCase
         $this->assertFalse(
             $leftUnits->point(0, 'celsius')->isCompatibleWith($rightUnits->point(32, 'fahrenheit')),
         );
+    }
+
+    public function testPointEqualsReturnsFalseForIncompatibleDimensions(): void
+    {
+        $units = Units::default();
+
+        $temperature = $units->point(0, self::temperatureUnit());
+        $length = $units->point(0, self::lengthUnit());
+
+        $this->assertFalse($temperature->equals($length));
+        $this->assertFalse($length->equals($temperature));
+    }
+
+    public function testPointEqualsReturnsFalseForDifferentUnitsContexts(): void
+    {
+        $leftUnits = new Units(UnitRegistryBuilder::default()->build());
+        $rightUnits = new Units(UnitRegistryBuilder::default()->build());
+
+        $left = $leftUnits->point(0, 'celsius');
+        $right = $rightUnits->point(32, 'fahrenheit');
+
+        $this->assertFalse($left->equals($right));
+        $this->assertFalse($right->equals($left));
+    }
+
+    public function testPointEqualsRemainsTotalAndSymmetricForZeroScaleUnits(): void
+    {
+        $units = new Units(UnitRegistryBuilder::default()->define('zero_meter = 0 * meter')->build());
+        $zeroScale = $units->point(7, self::zeroScaleUnit());
+        $otherZeroScale = $units->point(9, self::zeroScaleUnit());
+        $zero = $units->point(0, 'meter');
+        $one = $units->point(1, 'meter');
+
+        $this->assertTrue($zeroScale->equals($zero));
+        $this->assertTrue($zero->equals($zeroScale));
+        $this->assertTrue($zeroScale->equals($otherZeroScale));
+        $this->assertFalse($zeroScale->equals($one));
+        $this->assertFalse($one->equals($zeroScale));
+    }
+
+    public function testPointEqualsIsAnEquivalenceRelationAcrossZeroScaleAffineAliasesAndOffsets(): void
+    {
+        $units = new Units(UnitRegistryBuilder::default()
+            ->define('zero_kelvin = 0 * kelvin')
+            ->alias('nothing_temperature', 'zero_kelvin')
+            ->define('frozen_scale = zero_kelvin @ 5')
+            ->alias('frozen_scale_alias', 'frozen_scale')
+            ->define('shifted_kelvin = kelvin @ 5')
+            ->alias('shifted_kelvin_alias', 'shifted_kelvin')
+            ->define('third_kelvin = 1/3 * kelvin')
+            ->build());
+
+        $points = [
+            'zero-scale unit' => ['zero kelvin', self::pointWithRuntimeUnit($units, 17, 'zero_kelvin')],
+            'zero-scale unit alias' => [
+                'zero kelvin',
+                self::pointWithRuntimeUnit($units, -5, 'nothing_temperature'),
+            ],
+            'zero-scale affine unit' => ['zero kelvin', self::pointWithRuntimeUnit($units, 101, 'frozen_scale')],
+            'zero-scale affine alias' => [
+                'zero kelvin',
+                self::pointWithRuntimeUnit($units, -9, 'frozen_scale_alias'),
+            ],
+            'zero kelvin' => ['zero kelvin', $units->point(0, 'kelvin')],
+            'five kelvin' => ['five kelvin', $units->point(5, 'kelvin')],
+            'shifted kelvin origin' => ['five kelvin', self::pointWithRuntimeUnit($units, 0, 'shifted_kelvin')],
+            'shifted kelvin alias' => [
+                'five kelvin',
+                self::pointWithRuntimeUnit($units, 0, 'shifted_kelvin_alias'),
+            ],
+            'exact third in kelvin' => ['one third kelvin', $units->point(new Rational(1, 3), 'kelvin')],
+            'exact third in a custom scale' => [
+                'one third kelvin',
+                self::pointWithRuntimeUnit($units, 1, 'third_kelvin'),
+            ],
+            'zero meters' => ['zero length', $units->point(0, 'meter')],
+        ];
+
+        foreach ($points as $leftName => [$leftClass, $left]) {
+            foreach ($points as $rightName => [$rightClass, $right]) {
+                $this->assertSame(
+                    $leftClass === $rightClass,
+                    $left->equals($right),
+                    $leftName . ' compared with ' . $rightName,
+                );
+            }
+        }
     }
 
     public function testPointNumericExtractionUsesAffineConversionBeforeOutput(): void
@@ -266,8 +367,12 @@ final class PointQuantityTest extends TestCase
         match ($operation) {
             'add' => $point->add($length),
             'sub' => $point->sub($length),
-            'difference' => $point->difference($lengthPoint),
-            'compare' => $point->compareTo($lengthPoint),
+            'difference' => $point->differenceFrom($lengthPoint),
+            'compareTo' => $point->compareTo($lengthPoint),
+            'lessThan' => $point->lessThan($lengthPoint),
+            'lessThanOrEqualTo' => $point->lessThanOrEqualTo($lengthPoint),
+            'greaterThan' => $point->greaterThan($lengthPoint),
+            'greaterThanOrEqualTo' => $point->greaterThanOrEqualTo($lengthPoint),
             'convert' => $point->to('meter'),
             default => throw new \LogicException('Unknown point operation: ' . $operation),
         };
@@ -281,7 +386,11 @@ final class PointQuantityTest extends TestCase
         yield 'translation forward' => ['add'];
         yield 'translation backward' => ['sub'];
         yield 'difference' => ['difference'];
-        yield 'comparison' => ['compare'];
+        yield 'three-way comparison' => ['compareTo'];
+        yield 'less than' => ['lessThan'];
+        yield 'less than or equal to' => ['lessThanOrEqualTo'];
+        yield 'greater than' => ['greaterThan'];
+        yield 'greater than or equal to' => ['greaterThanOrEqualTo'];
         yield 'conversion' => ['convert'];
     }
 
@@ -318,6 +427,7 @@ final class PointQuantityTest extends TestCase
 
         $this->expectException(IncompatibleQuantityContextException::class);
 
+        // @phpstan-ignore method.deprecated (legacy compatibility is the behavior under test)
         $left->difference($right);
     }
 
@@ -356,7 +466,7 @@ final class PointQuantityTest extends TestCase
 
         $this->assertSame('200', $origin->valueIn('kelvin')->toString());
         $this->assertSame('3', $translated->valueToString());
-        $this->assertSame('6', $translated->difference($origin)->valueIn('kelvin')->toString());
+        $this->assertSame('6', $translated->differenceFrom($origin)->valueIn('kelvin')->toString());
     }
 
     private static function invalidPointUnit(): string
@@ -377,5 +487,18 @@ final class PointQuantityTest extends TestCase
     private static function logarithmicUnit(): string
     {
         return 'B';
+    }
+
+    private static function zeroScaleUnit(): string
+    {
+        return 'zero_meter';
+    }
+
+    private static function pointWithRuntimeUnit(
+        Units $units,
+        int|Rational $value,
+        string $unit,
+    ): PointQuantity {
+        return $units->point($value, $unit);
     }
 }

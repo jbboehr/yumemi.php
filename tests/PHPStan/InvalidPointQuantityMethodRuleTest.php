@@ -69,7 +69,7 @@ final class InvalidPointQuantityMethodRuleTest extends RuleTestCase
                 13,
             ],
             [
-                'Cannot call PointQuantity::difference() with dimensionally incompatible point units celsius '
+                'Cannot call PointQuantity::differenceFrom() with dimensionally incompatible point units celsius '
                     . '(temperature) and meter (length).',
                 14,
             ],
@@ -92,11 +92,6 @@ final class InvalidPointQuantityMethodRuleTest extends RuleTestCase
                 'Cannot call PointQuantity::compareTo() with dimensionally incompatible point units celsius '
                     . '(temperature) and meter (length).',
                 18,
-            ],
-            [
-                'Cannot call PointQuantity::equals() with dimensionally incompatible point units celsius '
-                    . '(temperature) and meter (length).',
-                19,
             ],
             [
                 'Cannot call PointQuantity::lessThan() with dimensionally incompatible point units celsius '
@@ -124,7 +119,7 @@ final class InvalidPointQuantityMethodRuleTest extends RuleTestCase
                 49,
             ],
             [
-                'Cannot call PointQuantity::difference() with dimensionally incompatible point units celsius '
+                'Cannot call PointQuantity::differenceFrom() with dimensionally incompatible point units celsius '
                     . '(temperature) and meter (length).',
                 55,
             ],
@@ -137,6 +132,11 @@ final class InvalidPointQuantityMethodRuleTest extends RuleTestCase
                 'Cannot call PointQuantity::differenceFrom() with dimensionally incompatible point units celsius '
                     . '(temperature) and meter (length).',
                 67,
+            ],
+            [
+                'Cannot call PointQuantity::difference() with dimensionally incompatible point units celsius '
+                    . '(temperature) and meter (length).',
+                70,
             ],
         ]);
     }

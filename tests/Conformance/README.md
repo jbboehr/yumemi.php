@@ -31,6 +31,9 @@ Exact rational values use decimal numerator and denominator strings:
 Numerators may be negative. Denominators are positive and nonzero. Expected values are reduced to their canonical form.
 Dimension results use the named seven-axis object returned by `Dimension::jsonSerialize()`.
 
+Equality fixtures store a left and right quantity or point plus a boolean result. They exercise semantic equality after
+exact compatible-unit conversion; incompatible dimensions produce `false` rather than an error.
+
 ## Errors
 
 Error fixtures use semantic categories such as `unknown-unit`, `incompatible-unit`, `expression-limit`, and

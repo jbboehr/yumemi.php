@@ -483,6 +483,15 @@ final class Units
     {
         Lexer::assertInputLength($input);
 
+        try {
+            $this->unitConversionResolver->dimension($input);
+        } catch (DivisionByZeroError $exception) {
+            throw $exception;
+        } catch (ExceptionInterface) {
+            // Preserve the parser's established error category below; this pass
+            // only observes reciprocals before symbolic cancellation.
+        }
+
         if (($expr = $this->parsedExpressionCache->get($input)) !== null) {
             return $expr;
         }
@@ -527,6 +536,15 @@ final class Units
      */
     public function parseQuantity(string $input): Quantity
     {
+        try {
+            $this->unitConversionResolver->dimension($input);
+        } catch (DivisionByZeroError $exception) {
+            throw $exception;
+        } catch (ExceptionInterface) {
+            // Preserve the quantity parser's established error category below;
+            // this pass only observes reciprocals before symbolic cancellation.
+        }
+
         $ast = Parser::parseString($input);
         $symbolicExpr = ExprReducer::reduce(
             AstConverter::symbolic()->convert($ast),

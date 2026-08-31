@@ -43,6 +43,7 @@ use jbboehr\Yumemi\Analyzer\ExpressionContextResolver;
 use jbboehr\Yumemi\Analyzer\NormalizedExpr;
 use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\Exception\DivisionByZeroError;
+use jbboehr\Yumemi\Exception\ExceptionInterface;
 use jbboehr\Yumemi\Exception\IncompatibleExpressionContextException;
 use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
@@ -87,6 +88,18 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
         Units $units,
         ?Expr $resolvedUnit = null,
     ) {
+        try {
+            $units->dimension($unit);
+            if ($resolvedUnit !== null) {
+                $units->dimension($resolvedUnit);
+            }
+        } catch (DivisionByZeroError $exception) {
+            throw $exception;
+        } catch (ExceptionInterface) {
+            // Preserve the established admission failure category below; this
+            // pass only observes reciprocals before symbolic cancellation.
+        }
+
         $this->units = $units;
         $this->value = self::rational($value);
         $this->unit = ExprReducer::reduce(
@@ -97,6 +110,8 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
             ExpressionContextResolver::bind($resolvedUnit ?? $this->resolvedExprFrom($unit), $units),
             guardContext: true,
         );
+
+        $this->units->dimension($this->resolvedUnit);
     }
 
     /**
@@ -312,12 +327,19 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
     }
 
     /**
-     * @throws IncompatibleQuantityContextException when the quantities belong to different contexts
-     * @throws IncompatibleUnitException when the quantities have incompatible dimensions
+     * Report whether another quantity has the same value in a compatible unit and context.
      */
     public function equals(self $other): bool
     {
-        return $this->compareTo($other) === 0;
+        if (!$this->isCompatibleWith($other)) {
+            return false;
+        }
+
+        $canonicalUnit = NormalizedExpr::withoutConstant($this->normalizedUnit());
+
+        return $this->units->convert($this->value, $this->resolvedUnit, $canonicalUnit)->equals(
+            $this->units->convert($other->value, $other->resolvedUnit, $canonicalUnit),
+        );
     }
 
     public function toExpr(): Expr

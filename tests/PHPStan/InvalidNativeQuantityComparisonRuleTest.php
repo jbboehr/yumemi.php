@@ -87,8 +87,6 @@ final class InvalidNativeQuantityComparisonRuleTest extends RuleTestCase
         $this->analyse([__DIR__ . '/Fixtures/InvalidNativeQuantityComparisons.php'], [
             [$message, 46],
             [$message, 47],
-            [$message, 48],
-            [$message, 49],
             [$message, 50],
             [$message, 51],
             [$message, 52],
@@ -96,8 +94,6 @@ final class InvalidNativeQuantityComparisonRuleTest extends RuleTestCase
             [$message, 54],
             [$message, 58],
             [$message, 59],
-            [$message, 60],
-            [$message, 61],
             [$message, 62],
             [$message, 63],
             [$message, 64],
@@ -108,7 +104,6 @@ final class InvalidNativeQuantityComparisonRuleTest extends RuleTestCase
             [$message, 74],
             [$message, 80],
             [$message, 86],
-            [$message, 92],
             [$message, 95],
             [$message, 140],
             [$message, 141],
@@ -120,7 +115,6 @@ final class InvalidNativeQuantityComparisonRuleTest extends RuleTestCase
             [$message, 153],
             [$message, 154],
             [$message, 156],
-            [$message, 162],
             [$message, 168],
             [$message, 177],
         ]);
@@ -181,7 +175,7 @@ final class InvalidNativeQuantityComparisonRuleTest extends RuleTestCase
         }
     }
 
-    public function testEveryComparisonOperatorReportsAQuantityInTheRightOperand(): void
+    public function testEveryUnitUnsafeComparisonOperatorReportsAQuantityInTheRightOperand(): void
     {
         $left = new Variable('left');
         $right = new Variable('right');
@@ -190,8 +184,6 @@ final class InvalidNativeQuantityComparisonRuleTest extends RuleTestCase
         foreach ([
             Equal::class,
             NotEqual::class,
-            Identical::class,
-            NotIdentical::class,
             Smaller::class,
             SmallerOrEqual::class,
             Greater::class,
@@ -202,6 +194,18 @@ final class InvalidNativeQuantityComparisonRuleTest extends RuleTestCase
 
             self::assertCount(1, $errors, $operatorClass);
             self::assertSame('yumemi.nativeQuantityComparison', $errors[0]->getIdentifier());
+        }
+    }
+
+    public function testStrictIdentityOperatorsRemainAvailable(): void
+    {
+        $left = new Variable('left');
+        $right = new Variable('right');
+        $quantity = new ObjectType(Quantity::class);
+        $scope = $this->scopeFor($left, $quantity, $right, $quantity);
+
+        foreach ([Identical::class, NotIdentical::class] as $operatorClass) {
+            self::assertSame([], $this->getRule()->processNode(new $operatorClass($left, $right), $scope));
         }
     }
 

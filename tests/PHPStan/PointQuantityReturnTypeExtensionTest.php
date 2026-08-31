@@ -36,6 +36,8 @@
 
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
+use jbboehr\Yumemi\PointQuantity;
+use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Testing\TypeInferenceTestCase;
 
 final class PointQuantityReturnTypeExtensionTest extends TypeInferenceTestCase
@@ -52,5 +54,14 @@ final class PointQuantityReturnTypeExtensionTest extends TypeInferenceTestCase
     public function testFileAsserts(): void
     {
         $this->assertFixtureUnderCoverage(__DIR__ . '/data/point-quantity-assert.php');
+    }
+
+    public function testDifferenceAliasIsDeprecatedButDifferenceFromIsNot(): void
+    {
+        $provider = self::getContainer()->getByType(ReflectionProvider::class);
+        $pointQuantity = $provider->getClass(PointQuantity::class);
+
+        $this->assertTrue($pointQuantity->getNativeMethod('difference')->isDeprecated()->yes());
+        $this->assertFalse($pointQuantity->getNativeMethod('differenceFrom')->isDeprecated()->yes());
     }
 }

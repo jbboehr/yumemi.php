@@ -326,7 +326,7 @@ final class BoundedAlgebraTest extends TestCase
 
         self::assertTrue($point->to($targetUnit)->to($unit)->equals($point), 'point conversion reverses');
 
-        $difference = $point->difference($other);
+        $difference = $point->differenceFrom($other);
         self::assertTrue($other->add($difference)->equals($point), 'q + (p - q) = p');
         self::assertTrue($point->sub($difference)->equals($other), 'p - (p - q) = q');
 
@@ -334,7 +334,7 @@ final class BoundedAlgebraTest extends TestCase
         $translatedBackward = $point->sub($delta);
         self::assertTrue($translatedForward->sub($delta)->equals($point), '(p + d) - d = p');
         self::assertTrue($translatedBackward->add($delta)->equals($point), '(p - d) + d = p');
-        self::assertTrue($translatedForward->difference($point)->equals($delta), '(p + d) - p = d');
+        self::assertTrue($translatedForward->differenceFrom($point)->equals($delta), '(p + d) - p = d');
     }
 
     /**

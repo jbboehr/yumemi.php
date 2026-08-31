@@ -15,13 +15,14 @@ assertType("PointQuantity<'fahrenheit'>", $boilingFahrenheit);
 assertType("Quantity<'delta_fahrenheit'>", $rise);
 assertType("PointQuantity<'celsius'>", $freezing->add($rise));
 assertType("PointQuantity<'celsius'>", $freezing->sub($rise));
-assertType("Quantity<'delta_fahrenheit'>", $boilingFahrenheit->difference($freezing));
 assertType("Quantity<'delta_fahrenheit'>", $boilingFahrenheit->differenceFrom($freezing));
+// The deprecated compatibility alias retains the same branded return type.
+assertType("Quantity<'delta_fahrenheit'>", $boilingFahrenheit->difference($freezing));
 assertType("PointQuantity<'fahrenheit'>", $freezing->to('fahrenheit'));
 
 $summit = $units->point(4410, 'meter');
 $trailhead = $units->point(1800, 'meter');
-assertType("Quantity<'meter'>", $summit->difference($trailhead));
+assertType("Quantity<'meter'>", $summit->differenceFrom($trailhead));
 
 $initialPosition = $units->point(100, 'meter');
 $displacement = $units->quantity(15, 'meter / second')->mul($units->quantity(4, 'second'));
@@ -30,7 +31,7 @@ assertType("PointQuantity<'meter'>", $initialPosition->add($displacement));
 
 $finalTemperature = $units->point(350, 'kelvin');
 $initialTemperature = $units->point(300, 'kelvin');
-assertType("Quantity<'kelvin'>", $finalTemperature->difference($initialTemperature));
+assertType("Quantity<'kelvin'>", $finalTemperature->differenceFrom($initialTemperature));
 
 assertType('jbboehr\\Yumemi\\Number\\Rational', $freezing->valueIn('fahrenheit'));
 assertType('int', $freezing->intValueIn('fahrenheit'));
@@ -51,10 +52,10 @@ assertType('bool', $freezing->isCompatibleWith($boilingFahrenheit));
 assertType('bool', $freezing->isCompatibleWith($units->point(1, 'meter')));
 
 assertType('*ERROR*', $freezing->add($units->quantity(1, 'meter')));
-assertType('*ERROR*', $freezing->difference($units->point(1, 'meter')));
 assertType('*ERROR*', $freezing->differenceFrom($units->point(1, 'meter')));
 assertType('*ERROR*', $freezing->to('meter'));
 assertType('*ERROR*', $freezing->compareTo($units->point(1, 'meter')));
+assertType('false', $freezing->equals($units->point(1, 'meter')));
 assertType('*ERROR*', $units->point(1, 'celsius / second'));
 assertType('*ERROR*', $units->deltaQuantity(1, 'B'));
 
@@ -105,7 +106,7 @@ function compatiblePointReceiverUnion(PointQuantity $point): void
     );
     assertType(
         "Quantity<'delta_degree_Celsius'>|Quantity<'delta_fahrenheit'>",
-        $point->difference(Units::default()->point(0, 'kelvin')),
+        $point->differenceFrom(Units::default()->point(0, 'kelvin')),
     );
 }
 
@@ -115,6 +116,38 @@ function compatiblePointReceiverUnion(PointQuantity $point): void
  */
 function compatiblePointOperandUnion(PointQuantity $point, PointQuantity $other): void
 {
-    assertType("Quantity<'delta_degree_Celsius'>", $point->difference($other));
+    assertType("Quantity<'delta_degree_Celsius'>", $point->differenceFrom($other));
     assertType('bool', $point->equals($other));
+}
+
+/** @param PointQuantity<'celsius'>|PointQuantity<'meter'> $other */
+function pointEqualityWithMixedDimensions(PointQuantity $other): void
+{
+    assertType('bool', Units::default()->point(0, 'celsius')->equals($other));
+}
+
+/** @param PointQuantity<'meter'>|PointQuantity<'second'> $other */
+function pointEqualityWithOnlyIncompatibleDimensions(PointQuantity $other): void
+{
+    assertType('false', Units::default()->point(0, 'celsius')->equals($other));
+}
+
+/**
+ * @param PointQuantity<'celsius'>|PointQuantity<'meter'>     $receiver
+ * @param PointQuantity<'fahrenheit'>|PointQuantity<'second'> $other
+ */
+function pointEqualityAcrossMixedReceiverAndOperandUnions(PointQuantity $receiver, PointQuantity $other): void
+{
+    assertType('bool', $receiver->equals($other));
+}
+
+/**
+ * @param PointQuantity<'celsius'>|PointQuantity<'meter'> $receiver
+ * @param PointQuantity<'ampere'>|PointQuantity<'second'> $other
+ */
+function pointEqualityAcrossIncompatibleReceiverAndOperandUnions(
+    PointQuantity $receiver,
+    PointQuantity $other,
+): void {
+    assertType('false', $receiver->equals($other));
 }

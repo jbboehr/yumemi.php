@@ -280,18 +280,19 @@ with the same scale. Thus `meter` and `100 * centimeter` may be equivalent, but 
 `to()` returns a new quantity whose magnitude has been converted to the requested symbolic unit. `valueIn()` returns
 only the exact converted magnitude and leaves the quantity unchanged.
 
-`compareTo()`, `equals()`, `lessThan()`, `lessThanOrEqualTo()`, `greaterThan()`, and `greaterThanOrEqualTo()` convert a
-compatible right operand exactly before comparing. Incompatible dimensions throw `IncompatibleUnitException`.
+`equals()` converts a compatible right operand exactly before comparing, and returns `false` when the dimensions or
+`Units` contexts are incompatible. `compareTo()`, `lessThan()`, `lessThanOrEqualTo()`, `greaterThan()`, and
+`greaterThanOrEqualTo()` perform the same exact conversion but throw when the operands cannot be compared.
 
 `isCompatibleWith()` checks whether two quantities belong to the same `Units` context and have compatible dimensions. It
 returns `false` for a different context or dimension; it does not convert either magnitude or throw merely because the
 quantities are incompatible.
 
-Do not use PHP's object comparison operators as unit-aware comparisons. Loose equality and ordering inspect object
-state, while strict identity compares object identity; neither uses Yumemi's conversion semantics. When PHPStan can see
-a `Quantity` or `PointQuantity` operand, Yumemi reports `yumemi.nativeQuantityComparison` and directs the caller to the
-named comparison methods. Equality and identity checks against a definitely `null` operand remain available for
-nullable-value presence checks.
+Do not use PHP's loose object equality or ordering operators as unit-aware comparisons: they inspect object state
+without using Yumemi's conversion semantics. When PHPStan can see a `Quantity` or `PointQuantity` operand, Yumemi
+reports `yumemi.nativeQuantityComparison` for those operators and directs the caller to the named comparison methods.
+Strict `===` and `!==` remain available when object identity is genuinely the intended question, including
+nullable-value presence checks; they do not replace `equals()` for semantic equality.
 
 ```php
 <?php
@@ -313,6 +314,9 @@ $rate = $units->quantity(2, 'centimeter / second')->div($units->quantity(3, 'foo
 assert($rate->toString() === '2/3 * centimeter / (foot * second)');
 assert($rate->valueIn('1 / second')->toString() === '25/1143');
 ```
+
+Semantic equality remains symmetric for accepted zero-scale units by comparing canonical values. A reciprocal zero-scale
+unit expression is undefined and is rejected during quantity construction with `DivisionByZeroError`.
 
 ### Preferred Unit Profiles
 
@@ -502,11 +506,10 @@ assert($interval->valueIn('delta_fahrenheit')->toString() === '180');
 
 A `PointQuantity` retains an exact `Rational` coordinate and a named scale. `to()`, `valueIn()`, comparisons, and native
 numeric output apply full scale-and-offset conversion. `$destination->differenceFrom($origin)` subtracts the compatible
-origin point and returns a `Quantity` in the destination's delta unit. The older `difference()` spelling has identical
-behavior and remains supported. `add()` and `sub()` translate the point by a compatible `Quantity` while preserving the
-point's coordinate unit. `isCompatibleWith()` checks for the same `Units` context and compatible coordinate dimensions
-without converting either value; a different context or dimension returns `false`. Operations that combine points still
-throw for context or dimension incompatibility.
+origin point and returns a `Quantity` in the destination's delta unit. The older `difference()` spelling remains as a
+deprecated compatibility alias. `add()` and `sub()` translate the point by a compatible `Quantity` while preserving the
+point's coordinate unit. `isCompatibleWith()` and `equals()` return `false` for a different `Units` context or
+coordinate dimension. Difference and ordering operations still throw for context or dimension incompatibility.
 
 The catalog provides explicit multiplicative difference units such as `delta_celsius`, `delta_fahrenheit`, `Δ°C`, and
 `Δ°F`. They participate in ordinary quantity and expression algebra, so `delta_celsius / second` is valid. Formatter

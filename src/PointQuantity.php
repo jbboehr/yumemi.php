@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi;
 
+use jbboehr\Yumemi\Analyzer\NormalizedExpr;
 use jbboehr\Yumemi\Exception\DivisionByZeroError;
 use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
@@ -326,15 +327,11 @@ final class PointQuantity implements \JsonSerializable
      *
      * @throws IncompatibleQuantityContextException when the points belong to different contexts
      * @throws IncompatibleUnitException when the points have incompatible dimensions
+     * @deprecated Use {@see self::differenceFrom()} for an explicit subtraction direction.
      */
     public function difference(self $other): Quantity
     {
-        $this->assertSameContext($other->units);
-
-        return $this->units->deltaQuantity(
-            $this->value->sub($other->valueIn($this->unit)),
-            $this->unit,
-        );
+        return $this->differenceFrom($other);
     }
 
     /**
@@ -350,7 +347,12 @@ final class PointQuantity implements \JsonSerializable
      */
     public function differenceFrom(self $origin): Quantity
     {
-        return $this->difference($origin);
+        $this->assertSameContext($origin->units);
+
+        return $this->units->deltaQuantity(
+            $this->value->sub($origin->valueIn($this->unit)),
+            $this->unit,
+        );
     }
 
     /**
@@ -405,18 +407,27 @@ final class PointQuantity implements \JsonSerializable
     }
 
     /**
+     * Report whether another point has the same coordinate in a compatible scale and context.
+     *
      * @logion [OSD 36:69] At the founding of a daughter city, carry thither neither flame nor polished emblem from the
      *     elder walls. Set the ancestral obelisk upon the bare hill, and at the first noon kindle a coal within its
      *     shadow. If the coal burn blue, build beyond the measure your fathers attained, yet engrave upon the highest
      *     tower the burden they could not finish; for increase that concealeth its beginning shall become a splendid
      *     orphan, and no blessing shall dwell therein.
-     *
-     * @throws IncompatibleQuantityContextException when the points belong to different contexts
-     * @throws IncompatibleUnitException when the points have incompatible dimensions
      */
     public function equals(self $other): bool
     {
-        return $this->compareTo($other) === 0;
+        if (!$this->isCompatibleWith($other)) {
+            return false;
+        }
+
+        $canonicalUnit = NormalizedExpr::withoutConstant(
+            $this->units->normalize($this->units->deltaUnit($this->unit)),
+        );
+
+        return $this->units->convert($this->value, $this->unit, $canonicalUnit)->equals(
+            $this->units->convert($other->value, $other->unit, $canonicalUnit),
+        );
     }
 
     /**

@@ -37,7 +37,7 @@
 namespace jbboehr\Yumemi\PHPStan;
 
 /**
- * Emits standalone diagnostics for statically incompatible Quantity comparisons.
+ * Emits standalone diagnostics for statically incompatible Quantity ordering.
  * @internal
  */
 final class InvalidQuantityComparisonRule extends AbstractInvalidQuantityMethodRule
@@ -49,7 +49,6 @@ final class InvalidQuantityComparisonRule extends AbstractInvalidQuantityMethodR
     {
         return [
             'compareTo',
-            'equals',
             'lessThan',
             'lessThanOrEqualTo',
             'greaterThan',

@@ -199,13 +199,43 @@ assertType('bool', $m->lessThanOrEqualTo($feet));
 assertType('bool', $m->greaterThan($feet));
 assertType('bool', $m->greaterThanOrEqualTo($feet));
 
-// incompatible branded comparisons are statically invalid
+// equality is a total predicate; ordering remains statically invalid for incompatible dimensions
 assertType('*ERROR*', $m->compareTo($s));
-assertType('*ERROR*', $m->equals($s));
+assertType('false', $m->equals($s));
 assertType('*ERROR*', $m->lessThan($s));
 assertType('*ERROR*', $m->lessThanOrEqualTo($s));
 assertType('*ERROR*', $m->greaterThan($s));
 assertType('*ERROR*', $m->greaterThanOrEqualTo($s));
+
+/** @param Quantity<'international_foot'>|Quantity<'second'> $other */
+function equalityWithMixedDimensions(Quantity $other): void
+{
+    assertType('bool', Units::default()->quantity(1, 'meter')->equals($other));
+}
+
+/** @param Quantity<'second'>|Quantity<'ampere'> $other */
+function equalityWithOnlyIncompatibleDimensions(Quantity $other): void
+{
+    assertType('false', Units::default()->quantity(1, 'meter')->equals($other));
+}
+
+/**
+ * @param Quantity<'meter'>|Quantity<'second'>                      $receiver
+ * @param Quantity<'international_foot'>|Quantity<'ampere'>         $other
+ */
+function equalityAcrossMixedReceiverAndOperandUnions(Quantity $receiver, Quantity $other): void
+{
+    assertType('bool', $receiver->equals($other));
+}
+
+/**
+ * @param Quantity<'meter'>|Quantity<'second'>              $receiver
+ * @param Quantity<'ampere'>|Quantity<'kelvin'>              $other
+ */
+function equalityAcrossIncompatibleReceiverAndOperandUnions(Quantity $receiver, Quantity $other): void
+{
+    assertType('false', $receiver->equals($other));
+}
 
 // same-unit variants keep the left unit without conversion
 assertType("Quantity<'meter'>", $m->addWithSameUnit($m));

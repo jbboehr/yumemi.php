@@ -48,6 +48,10 @@ use jbboehr\Yumemi\Number\FloatRangePolicy;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Quantity;
 use jbboehr\Yumemi\Registry\Udunits2UnitRegistry;
+use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
+use jbboehr\Yumemi\Expr\Constant;
+use jbboehr\Yumemi\Expr\Power;
+use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Units;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -179,7 +183,7 @@ final class QuantityTest extends TestCase
      * @param \Closure(Quantity, Quantity): (int|bool) $comparison
      */
     #[DataProvider('quantityComparisonProvider')]
-    public function testComparisonsRejectIncompatibleDimensions(\Closure $comparison): void
+    public function testOrderingComparisonsRejectIncompatibleDimensions(\Closure $comparison): void
     {
         $units = Units::default();
 
@@ -197,7 +201,6 @@ final class QuantityTest extends TestCase
     public static function quantityComparisonProvider(): iterable
     {
         yield 'compareTo' => [static fn (Quantity $left, Quantity $right): int => $left->compareTo($right)];
-        yield 'equals' => [static fn (Quantity $left, Quantity $right): bool => $left->equals($right)];
         yield 'lessThan' => [static fn (Quantity $left, Quantity $right): bool => $left->lessThan($right)];
         yield 'lessThanOrEqualTo' => [
             static fn (Quantity $left, Quantity $right): bool => $left->lessThanOrEqualTo($right),
@@ -206,6 +209,169 @@ final class QuantityTest extends TestCase
         yield 'greaterThanOrEqualTo' => [
             static fn (Quantity $left, Quantity $right): bool => $left->greaterThanOrEqualTo($right),
         ];
+    }
+
+    public function testEqualsReturnsFalseForIncompatibleDimensions(): void
+    {
+        $units = Units::default();
+
+        $length = $units->quantity(1, 'meter');
+        $time = self::unbrandedQuantity($units, 1, 'second');
+
+        $this->assertFalse($length->equals($time));
+        $this->assertFalse($time->equals($length));
+    }
+
+    public function testEqualsReturnsFalseForDifferentUnitsContexts(): void
+    {
+        $left = new Units(new Udunits2UnitRegistry());
+        $right = new Units(new Udunits2UnitRegistry());
+
+        $leftQuantity = $left->quantity(1, 'meter');
+        $rightQuantity = $right->quantity(1, 'meter');
+
+        $this->assertFalse($leftQuantity->equals($rightQuantity));
+        $this->assertFalse($rightQuantity->equals($leftQuantity));
+    }
+
+    public function testEqualsRemainsTotalAndSymmetricForZeroScaleUnits(): void
+    {
+        $units = Units::default();
+        $zeroScale = $units->quantity(7, '0 * meter');
+        $otherZeroScale = $units->quantity(9, '0 * meter');
+        $zero = $units->quantity(0, 'meter');
+        $one = $units->quantity(1, 'meter');
+
+        $this->assertTrue($zeroScale->equals($zero));
+        $this->assertTrue($zero->equals($zeroScale));
+        $this->assertTrue($zeroScale->equals($otherZeroScale));
+        $this->assertFalse($zeroScale->equals($one));
+        $this->assertFalse($one->equals($zeroScale));
+    }
+
+    #[DataProvider('reciprocalZeroScaleUnitProvider')]
+    public function testConstructionRejectsReciprocalZeroScaleUnits(string $unit): void
+    {
+        $units = self::zeroScaleUnits();
+
+        $this->expectException(DivisionByZeroError::class);
+
+        $units->quantity(1, $unit);
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function reciprocalZeroScaleUnitProvider(): iterable
+    {
+        yield 'negative power' => ['zero_meter^-1'];
+        yield 'quotient' => ['1 / zero_meter'];
+        yield 'cancelling quotient' => ['zero_meter / zero_meter'];
+        yield 'cancellation inside a product' => ['meter * zero_meter / zero_meter'];
+        yield 'partially cancelled exponent' => ['zero_meter^2 / zero_meter'];
+    }
+
+    public function testDivisionRejectsOperationProducedReciprocalZeroScaleBeforeCancellation(): void
+    {
+        $quantity = self::zeroScaleUnits()->quantity(2, self::zeroScaleUnitName());
+
+        $this->expectException(DivisionByZeroError::class);
+
+        $quantity->div($quantity);
+    }
+
+    public function testExpressionDivisionRejectsZeroScaleBeforeCancellation(): void
+    {
+        $unit = self::zeroScaleUnits()->unit(self::zeroScaleUnitName());
+
+        $this->expectException(DivisionByZeroError::class);
+
+        $unit->div($unit);
+    }
+
+    public function testExpressionNegativePowerRejectsZeroScaleBeforeReduction(): void
+    {
+        $unit = self::zeroScaleUnits()->unit(self::zeroScaleUnitName());
+
+        $this->expectException(DivisionByZeroError::class);
+
+        $unit->pow(-1);
+    }
+
+    public function testNestedPowersCannotEraseAReciprocalZeroScale(): void
+    {
+        $units = self::zeroScaleUnits();
+        $unit = $units->unit(self::zeroScaleUnitName());
+        $nestedReciprocal = new Power(new Power($unit, -1), -1);
+
+        $this->expectException(DivisionByZeroError::class);
+
+        $units->quantity(1, $nestedReciprocal);
+    }
+
+    public function testUnitDefinitionsCannotHideANestedReciprocalZeroScale(): void
+    {
+        $nestedReciprocal = new Power(new Power(new Constant(0), -1), -1);
+        $unit = new Unit('nested_bad', $nestedReciprocal);
+
+        $this->expectException(DivisionByZeroError::class);
+
+        Units::default()->quantity(1, $unit);
+    }
+
+    public function testParsingRejectsReciprocalZeroScaleBeforeCancellation(): void
+    {
+        $this->expectException(DivisionByZeroError::class);
+
+        self::zeroScaleUnits()->parse(self::cancellingZeroScaleExpression());
+    }
+
+    public function testQuantityParsingRejectsReciprocalZeroScaleBeforeCancellation(): void
+    {
+        $this->expectException(DivisionByZeroError::class);
+
+        self::zeroScaleUnits()->parseQuantity(self::cancellingZeroScaleExpression());
+    }
+
+    public function testEqualsIsAnEquivalenceRelationAcrossDegenerateAndExactUnitSpellings(): void
+    {
+        $units = new Units(UnitRegistryBuilder::default()
+            ->define('zero_meter = 0 * meter')
+            ->alias('nothing_length', 'zero_meter')
+            ->define('third_meter = 1/3 * meter')
+            ->build());
+
+        $quantities = [
+            'zero-scale expression' => ['zero length', $units->quantity(7, '0 * meter')],
+            'zero-scale named unit' => [
+                'zero length',
+                self::quantityWithRuntimeUnit($units, new Rational(-3, 7), 'zero_meter'),
+            ],
+            'zero-scale alias' => ['zero length', self::quantityWithRuntimeUnit($units, 99, 'nothing_length')],
+            'zero meters' => ['zero length', $units->quantity(0, 'meter')],
+            'zero feet' => ['zero length', $units->quantity(0, 'foot')],
+            'exact third in meters' => ['one third length', $units->quantity(new Rational(1, 3), 'meter')],
+            'exact third in centimeters' => [
+                'one third length',
+                $units->quantity(new Rational(100, 3), 'centimeter'),
+            ],
+            'exact third in a custom unit' => [
+                'one third length',
+                self::quantityWithRuntimeUnit($units, 1, 'third_meter'),
+            ],
+            'dimensionless zero expression' => ['dimensionless zero', $units->quantity(5, '0')],
+            'dimensionless canonical zero' => ['dimensionless zero', $units->quantity(0, '1')],
+            'dimensionless scaled zero' => ['dimensionless zero', $units->quantity(-4, '0 * percent')],
+            'zero seconds' => ['zero time', $units->quantity(0, 'second')],
+        ];
+
+        foreach ($quantities as $leftName => [$leftClass, $left]) {
+            foreach ($quantities as $rightName => [$rightClass, $right]) {
+                $this->assertSame(
+                    $leftClass === $rightClass,
+                    $left->equals($right),
+                    $leftName . ' compared with ' . $rightName,
+                );
+            }
+        }
     }
 
     public function testComparisonRejectsDifferentUnitsContexts(): void
@@ -965,5 +1131,30 @@ final class QuantityTest extends TestCase
     private static function unbrandedQuantity(Units $units, int $value, string $unit): Quantity
     {
         return $units->quantity($value, $unit);
+    }
+
+    private static function quantityWithRuntimeUnit(
+        Units $units,
+        int|Rational $value,
+        string $unit,
+    ): Quantity {
+        return $units->quantity($value, $unit);
+    }
+
+    private static function zeroScaleUnits(): Units
+    {
+        return new Units(UnitRegistryBuilder::default()
+            ->define('zero_meter = 0 * meter')
+            ->build());
+    }
+
+    private static function zeroScaleUnitName(): string
+    {
+        return 'zero_meter';
+    }
+
+    private static function cancellingZeroScaleExpression(): string
+    {
+        return 'zero_meter / zero_meter';
     }
 }

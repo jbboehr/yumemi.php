@@ -429,7 +429,7 @@ final class RealWorldFormulaTest extends TestCase
 
         $summit = $units->point(4410, 'meter');
         $trailhead = $units->point(1800, 'meter');
-        $elevation = $summit->difference($trailhead);
+        $elevation = $summit->differenceFrom($trailhead);
 
         $this->assertSame('2610', $elevation->valueToString());
         $this->assertSame('meter', $elevation->unitToString());
@@ -489,7 +489,7 @@ final class RealWorldFormulaTest extends TestCase
 
         $finalTemperature = $units->point(350, 'kelvin');
         $initialTemperature = $units->point(300, 'kelvin');
-        $deltaT = $finalTemperature->difference($initialTemperature);
+        $deltaT = $finalTemperature->differenceFrom($initialTemperature);
 
         $this->assertSame('50', $deltaT->valueToString());
         $this->assertSame('kelvin', $deltaT->unitToString());

@@ -38,6 +38,9 @@ namespace jbboehr\Yumemi\Util;
 
 use jbboehr\Yumemi\Analyzer\ExprComparer;
 use jbboehr\Yumemi\Analyzer\ExprReducer;
+use jbboehr\Yumemi\Analyzer\ExpressionContextResolver;
+use jbboehr\Yumemi\Exception\DivisionByZeroError;
+use jbboehr\Yumemi\Exception\ExceptionInterface;
 use jbboehr\Yumemi\Expr;
 
 /**
@@ -63,10 +66,20 @@ trait MathTrait
 
     public function div(Expr $expr): Expr
     {
-        return ExprReducer::reduce(new Expr\Product([
+        $product = new Expr\Product([
             $this,
             new Expr\Power($expr, -1),
-        ]), guardContext: true);
+        ]);
+        try {
+            ExpressionContextResolver::resolve($product)?->dimension($product);
+        } catch (DivisionByZeroError $exception) {
+            throw $exception;
+        } catch (ExceptionInterface) {
+            // Preserve the established reducer failure category; this pass only
+            // prevents a zero-scale reciprocal from disappearing in cancellation.
+        }
+
+        return ExprReducer::reduce($product, guardContext: true);
     }
 
     public function equals(Expr $expr): bool
@@ -84,6 +97,16 @@ trait MathTrait
 
     public function pow(int $power): Expr
     {
-        return ExprReducer::reduce(new Expr\Power($this, $power), guardContext: true);
+        $expr = new Expr\Power($this, $power);
+        try {
+            ExpressionContextResolver::resolve($expr)?->dimension($expr);
+        } catch (DivisionByZeroError $exception) {
+            throw $exception;
+        } catch (ExceptionInterface) {
+            // Preserve the established reducer failure category; this pass only
+            // prevents a zero-scale reciprocal from disappearing in reduction.
+        }
+
+        return ExprReducer::reduce($expr, guardContext: true);
     }
 }

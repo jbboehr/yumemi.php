@@ -1,0 +1,151 @@
+{
+    "schema": "yumemi.conformance/v1",
+    "quantities": [
+        {
+            "id": "quantity-compatible-values-are-equal",
+            "left": {
+                "value": { "numerator": "1", "denominator": "1" },
+                "unit": "meter"
+            },
+            "right": {
+                "value": { "numerator": "100", "denominator": "1" },
+                "unit": "centimeter"
+            },
+            "expected": true
+        },
+        {
+            "id": "quantity-compatible-values-are-unequal",
+            "left": {
+                "value": { "numerator": "1", "denominator": "1" },
+                "unit": "meter"
+            },
+            "right": {
+                "value": { "numerator": "99", "denominator": "1" },
+                "unit": "centimeter"
+            },
+            "expected": false
+        },
+        {
+            "id": "quantity-incompatible-dimensions-are-unequal",
+            "left": {
+                "value": { "numerator": "1", "denominator": "1" },
+                "unit": "meter"
+            },
+            "right": {
+                "value": { "numerator": "1", "denominator": "1" },
+                "unit": "second"
+            },
+            "expected": false
+        },
+        {
+            "id": "quantity-zero-scale-value-equals-canonical-zero",
+            "left": {
+                "value": { "numerator": "7", "denominator": "1" },
+                "unit": "0 * meter"
+            },
+            "right": {
+                "value": { "numerator": "0", "denominator": "1" },
+                "unit": "meter"
+            },
+            "expected": true
+        },
+        {
+            "id": "quantity-canonical-zero-equals-zero-scale-value",
+            "left": {
+                "value": { "numerator": "0", "denominator": "1" },
+                "unit": "meter"
+            },
+            "right": {
+                "value": { "numerator": "7", "denominator": "1" },
+                "unit": "0 * meter"
+            },
+            "expected": true
+        },
+        {
+            "id": "quantity-dimensionless-zero-scale-equals-canonical-zero",
+            "left": {
+                "value": { "numerator": "5", "denominator": "1" },
+                "unit": "0"
+            },
+            "right": {
+                "value": { "numerator": "0", "denominator": "1" },
+                "unit": "1"
+            },
+            "expected": true
+        },
+        {
+            "id": "quantity-exact-rationals-compare-after-conversion",
+            "left": {
+                "value": { "numerator": "1", "denominator": "3" },
+                "unit": "meter"
+            },
+            "right": {
+                "value": { "numerator": "100", "denominator": "3" },
+                "unit": "centimeter"
+            },
+            "expected": true
+        }
+    ],
+    "points": [
+        {
+            "id": "point-compatible-coordinates-are-equal",
+            "left": {
+                "value": { "numerator": "0", "denominator": "1" },
+                "unit": "celsius"
+            },
+            "right": {
+                "value": { "numerator": "32", "denominator": "1" },
+                "unit": "fahrenheit"
+            },
+            "expected": true
+        },
+        {
+            "id": "point-compatible-coordinates-are-equal-in-reverse",
+            "left": {
+                "value": { "numerator": "32", "denominator": "1" },
+                "unit": "fahrenheit"
+            },
+            "right": {
+                "value": { "numerator": "0", "denominator": "1" },
+                "unit": "celsius"
+            },
+            "expected": true
+        },
+        {
+            "id": "point-exact-rationals-compare-after-affine-conversion",
+            "left": {
+                "value": { "numerator": "1", "denominator": "3" },
+                "unit": "kelvin"
+            },
+            "right": {
+                "value": { "numerator": "-16369", "denominator": "60" },
+                "unit": "celsius"
+            },
+            "expected": true
+        },
+        {
+            "id": "point-compatible-coordinates-are-unequal",
+            "left": {
+                "value": { "numerator": "0", "denominator": "1" },
+                "unit": "celsius"
+            },
+            "right": {
+                "value": { "numerator": "33", "denominator": "1" },
+                "unit": "fahrenheit"
+            },
+            "expected": false
+        },
+        {
+            "id": "point-incompatible-dimensions-are-unequal",
+            "left": {
+                "value": { "numerator": "0", "denominator": "1" },
+                "unit": "celsius"
+            },
+            "right": {
+                "value": { "numerator": "0", "denominator": "1" },
+                "unit": "meter"
+            },
+            "expected": false
+        }
+    ]
+}

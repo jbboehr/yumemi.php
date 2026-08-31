@@ -246,7 +246,7 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $output = $this->analyse('quantity-comparison-invalid.php');
 
         $this->assertStringContainsString('yumemi.invalidQuantityComparison', $output, $output);
-        $this->assertStringContainsString('Found 6 errors', $output, $output);
+        $this->assertStringContainsString('Found 5 errors', $output, $output);
     }
 
     public function testQuantityOperatorsRemainDisabledByDefault(): void

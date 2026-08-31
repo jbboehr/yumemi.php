@@ -16,8 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   unavailable exact integer and terminating-decimal representations; existing `UnexpectedValueException` catches remain
   valid.
 - Direction-explicit `PointQuantity::differenceFrom()` point subtraction with matching branded PHPStan inference;
-  `difference()` remains supported with identical behavior.
-- The stable `yumemi.nativeQuantityComparison` PHPStan diagnostic for native object comparisons involving runtime
+  `difference()` remains available as a compatibility alias.
+- The stable `yumemi.nativeQuantityComparison` PHPStan diagnostic for loose equality and ordering involving runtime
   `Quantity` or `PointQuantity` values.
 - An internal, empty `InternalQuantity` fallback base for `Quantity`, establishing the optional `ext-yumemi` integration
   seam without changing the method API.
@@ -35,12 +35,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- `Quantity::equals()` and `PointQuantity::equals()` now return `false` for incompatible dimensions or registry
+  contexts; PHPStan accepts such calls and infers `false` when incompatibility is statically known.
+- PHPStan now permits strict `===` and `!==` checks involving runtime quantities for deliberate object identity, while
+  continuing to reject loose equality and ordering as non-unit-aware.
 - Supported runtime declarations now expose curated `@throws` metadata for stable, caller-actionable failure categories.
 - Calls to `Units::setDefault()` that would change the process-wide default are rejected from Fibers; configure it
   during synchronous bootstrap, while Fiber code may continue to read the installed context.
 
+### Deprecated
+
+- `PointQuantity::difference()` in favor of direction-explicit `differenceFrom()`.
+
 ### Fixed
 
+- Quantity construction now rejects reciprocal zero-scale unit expressions instead of admitting values whose unit scale
+  is undefined.
 - PHPStan unit-expression parsing now reports exact numeric domain failures, such as division by zero or exponent
   overflow, as invalid unit expressions instead of allowing exceptions to escape analysis.
 - Native parser selection now recognizes conventional boolean environment values and fails closed to the PHP parser for

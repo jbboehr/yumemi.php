@@ -44,6 +44,8 @@ use jbboehr\Yumemi\Quantity;
 use PhpParser\Node\Expr\MethodCall;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\MethodReflection;
+use PHPStan\Type\BooleanType;
+use PHPStan\Type\Constant\ConstantBooleanType;
 use PHPStan\Type\Constant\ConstantIntegerType;
 use PHPStan\Type\DynamicMethodReturnTypeExtension;
 use PHPStan\Type\ErrorType;
@@ -61,8 +63,8 @@ use jbboehr\Yumemi\Util\Exponent;
  * `mul`/`div` combine units via {@see UnitExpressionAlgebra}; `rdiv` inverts the receiver's unit; `pow` raises and
  * `root` extracts exact symbolic powers;
  * `abs`/`neg` keep the left unit; `add`/`sub` accept dimensionally compatible units and keep the left
- * unit; `addWithSameUnit`/`subWithSameUnit` additionally require normalized-equivalent units; comparison
- * methods require compatible dimensions while retaining their native int/bool return types; `to` rebrands
+ * unit; `addWithSameUnit`/`subWithSameUnit` additionally require normalized-equivalent units; ordering methods
+ * require compatible dimensions, while `equals` narrows known incompatibility to `false`; `to` rebrands
  * to each possible statically known target unit; `toPreferred` and `toCompact` deliberately return an unbranded
  * Quantity because their targets depend on runtime application state; `normalize` rebrands to the catalog-normalized
  * form; and `simplify` moves the normalized scale into the magnitude, leaving the normalized unit factors on the type.
@@ -303,14 +305,24 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
         }
 
         $leftUnit = $receiver->getUnitExpression();
+        $hasCompatibleOperand = false;
         foreach ($others as $otherType) {
             $rightUnit = $otherType->getUnitExpression();
             if (!$leftUnit->sameDimension($rightUnit)) {
+                if ($methodName === 'equals') {
+                    continue;
+                }
+
                 return self::incompatibleDimensionError($methodName, $leftUnit, $rightUnit);
             }
+
+            $hasCompatibleOperand = true;
         }
 
-        return null;
+        return match ($methodName) {
+            'equals' => $hasCompatibleOperand ? new BooleanType() : new ConstantBooleanType(false),
+            default => null,
+        };
     }
 
     /**

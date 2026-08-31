@@ -96,14 +96,17 @@ native helper to return an object would be a compatibility break.
 
 Native addition, subtraction, and modulo require definitional equivalence because PHP cannot convert either operand.
 Native `intdiv()` follows quotient unit algebra and truncates only the stored integer magnitude; it does not convert
-either operand. `Quantity` addition, subtraction, and comparison may convert a dimensionally compatible right operand
-into the left operand's unit. Strict `*WithSameUnit()` methods retain the definitional-equivalence rule.
+either operand. `Quantity` addition, subtraction, equality, and ordering may convert a dimensionally compatible right
+operand into the left operand's unit. Strict `*WithSameUnit()` methods retain the definitional-equivalence rule.
 
-`Quantity` and `PointQuantity` comparison semantics live in their named methods. PHP's loose equality and ordering
-operators inspect object state, while strict identity operators compare object identity; neither applies Yumemi's
-compatible-unit conversion. The PHPStan extension therefore rejects those operators when either operand is statically
-known to include a runtime quantity object. Equality and identity checks against a definitely `null` operand remain
-available for nullable-value presence checks.
+`Quantity::equals()` and `PointQuantity::equals()` are total predicates: they convert compatible operands exactly and
+return `false` for incompatible dimensions or registry contexts. Named ordering methods are partial and throw when the
+operands cannot be compared. PHP's loose equality and ordering operators inspect object state without applying Yumemi's
+compatible-unit conversion, so the PHPStan extension rejects them when either operand is statically known to include a
+runtime quantity object. Strict identity remains available for deliberate instance-identity and nullable-presence
+checks; it does not provide semantic quantity equality. Accepted zero-scale units compare through a nonzero canonical
+basis; reciprocal zero-scale unit expressions are rejected during quantity construction because their scale is
+undefined.
 
 **Reason.** `meter` and `foot` measure the same dimension but represent different native magnitudes. Treating
 compatibility as interchangeability would silently calculate the wrong number.

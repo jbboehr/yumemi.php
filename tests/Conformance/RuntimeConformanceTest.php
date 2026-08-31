@@ -82,6 +82,7 @@ final class RuntimeConformanceTest extends TestCase
             'quantitySignificantDecimals',
             'pointSignificantDecimals',
         ],
+        'equalities.json' => ['quantities', 'points'],
         'errors.json' => ['cases'],
     ];
 
@@ -301,7 +302,7 @@ final class RuntimeConformanceTest extends TestCase
         self::assertKeys($case, ['id', 'left', 'right', 'expected', 'equivalent'], $context);
 
         $actual = self::point($case['left'] ?? null, $context . '.left')
-            ->difference(self::point($case['right'] ?? null, $context . '.right'));
+            ->differenceFrom(self::point($case['right'] ?? null, $context . '.right'));
 
         self::assertQuantity($case['expected'] ?? null, $actual, $context . '.expected');
 
@@ -333,6 +334,44 @@ final class RuntimeConformanceTest extends TestCase
         };
 
         self::assertPoint($case['expected'] ?? null, $actual, $context . '.expected');
+    }
+
+    /**
+     * @param array<string, mixed> $case
+     */
+    #[DataProvider('quantityEqualityProvider')]
+    public function testQuantityEqualityConformance(array $case): void
+    {
+        $context = self::context('equalities.json', $case);
+        self::assertKeys($case, ['id', 'left', 'right', 'expected'], $context);
+        $expected = $case['expected'] ?? null;
+        if (!is_bool($expected)) {
+            throw new \UnexpectedValueException($context . '.expected must be a boolean');
+        }
+
+        $actual = self::quantity($case['left'] ?? null, $context . '.left')
+            ->equals(self::quantity($case['right'] ?? null, $context . '.right'));
+
+        self::assertSame($expected, $actual, $context);
+    }
+
+    /**
+     * @param array<string, mixed> $case
+     */
+    #[DataProvider('pointEqualityProvider')]
+    public function testPointEqualityConformance(array $case): void
+    {
+        $context = self::context('equalities.json', $case);
+        self::assertKeys($case, ['id', 'left', 'right', 'expected'], $context);
+        $expected = $case['expected'] ?? null;
+        if (!is_bool($expected)) {
+            throw new \UnexpectedValueException($context . '.expected must be a boolean');
+        }
+
+        $actual = self::point($case['left'] ?? null, $context . '.left')
+            ->equals(self::point($case['right'] ?? null, $context . '.right'));
+
+        self::assertSame($expected, $actual, $context);
     }
 
     /**
@@ -556,6 +595,18 @@ final class RuntimeConformanceTest extends TestCase
     public static function pointTranslationProvider(): iterable
     {
         yield from self::provider('quantities.json', 'pointTranslations');
+    }
+
+    /** @return iterable<string, array{array<string, mixed>}> */
+    public static function quantityEqualityProvider(): iterable
+    {
+        yield from self::provider('equalities.json', 'quantities');
+    }
+
+    /** @return iterable<string, array{array<string, mixed>}> */
+    public static function pointEqualityProvider(): iterable
+    {
+        yield from self::provider('equalities.json', 'points');
     }
 
     /** @return iterable<string, array{array<string, mixed>}> */

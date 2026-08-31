@@ -65,10 +65,6 @@ final class InvalidQuantityComparisonRuleTest extends RuleTestCase
                 13,
             ],
             [
-                'Cannot call Quantity::equals() with dimensionally incompatible units meter (length) and second (time).',
-                14,
-            ],
-            [
                 'Cannot call Quantity::lessThan() with dimensionally incompatible units meter (length) and second (time).',
                 15,
             ],
@@ -83,10 +79,6 @@ final class InvalidQuantityComparisonRuleTest extends RuleTestCase
             [
                 'Cannot call Quantity::greaterThanOrEqualTo() with dimensionally incompatible units meter (length) and second (time).',
                 18,
-            ],
-            [
-                'Cannot call Quantity::equals() with dimensionally incompatible units meter (length) and second (time).',
-                44,
             ],
         ]);
     }

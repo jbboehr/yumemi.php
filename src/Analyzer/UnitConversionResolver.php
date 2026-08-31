@@ -39,6 +39,7 @@ namespace jbboehr\Yumemi\Analyzer;
 use jbboehr\Yumemi\Catalog\AffineDeltaUnitSynthesizer;
 use jbboehr\Yumemi\Catalog\UnitSemantics;
 use jbboehr\Yumemi\Dimension;
+use jbboehr\Yumemi\Exception\DivisionByZeroError;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
 use jbboehr\Yumemi\Exception\LogicException;
 use jbboehr\Yumemi\Exception\NonMultiplicativeConversionException;
@@ -48,6 +49,8 @@ use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
 use jbboehr\Yumemi\Exception\UnsupportedUnitConversionException;
 use jbboehr\Yumemi\Expr;
 use jbboehr\Yumemi\Expr\Constant;
+use jbboehr\Yumemi\Expr\Power;
+use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Parser\Ast;
@@ -214,6 +217,47 @@ final class UnitConversionResolver
         if ($cached !== null) {
             return new ResolvedConversionUnit($expr, $cached[0], $cached[1]);
         }
+
+        $isZeroScale = function (Expr $candidate) use (&$isZeroScale): bool {
+            if ($candidate instanceof Constant) {
+                return $candidate->value->isZero();
+            }
+
+            if ($candidate instanceof Unit) {
+                if ($candidate->definition !== null) {
+                    return $isZeroScale($candidate->definition);
+                }
+
+                if (isset($this->resolving[$candidate->name])) {
+                    return false;
+                }
+
+                $scale = $this->resolveName($candidate->name)->conversion->scale;
+
+                return $scale->isZero();
+            }
+
+            if ($candidate instanceof Product) {
+                $zero = false;
+                foreach ($candidate->factors as $factor) {
+                    $zero = $isZeroScale($factor) || $zero;
+                }
+
+                return $zero;
+            }
+
+            if ($candidate instanceof Power) {
+                $baseIsZero = $isZeroScale($candidate->base);
+                if ($candidate->exponent < 0 && $baseIsZero) {
+                    throw new DivisionByZeroError('Cannot take the reciprocal of a zero-scale unit expression.');
+                }
+
+                return $candidate->exponent !== 0 && $baseIsZero;
+            }
+
+            throw new LogicException('Cannot resolve expression of type ' . $candidate::class);
+        };
+        $isZeroScale($expr);
 
         $normalized = $this->unitNormalizer->normalize($expr);
         $dimension = DimensionResolver::resolveNormalized($normalized, $this->unitRegistry);
