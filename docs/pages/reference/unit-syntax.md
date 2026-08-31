@@ -101,8 +101,10 @@ These operations intentionally answer different questions:
 - `Units::parseQuantity()` folds all explicit constants into one exact magnitude and preserves the remaining symbolic
   unit. Catalog conversion factors are not extracted from named units.
 - `Units::unit()` resolves one catalog unit name, including dynamic prefix decomposition.
-- `Units::format()` parses string input symbolically and formats the supplied spelling without requiring every name to
-  exist in the catalog.
+- `Units::formatText()` parses source text symbolically and formats the supplied spelling without requiring every name
+  to exist in the catalog.
+- `Units::format()` remains a compatibility convenience for either source text or an existing expression; prefer
+  `formatText()` for text and `formatter()->format()` for an `Expr` when the distinction matters.
 - `Units::normalize()` parses and resolves string input, then substitutes derived-unit definitions.
 
 Formatting is therefore not a unit-validation API. Use `parse()`, `parseUnit()`, `parseQuantity()`, `unit()`,

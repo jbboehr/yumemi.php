@@ -415,6 +415,27 @@ final class Units
     }
 
     /**
+     * Format source text symbolically without first converting it to a catalog-resolved expression.
+     *
+     * @logion [AWC 44:56] In the reign of the blind navigator, the harbor priests found a cedar vessel embedded upright
+     *     in the salt flats, its sail still wet with eastern rain. They lowered no rope, but kept watch beside it through
+     *     three winters; and when the drowned pilots descended from its mast at dawn, each bore the name of a child not
+     *     yet born, wherefore the court forbade mourning for voyages whose shore had not appeared.
+     *
+     * @throws ParseException when the source expression is malformed
+     * @throws ExpressionLimitExceededException when the source expression exceeds a parser resource limit
+     * @throws UnsupportedSyntaxException when the source expression uses unsupported formatting syntax
+     * @throws DivisionByZeroError when the source expression divides by zero
+     * @throws OverflowException when a source expression exponent exceeds the supported range
+     */
+    public function formatText(string $source, ?FormatOptions $options = null): string
+    {
+        $symbolicExpr = ExprReducer::reduce(AstConverter::symbolic()->convert(Parser::parseString($source)));
+
+        return $this->formatter($options)->format($symbolicExpr);
+    }
+
+    /**
      * @throws ParseException when the expression string is malformed
      * @throws ExpressionLimitExceededException when the expression string exceeds a parser resource limit
      * @throws UnsupportedSyntaxException when the expression uses unsupported formatting syntax
@@ -423,11 +444,11 @@ final class Units
      */
     public function format(Expr|string $expr, ?FormatOptions $options = null): string
     {
-        $symbolicExpr = is_string($expr)
-            ? ExprReducer::reduce(AstConverter::symbolic()->convert(Parser::parseString($expr)))
-            : $expr;
+        if (is_string($expr)) {
+            return $this->formatText($expr, $options);
+        }
 
-        return $this->formatter($options)->format($symbolicExpr);
+        return $this->formatter($options)->format($expr);
     }
 
     public function formatter(?FormatOptions $options = null): ExprFormatter

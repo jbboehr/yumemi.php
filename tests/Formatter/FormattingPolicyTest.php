@@ -36,11 +36,16 @@
 
 namespace jbboehr\Yumemi\Tests\Formatter;
 
+use jbboehr\Yumemi\Exception\DivisionByZeroError;
+use jbboehr\Yumemi\Exception\OverflowException;
+use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
 use jbboehr\Yumemi\Formatter\DimensionlessStyle;
 use jbboehr\Yumemi\Formatter\DivisionStyle;
 use jbboehr\Yumemi\Formatter\FormatOptions;
 use jbboehr\Yumemi\Formatter\Typography;
 use jbboehr\Yumemi\Formatter\UnitNameStyle;
+use jbboehr\Yumemi\Parser\ExpressionLimitExceededException;
+use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
 use jbboehr\Yumemi\Units;
@@ -80,6 +85,137 @@ final class FormattingPolicyTest extends TestCase
         $this->assertSame('2 * kilometers / second ^ 2', $quantity->format());
         $this->assertSame($quantity->toString(), $quantity->format());
         $this->assertSame($quantity->unitToString(), $quantity->formatUnit());
+    }
+
+    public function testFormatTextPreservesSpellingWithoutCatalogResolution(): void
+    {
+        $units = Units::default();
+        $parsed = $units->parse('feet');
+        $canonicalOptions = new FormatOptions(unitNameStyle: UnitNameStyle::Canonical);
+        $symbolOptions = new FormatOptions(unitNameStyle: UnitNameStyle::Symbol);
+
+        $this->assertSame('feet', $units->formatText('feet'));
+        $this->assertSame('international_foot', $units->formatText('feet', $canonicalOptions));
+        $this->assertSame('ft', $units->formatText('feet', $symbolOptions));
+        $this->assertSame('unknown_widget', $units->formatText('unknown_widget', $canonicalOptions));
+        $this->assertSame('degree_Celsius ^ 2', $units->formatText('degree_Celsius^2'));
+        $this->assertSame('international_foot', $units->formatter()->format($parsed));
+        $this->assertSame($units->format('feet'), $units->formatText('feet'));
+    }
+
+    #[DataProvider('formatOptionsProvider')]
+    public function testFormatEntryPointsRemainEquivalentForEveryPolicy(FormatOptions $options): void
+    {
+        $units = Units::default();
+        $expr = $units->parse('feet / seconds^2');
+
+        foreach (['feet / (unknown_widget * seconds^2)', '1 / 2'] as $source) {
+            $this->assertSame($units->formatText($source, $options), $units->format($source, $options));
+        }
+
+        $this->assertSame($units->formatter($options)->format($expr), $units->format($expr, $options));
+    }
+
+    /**
+     * @return iterable<string, array{FormatOptions}>
+     */
+    public static function formatOptionsProvider(): iterable
+    {
+        foreach (UnitNameStyle::cases() as $unitNameStyle) {
+            foreach (Typography::cases() as $typography) {
+                foreach (DimensionlessStyle::cases() as $dimensionlessStyle) {
+                    foreach (DivisionStyle::cases() as $divisionStyle) {
+                        $label = implode(', ', [
+                            $unitNameStyle->value,
+                            $typography->value,
+                            $dimensionlessStyle->value,
+                            $divisionStyle->value,
+                        ]);
+
+                        yield $label => [new FormatOptions(
+                            unitNameStyle: $unitNameStyle,
+                            typography: $typography,
+                            dimensionlessStyle: $dimensionlessStyle,
+                            divisionStyle: $divisionStyle,
+                        )];
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @param class-string<\Throwable> $expectedException
+     */
+    #[DataProvider('formatTextFailureProvider')]
+    public function testFormatTextPreservesFormattingErrorCategories(
+        string $source,
+        string $expectedException,
+    ): void {
+        $formatTextException = null;
+        $formatException = null;
+
+        try {
+            Units::default()->formatText($source);
+        } catch (\Throwable $exception) {
+            $formatTextException = $exception;
+        }
+
+        try {
+            Units::default()->format($source);
+        } catch (\Throwable $exception) {
+            $formatException = $exception;
+        }
+
+        $this->assertNotNull($formatTextException);
+        $this->assertNotNull($formatException);
+        $this->assertSame($expectedException, $formatTextException::class);
+        $this->assertSame($formatTextException::class, $formatException::class);
+        $this->assertSame($formatTextException->getMessage(), $formatException->getMessage());
+    }
+
+    /**
+     * @return iterable<string, array{string, class-string<\Throwable>}>
+     */
+    public static function formatTextFailureProvider(): iterable
+    {
+        yield 'malformed expression' => ['meter /', ParseException::class];
+        yield 'unsupported syntax' => ['meter + second', UnsupportedSyntaxException::class];
+        yield 'division by zero' => ['1 / 0', DivisionByZeroError::class];
+        yield 'exponent overflow' => ['meter^' . str_repeat('9', 40), OverflowException::class];
+    }
+
+    #[DataProvider('formatTextLimitProvider')]
+    public function testFormatTextPreservesParserLimitMetadata(
+        string $source,
+        string $expectedLimit,
+        int $expectedMaximum,
+        int $expectedObserved,
+    ): void {
+        try {
+            Units::default()->formatText($source);
+            self::fail('Expected the parser resource limit to be exceeded.');
+        } catch (ExpressionLimitExceededException $exception) {
+            $this->assertSame($expectedLimit, $exception->limit);
+            $this->assertSame($expectedMaximum, $exception->maximum);
+            $this->assertSame($expectedObserved, $exception->observed);
+        }
+    }
+
+    /**
+     * @return iterable<string, array{string, string, int, int}>
+     */
+    public static function formatTextLimitProvider(): iterable
+    {
+        yield 'input bytes' => [str_repeat('a', 4097), 'input-bytes', 4096, 4097];
+        yield 'token count' => [implode(' ', array_fill(0, 257, 'a')), 'token-count', 256, 257];
+        yield 'nesting depth' => [
+            str_repeat('(', 65) . 'a' . str_repeat(')', 65),
+            'nesting-depth',
+            64,
+            65,
+        ];
+        yield 'token bytes' => [str_repeat('α', 513), 'token-bytes', 1024, 1026];
     }
 
     #[DataProvider('unitNameStyleProvider')]

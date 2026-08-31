@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Explicit `Units::formatText()` formatting for source text without first converting it to a catalog-resolved `Expr`.
 - `Rational` now implements `Stringable`, using its canonical exact fraction representation for string casts.
 - Typed `Units::quantityFromJson()` and `pointFromJson()` restoration for the documented exact JSON value shapes,
   without invoking native PHP object deserialization.

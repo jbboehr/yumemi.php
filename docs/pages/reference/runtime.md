@@ -625,7 +625,10 @@ model rather than another dimension subclass.
 
 ## Formatting
 
-`Units::format()`, `Quantity::format()`, and `Quantity::formatUnit()` accept immutable `FormatOptions`. Options control:
+Use `Units::formatText()` when you have source text and want the formatter to see its original unit names. Use
+`Units::formatter()->format()` when you already have an `Expr`; that expression may have been catalog-resolved.
+`Units::format()` remains available as a compatibility convenience that accepts either input. These methods, along with
+`Quantity::format()` and `Quantity::formatUnit()`, accept immutable `FormatOptions`. Options control:
 
 - `UnitNameStyle::Preserve`, `Canonical`, or `Symbol` unit names;
 - `Typography::Ascii` or `Unicode` operators and powers;
@@ -655,7 +658,7 @@ $options = FormatOptions::create()
     ->withTypography(Typography::Unicode)
     ->withDivisionStyle(DivisionStyle::NegativePowers);
 
-assert($units->format('kilometers / second^2', $options) === 'km · s⁻²');
+assert($units->formatText('kilometers / second^2', $options) === 'km · s⁻²');
 assert($units->quantity(3, 'kilometers / second^2')->formatUnit($options) === 'km · s⁻²');
 ```
 
@@ -670,8 +673,13 @@ round-trippable when the dimensionless style is `One`. `Word` and `Empty` are pr
 `1/2 * meter / second` becomes `1/2 * meter * second ^ -1` in ASCII. The default `Fraction` style retains the
 denominator.
 
-`Units::format()` parses string input symbolically before rendering, whereas an `Expr` returned by `Units::parse()` has
-already been catalog-resolved. Formatting never recovers source spelling that has already been resolved away.
+`Units::formatText()` parses source text symbolically before rendering. An `Expr` returned by `Units::parse()` has
+already been catalog-resolved, so formatting it through `Units::formatter()` may produce different output. For example,
+source text `feet` remains `feet` under the default preserve policy, while the parsed expression renders as
+`international_foot`. Formatting never recovers source spelling that has already been resolved away.
+
+The string arm of `Units::format()` behaves identically to `formatText()`, and its expression arm behaves identically to
+`formatter()->format()`. Prefer the explicit APIs in new code when the input stage matters.
 
 ## String Forms
 

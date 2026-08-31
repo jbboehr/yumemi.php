@@ -195,7 +195,7 @@ $options = FormatOptions::create()
     ->withUnitNameStyle(UnitNameStyle::Symbol)
     ->withTypography(Typography::Unicode);
 
-assert(Units::default()->format('kilogram * meter / second^2', $options) === 'kg · m / s²');
+assert(Units::default()->formatText('kilogram * meter / second^2', $options) === 'kg · m / s²');
 ```
 
 See [Formatting](reference/runtime.md#formatting) for division styles, dimensionless output, and reusable formatters.
