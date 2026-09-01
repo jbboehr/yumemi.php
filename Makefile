@@ -120,5 +120,4 @@ generate-catalog:
 	bin/generate-udunits2-catalog data/udunits2.php $(UDUNITS_XML_FILES)
 
 src/Parser/Parser.php: src/Parser/grammar.y vendor/mrsuh/php-bison-skeleton/src/php-skel.m4
-	bison -S vendor/mrsuh/php-bison-skeleton/src/php-skel.m4 -o src/Parser/Parser.php src/Parser/grammar.y
-	sed -i 's/__DOLLAR__/$$/g' src/Parser/Parser.php
+	composer generate-parser

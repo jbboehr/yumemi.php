@@ -36,7 +36,6 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
-use jbboehr\Yumemi\Dimension;
 use jbboehr\Yumemi\Number\Rational;
 
 /**
@@ -54,14 +53,6 @@ final class PointUnitExpression
      *     radiance is received; and the morning shall know where to enter.
      */
     public readonly string $displayString;
-
-    /**
-     * @logion [OSD 81:16] Before the marble satellite is given its course, bind a sprig of black pine beneath its
-     *     eastern vane, and let the youngest navigator name the village over which it shall first pass. If the pine
-     *     remain green after ascent, appoint the vessel to keep the hours of harvest, and the farmers shall look upward
-     *     without bowing.
-     */
-    public readonly Dimension $dimension;
 
     /**
      * @logion [OSD 43:75] Strike the silver oar once against the quay before departure. If the harbor answer from
@@ -84,12 +75,10 @@ final class PointUnitExpression
      */
     public function __construct(
         string $displayString,
-        Dimension $dimension,
         UnitExpression $deltaUnit,
         Rational $canonicalOrigin,
     ) {
         $this->displayString = $displayString;
-        $this->dimension = $dimension;
         $this->deltaUnit = $deltaUnit;
         $this->canonicalOrigin = $canonicalOrigin;
     }
@@ -112,6 +101,6 @@ final class PointUnitExpression
      */
     public function sameDimension(self $other): bool
     {
-        return $this->dimension->equals($other->dimension);
+        return $this->deltaUnit->sameDimension($other->deltaUnit);
     }
 }

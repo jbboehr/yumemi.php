@@ -74,7 +74,7 @@ final class UnitExpressionParserTest extends TestCase
         $this->assertTrue($result->isOk());
         $expression = $result->expression();
         $this->assertSame('celsius', $expression->displayString);
-        $this->assertSame('temperature', $expression->dimension->toString());
+        $this->assertSame('temperature', $expression->deltaUnit->dimension->toString());
         $this->assertSame('delta_degree_Celsius', $expression->deltaUnit->displayString);
         $this->assertSame('5463/20', $expression->canonicalOrigin->toString());
     }

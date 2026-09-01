@@ -37,6 +37,7 @@
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
 use PHPStan\Testing\TypeInferenceTestCase;
+use Symfony\Component\Process\Process;
 
 // The @yumemi-return functions must exist in the process for native function reflection to resolve
 // them: TypeInferenceTestCase does not index functions declared in the analysed data fixture.
@@ -173,25 +174,20 @@ NEON;
             $phpstan = realpath(__DIR__ . '/../../vendor/bin/phpstan');
             $this->assertNotFalse($phpstan);
 
-            $command = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($phpstan)
-                . ' analyse --no-ansi --no-progress --memory-limit=512M --error-format=table '
-                . escapeshellarg('-c') . ' ' . escapeshellarg($config)
-                . ' 2>&1';
+            $process = new Process([
+                PHP_BINARY,
+                $phpstan,
+                'analyse',
+                '--no-ansi',
+                '--no-progress',
+                '--memory-limit=512M',
+                '--error-format=table',
+                '-c',
+                $config,
+            ], env: ['GITHUB_ACTIONS' => false], timeout: null);
+            $process->run();
 
-            $githubActions = getenv('GITHUB_ACTIONS');
-            putenv('GITHUB_ACTIONS');
-
-            try {
-                $output = shell_exec($command);
-            } finally {
-                if ($githubActions === false) {
-                    putenv('GITHUB_ACTIONS');
-                } else {
-                    putenv('GITHUB_ACTIONS=' . $githubActions);
-                }
-            }
-
-            return is_string($output) ? $output : '';
+            return $process->getOutput() . $process->getErrorOutput();
         } finally {
             @unlink($config);
             @unlink($temporaryFile);

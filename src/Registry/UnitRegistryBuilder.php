@@ -83,8 +83,6 @@ final class UnitRegistryBuilder
      */
     private array $records = [];
 
-    private bool $includeUdunits2 = false;
-
     /**
      * @logion [AWC 53:98] Under the porcelain dynasty, the judges veiled the public sundial, declaring that grief had
      *     delayed the commerce of the court. Thereafter noon entered the city unseen: treaties aged in an hour, infants
@@ -114,7 +112,6 @@ final class UnitRegistryBuilder
     public static function default(?string $udunits2DataFile = null): self
     {
         $builder = new self();
-        $builder->includeUdunits2 = true;
         $builder->includeYumemiSupplement = true;
         $builder->udunits2DataFile = $udunits2DataFile ?? Udunits2UnitRegistry::DATA_FILE;
 
@@ -128,7 +125,6 @@ final class UnitRegistryBuilder
      */
     public function includeUdunits2(?string $dataFile = null): self
     {
-        $this->includeUdunits2 = true;
         $this->udunits2DataFile = $dataFile ?? Udunits2UnitRegistry::DATA_FILE;
 
         return $this;
@@ -277,10 +273,10 @@ final class UnitRegistryBuilder
 
     public function build(): UnitRegistry
     {
-        $base = $this->includeUdunits2
+        $base = $this->udunits2DataFile !== null
             ? ($this->includeYumemiSupplement
-                ? UnitRegistry::bundled($this->udunits2DataFile ?? Udunits2UnitRegistry::DATA_FILE)
-                : new Udunits2UnitRegistry($this->udunits2DataFile ?? Udunits2UnitRegistry::DATA_FILE))
+                ? UnitRegistry::bundled($this->udunits2DataFile)
+                : new Udunits2UnitRegistry($this->udunits2DataFile))
             : null;
         $records = $this->materializeSemantics($base);
         $records += AffineDeltaUnitSynthesizer::synthesize(

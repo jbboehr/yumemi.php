@@ -286,12 +286,12 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
         $pointUnit = $receiver->getPointUnitExpression();
         foreach ($others as $otherType) {
             $deltaUnit = $otherType->getUnitExpression();
-            if (!$pointUnit->dimension->equals($deltaUnit->dimension)) {
+            if (!$pointUnit->deltaUnit->sameDimension($deltaUnit)) {
                 return new ErrorType(sprintf(
                     'Cannot call PointQuantity::%s() with point unit %s (%s) and delta unit %s (%s).',
                     $methodName,
                     $pointUnit->displayString,
-                    $pointUnit->dimension->toString(),
+                    $pointUnit->deltaUnit->dimension->toString(),
                     $deltaUnit->displayString,
                     $deltaUnit->dimension->toString(),
                 ));
@@ -470,9 +470,9 @@ final class PointQuantityMethodReturnTypeExtension implements DynamicMethodRetur
             'Cannot call PointQuantity::%s() with dimensionally incompatible point units %s (%s) and %s (%s).',
             $methodName,
             $left->displayString,
-            $left->dimension->toString(),
+            $left->deltaUnit->dimension->toString(),
             $right->displayString,
-            $right->dimension->toString(),
+            $right->deltaUnit->dimension->toString(),
         ));
     }
 }

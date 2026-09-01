@@ -139,7 +139,6 @@ final class UnitExpressionParser
 
             return PointUnitExpressionParseResult::ok(new PointUnitExpression(
                 $point->unit(),
-                $point->dimension(),
                 $deltaUnit,
                 $this->units->convert(0, $point->unit(), $canonicalUnit),
             ));

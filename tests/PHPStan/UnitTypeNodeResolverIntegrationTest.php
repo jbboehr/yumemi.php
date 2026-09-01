@@ -38,6 +38,7 @@ namespace jbboehr\Yumemi\Tests\PHPStan;
 
 use jbboehr\Yumemi\Tests\PHPStan\Fixtures\ConfiguredUnitRegistryFactory;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Process\Process;
 
 /**
  * Integration: run PHPStan on fixture files with the Yumemi extension loaded.
@@ -312,7 +313,6 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $this->assertNotFalse($temporaryFile);
         $config = $temporaryFile . '.neon';
         $cache = PhpStanProcessCache::directory();
-        $stderr = $temporaryFile . '.stderr';
 
         try {
             $this->assertTrue(rename($temporaryFile, $config));
@@ -357,29 +357,24 @@ NEON;
             $phpstan = realpath(__DIR__ . '/../../vendor/bin/phpstan');
             $this->assertNotFalse($phpstan);
 
-            $command = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($phpstan)
-                . ' analyse --no-ansi --no-progress --memory-limit=512M --error-format '
-                . escapeshellarg($errorFormat) . ' '
-                . escapeshellarg('-c') . ' ' . escapeshellarg($config)
-                . ($errorFormat === 'json' ? ' 2>' . escapeshellarg($stderr) : ' 2>&1');
+            $process = new Process([
+                PHP_BINARY,
+                $phpstan,
+                'analyse',
+                '--no-ansi',
+                '--no-progress',
+                '--memory-limit=512M',
+                '--error-format',
+                $errorFormat,
+                '-c',
+                $config,
+            ], env: ['GITHUB_ACTIONS' => false], timeout: null);
+            $process->run();
 
-            $githubActions = getenv('GITHUB_ACTIONS');
-            putenv('GITHUB_ACTIONS');
-
-            try {
-                $output = shell_exec($command);
-            } finally {
-                if ($githubActions === false) {
-                    putenv('GITHUB_ACTIONS');
-                } else {
-                    putenv('GITHUB_ACTIONS=' . $githubActions);
-                }
-            }
-
-            return is_string($output) ? $output : '';
+            return $process->getOutput()
+                . ($errorFormat === 'json' ? '' : $process->getErrorOutput());
         } finally {
             @unlink($config);
-            @unlink($stderr);
             @unlink($temporaryFile);
         }
     }
