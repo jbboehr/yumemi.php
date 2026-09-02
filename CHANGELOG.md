@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+These changes are planned for 0.2.0 because they change behavior documented in 0.1. See
+[Upgrade From 0.1](docs/pages/getting-started.md#upgrade-from-01) before upgrading.
+
 ### Added
 
 - Explicit `Units::formatText()` formatting for source text without first converting it to a catalog-resolved `Expr`.
@@ -20,9 +23,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   `difference()` remains available as a compatibility alias.
 - The stable `yumemi.nativeQuantityComparison` PHPStan diagnostic for loose equality and ordering involving runtime
   `Quantity` or `PointQuantity` values.
-- An internal, empty `InternalQuantity` fallback base for `Quantity`, establishing the optional `ext-yumemi` integration
-  seam without changing the method API.
-- An opt-in integration suite that verifies `ext-yumemi` operators against the canonical `Quantity` methods.
 - Exact `Quantity::rdiv()` scalar-over-quantity division, including reciprocal-unit PHPStan inference.
 - Optional `ext-yumemi` exponentiation and scalar-left division syntax backed by `Quantity::pow()` and `rdiv()`.
 - Composer package metadata suggesting the optional `ext-yumemi` companion for `Quantity` operator syntax and native
@@ -37,9 +37,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - `Quantity::equals()` and `PointQuantity::equals()` now return `false` for incompatible dimensions or registry
-  contexts; PHPStan accepts such calls and infers `false` when incompatibility is statically known.
-- PHPStan now permits strict `===` and `!==` checks involving runtime quantities for deliberate object identity, while
-  continuing to reject loose equality and ordering as non-unit-aware.
+  contexts. Callers that require incompatibility to throw can use `compareTo() === 0` instead. PHPStan accepts equality
+  calls and infers `false` when incompatibility is statically known.
+- Existing loose equality and ordering expressions involving runtime quantities now report
+  `yumemi.nativeQuantityComparison`. Replace them with `equals()` or the named ordering methods. Strict `===` and `!==`
+  remain available for deliberate object identity.
 - Supported runtime declarations now expose curated `@throws` metadata for stable, caller-actionable failure categories.
 - Calls to `Units::setDefault()` that would change the process-wide default are rejected from Fibers; configure it
   during synchronous bootstrap, while Fiber code may continue to read the installed context.

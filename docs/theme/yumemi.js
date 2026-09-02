@@ -11,6 +11,7 @@
         ],
         "getting-started.html": [
             { id: "installation", title: "Installation" },
+            { id: "upgrade-from-01", title: "Upgrade From 0.1" },
             { id: "verify-static-analysis", title: "Verify Static Analysis" },
             { id: "runtime-conversion", title: "Runtime Conversion" },
         ],
