@@ -12,6 +12,11 @@ final class NativeParser
         throw new \LogicException('Analysis-only ext-yumemi stub.');
     }
 
+    public static function supports(int $abiVersion): bool
+    {
+        throw new \LogicException('Analysis-only ext-yumemi stub.');
+    }
+
     /** @return array<string, mixed> */
     public static function parse(string $input): array
     {

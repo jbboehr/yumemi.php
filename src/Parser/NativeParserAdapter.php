@@ -69,7 +69,7 @@ final class NativeParserAdapter
 
         $nativeParser = new \ReflectionClass(NativeParser::class);
 
-        return $nativeParser->getConstant('ABI_VERSION') === 1 && NativeParser::isCompatible();
+        return $nativeParser->hasMethod('supports') && NativeParser::supports(1);
     }
 
     /**

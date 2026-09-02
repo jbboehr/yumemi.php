@@ -45,6 +45,9 @@ These changes are planned for 0.2.0 because they change behavior documented in 0
 - Supported runtime declarations now expose curated `@throws` metadata for stable, caller-actionable failure categories.
 - Calls to `Units::setDefault()` that would change the process-wide default are rejected from Fibers; configure it
   during synchronous bootstrap, while Fiber code may continue to read the installed context.
+- Native parser selection now uses the extension's atomic ABI check and no longer rejects its committed Unicode
+  classification snapshot solely because PHP reports a different runtime PCRE version. Older extension builds without
+  the atomic check use the PHP parser fallback.
 
 ### Deprecated
 

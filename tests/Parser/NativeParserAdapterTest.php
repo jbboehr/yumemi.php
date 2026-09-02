@@ -79,7 +79,72 @@ final class NativeParserAdapterTest extends TestCase
         self::assertSame('fallback_without_extension', $ast->identifier);
     }
 
-    public function testFallsBackWhenTheNativeAbiDoesNotMatch(): void
+    public function testFallsBackWhenTheAtomicCompatibilityCheckIsMissing(): void
+    {
+        eval(<<<'PHP'
+            namespace jbboehr\Yumemi\Parser;
+
+            final class NativeParser
+            {
+                public const ABI_VERSION = 1;
+
+                public static function isCompatible(): bool
+                {
+                    return true;
+                }
+
+                /** @return array<string, mixed> */
+                public static function parse(string $input): array
+                {
+                    throw new \LogicException('A legacy backend must not be called.');
+                }
+            }
+            PHP);
+
+        self::assertFalse(NativeParserAdapter::isAvailable());
+        self::assertSame('fallback_legacy_extension', Parser::parseString('fallback_legacy_extension')->toString());
+    }
+
+    public function testUsesTheAtomicCompatibilityCheck(): void
+    {
+        eval(<<<'PHP'
+            namespace jbboehr\Yumemi\Parser;
+
+            final class NativeParser
+            {
+                public const ABI_VERSION = 1;
+
+                public static function isCompatible(): bool
+                {
+                    throw new \LogicException('The legacy compatibility hook must not be queried.');
+                }
+
+                public static function supports(int $abiVersion): bool
+                {
+                    return $abiVersion === 1;
+                }
+
+                /** @return array<string, mixed> */
+                public static function parse(string $input): array
+                {
+                    return [
+                        'kind' => 'identifier',
+                        'start' => 0,
+                        'end' => strlen($input),
+                        'text' => 'atomic_compatibility_result',
+                    ];
+                }
+            }
+
+            final class NativeParseException extends \RuntimeException {}
+            final class NativeLimitException extends \LengthException {}
+            PHP);
+
+        self::assertTrue(NativeParserAdapter::isAvailable());
+        self::assertSame('atomic_compatibility_result', Parser::parseString('atomic_compatibility_probe')->toString());
+    }
+
+    public function testFallsBackWhenTheAtomicCompatibilityCheckRejectsTheAbi(): void
     {
         eval(<<<'PHP'
             namespace jbboehr\Yumemi\Parser;
@@ -88,9 +153,9 @@ final class NativeParserAdapterTest extends TestCase
             {
                 public const ABI_VERSION = 2;
 
-                public static function isCompatible(): bool
+                public static function supports(int $abiVersion): bool
                 {
-                    throw new \LogicException('The incompatible backend must not be queried.');
+                    return $abiVersion === self::ABI_VERSION;
                 }
 
                 /** @return array<string, mixed> */
@@ -105,32 +170,6 @@ final class NativeParserAdapterTest extends TestCase
         self::assertSame('fallback_wrong_abi', Parser::parseString('fallback_wrong_abi')->toString());
     }
 
-    public function testFallsBackWhenTheNativeAbiHasTheWrongType(): void
-    {
-        eval(<<<'PHP'
-            namespace jbboehr\Yumemi\Parser;
-
-            final class NativeParser
-            {
-                public const ABI_VERSION = '1';
-
-                public static function isCompatible(): bool
-                {
-                    throw new \LogicException('A loosely matching ABI must not be queried.');
-                }
-
-                /** @return array<string, mixed> */
-                public static function parse(string $input): array
-                {
-                    throw new \LogicException('A loosely matching ABI must not be called.');
-                }
-            }
-            PHP);
-
-        self::assertFalse(NativeParserAdapter::isAvailable());
-        self::assertSame('fallback_string_abi', Parser::parseString('fallback_string_abi')->toString());
-    }
-
     public function testEnvironmentFlagUsesConventionalBooleanValuesAndFailsClosed(): void
     {
         eval(<<<'PHP'
@@ -140,9 +179,9 @@ final class NativeParserAdapterTest extends TestCase
             {
                 public const ABI_VERSION = 1;
 
-                public static function isCompatible(): bool
+                public static function supports(int $abiVersion): bool
                 {
-                    return true;
+                    return $abiVersion === 1;
                 }
 
                 /** @return array<string, mixed> */
@@ -205,9 +244,9 @@ final class NativeParserAdapterTest extends TestCase
             {
                 public const ABI_VERSION = 1;
 
-                public static function isCompatible(): bool
+                public static function supports(int $abiVersion): bool
                 {
-                    return true;
+                    return $abiVersion === 1;
                 }
 
                 /** @return array<string, mixed> */
@@ -265,32 +304,6 @@ final class NativeParserAdapterTest extends TestCase
         }
     }
 
-    public function testFallsBackWhenTheNativeLexerIsIncompatible(): void
-    {
-        eval(<<<'PHP'
-            namespace jbboehr\Yumemi\Parser;
-
-            final class NativeParser
-            {
-                public const ABI_VERSION = 1;
-
-                public static function isCompatible(): bool
-                {
-                    return false;
-                }
-
-                /** @return array<string, mixed> */
-                public static function parse(string $input): array
-                {
-                    throw new \LogicException('The incompatible backend must not be called.');
-                }
-            }
-            PHP);
-
-        self::assertFalse(NativeParserAdapter::isAvailable());
-        self::assertSame('fallback_incompatible', Parser::parseString('fallback_incompatible')->toString());
-    }
-
     public function testSelectsACompatibleNativeBackendAndAdaptsItsAst(): void
     {
         eval(<<<'PHP'
@@ -300,9 +313,9 @@ final class NativeParserAdapterTest extends TestCase
             {
                 public const ABI_VERSION = 1;
 
-                public static function isCompatible(): bool
+                public static function supports(int $abiVersion): bool
                 {
-                    return true;
+                    return $abiVersion === 1;
                 }
 
                 /** @return array<string, mixed> */
@@ -380,9 +393,9 @@ final class NativeParserAdapterTest extends TestCase
             {
                 public const ABI_VERSION = 1;
 
-                public static function isCompatible(): bool
+                public static function supports(int $abiVersion): bool
                 {
-                    return true;
+                    return $abiVersion === 1;
                 }
 
                 /** @return array<string, mixed> */
@@ -450,9 +463,9 @@ final class NativeParserAdapterTest extends TestCase
             {
                 public const ABI_VERSION = 1;
 
-                public static function isCompatible(): bool
+                public static function supports(int $abiVersion): bool
                 {
-                    return true;
+                    return $abiVersion === 1;
                 }
 
                 /** @return array<string, mixed> */
@@ -510,9 +523,9 @@ final class NativeParserAdapterTest extends TestCase
             {
                 public const ABI_VERSION = 1;
 
-                public static function isCompatible(): bool
+                public static function supports(int $abiVersion): bool
                 {
-                    return true;
+                    return $abiVersion === 1;
                 }
 
                 /** @return array<string, mixed> */
@@ -546,9 +559,9 @@ final class NativeParserAdapterTest extends TestCase
             {
                 public const ABI_VERSION = 1;
 
-                public static function isCompatible(): bool
+                public static function supports(int $abiVersion): bool
                 {
-                    return true;
+                    return $abiVersion === 1;
                 }
 
                 /** @return array<string, mixed> */
@@ -607,9 +620,9 @@ final class NativeParserAdapterTest extends TestCase
             {
                 public const ABI_VERSION = 1;
 
-                public static function isCompatible(): bool
+                public static function supports(int $abiVersion): bool
                 {
-                    return true;
+                    return $abiVersion === 1;
                 }
 
                 /** @return array<string, mixed> */
@@ -655,9 +668,9 @@ final class NativeParserAdapterTest extends TestCase
             {
                 public const ABI_VERSION = 1;
 
-                public static function isCompatible(): bool
+                public static function supports(int $abiVersion): bool
                 {
-                    return true;
+                    return $abiVersion === 1;
                 }
 
                 /** @return array<string, mixed> */
@@ -741,9 +754,9 @@ final class NativeParserAdapterTest extends TestCase
             {
                 public const ABI_VERSION = 1;
 
-                public static function isCompatible(): bool
+                public static function supports(int $abiVersion): bool
                 {
-                    return true;
+                    return $abiVersion === 1;
                 }
 
                 /** @return array<string, mixed> */
@@ -783,9 +796,9 @@ final class NativeParserAdapterTest extends TestCase
             {
                 public const ABI_VERSION = 1;
 
-                public static function isCompatible(): bool
+                public static function supports(int $abiVersion): bool
                 {
-                    return true;
+                    return $abiVersion === 1;
                 }
 
                 /** @return array<string, mixed> */
@@ -822,9 +835,9 @@ final class NativeParserAdapterTest extends TestCase
             {
                 public const ABI_VERSION = 1;
 
-                public static function isCompatible(): bool
+                public static function supports(int $abiVersion): bool
                 {
-                    return true;
+                    return $abiVersion === 1;
                 }
 
                 /** @return array<string, mixed> */
@@ -890,9 +903,9 @@ final class NativeParserAdapterTest extends TestCase
             {
                 public const ABI_VERSION = 1;
 
-                public static function isCompatible(): bool
+                public static function supports(int $abiVersion): bool
                 {
-                    return true;
+                    return $abiVersion === 1;
                 }
 
                 /** @return array<string, mixed> */

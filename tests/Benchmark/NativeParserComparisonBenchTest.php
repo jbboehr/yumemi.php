@@ -54,9 +54,9 @@ final class NativeParserComparisonBenchTest extends TestCase
             {
                 public const ABI_VERSION = 1;
 
-                public static function isCompatible(): bool
+                public static function supports(int $abiVersion): bool
                 {
-                    return true;
+                    return $abiVersion === 1;
                 }
 
                 /** @return array<string, int|string> */

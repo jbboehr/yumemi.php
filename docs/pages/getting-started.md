@@ -47,18 +47,18 @@ Yumemi 0.2 keeps the supported 0.1 declarations source-compatible and can still 
 data written by 0.1. It changes some runtime and PHPStan behavior. Check these patterns before changing the Composer
 constraint from `^0.1`:
 
-| In 0.1 code... | Change for 0.2 |
-| --- | --- |
-| Relying on `equals()` to throw for incompatible units | Use `compareTo() === 0` if incompatibility should still throw. `equals()` now returns `false` for incompatible operands. |
-| Comparing `Quantity` or `PointQuantity` with `==`, `!=`, `<`, `<=`, `>`, or `>=` | Use `equals()` or the named ordering methods. PHPStan now reports `yumemi.nativeQuantityComparison`. Strict identity remains available through `===` and `!==`. |
-| Changing the default with `Units::setDefault()` inside a Fiber | Set the default during synchronous bootstrap. To use another registry inside a Fiber, keep its `Units` instance and call methods on it. Changing the default from a Fiber now throws. |
-| Calling `$destination->difference($origin)` | Prefer the direction-explicit `$destination->differenceFrom($origin)`. `difference()` remains as a deprecated compatibility alias. |
-| Passing a resolved `Expr` to a semantic method on another `Units` instance | Obtain or parse the expression through the `Units` instance that will use it. Cross-context and expired-context semantic operations now throw. Structural equality and formatting still work across contexts. |
+| In 0.1 code...                                                                   | Change for 0.2                                                                                                                                                                                                |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Relying on `equals()` to throw for incompatible units                            | Use `compareTo() === 0` if incompatibility should still throw. `equals()` now returns `false` for incompatible operands.                                                                                      |
+| Comparing `Quantity` or `PointQuantity` with `==`, `!=`, `<`, `<=`, `>`, or `>=` | Use `equals()` or the named ordering methods. PHPStan now reports `yumemi.nativeQuantityComparison`. Strict identity remains available through `===` and `!==`.                                               |
+| Changing the default with `Units::setDefault()` inside a Fiber                   | Set the default during synchronous bootstrap. To use another registry inside a Fiber, keep its `Units` instance and call methods on it. Changing the default from a Fiber now throws.                         |
+| Calling `$destination->difference($origin)`                                      | Prefer the direction-explicit `$destination->differenceFrom($origin)`. `difference()` remains as a deprecated compatibility alias.                                                                            |
+| Passing a resolved `Expr` to a semantic method on another `Units` instance       | Obtain or parse the expression through the `Units` instance that will use it. Cross-context and expired-context semantic operations now throw. Structural equality and formatting still work across contexts. |
 
 Values serialized by PHP from tagged 0.1 releases remain readable. The documented JSON shapes have not changed, and
 `Units::quantityFromJson()` and `pointFromJson()` provide typed restoration through the receiving registry. The optional
-`ext-yumemi` companion provides native parsing and operator syntax. The method APIs and generated PHP parser work without
-it.
+`ext-yumemi` companion provides native parsing and operator syntax. The method APIs and generated PHP parser work
+without it.
 
 ## Verify Static Analysis
 

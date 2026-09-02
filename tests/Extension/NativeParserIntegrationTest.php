@@ -54,6 +54,8 @@ final class NativeParserIntegrationTest extends TestCase
         self::assertTrue(extension_loaded('yumemi'));
         self::assertTrue(NativeParserAdapter::isAvailable());
         self::assertSame(1, \jbboehr\Yumemi\Parser\NativeParser::ABI_VERSION);
+        self::assertTrue(\jbboehr\Yumemi\Parser\NativeParser::supports(1));
+        self::assertFalse(\jbboehr\Yumemi\Parser\NativeParser::supports(0));
         self::assertTrue(\jbboehr\Yumemi\Parser\NativeParser::isCompatible());
     }
 

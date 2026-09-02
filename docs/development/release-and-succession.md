@@ -52,7 +52,7 @@ Yumemi releases do not require an `ext-yumemi` release. The method API and gener
 baseline, and the primary PHPUnit and consumer gates must continue to run without the extension.
 
 When a release changes `InternalQuantity`, operator delegation, native parser selection, ABI expectations, Unicode
-compatibility, or fallback behavior:
+classification, or fallback behavior:
 
 1. implement and review the corresponding change in its owning repository;
 2. update the locked `php-yumemi` flake input to the exact extension release candidate;

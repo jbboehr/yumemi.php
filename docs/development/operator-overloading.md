@@ -132,8 +132,8 @@ Non-goals:
 
 The later native lexer/parser does not change these operator boundaries. It returns a neutral syntax tree through an
 internal, versioned ABI and performs no unit lookup, normalization, conversion, registry access, or `Quantity`
-construction. Yumemi selects it only when the ABI and Unicode compatibility gate match, adapts its results into the
-existing PHP AST and exception contracts, and otherwise retains the generated PHP lexer/parser automatically.
+construction. Yumemi selects it only when its atomic compatibility check accepts the expected ABI, adapts its results
+into the existing PHP AST and exception contracts, and otherwise retains the generated PHP lexer/parser automatically.
 
 ## Handler Behavior
 

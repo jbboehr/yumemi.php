@@ -51,12 +51,11 @@ make benchmark-native-parser \
 
 The paired subjects run both parsers with the same extension-loaded PHP configuration over simple, compound, and nested
 Unicode expressions. They compare syntax-only parsing and parsing followed by catalog resolution and reduction. Both
-paths bypass the process-local AST cache; the native path includes the ABI and Unicode compatibility gate used on a real
-cache miss. The parse-and-resolve subjects create a fresh resolver for every measured revolution so catalog lookups are
-not satisfied by its process-local cache; the immutable catalog registry is prepared outside the timing window. Setup
-verifies that both backends produce equal AST classes, exact lexemes, tree shapes, and source spans before any timing is
-accepted. Existing warm parsing subjects remain the evidence for cache-hit behavior, which returns before backend
-selection.
+paths bypass the process-local AST cache; the native path includes the atomic ABI check used on a real cache miss. The
+parse-and-resolve subjects create a fresh resolver for every measured revolution so catalog lookups are not satisfied by
+its process-local cache; the immutable catalog registry is prepared outside the timing window. Setup verifies that both
+backends produce equal AST classes, exact lexemes, tree shapes, and source spans before any timing is accepted. Existing
+warm parsing subjects remain the evidence for cache-hit behavior, which returns before backend selection.
 
 ## PHPStan Analysis
 

@@ -71,7 +71,9 @@ categories by meaning; internal invariant failures remain implementation details
 
 When a compatible `ext-yumemi` parser ABI is loaded, Yumemi automatically uses it for syntax parsing while retaining the
 generated PHP parser as its grammar authority and fallback. Both paths produce the same AST, source-span, exception, and
-resource-limit contracts; unit resolution and arithmetic remain in PHP.
+resource-limit contracts; unit resolution and arithmetic remain in PHP. The native lexer uses a committed Unicode
+classification snapshot, while the PHP lexer uses the PCRE version loaded by PHP. Rare identifier code points added or
+reclassified between those Unicode data versions can therefore tokenize differently.
 
 Set `YUMEMI_NATIVE_PARSER` to `0`, `false`, `off`, `no`, or an empty string in the process environment to force the PHP
 parser even when the extension is loaded. Values are case-insensitive. Leave the variable unset, or set it to `1`,
