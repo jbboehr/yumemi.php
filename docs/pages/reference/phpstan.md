@@ -634,6 +634,7 @@ The inferred operations mirror the runtime handler:
 
 | Expression                                   | Accepted operands                       | Inferred unit                                  |
 | -------------------------------------------- | --------------------------------------- | ---------------------------------------------- |
+| `+$quantity`, `-$quantity`                   | one quantity                            | the quantity's unit                            |
 | `$left + $right`, `$left - $right`           | two dimensionally compatible quantities | the left quantity's unit                       |
 | `$left * $right`                             | two quantities                          | the product of their units                     |
 | `$left / $right`                             | two quantities                          | the quotient of their units                    |
@@ -650,9 +651,13 @@ the supported exponent range produce PHPStan's standard `binaryOp.invalid` diagn
 $distance = $units->quantity(100, 'meter');
 $duration = $units->quantity(10, 'second');
 
+$remaining = -$distance; // Quantity<'meter'>
 $speed = $distance / $duration; // Quantity<'meter / second'>
 $total = $distance + $units->quantity(3, 'foot'); // Quantity<'meter'>
 ```
+
+At runtime, the companion extension implements unary plus and minus through `mul(1)` and `mul(-1)`. They therefore
+retain the same concrete quantity type, symbolic unit, and registry context as the corresponding method calls.
 
 The extension models current unit-sensitive methods, including:
 

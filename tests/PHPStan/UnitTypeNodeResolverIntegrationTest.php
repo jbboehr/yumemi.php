@@ -255,7 +255,7 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $output = $this->analyse('quantity-operators-default.php');
 
         $this->assertStringContainsString('binaryOp.invalid', $output, $output);
-        $this->assertStringContainsString('[ERROR] Found 1 error', $output, $output);
+        $this->assertStringContainsString('[ERROR] Found 3 errors', $output, $output);
     }
 
     public function testInvalidOptInQuantityOperatorsUseTheStandardBinaryOperationDiagnostic(): void

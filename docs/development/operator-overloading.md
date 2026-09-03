@@ -87,8 +87,12 @@ The extension's object handler delegates operators to those methods:
 | `*`          | `ZEND_MUL`  | `mul()`         |
 | `/`          | `ZEND_DIV`  | `div()`         |
 | `**`         | `ZEND_POW`  | `pow()`         |
+| unary `+`    | `ZEND_MUL`  | `mul(1)`        |
+| unary `-`    | `ZEND_MUL`  | `mul(-1)`       |
 
-For scalar-left division, `ZEND_DIV` delegates to `rdiv()` on the right-hand quantity instead of `div()`.
+For scalar-left division, `ZEND_DIV` delegates to `rdiv()` on the right-hand quantity instead of `div()`. Zend lowers
+unary signs through multiplication on the supported PHP versions, so the handler reaches the same `mul()` method without
+a separate unary callback.
 
 This keeps one semantic implementation: the PHP methods. The C extension should not duplicate unit arithmetic rules.
 
@@ -422,12 +426,12 @@ The `InternalQuantity` base-class plan is the selected optional operator-overloa
 - pure PHP remains the source of truth
 - Composer users are not forced to compile anything
 - extension users get natural arithmetic syntax while comparison remains method-based
-- PHPStan supports the extension's opt-in arithmetic surface while rejecting native object comparison as a substitute
-  for the named methods
+- PHPStan supports the extension's opt-in arithmetic surface, including unary signs, while rejecting native object
+  comparison as a substitute for the named methods
 
 The handler and real `Quantity` integration are now empirical, committed tests rather than an architectural assumption.
-The integration matrix covers named variables, reversed source order, helper-return and expression temporaries, compound
-assignment, deliberately non-alphabetical symbolic factors, shared-registry/different-context failures, and
-different-registry failures. Receiver reordering is therefore a resolved semantic question rather than a release
-blocker. Release packaging is now qualified without making the extension a pure-PHP package dependency; only the first
-tag, Packagist indexing of that tag, and clean paired-install verification remain.
+The integration matrix covers unary signs, named variables, reversed source order, helper-return and expression
+temporaries, compound assignment, deliberately non-alphabetical symbolic factors, shared-registry/different-context
+failures, and different-registry failures. Receiver reordering is therefore a resolved semantic question rather than a
+release blocker. Release packaging is now qualified without making the extension a pure-PHP package dependency; only the
+first tag, Packagist indexing of that tag, and clean paired-install verification remain.

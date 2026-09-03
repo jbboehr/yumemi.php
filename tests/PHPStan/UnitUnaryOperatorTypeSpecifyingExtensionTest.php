@@ -36,6 +36,9 @@
 
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
+use jbboehr\Yumemi\PointQuantity;
+use jbboehr\Yumemi\Quantity;
+use jbboehr\Yumemi\PHPStan\QuantityType;
 use jbboehr\Yumemi\PHPStan\UnitExpressionParser;
 use jbboehr\Yumemi\PHPStan\UnitConstantFloatType;
 use jbboehr\Yumemi\PHPStan\UnitFloatType;
@@ -45,6 +48,8 @@ use jbboehr\Yumemi\PHPStan\UnitUnaryOperatorTypeSpecifyingExtension;
 use PHPStan\Type\BenevolentUnionType;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\IntegerType;
+use PHPStan\Type\ObjectType;
+use PHPStan\Type\UnionType;
 use PHPStan\Type\VerbosityLevel;
 use PHPUnit\Framework\TestCase;
 
@@ -65,6 +70,40 @@ final class UnitUnaryOperatorTypeSpecifyingExtensionTest extends TestCase
         $this->assertTrue($this->extension->isOperatorSupported('+', $meters));
         $this->assertFalse($this->extension->isOperatorSupported('~', $meters));
         $this->assertFalse($this->extension->isOperatorSupported('-', new IntegerType()));
+    }
+
+    public function testQuantityOperatorsRemainDisabledByDefault(): void
+    {
+        $meters = $this->quantity('meter');
+
+        $this->assertFalse($this->extension->isOperatorSupported('+', $meters));
+        $this->assertFalse($this->extension->isOperatorSupported('-', $meters));
+    }
+
+    public function testOptInUnarySignsPreserveBrandedAndUnbrandedQuantities(): void
+    {
+        $extension = new UnitUnaryOperatorTypeSpecifyingExtension(quantityOperators: true);
+        $meters = $this->quantity('meter');
+        $quantity = new ObjectType(Quantity::class);
+
+        foreach (['+', '-'] as $operator) {
+            $this->assertTrue($extension->isOperatorSupported($operator, $meters));
+            $this->assertSame($meters, $extension->specifyType($operator, $meters));
+            $this->assertTrue($extension->isOperatorSupported($operator, $quantity));
+            $this->assertSame($quantity, $extension->specifyType($operator, $quantity));
+        }
+    }
+
+    public function testOptInDoesNotClaimMixedObjectUnions(): void
+    {
+        $extension = new UnitUnaryOperatorTypeSpecifyingExtension(quantityOperators: true);
+        $operand = new UnionType([
+            $this->quantity('meter'),
+            new ObjectType(PointQuantity::class),
+        ]);
+
+        $this->assertFalse($extension->isOperatorSupported('+', $operand));
+        $this->assertFalse($extension->isOperatorSupported('-', $operand));
     }
 
     public function testDirectSpecificationRejectsAnUnbrandedOperand(): void
@@ -158,6 +197,14 @@ final class UnitUnaryOperatorTypeSpecifyingExtensionTest extends TestCase
         $this->assertTrue($parsed->isOk(), $parsed->errorMessage() ?? '');
 
         return new UnitIntegerType($parsed->expression());
+    }
+
+    private function quantity(string $unit): QuantityType
+    {
+        $parsed = (new UnitExpressionParser())->parse($unit);
+        $this->assertTrue($parsed->isOk(), $parsed->errorMessage() ?? '');
+
+        return new QuantityType($parsed->expression());
     }
 
     private function unitFloat(string $unit): UnitFloatType

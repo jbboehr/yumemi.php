@@ -109,6 +109,34 @@ final class OperatorIntegrationTest extends TestCase
         self::assertSameQuantity($meters->rdiv($rational), $rationalLeftCompound);
     }
 
+    public function testQuantityUnaryOperatorsDelegateToScalarMultiplication(): void
+    {
+        $units = self::multiplicationUnits();
+        $quantity = $units->quantity(new Rational(3, 2), 'zeta_factor');
+
+        self::assertSameQuantity($quantity->mul(1), +$quantity, 'named unary plus');
+        self::assertSameQuantity($quantity->mul(-1), -$quantity, 'named unary minus');
+        self::assertSameQuantity(
+            $quantity->mul(-1)->mul(-1),
+            -(-$quantity),
+            'nested unary minus',
+        );
+        self::assertSameQuantity(
+            self::makeQuantity($units, 2, 'zeta_factor')->mul(1),
+            +self::makeQuantity($units, 2, 'zeta_factor'),
+            'temporary unary plus',
+        );
+        self::assertSameQuantity(
+            self::makeQuantity($units, 2, 'zeta_factor')->mul(-1),
+            -self::makeQuantity($units, 2, 'zeta_factor'),
+            'temporary unary minus',
+        );
+
+        self::assertSame('3/2', $quantity->valueToString());
+        self::assertSame('zeta_factor', $quantity->unitToString());
+        self::assertSame($units, $quantity->units());
+    }
+
     public function testCompoundAssignmentsMatchCanonicalMethodsWithoutMutatingPriorValues(): void
     {
         $units = Units::default();

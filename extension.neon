@@ -70,6 +70,7 @@ services:
         class: jbboehr\Yumemi\PHPStan\UnitUnaryOperatorTypeSpecifyingExtension
         arguments:
             integerOverflowToFloat: %yumemi.integerOverflowToFloat%
+            quantityOperators: %yumemi.quantityOperators%
         tags:
             - phpstan.broker.unaryOperatorTypeSpecifyingExtension
     -

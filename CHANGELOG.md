@@ -29,8 +29,9 @@ These changes are planned for 0.2.0 because they change behavior documented in 0
   unit-expression parsing.
 - Automatic syntax parsing through a compatible `ext-yumemi` parser ABI, with the generated PHP parser retained as a
   fallback and `YUMEMI_NATIVE_PARSER=0` as a process-level opt-out.
-- Opt-in PHPStan inference for `ext-yumemi` `Quantity` operators through `yumemi-operators.neon`, including compatible
-  addition and subtraction, unit algebra, scalar multiplication and division, reciprocal division, and integer powers.
+- Opt-in PHPStan inference for `ext-yumemi` `Quantity` operators through `yumemi-operators.neon`, including unary signs,
+  compatible addition and subtraction, unit algebra, scalar multiplication and division, reciprocal division, and
+  integer powers.
 - `IncompatibleExpressionContextException`, with nullable process-local `leftContextId` and `rightContextId` metadata
   identifying the expression contexts involved when they remain available.
 

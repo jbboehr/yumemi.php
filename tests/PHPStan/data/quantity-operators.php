@@ -14,6 +14,8 @@ $rational = new Rational(3, 2);
 
 assertType("Quantity<'meter'>", $meters + $feet);
 assertType("Quantity<'meter'>", $meters - $feet);
+assertType("Quantity<'meter'>", +$meters);
+assertType("Quantity<'meter'>", -$meters);
 
 assertType("Quantity<'meter * second'>", $meters * $seconds);
 assertType("Quantity<'meter / second'>", $meters / $seconds);
@@ -68,6 +70,8 @@ assertType("Quantity<'1 / meter'>", $rationalLeftQuotient);
  */
 function inspectQuantityOperatorUnion(Quantity $length, Quantity $seconds): void
 {
+    assertType("Quantity<'international_foot'>|Quantity<'meter'>", +$length);
+    assertType("Quantity<'international_foot'>|Quantity<'meter'>", -$length);
     assertType("Quantity<'international_foot'>|Quantity<'meter'>", $length + $length);
     assertType("Quantity<'international_foot * second'>|Quantity<'meter * second'>", $length * $seconds);
 }
@@ -80,6 +84,8 @@ function inspectDynamicQuantityPower(Quantity $meters, int $power): void
 
 function inspectUnbrandedQuantityOperators(Quantity $quantity): void
 {
+    assertType(Quantity::class, +$quantity);
+    assertType(Quantity::class, -$quantity);
     assertType(Quantity::class, $quantity * 2);
     assertType(Quantity::class, 2 / $quantity);
 }

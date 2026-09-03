@@ -36,19 +36,28 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
+use jbboehr\Yumemi\Quantity;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\Type;
 use PHPStan\Type\UnaryOperatorTypeSpecifyingExtension;
 
 /**
- * Infers types for unary + / - on unit_int and unit_float.
+ * Infers types for unary + / - on native unit types and optional Quantity operators.
  *
- * Both keep the same unit; integer negation may overflow to float at runtime.
+ * Every supported operand keeps the same unit; integer negation may overflow to float at runtime.
  * @internal
  */
 final class UnitUnaryOperatorTypeSpecifyingExtension implements UnaryOperatorTypeSpecifyingExtension
 {
     private const SUPPORTED = ['+', '-'];
+
+    /**
+     * @logion [AWC 6:54] In the reign of the amber prefect, the coast road burned each night though the sea had
+     *     swallowed every traveler. The widows set empty tables along its luminous verge and named no dead; but in the
+     *     thirteenth winter, headlights appeared beneath the waves, and the lost returned bearing salt-white maps of
+     *     provinces not yet founded.
+     */
+    private readonly bool $quantityOperators;
 
     /**
      * @logion [RAS 70:15] Above the salt monastery, a million night moths assembled into the likeness of an absent
@@ -58,7 +67,9 @@ final class UnitUnaryOperatorTypeSpecifyingExtension implements UnaryOperatorTyp
      */
     public function __construct(
         private readonly bool $integerOverflowToFloat = true,
+        bool $quantityOperators = false,
     ) {
+        $this->quantityOperators = $quantityOperators;
     }
 
     public function isOperatorSupported(string $operatorSigil, Type $operand): bool
@@ -67,12 +78,22 @@ final class UnitUnaryOperatorTypeSpecifyingExtension implements UnaryOperatorTyp
             return false;
         }
 
-        return UnitFloatType::extract($operand) !== null || UnitIntegerTypeHelper::extract($operand) !== null;
+        return UnitFloatType::extract($operand) !== null
+            || UnitIntegerTypeHelper::extract($operand) !== null
+            || ($this->quantityOperators && $operand->getObjectClassNames() === [Quantity::class]);
     }
 
     public function specifyType(string $operatorSigil, Type $operand): Type
     {
         try {
+            if (
+                $this->quantityOperators
+                && in_array($operatorSigil, self::SUPPORTED, true)
+                && $operand->getObjectClassNames() === [Quantity::class]
+            ) {
+                return $operand;
+            }
+
             $integer = UnitIntegerTypeHelper::extract($operand);
             $float = UnitFloatType::extract($operand);
             if ($integer === null && $float === null) {
