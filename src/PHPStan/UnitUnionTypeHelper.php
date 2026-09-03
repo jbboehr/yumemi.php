@@ -39,6 +39,7 @@ namespace jbboehr\Yumemi\PHPStan;
 use PHPStan\Type\BenevolentUnionType;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
+use PHPStan\Type\TypeUtils;
 use PHPStan\Type\UnionType;
 
 /**
@@ -79,10 +80,6 @@ final class UnitUnionTypeHelper
     public static function combineMapped(array $results, Type ...$sources): Type
     {
         $result = TypeCombinator::union(...$results);
-        if (!$result instanceof UnionType) {
-            return $result;
-        }
-
         $hasBenevolentSource = false;
         $hasOrdinaryUnionSource = false;
         foreach ($sources as $source) {
@@ -94,15 +91,9 @@ final class UnitUnionTypeHelper
         }
 
         if ($hasOrdinaryUnionSource) {
-            return $result instanceof BenevolentUnionType
-                ? new UnionType($result->getTypes())
-                : $result;
+            return TypeUtils::toStrictUnion($result);
         }
 
-        if ($hasBenevolentSource && !$result instanceof BenevolentUnionType) {
-            return new BenevolentUnionType($result->getTypes());
-        }
-
-        return $result;
+        return $hasBenevolentSource ? TypeUtils::toBenevolentUnion($result) : $result;
     }
 }

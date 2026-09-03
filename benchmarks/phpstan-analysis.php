@@ -39,6 +39,7 @@ declare(strict_types=1);
 namespace jbboehr\Yumemi\Benchmarks;
 
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Process\Process;
 
 const PHPSTAN_WORKLOADS = [
     'baseline',
@@ -89,9 +90,7 @@ function main(array $options): int
     $temporaryRoot = sys_get_temp_dir() . '/yumemi-phpstan-benchmark-' . bin2hex(random_bytes(6));
     $filesystem = new Filesystem();
 
-    if (!mkdir($temporaryRoot, 0700, true) && !is_dir($temporaryRoot)) {
-        throw new \RuntimeException(sprintf('Unable to create benchmark directory %s.', $temporaryRoot));
-    }
+    $filesystem->mkdir($temporaryRoot, 0700);
 
     printf(
         "PHPStan analysis benchmark: %d cases, %d measured iteration%s, %d warmup\n",
@@ -106,12 +105,13 @@ function main(array $options): int
     try {
         foreach ($workloads as $workload) {
             $fixture = $temporaryRoot . '/' . $workload . '.php';
-            writeFile($fixture, renderWorkload($workload, $cases));
+            $filesystem->dumpFile($fixture, renderWorkload($workload, $cases));
 
             $samples = [];
             for ($iteration = -$warmup; $iteration < $iterations; ++$iteration) {
                 $run = $workload . '-' . ($iteration < 0 ? 'warmup-' . abs($iteration) : $iteration + 1);
                 $configuration = writeConfiguration(
+                    $filesystem,
                     $root,
                     $temporaryRoot,
                     $run,
@@ -627,6 +627,7 @@ PHP;
 }
 
 function writeConfiguration(
+    Filesystem $filesystem,
     string $root,
     string $temporaryRoot,
     string $run,
@@ -644,7 +645,7 @@ function writeConfiguration(
         array_map(static fn (string $include): string => '    - ' . $include, $includes),
     ) . "\n";
     $cache = neonString($temporaryRoot . '/cache-' . $run);
-    writeFile($configuration, <<<NEON
+    $filesystem->dumpFile($configuration, <<<NEON
 {$includeBlock}parameters:
     level: max
     tmpDir: {$cache}
@@ -669,36 +670,17 @@ function analyseFixture(string $root, string $configuration, string $fixture): f
         '--error-format=raw',
         $fixture,
     ];
-    $stdoutPath = $configuration . '.stdout';
-    $stderrPath = $configuration . '.stderr';
-    // proc_open() requires the output argument even though these descriptors write directly to files.
-    $pipes = [];
+    $process = new Process($command, cwd: $root, timeout: null);
     $started = hrtime(true);
-    $process = proc_open(
-        $command,
-        [
-            1 => ['file', $stdoutPath, 'w'],
-            2 => ['file', $stderrPath, 'w'],
-        ],
-        $pipes,
-        $root,
-    );
-    if (!is_resource($process)) {
-        throw new \RuntimeException('Unable to start PHPStan.');
-    }
-
-    $status = proc_close($process);
+    $status = $process->run();
     $elapsed = (hrtime(true) - $started) / 1_000_000_000;
 
     if ($status !== 0) {
-        $stdout = file_get_contents($stdoutPath);
-        $stderr = file_get_contents($stderrPath);
-
         throw new \RuntimeException(sprintf(
             "PHPStan benchmark analysis failed with status %d.\n%s%s",
             $status,
-            $stdout === false ? '' : $stdout,
-            $stderr === false ? '' : $stderr,
+            $process->getOutput(),
+            $process->getErrorOutput(),
         ));
     }
 
@@ -716,13 +698,6 @@ function median(array $samples): float
     return count($samples) % 2 === 1
         ? $samples[$middle]
         : ($samples[$middle - 1] + $samples[$middle]) / 2;
-}
-
-function writeFile(string $path, string $contents): void
-{
-    if (file_put_contents($path, $contents) === false) {
-        throw new \RuntimeException(sprintf('Unable to write benchmark file %s.', $path));
-    }
 }
 
 /** @var array<string, false|string|list<string>> $options */
