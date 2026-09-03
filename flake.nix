@@ -359,6 +359,7 @@
               actionlint
               agent-badge.packages.${system}.default
               bison
+              lychee
               mdbook
               php
               php.packages.composer
@@ -537,6 +538,7 @@
             name = "documentation";
             extraNativeBuildInputs = [
               pkgs.gnumake
+              pkgs.lychee
               pkgs.mdbook
             ];
             command = "composer docs:check";

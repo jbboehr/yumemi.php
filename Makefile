@@ -65,7 +65,7 @@ docs:
 	mdbook build docs
 
 docs-check: docs
-	php tests/Documentation/check-generated-links.php build/docs
+	bash tests/Documentation/check-generated-links build/docs
 
 docs-serve:
 	mdbook serve docs --hostname 127.0.0.1

@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+
+# +--------------------------------------------------------------------------------------------------------------+
+# |        *                 .                         *                  .                         *            |
+# |   .              *                      .                    *                      .                        |
+# |             .                 .                  *                         .                 *               |
+# -      *                    .             *                    .                         .                     -
+#
+#                               Iudex Mensurarum Mysticarum『夢見』〜ＹＵＭＥＭＩ〜
+#
+# -                                          .----------------.                                                  -
+# |                                      .--'        __        '--.                                              |
+# |                                  .--'          .'  '.          '--.                                          |
+# |                             .---'            .'      '.            '---.                                     |
+# +--------------------------------------------------------------------------------------------------------------+
+#
+# Copyright (c) anno Domini nostri Jesu Christi MMXXVI, John Boehr & contributors
+#
+# SPDX-License-Identifier: AGPL-3.0-only WITH romic-exception
+
+set -euo pipefail
+
+if [[ $# -ne 1 ]]; then
+    echo "Usage: $0 GENERATED-DOCUMENTATION-DIRECTORY" >&2
+    exit 2
+fi
+
+root=$(cd "$1" && pwd -P)
+if ! find "$root" -type f -name '*.html' -print -quit | grep -q .; then
+    echo "Generated documentation directory contains no HTML files." >&2
+    exit 1
+fi
+
+input="$root/**/*.html"
+options=(
+    --offline
+    --include-fragments=anchor-only
+    --index-files index.html
+    --root-dir "$root"
+    --exclude '^file:.*/yumemi\.php/?$'
+    --no-progress
+)
+
+lychee "${options[@]}" "$input"
+# The single-quoted program must reach PHP without shell expansion.
+# shellcheck disable=SC2016
+lychee --dump "${options[@]}" "$input" | php -r '
+$root = $argv[1];
+$failed = false;
+
+foreach (file("php://stdin", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $url) {
+    if (!str_starts_with($url, "file://")) {
+        continue;
+    }
+
+    $path = parse_url($url, PHP_URL_PATH);
+    $target = is_string($path) ? realpath(rawurldecode($path)) : false;
+    if ($target === $root || (is_string($target) && str_starts_with($target, $root . DIRECTORY_SEPARATOR))) {
+        continue;
+    }
+
+    fwrite(STDERR, "Generated documentation link resolves outside the generated documentation: $url\n");
+    $failed = true;
+}
+
+exit($failed ? 1 : 0);
+' "$root"

@@ -33,24 +33,27 @@ and release-style consumer archive.
 
 ### Choosing checks
 
-| Change or task                    | Command                                                      | Additional requirements                  |
-| --------------------------------- | ------------------------------------------------------------ | ---------------------------------------- |
-| Ordinary code or test change      | `composer check`                                             | PHP, required extensions, and Composer   |
-| Focused PHPUnit iteration         | `composer test -- tests/Parser`                              | None beyond installed dependencies       |
-| Parallel local test suite         | `composer test:parallel`                                     | None beyond installed dependencies       |
-| One PHPStan rule test             | `composer test -- tests/PHPStan/InvalidUnitCallRuleTest.php` | None beyond installed dependencies       |
-| Static-analysis-only iteration    | `composer analyse`                                           | None beyond installed dependencies       |
-| Documentation build and links     | `composer docs:check`                                        | mdBook                                   |
-| Benchmarks                        | `composer benchmark:smoke`                                   | None beyond installed dependencies       |
-| Package or extension registration | `composer test:consumer:archive`                             | Network access for the isolated consumer |
-| Complete non-Nix verification     | `composer check:full`                                        | mdBook and consumer network access       |
-| Reproducible normal validation    | `nix flake check --keep-going -L`                            | Nix                                      |
+| Change or task                    | Command                                                      | Additional requirements                   |
+| --------------------------------- | ------------------------------------------------------------ | ----------------------------------------- |
+| Ordinary code or test change      | `composer check`                                             | PHP, required extensions, and Composer    |
+| Focused PHPUnit iteration         | `composer test -- tests/Parser`                              | None beyond installed dependencies        |
+| Parallel local test suite         | `composer test:parallel`                                     | None beyond installed dependencies        |
+| One PHPStan rule test             | `composer test -- tests/PHPStan/InvalidUnitCallRuleTest.php` | None beyond installed dependencies        |
+| Static-analysis-only iteration    | `composer analyse`                                           | None beyond installed dependencies        |
+| Documentation build and links     | `composer docs:check`                                        | mdBook and Lychee 0.24.1                  |
+| Benchmarks                        | `composer benchmark:smoke`                                   | None beyond installed dependencies        |
+| Package or extension registration | `composer test:consumer:archive`                             | Network access for the isolated consumer  |
+| Complete non-Nix verification     | `composer check:full`                                        | mdBook, Lychee 0.24.1, and network access |
+| Reproducible normal validation    | `nix flake check --keep-going -L`                            | Nix                                       |
 
 `nix flake check --keep-going -L` runs the normal validation suite as independent derivations: PHPUnit on every
 supported PHP version, PHPStan, php-cs-fixer, lint and Composer validation, documentation and formatting checks,
 generated-artifact verification, benchmark discovery, and isolated consumer tests. Nix is not required for focused local
 iteration; `nix develop` supplies the pinned toolchain while leaving the working tree's ordinary mutable `vendor/`
 directory under Composer's control.
+
+`nix develop` supplies mdBook and the pinned Lychee build. For non-Nix documentation checks, install both executables on
+`PATH`; the supported Lychee CLI version is 0.24.1.
 
 Mutation testing is intentionally absent from `nix flake check`. The exhaustive Nix GitHub workflow builds the explicit
 `mutation-runtime` and `mutation-phpstan` packages; a local Nix user may run both with:

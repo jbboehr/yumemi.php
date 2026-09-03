@@ -79,9 +79,9 @@ composer check:bc
 ```
 
 `composer check:full` covers Composer validation, whitespace, formatting, PHPStan, PHPUnit, documentation, benchmark
-discovery, and a release-style Composer archive consumer. It requires mdBook and network access for the isolated
-consumer installation, but not Nix. `composer check:bc` installs its isolated checker dependencies and compares the
-committed release candidate with the latest stable tag; it does not inspect uncommitted changes. The audit fails on
+discovery, and a release-style Composer archive consumer. It requires mdBook, Lychee 0.24.1, and network access for the
+isolated consumer installation, but not Nix. `composer check:bc` installs its isolated checker dependencies and compares
+the committed release candidate with the latest stable tag; it does not inspect uncommitted changes. The audit fails on
 security advisories while reporting, rather than failing on, abandoned development tooling; review every reported
 abandonment before release.
 
