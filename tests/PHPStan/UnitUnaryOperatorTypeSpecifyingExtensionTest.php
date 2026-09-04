@@ -39,6 +39,7 @@ namespace jbboehr\Yumemi\Tests\PHPStan;
 use jbboehr\Yumemi\PointQuantity;
 use jbboehr\Yumemi\Quantity;
 use jbboehr\Yumemi\PHPStan\QuantityType;
+use jbboehr\Yumemi\PHPStan\UnitExpression;
 use jbboehr\Yumemi\PHPStan\UnitExpressionParser;
 use jbboehr\Yumemi\PHPStan\UnitConstantFloatType;
 use jbboehr\Yumemi\PHPStan\UnitFloatType;
@@ -193,25 +194,24 @@ final class UnitUnaryOperatorTypeSpecifyingExtensionTest extends TestCase
 
     private function unitInt(string $unit): UnitIntegerType
     {
-        $parsed = (new UnitExpressionParser())->parse($unit);
-        $this->assertTrue($parsed->isOk(), $parsed->errorMessage() ?? '');
-
-        return new UnitIntegerType($parsed->expression());
+        return new UnitIntegerType($this->unit($unit));
     }
 
     private function quantity(string $unit): QuantityType
     {
-        $parsed = (new UnitExpressionParser())->parse($unit);
-        $this->assertTrue($parsed->isOk(), $parsed->errorMessage() ?? '');
-
-        return new QuantityType($parsed->expression());
+        return new QuantityType($this->unit($unit));
     }
 
     private function unitFloat(string $unit): UnitFloatType
     {
+        return new UnitFloatType($this->unit($unit));
+    }
+
+    private function unit(string $unit): UnitExpression
+    {
         $parsed = (new UnitExpressionParser())->parse($unit);
         $this->assertTrue($parsed->isOk(), $parsed->errorMessage() ?? '');
 
-        return new UnitFloatType($parsed->expression());
+        return $parsed->expression();
     }
 }
