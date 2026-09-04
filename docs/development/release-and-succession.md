@@ -63,7 +63,7 @@ classification, or fallback behavior:
 The extension repository owns its native implementation, build and platform support, PIE installation, and ABI release
 notes. Yumemi owns application semantics, PHPStan configuration, parser fallback, and migration guidance. The
 extension's
-[current status and platform envelope](https://github.com/jbboehr/php-yumemi/blob/develop/README.md#status-and-platforms)
+[current status and platform envelope](https://github.com/jbboehr/php-yumemi/blob/develop/docs/RELEASE.md#platform-envelope)
 distinguish the published Linux PIE target from native source-build qualifications. Do not broaden Yumemi's own platform
 promise merely because an extension source-build job passes elsewhere.
 
