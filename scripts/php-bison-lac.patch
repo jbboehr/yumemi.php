@@ -1,0 +1,84 @@
+--- a/lalr1.php
++++ b/lalr1.php
+@@ -1001,7 +1001,9 @@
+       // Clear it, to get rid of potential left-overs from previous call.
+       $this->yylacStack = [];
+       // Reduce until we encounter a shift and thereby accept the token.
++]b4_parse_trace_if([[
+       $this->yycdebugNnl("LAC: checking lookahead " . $yytoken->getName() . ":");
++]])[
+       $lacTop = 0;
+       while (true)
+         {
+@@ -1010,13 +1012,15 @@
+                           : $this->yylacStack[count($this->yylacStack) - 1]);
+           $yyrule = $this->yypact[$topState];
+           if ($this->yyPactValueIsDefault($yyrule)
+-              || ($yyrule += $this->yytoken->getCode()) < 0 || ]b4_parser_class[::YYLAST < $yyrule
+-              || $this->yycheck[$yyrule] !== $this->yytoken->getCode())
++              || ($yyrule += $yytoken->getCode()) < 0 || ]b4_parser_class[::YYLAST < $yyrule
++              || $this->yycheck[$yyrule] !== $yytoken->getCode())
+             {
+               // Use the default action.
+               $yyrule = $this->yydefact[+$topState];
+               if ($yyrule === 0) {
++]b4_parse_trace_if([[
+                 $this->yycdebug(" Err");
++]])[
+                 return false;
+               }
+             }
+@@ -1025,17 +1029,23 @@
+               // Use the action from yytable.
+               $yyrule = $this->yytable[$yyrule];
+               if ($this->yyTableValueIsError($yyrule)) {
++]b4_parse_trace_if([[
+                 $this->yycdebug(" Err");
++]])[
+                 return false;
+               }
+               if (0 < $yyrule) {
++]b4_parse_trace_if([[
+                 $this->yycdebug(" S" . $yyrule);
++]])[
+                 return true;
+               }
+               $yyrule = -$yyrule;
+             }
+           // By now we know we have to simulate a reduce.
++]b4_parse_trace_if([[
+           $this->yycdebugNnl(" R" . ($yyrule - 1));
++]])[
+           // Pop the corresponding number of values from the stack.
+           {
+             $yylen = $this->yyr2[$yyrule];
+@@ -1060,7 +1070,9 @@
+                       : $this->yylacStack[count($this->yylacStack) - 1]);
+           // Push the resulting state of the reduction.
+           $state = $this->yyLRGotoState($topState, $this->yyr1[$yyrule]);
++]b4_parse_trace_if([[
+           $this->yycdebugNnl(" G" . $state);
++]])[
+           $this->yylacStack[] = $state;
+         }
+     }
+@@ -1095,7 +1107,9 @@
+       if ($this->yylacEstablished) {
+         return true;
+       } else {
++]b4_parse_trace_if([[
+         $this->yycdebug("LAC: initial context established for " . $yytoken->getName());
++]])[
+         $this->yylacEstablished = true;
+         return $this->yylacCheck($yystack, $yytoken);
+       }
+@@ -1117,7 +1131,9 @@
+         current lookahead is syntactically acceptable.  If it fails to find
+         such a context, it discards the lookahead.  */
+       if ($this->yylacEstablished) {
++]b4_parse_trace_if([[
+         $this->yycdebug("LAC: initial context discarded due to " . $event);
++]])[
+         $this->yylacEstablished = false;
+       }
+     }

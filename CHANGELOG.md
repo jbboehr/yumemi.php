@@ -56,6 +56,8 @@ These changes are planned for 0.2.0 because they change behavior documented in 0
 
 ### Fixed
 
+- Parser diagnostics now account for all valid continuations, including operators inside an unfinished group. This
+  corrects expected-token wording while preserving exception types and source spans.
 - PHPStan now preserves all result units when `Quantity::mul()` or `div()` receives a quantity/scalar union, and accepts
   accurate union return declarations; operands with unknown quantity units retain an unbranded result.
 - Quantity construction now rejects reciprocal zero-scale unit expressions instead of admitting values whose unit scale

@@ -66,6 +66,7 @@
             "/phpunit.branch.xml.dist",
             "/phpunit.xml.dist",
             "/result*",
+            "/scripts",
             "/secrets",
             "/src/Catalog/PhpCatalogExporter.php",
             "/src/Catalog/Udunits2CatalogImporter.php",
@@ -160,10 +161,7 @@
         "docs:serve": "make docs-serve",
         "probator:unit-parser": "make probator-unit-parser",
         "generate-catalog": "make generate-catalog",
-        "generate-parser": [
-            "bison -S vendor/mrsuh/php-bison-skeleton/src/php-skel.m4 -o src/Parser/Parser.php src/Parser/grammar.y",
-            "sed -i \"s/__DOLLAR__/$/g\" src/Parser/Parser.php"
-        ],
+        "generate-parser": "scripts/generate-parser.sh",
         "infection": "infection --no-progress",
         "infection:ci": "infection --no-progress --min-msi=86 --min-covered-msi=86",
         "infection:core": "infection --no-progress --filter=src/Number/Rational.php,src/Dimension.php,src/Analyzer",
