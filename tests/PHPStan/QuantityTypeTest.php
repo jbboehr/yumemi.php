@@ -40,8 +40,10 @@ use jbboehr\Yumemi\PHPStan\QuantityType;
 use jbboehr\Yumemi\PHPStan\UnitExpressionParser;
 use jbboehr\Yumemi\Quantity;
 use PHPStan\Testing\PHPStanTestCase;
+use PHPStan\Type\BenevolentUnionType;
 use PHPStan\Type\IntegerType;
 use PHPStan\Type\ObjectType;
+use PHPStan\Type\UnionType;
 use PHPStan\Type\VerbosityLevel;
 
 /**
@@ -95,6 +97,24 @@ final class QuantityTypeTest extends PHPStanTestCase
         $this->assertTrue($accepts->no());
         $this->assertStringContainsString('keep the unit annotation', implode("\n", $accepts->reasons));
         $this->assertTrue($meters->isSuperTypeOf($plain)->no());
+    }
+
+    public function testOverlappingUnionIsNotAnUnbrandedQuantity(): void
+    {
+        $meters = $this->quantity('meter');
+        $union = new UnionType([$meters, $this->quantity('second')]);
+
+        $this->assertTrue($meters->accepts($union, true)->maybe());
+        $this->assertTrue($meters->isSuperTypeOf($union)->maybe());
+    }
+
+    public function testOverlappingBenevolentUnionIsNotAnUnbrandedQuantity(): void
+    {
+        $meters = $this->quantity('meter');
+        $union = new BenevolentUnionType([$meters, $this->quantity('second')]);
+
+        $this->assertTrue($meters->accepts($union, true)->yes());
+        $this->assertTrue($meters->isSuperTypeOf($union)->maybe());
     }
 
     public function testBrandedQuantityIsAssignableToUnbranded(): void

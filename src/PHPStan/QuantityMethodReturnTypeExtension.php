@@ -40,6 +40,7 @@ use jbboehr\Yumemi\Analyzer\NormalizedExpr;
 use jbboehr\Yumemi\Exception\ExceptionInterface;
 use jbboehr\Yumemi\Exception\UnsupportedUnitCompactionException;
 use jbboehr\Yumemi\Expr\Unit;
+use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Quantity;
 use PhpParser\Node\Expr\MethodCall;
 use PHPStan\Analyser\Scope;
@@ -260,29 +261,26 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
         }
 
         $argType = $scope->getType($args[0]->value);
-
-        $otherTypes = $this->quantityTypes($argType);
-        if ($otherTypes !== null) {
-            return TypeCombinator::union(...array_map(
-                static function (QuantityType $otherType) use ($unit, $multiply): QuantityType {
-                    $other = $otherType->getUnitExpression();
-                    $result = $multiply
-                        ? UnitExpressionAlgebra::multiply($unit, $other)
-                        : UnitExpressionAlgebra::divide($unit, $other);
-
-                    return new QuantityType($result);
-                },
-                $otherTypes,
-            ));
+        $results = [];
+        foreach (UnitUnionTypeHelper::directAlternatives($argType) as $otherType) {
+            if ($otherType instanceof QuantityType) {
+                $other = $otherType->getUnitExpression();
+                $result = $multiply
+                    ? UnitExpressionAlgebra::multiply($unit, $other)
+                    : UnitExpressionAlgebra::divide($unit, $other);
+                $results[] = new QuantityType($result);
+            } elseif (
+                $otherType->isInteger()->yes()
+                || (new ObjectType(Rational::class))->isSuperTypeOf($otherType)->yes()
+            ) {
+                $results[] = new QuantityType($unit);
+            } else {
+                // An unknown operand may be a Quantity whose unit changes the result.
+                return null;
+            }
         }
 
-        // An unbranded Quantity operand carries no static unit — cannot compute the result.
-        if ($this->isUnbrandedQuantity($argType)) {
-            return null;
-        }
-
-        // Bare int / Rational scalar: magnitude changes, unit is preserved.
-        return new QuantityType($unit);
+        return TypeCombinator::union(...$results);
     }
 
     /**

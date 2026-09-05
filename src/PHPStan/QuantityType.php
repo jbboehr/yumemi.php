@@ -41,6 +41,7 @@ use PHPStan\Type\AcceptsResult;
 use PHPStan\Type\IsSuperTypeOfResult;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
+use PHPStan\Type\UnionType;
 use PHPStan\Type\VerbosityLevel;
 
 /**
@@ -127,6 +128,7 @@ final class QuantityType extends ObjectType
     private function isPlainQuantity(Type $type): bool
     {
         return !$type instanceof self
+            && !$type instanceof UnionType
             && (new ObjectType(Quantity::class))->isSuperTypeOf($type)->yes();
     }
 

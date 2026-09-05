@@ -242,6 +242,16 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $this->assertStringContainsString('Found 2 errors', $output, $output);
     }
 
+    public function testMixedQuantityOperandsRejectIncorrectReturnContracts(): void
+    {
+        $output = $this->analyse('quantity-mixed-return-contracts.php', errorFormat: 'json');
+
+        $result = json_decode($output, true, flags: JSON_THROW_ON_ERROR);
+        $this->assertIsArray($result);
+        $this->assertSame(['errors' => 0, 'file_errors' => 2], $result['totals'] ?? null, $output);
+        $this->assertSame(2, substr_count($output, '"identifier":"return.type"'), $output);
+    }
+
     public function testQuantityComparisonDiagnosticsHaveStableIdentifier(): void
     {
         $output = $this->analyse('quantity-comparison-invalid.php');

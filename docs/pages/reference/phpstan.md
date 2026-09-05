@@ -670,6 +670,10 @@ The extension models current unit-sensitive methods, including:
 - comparisons through `compareTo()`, `equals()`, `lessThan()`, `lessThanOrEqualTo()`, `greaterThan()`, and
   `greaterThanOrEqualTo()`.
 
+For `mul()` and `div()`, a quantity/scalar union retains every possible result unit. For example, multiplying
+`Quantity<'meter'>` by `Quantity<'second'>|int` returns `Quantity<'meter * second'>|Quantity<'meter'>`. If an
+alternative is an unbranded `Quantity`, the result is also unbranded because its unit cannot be inferred.
+
 PHP object comparison operators do not call those methods. Loose equality and ordering compare object state without
 converting compatible units. Yumemi therefore reports `yumemi.nativeQuantityComparison` for `==`, `!=`, `<`, `<=`, `>`,
 `>=`, and `<=>` whenever either operand is statically known to include a `Quantity` or `PointQuantity`. This remains

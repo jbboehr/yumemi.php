@@ -56,4 +56,9 @@ final class QuantityReturnTypeExtensionTest extends TypeInferenceTestCase
     {
         $this->assertFixtureUnderCoverage(__DIR__ . '/data/quantity-assert.php');
     }
+
+    public function testMixedQuantityOperands(): void
+    {
+        $this->assertFixtureUnderCoverage(__DIR__ . '/data/quantity-mixed-operands.php');
+    }
 }
