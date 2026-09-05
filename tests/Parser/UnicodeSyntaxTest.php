@@ -114,7 +114,7 @@ final class UnicodeSyntaxTest extends TestCase
             $this->assertSame(5, $span->start);
             $this->assertSame(8, $span->end);
             $this->assertStringContainsString(
-                'got superscript sign without digits, but expecting end of file '
+                "Syntax error, unexpected 'superscript sign without digits' "
                     . 'at line 1, column 6 (byte offset 5)',
                 $exception->getMessage(),
             );

@@ -40,6 +40,8 @@ use jbboehr\Yumemi\Parser\Ast;
 use jbboehr\Yumemi\Parser\AstNode;
 use jbboehr\Yumemi\Parser\ExpressionLimitExceededException;
 use jbboehr\Yumemi\Parser\Lexer;
+use jbboehr\Yumemi\Parser\NativeParseException;
+use jbboehr\Yumemi\Parser\NativeParser;
 use jbboehr\Yumemi\Parser\NativeParserAdapter;
 use jbboehr\Yumemi\Parser\ParseException;
 use jbboehr\Yumemi\Parser\Parser;
@@ -142,7 +144,89 @@ final class NativeParserIntegrationTest extends TestCase
         yield 'unicode byte offset' => ['° * / second'];
         yield 'invalid superscript' => ['meter⁻'];
         yield 'group end of input' => ['(meter'];
+        yield 'unexpected close' => ['meter )'];
         yield 'multiline input' => ["meter *\n/ second"];
+    }
+
+    #[DataProvider('expectedContinuationProvider')]
+    public function testExpectedTokensIncludeValidContinuations(string $input, string $token, string $completed): void
+    {
+        try {
+            NativeParser::parse($input);
+            self::fail('Expected incomplete input to fail.');
+        } catch (NativeParseException $exception) {
+            self::assertContains($token, $exception->expected);
+        }
+
+        self::assertAstSame(self::parseWithPhpBackend($completed), NativeParserAdapter::parse($completed));
+    }
+
+    /** @return iterable<string, array{string, string, string}> */
+    public static function expectedContinuationProvider(): iterable
+    {
+        yield 'multiply inside group' => ['(meter', '*', '(meter * second)'];
+        yield 'divide inside group' => ['(meter', '/', '(meter / second)'];
+        yield 'power inside group' => ['(meter', '^', '(meter^2)'];
+        yield 'adjacency inside group' => ['(meter', 'identifier', '(meter second)'];
+        yield 'offset inside group' => ['(meter', '@', '(meter @ 2)'];
+        yield 'close group' => ['(meter', ')', '(meter)'];
+        yield 'multiply before unexpected close' => ['meter )', '*', 'meter * second'];
+        yield 'end before unexpected close' => ['meter )', 'end of file', 'meter'];
+    }
+
+    #[DataProvider('expectedTokenSetProvider')]
+    public function testExpectedTokenMetadataMatchesTheGrammarState(string $input, array $expected): void
+    {
+        try {
+            NativeParser::parse($input);
+            self::fail('Expected malformed input to fail.');
+        } catch (NativeParseException $exception) {
+            self::assertEqualsCanonicalizing($expected, $exception->expected);
+        }
+    }
+
+    /** @return iterable<string, array{string, list<string>}> */
+    public static function expectedTokenSetProvider(): iterable
+    {
+        $expressionStart = ['integer', 'decimal number', '-', 'identifier', '('];
+        $productContinuation = [
+            'end of file',
+            'integer',
+            'superscript integer',
+            'decimal number',
+            '.',
+            '*',
+            '/',
+            '^',
+            '-',
+            '+',
+            'identifier',
+            '(',
+        ];
+
+        yield 'expression start' => ['', $expressionStart];
+        yield 'offset operand' => ['meter @', ['integer', 'decimal number', '-']];
+        yield 'number excludes offset' => ['1 )', $productContinuation];
+        yield 'superscript excludes offset' => ['meter² )', $productContinuation];
+        yield 'completed group excludes offset' => ['(meter) )', $productContinuation];
+        yield 'deepest allowed unfinished groups' => [
+            str_repeat('(', 64) . 'meter',
+            [
+                'integer',
+                'superscript integer',
+                'decimal number',
+                '.',
+                '*',
+                '/',
+                '^',
+                '-',
+                '+',
+                'identifier',
+                '(',
+                ')',
+                '@',
+            ],
+        ];
     }
 
     #[DataProvider('limitProvider')]

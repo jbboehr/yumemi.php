@@ -2,6 +2,20 @@
     "schema": "yumemi.conformance/v1",
     "cases": [
         {
+            "id": "unfinished-group",
+            "operation": "parse",
+            "input": "(meter",
+            "error": "syntax-error",
+            "span": { "start": 6, "end": 6 }
+        },
+        {
+            "id": "unmatched-closing-parenthesis",
+            "operation": "parse",
+            "input": "meter )",
+            "error": "syntax-error",
+            "span": { "start": 6, "end": 7 }
+        },
+        {
             "id": "trailing-operator",
             "operation": "parse",
             "input": "meter /",

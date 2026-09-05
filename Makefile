@@ -119,5 +119,6 @@ generate-catalog:
 	}
 	bin/generate-udunits2-catalog data/udunits2.php $(UDUNITS_XML_FILES)
 
-src/Parser/Parser.php: src/Parser/grammar.y vendor/mrsuh/php-bison-skeleton/src/php-skel.m4
+src/Parser/Parser.php: src/Parser/grammar.y scripts/generate-parser.sh scripts/php-bison-lac.patch \
+	vendor/mrsuh/php-bison-skeleton/src/php-skel.m4 vendor/mrsuh/php-bison-skeleton/src/lalr1.php
 	composer generate-parser

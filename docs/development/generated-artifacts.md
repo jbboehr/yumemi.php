@@ -11,7 +11,7 @@ output, and review the resulting diff. Do not hand-edit either generated file.
 
 | Output                  | Editing authority                                     | Exact check                     |
 | ----------------------- | ----------------------------------------------------- | ------------------------------- |
-| `src/Parser/Parser.php` | Grammar, Bison, and `mrsuh/php-bison-skeleton`        | Nix `generated-artifacts` check |
+| `src/Parser/Parser.php` | Grammar, Bison, and the patched PHP skeleton          | Nix `generated-artifacts` check |
 | `data/udunits2.php`     | UDUNITS2 XML and Yumemi's catalog-generation pipeline | Nix `generated-artifacts` check |
 
 Both files must remain committed and present in release archives. A future generator may replace the current one, but it
@@ -44,9 +44,23 @@ whose resolved version or revision moved, even when regeneration remains byte-id
 
 ### Authority and Procedure
 
-[`src/Parser/grammar.y`](../../src/Parser/grammar.y) is the grammar authority. GNU Bison applies the PHP skeleton from
-`vendor/mrsuh/php-bison-skeleton/src/php-skel.m4`; a post-processing step restores dollar signs represented by the
-skeleton's `__DOLLAR__` placeholder.
+[`src/Parser/grammar.y`](../../src/Parser/grammar.y) is the grammar authority.
+[`scripts/generate-parser.sh`](../../scripts/generate-parser.sh) copies the pinned PHP skeleton into a temporary
+directory, applies [`scripts/php-bison-lac.patch`](../../scripts/php-bison-lac.patch), and runs GNU Bison. A
+post-processing step restores dollar signs represented by the skeleton's `__DOLLAR__` placeholder. Generation requires
+Bash and `patch` in addition to Bison and the Composer development dependencies; the Nix shell provides them.
+
+The patch corrects lookahead correction (LAC) in the
+[1.2.0 skeleton](https://github.com/mrsuh/php-bison-skeleton/blob/3aef7e150eb1c069c81150edf4768c9619f08159/src/lalr1.php):
+candidate-token checks must use their token argument, and debug calls must be emitted only when tracing is enabled. LAC
+gives both the PHP and native parsers complete expected-token lists after pending reductions. Without the patch, normal
+builds call missing debug helpers; trace-enabled builds still lose expected-token diagnostics. The patch applies with
+zero fuzz and leaves `vendor/` unchanged. Review it when updating the skeleton and remove it once the pinned upstream
+version contains equivalent fixes.
+
+Full LAC also checks lookahead while parsing valid input, adding work to uncached PHP parsing. Compare uncached parser
+performance when changing this setting or replacing the skeleton; cache hits in `Parser::parseString()` bypass parser
+execution.
 
 From the Nix development shell with Composer dependencies installed, regenerate the parser with:
 

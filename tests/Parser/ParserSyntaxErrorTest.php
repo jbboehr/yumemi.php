@@ -169,6 +169,30 @@ final class ParserSyntaxErrorTest extends TestCase
      */
     public static function syntaxErrorProvider(): iterable
     {
+        yield 'unclosed group retains arithmetic continuations' => [
+            '(meter',
+            6,
+            6,
+            "Syntax error, unexpected 'end of file' at line 1, column 7 (byte offset 6).\n"
+                . "| (meter\n"
+                . '|       ^',
+        ];
+        yield 'unexpected close retains arithmetic continuations' => [
+            'meter )',
+            6,
+            7,
+            "Syntax error, unexpected ')' at line 1, column 7 (byte offset 6).\n"
+                . "| meter )\n"
+                . '|       ^',
+        ];
+        yield 'invalid superscript retains arithmetic continuations' => [
+            'meter⁻',
+            5,
+            8,
+            "Syntax error, unexpected 'superscript sign without digits' at line 1, column 6 (byte offset 5).\n"
+                . "| meter⁻\n"
+                . '|      ^',
+        ];
         yield 'unexpected token' => [
             'meter * / second',
             8,

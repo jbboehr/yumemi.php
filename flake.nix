@@ -361,6 +361,7 @@
               bison
               lychee
               mdbook
+              patch
               php
               php.packages.composer
               pre-commit
@@ -522,10 +523,12 @@
             extraNativeBuildInputs = [
               pkgs.bison
               pkgs.gnumake
+              pkgs.patch
               pkgs.udunits
             ];
             command = ''
               cp src/Parser/Parser.php "$TMPDIR/Parser.php"
+              patchShebangs scripts/generate-parser.sh
               composer generate-parser
               cmp "$TMPDIR/Parser.php" src/Parser/Parser.php
 

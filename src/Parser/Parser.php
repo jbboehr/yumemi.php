@@ -62,7 +62,7 @@ namespace jbboehr\Yumemi\Parser;
 
 
 /**
- * A Bison parser, automatically generated from <tt>src/Parser/grammar.y</tt>.
+ * A Bison parser, automatically generated from <tt>grammar.y</tt>.
  *
  * @author LALR (1) parser skeleton written by Paolo Bonzini.
  * Port to PHP language was done by Anton Sukhachev <mrsuh6@gmail.com>.
@@ -198,28 +198,22 @@ interface LexerInterface {
      */
     public function getExpectedTokens(array &$yyarg, int $yyoffset, int $yyargn): int {
       $yycount = $yyoffset;
-      $yyn = $this->yyparser->yypact[$this->yystack->stateAt(0)];
-      if (!$this->yyparser->yyPactValueIsDefault($yyn))
+      for ($yyx = 0; $yyx < Parser::YYNTOKENS; ++$yyx)
         {
-          /* Start YYX at -YYN if negative to avoid negative
-             indexes in YYCHECK.  In other words, skip the first
-             -YYN actions for this state because they are default
-             actions.  */
-          $yyxbegin = $yyn < 0 ? -$yyn : 0;
-          /* Stay within bounds of both yycheck and yytname.  */
-          $yychecklim = Parser::YYLAST - $yyn + 1;
-          $yyxend = $yychecklim < self::NTOKENS ? $yychecklim : self::NTOKENS;
-          for ($yyx = $yyxbegin; $yyx < $yyxend; ++$yyx)
-            if ($this->yyparser->yycheck[$yyx + $yyn] === $yyx && $yyx !== SymbolKind::S_YYerror
-                && !$this->yyparser->yyTableValueIsError($this->yyparser->yytable[$yyx + $yyn]))
-              {
-                if ($yyarg === null)
-                  $yycount += 1;
-                else if ($yycount === $yyargn)
-                  return 0; // FIXME: this is incorrect.
-                else
-                  $yyarg[$yycount++] = new SymbolKind($yyx);
+          /** @var SymbolKind $yysym */
+          $yysym = new SymbolKind($yyx);
+          if ($yysym->getCode() !== SymbolKind::S_YYerror
+              && $yysym->getCode() !== SymbolKind::S_YYUNDEF
+              && $this->yyparser->yylacCheck($this->yystack, $yysym))
+            {
+              if ($yyarg === null) {
+                $yycount += 1;
+              } else if ($yycount === $yyargn) {
+                return 0;
+              } else {
+                $yyarg[$yycount++] = $yysym;
               }
+            }
         }
       if ($yyarg !== null && $yycount === $yyoffset && $yyoffset < $yyargn)
         $yyarg[$yycount] = null;
@@ -379,7 +373,7 @@ class Parser
   public const BISON_VERSION = "3.8.2";
 
   /** Name of the skeleton that generated this parser.  */
-  public const BISON_SKELETON = "vendor/mrsuh/php-bison-skeleton/src/php-skel.m4";
+  public const BISON_SKELETON = "./php-skel.m4";
 
 /* "%code parser" blocks.  */
 /* "src/Parser/grammar.y":25  */
@@ -389,7 +383,7 @@ class Parser
     public function setAst(Ast $ast): void { $this->ast = $ast; }
     public function getAst(): Ast { return $this->ast; }
 
-/* "src/Parser/Parser.php":393  */
+/* "src/Parser/Parser.php":387  */
 
 
 
@@ -440,6 +434,9 @@ class Parser
   public function __construct(LexerInterface $lexer)
   {
 
+    /** @var int[] */
+    $this->yylacStack = [];
+    $this->yylacEstablished = false;
     $this->yylexer = $lexer;
     $this->yystack          = new YYStack();
     
@@ -569,151 +566,151 @@ class Parser
     switch ($yyn)
       {
           case 2: /* start: exp  */
-    /* "src/Parser/grammar.y":52  */
+    /* "src/Parser/grammar.y":53  */
                                                 {  self::setAst($yystack->valueAt(0)); };
   break;
 
 
   case 3: /* exp: additive_exp  */
-    /* "src/Parser/grammar.y":56  */
+    /* "src/Parser/grammar.y":57  */
                                                 { $yyval = $yystack->valueAt(0); };
   break;
 
 
   case 4: /* additive_exp: product_exp  */
-    /* "src/Parser/grammar.y":60  */
+    /* "src/Parser/grammar.y":61  */
                                                 { $yyval = $yystack->valueAt(0); };
   break;
 
 
   case 5: /* additive_exp: additive_exp "+" product_exp  */
-    /* "src/Parser/grammar.y":61  */
+    /* "src/Parser/grammar.y":62  */
                                                 { $yyval = self::makeAdd($yystack->valueAt(2), $yystack->valueAt(0), ($yyloc)); };
   break;
 
 
   case 6: /* additive_exp: additive_exp "-" product_exp  */
-    /* "src/Parser/grammar.y":62  */
+    /* "src/Parser/grammar.y":63  */
                                                 { $yyval = self::makeSub($yystack->valueAt(2), $yystack->valueAt(0), ($yyloc)); };
   break;
 
 
   case 7: /* product_exp: unary_exp  */
-    /* "src/Parser/grammar.y":66  */
+    /* "src/Parser/grammar.y":67  */
                                                 { $yyval = $yystack->valueAt(0); };
   break;
 
 
   case 8: /* product_exp: product_exp power_exp  */
-    /* "src/Parser/grammar.y":67  */
+    /* "src/Parser/grammar.y":68  */
                                                 { $yyval = self::makeMul($yystack->valueAt(1), $yystack->valueAt(0), ($yyloc)); };
   break;
 
 
   case 9: /* product_exp: product_exp "." unary_exp  */
-    /* "src/Parser/grammar.y":68  */
-                                                { $yyval = self::makeMul($yystack->valueAt(2), $yystack->valueAt(0), ($yyloc)); };
-  break;
-
-
-  case 10: /* product_exp: product_exp "*" unary_exp  */
     /* "src/Parser/grammar.y":69  */
                                                 { $yyval = self::makeMul($yystack->valueAt(2), $yystack->valueAt(0), ($yyloc)); };
   break;
 
 
-  case 11: /* product_exp: product_exp "/" unary_exp  */
+  case 10: /* product_exp: product_exp "*" unary_exp  */
     /* "src/Parser/grammar.y":70  */
+                                                { $yyval = self::makeMul($yystack->valueAt(2), $yystack->valueAt(0), ($yyloc)); };
+  break;
+
+
+  case 11: /* product_exp: product_exp "/" unary_exp  */
+    /* "src/Parser/grammar.y":71  */
                                                 { $yyval = self::makeDiv($yystack->valueAt(2), $yystack->valueAt(0), ($yyloc)); };
   break;
 
 
   case 12: /* unary_exp: power_exp  */
-    /* "src/Parser/grammar.y":74  */
+    /* "src/Parser/grammar.y":75  */
                                                 { $yyval = $yystack->valueAt(0); };
   break;
 
 
   case 13: /* unary_exp: "-" unary_exp  */
-    /* "src/Parser/grammar.y":75  */
+    /* "src/Parser/grammar.y":76  */
                                                 { $yyval = self::makeNeg($yystack->valueAt(0), ($yyloc)); };
   break;
 
 
   case 14: /* power_exp: simple  */
-    /* "src/Parser/grammar.y":79  */
+    /* "src/Parser/grammar.y":80  */
                                                 { $yyval = $yystack->valueAt(0); };
   break;
 
 
   case 15: /* power_exp: simple "^" unary_exp  */
-    /* "src/Parser/grammar.y":80  */
+    /* "src/Parser/grammar.y":81  */
                                                 { $yyval = self::makePow($yystack->valueAt(2), $yystack->valueAt(0), ($yyloc)); };
   break;
 
 
   case 16: /* simple: number  */
-    /* "src/Parser/grammar.y":84  */
-                                                { $yyval = $yystack->valueAt(0); };
-  break;
-
-
-  case 17: /* simple: identifier  */
     /* "src/Parser/grammar.y":85  */
                                                 { $yyval = $yystack->valueAt(0); };
   break;
 
 
-  case 18: /* simple: identifier "@" signed_number  */
+  case 17: /* simple: identifier  */
     /* "src/Parser/grammar.y":86  */
+                                                { $yyval = $yystack->valueAt(0); };
+  break;
+
+
+  case 18: /* simple: identifier "@" signed_number  */
+    /* "src/Parser/grammar.y":87  */
                                                 { $yyval = self::makeAt($yystack->valueAt(2), $yystack->valueAt(0), ($yyloc)); };
   break;
 
 
   case 19: /* simple: "(" exp ")"  */
-    /* "src/Parser/grammar.y":87  */
+    /* "src/Parser/grammar.y":88  */
                                                 { $yyval = $yystack->valueAt(1); };
   break;
 
 
   case 20: /* simple: simple "superscript integer"  */
-    /* "src/Parser/grammar.y":88  */
+    /* "src/Parser/grammar.y":89  */
                                                  { $yyval = self::makePow($yystack->valueAt(1), self::makeSuperscriptInteger($yystack->valueAt(0), $yystack->locationAt(0)), ($yyloc)); };
   break;
 
 
   case 21: /* number: "integer"  */
-    /* "src/Parser/grammar.y":92  */
+    /* "src/Parser/grammar.y":93  */
                                                 { $yyval = self::makeInteger($yystack->valueAt(0), $yystack->locationAt(0)); };
   break;
 
 
   case 22: /* number: "decimal number"  */
-    /* "src/Parser/grammar.y":93  */
+    /* "src/Parser/grammar.y":94  */
                                                 { $yyval = self::makeFloat($yystack->valueAt(0), $yystack->locationAt(0)); };
   break;
 
 
   case 23: /* signed_number: number  */
-    /* "src/Parser/grammar.y":97  */
+    /* "src/Parser/grammar.y":98  */
                                                 { $yyval = $yystack->valueAt(0); };
   break;
 
 
   case 24: /* signed_number: "-" number  */
-    /* "src/Parser/grammar.y":98  */
+    /* "src/Parser/grammar.y":99  */
                                                 { $yyval = self::makeNeg($yystack->valueAt(0), ($yyloc)); };
   break;
 
 
   case 25: /* identifier: "identifier"  */
-    /* "src/Parser/grammar.y":102  */
+    /* "src/Parser/grammar.y":103  */
                                                 { $yyval = self::makeIdentifier($yystack->valueAt(0), $yystack->locationAt(0)); };
   break;
 
 
 
-/* "src/Parser/Parser.php":717  */
+/* "src/Parser/Parser.php":714  */
 
         default: break;
       }
@@ -742,6 +739,9 @@ class Parser
 
 
 
+    // Discard the LAC context in case there still is one left from a
+    // previous invocation.
+    $this->yylacDiscard("init");
 
     $this->yyerrstatus = 0;
     $this->yynerrs = 0;
@@ -801,6 +801,9 @@ class Parser
                detect an error, take that action.  */
             $this->yyn += $this->yytoken->getCode();
             if ($this->yyn < 0 || Parser::YYLAST < $this->yyn || $this->yycheck[$this->yyn] !== $this->yytoken->getCode()) {
+              if (!$this->yylacEstablish($this->yystack, $this->yytoken)) {
+                $this->label = Parser::YYERRLAB;
+              } else
               $this->label = Parser::YYDEFAULT;
             }
 
@@ -808,6 +811,8 @@ class Parser
             else if (($this->yyn = $this->yytable[$this->yyn]) <= 0)
               {
                 if ($this->yyTableValueIsError($this->yyn)) {
+                  $this->label = Parser::YYERRLAB;
+                } else if (!$this->yylacEstablish($this->yystack, $this->yytoken)) {
                   $this->label = Parser::YYERRLAB;
                 } else {
                   $this->yyn = -$this->yyn;
@@ -828,6 +833,7 @@ class Parser
 
                 $this->yystate = $this->yyn;
                 $this->yystack->push($this->yystate, $this->yylval, $this->yylloc);
+                $this->yylacDiscard("shift");
                 $this->label = Parser::YYNEWSTATE;
               }
           }
@@ -948,6 +954,7 @@ class Parser
         $this->yystack->pop(2);
 
         /* Shift the error token.  */
+        $this->yylacDiscard("error recovery");
 
         $this->yystate = $this->yyn;
         $this->yystack->push($this->yyn, $this->yylval, $this->yyloc);
@@ -967,6 +974,146 @@ class Parser
 
 
 
+
+    /** Check the lookahead yytoken.
+     * \returns  true iff the token will be eventually shifted.
+     */
+    public function yylacCheck(YYStack $yystack, SymbolKind $yytoken): bool
+    {
+      // Logically, the yylacStack's lifetime is confined to this function.
+      // Clear it, to get rid of potential left-overs from previous call.
+      $this->yylacStack = [];
+      // Reduce until we encounter a shift and thereby accept the token.
+
+      $lacTop = 0;
+      while (true)
+        {
+          $topState = (empty($this->yylacStack)
+                          ? $yystack->stateAt($lacTop)
+                          : $this->yylacStack[count($this->yylacStack) - 1]);
+          $yyrule = $this->yypact[$topState];
+          if ($this->yyPactValueIsDefault($yyrule)
+              || ($yyrule += $yytoken->getCode()) < 0 || Parser::YYLAST < $yyrule
+              || $this->yycheck[$yyrule] !== $yytoken->getCode())
+            {
+              // Use the default action.
+              $yyrule = $this->yydefact[+$topState];
+              if ($yyrule === 0) {
+
+                return false;
+              }
+            }
+          else
+            {
+              // Use the action from yytable.
+              $yyrule = $this->yytable[$yyrule];
+              if ($this->yyTableValueIsError($yyrule)) {
+
+                return false;
+              }
+              if (0 < $yyrule) {
+
+                return true;
+              }
+              $yyrule = -$yyrule;
+            }
+          // By now we know we have to simulate a reduce.
+
+          // Pop the corresponding number of values from the stack.
+          {
+            $yylen = $this->yyr2[$yyrule];
+            // First pop from the LAC stack as many tokens as possible.
+            $lacSize = count($this->yylacStack);
+            if ($yylen < $lacSize) {
+              for (/* Nothing */; 0 < $yylen; $yylen -= 1) {
+                array_pop($this->yylacStack);
+              }
+              $yylen = 0;
+            } else if ($lacSize !== 0) {
+              $this->yylacStack = [];
+              $yylen -= $lacSize;
+            }
+            // Only afterwards look at the main stack.
+            // We simulate popping elements by incrementing lacTop.
+            $lacTop += $yylen;
+          }
+          // Keep topState in sync with the updated stack.
+          $topState = (empty($this->yylacStack)
+                      ? $yystack->stateAt($lacTop)
+                      : $this->yylacStack[count($this->yylacStack) - 1]);
+          // Push the resulting state of the reduction.
+          $state = $this->yyLRGotoState($topState, $this->yyr1[$yyrule]);
+
+          $this->yylacStack[] = $state;
+        }
+    }
+
+    /** Establish the initial context if no initial context currently exists.
+     * \returns  true iff the token will be eventually shifted.
+     */
+    public function yylacEstablish(YYStack $yystack, SymbolKind $yytoken): bool {
+      /* Establish the initial context for the current lookahead if no initial
+         context is currently established.
+
+         We define a context as a snapshot of the parser stacks.  We define
+         the initial context for a lookahead as the context in which the
+         parser initially examines that lookahead in order to select a
+         syntactic action.  Thus, if the lookahead eventually proves
+         syntactically unacceptable (possibly in a later context reached via a
+         series of reductions), the initial context can be used to determine
+         the exact set of tokens that would be syntactically acceptable in the
+         lookahead's place.  Moreover, it is the context after which any
+         further semantic actions would be erroneous because they would be
+         determined by a syntactically unacceptable token.
+
+         yylacEstablish should be invoked when a reduction is about to be
+         performed in an inconsistent state (which, for the purposes of LAC,
+         includes consistent states that don't know they're consistent because
+         their default reductions have been disabled).
+
+         For parse.lac=full, the implementation of yylacEstablish is as
+         follows.  If no initial context is currently established for the
+         current lookahead, then check if that lookahead can eventually be
+         shifted if syntactic actions continue from the current context.  */
+      if ($this->yylacEstablished) {
+        return true;
+      } else {
+
+        $this->yylacEstablished = true;
+        return $this->yylacCheck($yystack, $yytoken);
+      }
+    }
+
+    /** Discard any previous initial lookahead context because of event.
+     * \param event  the event which caused the lookahead to be discarded.
+     *               Only used for debbuging output.  */
+    public function yylacDiscard(string $event): void {
+     /* Discard any previous initial lookahead context because of Event,
+        which may be a lookahead change or an invalidation of the currently
+        established initial context for the current lookahead.
+
+        The most common example of a lookahead change is a shift.  An example
+        of both cases is syntax error recovery.  That is, a syntax error
+        occurs when the lookahead is syntactically erroneous for the
+        currently established initial context, so error recovery manipulates
+        the parser stacks to try to find a new initial context in which the
+        current lookahead is syntactically acceptable.  If it fails to find
+        such a context, it discards the lookahead.  */
+      if ($this->yylacEstablished) {
+
+        $this->yylacEstablished = false;
+      }
+    }
+
+    /** The stack for LAC.
+     * Logically, the yylacStack's lifetime is confined to the function
+     * yylacCheck. We just store it as a member of this class to hold
+     * on to the memory and to avoid frequent reallocations.
+     * @var int[]
+     */
+    private array $yylacStack = [];
+    /**  Whether an initial LAC context was established. */
+    public bool $yylacEstablished = false;
 
 
 

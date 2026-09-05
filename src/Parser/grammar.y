@@ -30,6 +30,7 @@
 }
 
 %define parse.error detailed
+%define parse.lac full
 
 %token T_INTEGER "integer"
 %token T_SUPERSCRIPT_INTEGER "superscript integer"

@@ -56,6 +56,8 @@ These changes are planned for 0.2.0 because they change behavior documented in 0
 
 ### Fixed
 
+- Parser diagnostics now account for all valid continuations, including operators inside an unfinished group. This
+  corrects expected-token wording while preserving exception types and source spans.
 - Prefixed unit formatting now verifies replacement spellings and falls back when a registry collision or punctuation
   symbol would change the unit's meaning on reparse.
 - PHPStan now preserves all result units when `Quantity::mul()` or `div()` receives a quantity/scalar union, and accepts
