@@ -57,7 +57,8 @@ These changes are planned for 0.2.0 because they change behavior documented in 0
 ### Fixed
 
 - Parser diagnostics now account for all valid continuations, including operators inside an unfinished group. This
-  corrects expected-token wording while preserving exception types and source spans.
+  corrects expected-token wording while preserving exception types and source spans. Pair it with php-yumemi
+  [`b17a185`](https://github.com/jbboehr/php-yumemi/commit/b17a185deaf53e1150eb390046f35de52c90465a).
 - PHPStan now preserves all result units when `Quantity::mul()` or `div()` receives a quantity/scalar union, and accepts
   accurate union return declarations; operands with unknown quantity units retain an unbranded result.
 - Quantity construction now rejects reciprocal zero-scale unit expressions instead of admitting values whose unit scale

@@ -137,11 +137,11 @@
       "flake": false,
       "locked": {
         "exportIgnore": true,
-        "lastModified": 1788535377,
-        "narHash": "sha256-Oy8pVZ4RWNKqVkCRqWLiHYss9E8nWC1DnD1X5wGFZ1Y=",
+        "lastModified": 1788578193,
+        "narHash": "sha256-aYCZOQarswhhCWNsjixZjDuPAHrAN5F6Z7tapp2+ElI=",
         "ref": "develop",
-        "rev": "b3c65e35e39d2c5c57616c30ef73d99ac5474b18",
-        "revCount": 30,
+        "rev": "b17a185deaf53e1150eb390046f35de52c90465a",
+        "revCount": 33,
         "type": "git",
         "url": "https://github.com/jbboehr/php-yumemi.git"
       },
