@@ -132,6 +132,9 @@ exact root either produces another rational value or fails; it never approximate
 truncation, terminating-decimal requirement, or binary floating-point conversion must occur through an API whose name
 and parameters disclose that policy.
 
+A rational's normalized magnitude remains stable after construction and restoration. Mutating a caller-owned GMP input
+or a component returned through the value's API must not change that magnitude or quantities sharing it.
+
 **Reason.** Unit conversion often introduces fractions. Silent conversion to `float` would make exact equality,
 round-tripping, and reproducible output depend on binary rounding.
 

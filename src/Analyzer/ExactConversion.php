@@ -71,6 +71,6 @@ final class ExactConversion
 
     public function isMultiplicative(): bool
     {
-        return gmp_cmp($this->offset->numerator, 0) === 0;
+        return $this->offset->isZero();
     }
 }

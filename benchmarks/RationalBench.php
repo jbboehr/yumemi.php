@@ -45,15 +45,53 @@ use PhpBench\Attributes as Bench;
 #[Bench\Groups(['runtime', 'rational', 'numeric-output'])]
 final class RationalBench
 {
+    private \GMP $integerInput;
+    private \GMP $denominatorInput;
     private Rational $left;
     private Rational $right;
     private Rational $terminating;
 
     public function setUp(): void
     {
+        $this->integerInput = gmp_init(123456789);
+        $this->denominatorInput = gmp_init(1);
         $this->left = new Rational(123456789, 1000000);
         $this->right = new Rational(355, 113);
         $this->terminating = Rational::fromDecimalString('123456789.123456789');
+    }
+
+    #[Bench\Revs(1000)]
+    public function benchConstructInteger(): Rational
+    {
+        return new Rational(123456789);
+    }
+
+    #[Bench\BeforeMethods('setUp')]
+    #[Bench\Revs(1000)]
+    public function benchConstructGmpInteger(): Rational
+    {
+        return new Rational($this->integerInput);
+    }
+
+    #[Bench\BeforeMethods('setUp')]
+    #[Bench\Revs(1000)]
+    public function benchConstructGmpPair(): Rational
+    {
+        return new Rational($this->integerInput, $this->denominatorInput);
+    }
+
+    #[Bench\BeforeMethods('setUp')]
+    #[Bench\Revs(1000)]
+    public function benchReadNumerator(): \GMP
+    {
+        return $this->left->numerator();
+    }
+
+    #[Bench\BeforeMethods('setUp')]
+    #[Bench\Revs(1000)]
+    public function benchSerialize(): string
+    {
+        return serialize($this->left);
     }
 
     #[Bench\BeforeMethods('setUp')]

@@ -221,6 +221,81 @@ dimensional compatibility, so collisions between differently scaled units of the
 
 ## Issue 3: Mutable GMP aliases in rational values
 
+**Third fix, reviewed:** `Rational` now snapshots GMP inputs and keeps its components private. The explicit
+`numerator()` and `denominator()` methods return detached GMP copies. Arithmetic inside `Rational` reads its storage
+directly. `__serialize()` also returns copies, and restoration uses the same ownership rules as construction.
+Quantities, points, and cloned rationals can share a magnitude without exposing it through these APIs.
+
+Compatibility: constructor signatures, GMP component values, JSON shapes, and the version-1 native payload reader remain
+unchanged. Direct component property reads are removed: replace `$value->numerator` with `$value->numerator()` and
+`$value->denominator` with `$value->denominator()`. Public-property enumeration and reflection visibility also change.
+The previous undocumented storage properties were provisional under the compatibility policy. Use `jsonSerialize()` for
+an inspectable decimal-string array, or retain a component copy when working with GMP. Private-state introspection,
+including reflection and object-to-array casts, is outside the value API and can bypass ordinary PHP encapsulation.
+
+In the historical example below, the constructor-input mutation now leaves the quantity at `1`. Replace the final
+`$fraction->numerator` read with `$fraction->numerator()` to run the complete example with the new API; its output is
+then `1`, `1`, and `1/2`.
+
+Roave reports both visibility reductions and removals for these two properties. The root compatibility configuration
+acknowledges those four exact messages for this provisional-storage correction. A separate exact entry covers the
+generated `Parser::BISON_SKELETON` path change introduced by parser integration `04f4dee`, which is internal generator
+metadata. Remove these acknowledgements once a release containing the changes becomes the comparison baseline. The
+configuration is excluded from release archives.
+
+Verification for this fix:
+
+- The original constructor and serialization regressions were observed failing against the audit baseline. The new
+  accessor tests first reported missing methods, and the direct-property rejection test failed before removal of magic
+  access. Isolated clone-removal experiments trigger four ownership assertion failures for each accessor; returning the
+  wrong component also fails the exact-value assertion.
+- `composer test -- tests/Number tests/SerializationTest.php tests/Compatibility tests/Conformance tests/QuantityCompactionTest.php tests/UnitFunctionTest.php tests/Documentation`
+  passed: 516 tests and 3,393 assertions, including historical tagged-release persistence and executable documentation.
+  GMP object ownership is PHP-specific, so its regressions live in the PHP suite; the language-neutral conformance
+  fixtures retain their numeric results.
+- `composer check:full` passed: 2,341 tests, 26,349 assertions, and five expected skips, plus static analysis,
+  formatting, documentation, benchmark smoke, and packaged consumers.
+- `nix flake check --keep-going -L path:<source-snapshot>` passed on `x86_64-linux`, including PHP 8.2 through 8.5,
+  native-extension integration, generated artifacts, and consumers. The snapshot included the new ownership tests
+  without staging them. This pass preceded the final documentation-only edit, which was checked by Composer. Other
+  platforms, full mutation campaigns, and sanitizer runs were not run for this accessor adjustment.
+- The historical audit example was rerun with the documented accessor migration and printed `1`, `1`, and `1/2`.
+- Roave's installed property detectors reproduced the visibility and removal reports. Its XML schema and exact
+  acknowledgements were checked, including rejecting altered reports. The initial committed comparison exposed the
+  additional removal reports and the earlier parser metadata change; `composer check:bc` then passed against `v0.1.1`
+  with the exact acknowledgements described above.
+- Independent correctness review found no actionable regression in the explicit accessors and migrated callers. A
+  separate test review added passing checks for fresh copies on successive accessor calls, removal of both magic
+  property hooks, and rejection of both former property reads. The retained native-graph regression verifies alias
+  identity before restoration, so it cannot pass merely because the new serializer already returns copies.
+
+Performance was compared against `6cdb55d` on PHP 8.2.32, using separate baseline/current processes in alternating
+order. Each process warmed each case with 2,000 calls, then measured nine batches of 10,000 calls. The table reports the
+median of three process medians in microseconds per call. These are local measurements, not cross-platform bounds. The
+component-read comparison uses the old public property and the new explicit accessor, each returning a GMP value.
+
+| Operation                                      | Before (µs) | After (µs) |
+| ---------------------------------------------- | ----------- | ---------- |
+| Construct from a native integer                | 0.330       | 0.186      |
+| Construct from GMP with default denominator    | 0.291       | 0.178      |
+| Construct from two GMP inputs, denominator one | 0.269       | 0.321      |
+| Construct a reduced fraction                   | 0.566       | 0.572      |
+| Add fractions                                  | 0.871       | 0.879      |
+| Add integers                                   | 0.600       | 0.651      |
+| Multiply fractions                             | 0.726       | 0.735      |
+| Read a GMP component                           | 0.035       | 0.078      |
+| Native `serialize()`                           | 0.255       | 0.340      |
+| Convert a quantity                             | 8.142       | 8.056      |
+| Add compatible quantities                      | 19.940      | 19.280     |
+
+The native-integer denominator fast path avoids GMP comparisons and unnecessary input copies. Fractions already obtain
+fresh GMP results during normalization. Copies remain necessary when accepting caller-owned integer GMP values or
+returning components; their cost grows with integer size. Conversion's zero-offset predicate now uses `isZero()` to
+avoid a copied numerator. Unit compaction obtains each component once and reuses the copy. No additional stored
+components or decimal-string representation were introduced. Retained benchmarks in `benchmarks/RationalBench.php` cover
+integer/GMP construction, component reads, serialization, and arithmetic; run them with
+`composer benchmark -- benchmarks/RationalBench.php`.
+
 P2. [`Rational::__construct()`](../../src/Number/Rational.php) directly retains GMP arguments when the denominator is
 one. Its public `readonly` numerator and denominator properties also expose mutable GMP objects. PHP's property
 restriction prevents replacing the object reference, but does not prevent changing the object's contents.

@@ -11,6 +11,7 @@ composer-project.nix linguist-generated
 .github export-ignore
 .gitignore export-ignore
 .php-cs-fixer.dist.php export-ignore
+.roave-backward-compatibility-check.xml export-ignore
 AGENTS.md export-ignore
 benchmarks export-ignore
 composer.lock export-ignore

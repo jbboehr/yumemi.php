@@ -490,6 +490,6 @@ final class UnitFunctionTest extends TestCase
 
     private function rationalToFloat(Rational $rational): float
     {
-        return (float) gmp_strval($rational->numerator) / (float) gmp_strval($rational->denominator);
+        return (float) gmp_strval($rational->numerator()) / (float) gmp_strval($rational->denominator());
     }
 }

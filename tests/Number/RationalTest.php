@@ -236,8 +236,8 @@ final class RationalTest extends TestCase
         $rational = new Rational(3, -6);
 
         $this->assertSame('-1/2', $rational->toString());
-        $this->assertSame('-1', gmp_strval($rational->numerator));
-        $this->assertSame('2', gmp_strval($rational->denominator));
+        $this->assertSame('-1', gmp_strval($rational->numerator()));
+        $this->assertSame('2', gmp_strval($rational->denominator()));
     }
 
     public function testCastsToItsCanonicalString(): void

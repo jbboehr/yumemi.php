@@ -37,6 +37,8 @@ These changes are planned for 0.2.0 because they change behavior documented in 0
 
 ### Changed
 
+- `Rational` component properties are now private; replace `$value->numerator` and `$value->denominator` reads with
+  `numerator()` and `denominator()`, which return detached GMP copies.
 - `Quantity::equals()` and `PointQuantity::equals()` now return `false` for incompatible dimensions or registry
   contexts. Callers that require incompatibility to throw can use `compareTo() === 0` instead. PHPStan accepts equality
   calls and infers `false` when incompatibility is statically known.
@@ -56,6 +58,8 @@ These changes are planned for 0.2.0 because they change behavior documented in 0
 
 ### Fixed
 
+- `Rational` now isolates mutable GMP inputs and returns detached component copies, preserving quantities that share a
+  magnitude.
 - Parser diagnostics now account for all valid continuations, including operators inside an unfinished group. This
   corrects expected-token wording while preserving exception types and source spans. Pair it with php-yumemi
   [`b17a185`](https://github.com/jbboehr/php-yumemi/commit/b17a185deaf53e1150eb390046f35de52c90465a).

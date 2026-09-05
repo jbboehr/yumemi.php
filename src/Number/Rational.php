@@ -52,14 +52,21 @@ use jbboehr\Yumemi\Util\Exponent;
  */
 final class Rational implements \JsonSerializable, \Stringable
 {
-    public readonly GMP $numerator;
-    public readonly GMP $denominator;
+    private readonly GMP $numerator;
+    private readonly GMP $denominator;
 
     /**
      * @throws DivisionByZeroError when the denominator is zero
      */
     public function __construct(int|GMP $numerator, int|GMP $denominator = 1)
     {
+        if ($denominator === 1) {
+            $this->numerator = is_int($numerator) ? gmp_init($numerator) : clone $numerator;
+            $this->denominator = gmp_init(1);
+
+            return;
+        }
+
         $numerator = is_int($numerator) ? gmp_init($numerator) : $numerator;
         $denominator = is_int($denominator) ? gmp_init($denominator) : $denominator;
 
@@ -73,8 +80,8 @@ final class Rational implements \JsonSerializable, \Stringable
         }
 
         if (gmp_cmp($denominator, 1) === 0) {
-            $this->numerator = $numerator;
-            $this->denominator = $denominator;
+            $this->numerator = clone $numerator;
+            $this->denominator = clone $denominator;
 
             return;
         }
@@ -83,6 +90,29 @@ final class Rational implements \JsonSerializable, \Stringable
 
         $this->numerator = gmp_div_q($numerator, $gcd);
         $this->denominator = gmp_div_q($denominator, $gcd);
+    }
+
+    /**
+     * Return a detached GMP copy of the normalized numerator.
+     *
+     * @logion [SFA 28:69] The mourner who turneth his face from the festival hath not denied the appointed joy. His
+     *     brother's sandals stand beside the hearth; let no steward carry them away to hasten his return to singing.
+     */
+    public function numerator(): GMP
+    {
+        return clone $this->numerator;
+    }
+
+    /**
+     * Return a detached GMP copy of the positive denominator.
+     *
+     * @logion [OSD 29:15] Carry the sick beneath the vermilion canopy, though the emperor must walk in rain; for the
+     *     shelter is bound to his office, and his office to their keeping. Let his uncovered head bear witness that
+     *     the covenant endureth.
+     */
+    public function denominator(): GMP
+    {
+        return clone $this->denominator;
     }
 
     /**
@@ -137,8 +167,8 @@ final class Rational implements \JsonSerializable, \Stringable
     {
         return [
             'version' => 1,
-            'numerator' => $this->numerator,
-            'denominator' => $this->denominator,
+            'numerator' => clone $this->numerator,
+            'denominator' => clone $this->denominator,
         ];
     }
 

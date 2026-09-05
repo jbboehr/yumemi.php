@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<roave-bc-check
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="tools/api-compatibility/vendor/roave/backward-compatibility-check/Resources/schema.xsd">
+    <baseline>
+        <!-- Issue 3 in docs/development/project-review-2026-09-04.md: provisional GMP storage becomes private;
+             numerator()/denominator() return detached copies. Remove once a release with this fix is the baseline. -->
+        <ignored-regex>#^\[BC\] CHANGED: Property jbboehr\\Yumemi\\Number\\Rational\#\$numerator visibility reduced from public to private$#</ignored-regex>
+        <ignored-regex>#^\[BC\] CHANGED: Property jbboehr\\Yumemi\\Number\\Rational\#\$denominator visibility reduced from public to private$#</ignored-regex>
+        <ignored-regex>#^\[BC\] REMOVED: Property jbboehr\\Yumemi\\Number\\Rational\#\$numerator was removed$#</ignored-regex>
+        <ignored-regex>#^\[BC\] REMOVED: Property jbboehr\\Yumemi\\Number\\Rational\#\$denominator was removed$#</ignored-regex>
+        <!-- Parser integration 04f4dee generates from a patched temporary skeleton. This constant records the
+             generator path; generated implementation metadata is internal under the compatibility policy.
+             Remove once a release with that integration is the baseline. -->
+        <ignored-regex>#^\[BC\] CHANGED: Value of constant jbboehr\\Yumemi\\Parser\\Parser::BISON_SKELETON changed from 'vendor/mrsuh/php-bison-skeleton/src/php-skel\.m4' to '\./php-skel\.m4'$#</ignored-regex>
+    </baseline>
+</roave-bc-check>

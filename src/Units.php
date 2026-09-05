@@ -647,15 +647,17 @@ final class Units
 
         if (!isset($this->compactUnitFamilyCache[$baseName])) {
             $engineeringPower = static function (Rational $scale): ?int {
-                if (gmp_sign($scale->numerator) <= 0) {
+                $numerator = $scale->numerator();
+                if (gmp_sign($numerator) <= 0) {
                     return null;
                 }
 
-                if (gmp_cmp($scale->denominator, 1) === 0) {
-                    $remaining = $scale->numerator;
+                $denominator = $scale->denominator();
+                if (gmp_cmp($denominator, 1) === 0) {
+                    $remaining = $numerator;
                     $direction = 1;
-                } elseif (gmp_cmp($scale->numerator, 1) === 0) {
-                    $remaining = $scale->denominator;
+                } elseif (gmp_cmp($numerator, 1) === 0) {
+                    $remaining = $denominator;
                     $direction = -1;
                 } else {
                     return null;
