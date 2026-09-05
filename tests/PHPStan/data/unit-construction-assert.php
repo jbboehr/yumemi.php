@@ -108,7 +108,64 @@ function dynamicUnits(string $unit): void
 
 function mixedNativeMagnitude(int|float $value): void
 {
-    assertType("unit_float<'meter'>", unit($value, 'meter'));
+    $distance = unit($value, 'meter');
+    assertType("unit_float<'meter'>|unit_int<'meter'>", $distance);
+    assertType('bool', is_int($distance));
+    assertType('bool', is_float($distance));
+
+    if (is_int($distance)) {
+        assertType("unit_int<'meter'>", $distance);
+    } else {
+        assertType("unit_float<'meter'>", $distance);
+    }
+}
+
+/** @param 3|7|1.5 $value */
+function mixedConstantMagnitude(int|float $value): void
+{
+    $distance = unit(value: $value, unit: 'meter');
+
+    if (is_int($distance)) {
+        assertType("3&unit_int<'meter'>|7&unit_int<'meter'>", $distance);
+    } else {
+        assertType("1.5&unit_float<'meter'>", $distance);
+    }
+}
+
+/** @param int<0, 100>|float $value */
+function mixedBoundedMagnitude(int|float $value): void
+{
+    $distance = unit($value, 'meter');
+
+    if (is_int($distance)) {
+        assertType("unit_int<'meter'>&int<0, 100>", $distance);
+    } else {
+        assertType("unit_float<'meter'>", $distance);
+    }
+}
+
+/** @param unit_int<'foot'>|unit_float<'second'> $value */
+function mixedBrandedMagnitude(int|float $value): void
+{
+    assertType("unit_float<'meter'>|unit_int<'meter'>", unit($value, 'meter'));
+}
+
+/** @param 'meter'|'foot' $unit */
+function mixedMagnitudeAndFiniteUnits(int|float $value, string $unit): void
+{
+    $distance = unit($value, $unit);
+
+    if (is_int($distance)) {
+        assertType("unit_int<'international_foot'>|unit_int<'meter'>", $distance);
+    } else {
+        assertType("unit_float<'international_foot'>|unit_float<'meter'>", $distance);
+    }
+}
+
+/** @param 'foot'|'international_foot' $unit */
+function mixedMagnitudeAndEquivalentUnits(int|float $value, string $unit): void
+{
+    assertType("unit_float<'international_foot'>|unit_int<'international_foot'>", unit($value, $unit));
 }
 
 // --- unit_factor(): quotient brand and cancellation through ordinary unit algebra ---

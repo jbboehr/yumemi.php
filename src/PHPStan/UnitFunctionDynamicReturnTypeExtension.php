@@ -42,7 +42,6 @@ use PHPStan\Reflection\FunctionReflection;
 use PHPStan\Type\DynamicFunctionReturnTypeExtension;
 use PHPStan\Type\ErrorType;
 use PHPStan\Type\Type;
-use PHPStan\Type\TypeCombinator;
 
 /**
  * Infers unit_int / unit_float from unit($value, $unit) when the complete unit string type is finite.
@@ -146,18 +145,16 @@ final class UnitFunctionDynamicReturnTypeExtension implements DynamicFunctionRet
 
         $valueType = $scope->getType($valueArgument->value);
 
-        // Prefer int branding when the magnitude is definitely an integer (not a float).
-        if ($valueType->isInteger()->yes() && !$valueType->isFloat()->yes()) {
-            $type = TypeCombinator::union(...array_map(
-                static fn (UnitExpression $unit): Type => UnitIntegerTypeHelper::brand($valueType, $unit),
-                $units,
-            ));
-        } else {
-            $type = TypeCombinator::union(...array_map(
-                static fn (UnitExpression $unit): Type => UnitFloatType::brand($valueType, $unit),
-                $units,
-            ));
+        $types = [];
+        foreach (UnitUnionTypeHelper::directAlternatives($valueType) as $alternative) {
+            $isInteger = $alternative->isInteger()->yes() && !$alternative->isFloat()->yes();
+            foreach ($units as $unit) {
+                $types[] = $isInteger
+                    ? UnitIntegerTypeHelper::brand($alternative, $unit)
+                    : UnitFloatType::brand($alternative, $unit);
+            }
         }
+        $type = UnitUnionTypeHelper::combineMapped($types, $valueType, $unitType);
 
         if (count($units) === 1) {
             return ['type' => $type, 'issue' => null, 'message' => null];

@@ -332,6 +332,59 @@ rational magnitude. Preserve normalization and serialized round-trip behavior wh
 
 ## Issue 4: Integer alternatives lost by unit()
 
+**Fourth fix:** `unit()` brands each direct numeric alternative with the existing integer or float helper. Integer
+ranges and scalar constants remain attached to their branches. The result retains the source union's strictness, and
+unit-name alternatives still undergo the same validity, equivalence, and ambiguity checks. Runtime `unit()` continues to
+return its input unchanged; the fix is confined to the PHPStan adapter.
+
+The inference fixture now checks integer and float branch narrowing, mixed constants, bounded integers, existing brands,
+and finite unit-name alternatives. A separate PHPStan integration fixture formats whole and fractional parcel weights;
+its integer branch previously produced `function.impossibleType`. Both branches execute successfully as ordinary PHP. An
+integer-only branded consumer also rejects the mixed result, checking union strictness beyond its displayed type. The
+runtime conformance corpus needs no changed results for this static-analysis correction.
+
+Verification for this fix:
+
+- Before the implementation change, the inference fixture failed because it received only `unit_float<'meter'>` where
+  both numeric brands were required. The parcel-weight integration test was also run against the isolated baseline
+  implementation and failed with `function.impossibleType` on its `is_int()` branch; the current implementation passes.
+- `composer test -- tests/PHPStan/UnitFunctionDynamicReturnTypeExtensionTest.php tests/PHPStan/UnitConstructionRuleTest.php tests/PHPStan/InvalidUnitCallRuleTest.php tests/PHPStan/UnitTypeNodeResolverIntegrationTest.php tests/UnitFunctionTest.php`
+  passed: 99 tests and 452 assertions.
+- `php -d zend.assertions=1 -d assert.exception=1 -d auto_prepend_file=vendor/autoload.php tests/PHPStan/data/unit-mixed-magnitude.php`
+  passed both runtime assertions for integer and fractional parcel weights.
+- `composer check:full` passed: 2,343 tests, 26,371 assertions, and five expected skips, plus analysis, formatting,
+  documentation, benchmark smoke, and packaged consumers.
+- Reliability review: **PASS**. Independent correctness and test reviews found no additional defect. The test review
+  added the consumer-boundary check above and confirmed that it fails against the baseline's float-only inference.
+- `nix flake check --keep-going -L path:/tmp/yumemi-slice4-source-ip_x69fl` passed on `x86_64-linux`, using a source
+  snapshot that included the new unstaged fixtures. The PHP 8.2–8.5 matrix passed 2,343 tests per version, with 29
+  expected skips on PHP 8.2–8.3 and 24 on PHP 8.4–8.5. Separate extension-integration checks passed 61 tests and 4,746
+  assertions on each version. The first run failed only on Markdown wrapping in this report; formatting and the full
+  rerun passed.
+- Other platforms, specialist mutation/probator campaigns, and the committed-revision compatibility comparison were not
+  rerun.
+
+Performance was compared with `e89eb4c` on PHP 8.2.32 using the real `analyseCall()` path and parser with warm runtime
+caches. A mocked PHPStan scope supplied fixed magnitude types and `'meter'`. Each process warmed every case with 500
+calls, then measured seven batches of 3,000 calls. Three processes per version ran in alternating order; the table
+reports the median process medians in microseconds per call. These local adapter measurements include scope dispatch and
+parsing, and are not whole-project analysis timings.
+
+| Magnitude type   | Before (µs) | After (µs) |
+| ---------------- | ----------- | ---------- |
+| Integer          | 21.797      | 21.788     |
+| Float            | 20.448      | 20.558     |
+| Integer constant | 20.732      | 21.142     |
+| Bounded integer  | 25.868      | 26.110     |
+| Integer or float | 20.978      | 27.998     |
+| Mixed constants  | 21.200      | 27.714     |
+| Range or float   | 21.337      | 40.882     |
+
+Single-kind inputs remain close to the baseline. Mixed inputs require additional type construction and union
+combination; the old result discarded their integer alternatives and bounds. Parsing still happens once per distinct
+unit spelling, and the integer/float decision happens once per magnitude alternative. No application-runtime work or new
+production declarations were added.
+
 P2.
 [`UnitFunctionDynamicReturnTypeExtension::analyseCall()`](../../src/PHPStan/UnitFunctionDynamicReturnTypeExtension.php)
 uses an integer brand only when the complete input type is definitely integer. An `int|float` input enters the float

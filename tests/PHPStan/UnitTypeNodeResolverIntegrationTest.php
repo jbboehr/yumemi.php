@@ -52,6 +52,13 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $this->assertStringContainsString('[OK] No errors', $output, $output);
     }
 
+    public function testMixedNativeMagnitudesKeepBothScalarBranches(): void
+    {
+        $output = $this->analyse('unit-mixed-magnitude.php');
+
+        $this->assertStringContainsString('[OK] No errors', $output, $output);
+    }
+
     public function testInvalidUnitPhpDocReportsErrors(): void
     {
         $output = $this->analyse('unit-phpdoc-invalid.php');
