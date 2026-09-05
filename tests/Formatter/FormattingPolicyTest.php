@@ -39,6 +39,7 @@ namespace jbboehr\Yumemi\Tests\Formatter;
 use jbboehr\Yumemi\Exception\DivisionByZeroError;
 use jbboehr\Yumemi\Exception\OverflowException;
 use jbboehr\Yumemi\Exception\UnsupportedSyntaxException;
+use jbboehr\Yumemi\Expr\Unit;
 use jbboehr\Yumemi\Formatter\DimensionlessStyle;
 use jbboehr\Yumemi\Formatter\DivisionStyle;
 use jbboehr\Yumemi\Formatter\FormatOptions;
@@ -46,6 +47,7 @@ use jbboehr\Yumemi\Formatter\Typography;
 use jbboehr\Yumemi\Formatter\UnitNameStyle;
 use jbboehr\Yumemi\Parser\ExpressionLimitExceededException;
 use jbboehr\Yumemi\Parser\ParseException;
+use jbboehr\Yumemi\Registry\CompositeUnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 use jbboehr\Yumemi\Registry\UnitRegistryBuilder;
 use jbboehr\Yumemi\Units;
@@ -304,6 +306,117 @@ final class FormattingPolicyTest extends TestCase
 
         $this->assertSame('pascal', $units->format('Pa', $options));
         $this->assertSame('picoare', $units->format('pa', $options));
+    }
+
+    /** @param list<string> $definitions */
+    #[DataProvider('prefixedNameCollisionProvider')]
+    public function testPrefixedFormattingPreservesExactMeaning(
+        array $definitions,
+        string $input,
+        UnitNameStyle $style,
+        string $expected,
+    ): void {
+        $builder = UnitRegistryBuilder::default();
+        foreach ($definitions as $definition) {
+            $builder->define($definition);
+        }
+        $units = new Units($builder->build());
+
+        foreach (Typography::cases() as $typography) {
+            $options = new FormatOptions(unitNameStyle: $style, typography: $typography);
+            $formatter = $units->formatter($options);
+            $leaf = new Unit($input);
+
+            $this->assertSame($expected, $units->formatText($input, $options));
+            $this->assertSame($expected, $units->quantity(3, $input)->formatUnit($options));
+            $this->assertSame($expected, $formatter->format($leaf));
+            $this->assertSame($expected, $formatter->format($leaf));
+            $this->assertSame($expected, $units->formatText($expected, $options));
+            $this->assertTrue($units->normalize($input)->equals($units->normalize($expected)));
+        }
+    }
+
+    /** @return iterable<string, array{list<string>, string, UnitNameStyle, string}> */
+    public static function prefixedNameCollisionProvider(): iterable
+    {
+        yield 'minute collision' => [[], 'milliinch', UnitNameStyle::Symbol, 'milliinternational_inch'];
+        yield 'knot collision' => [[], 'kilotonne', UnitNameStyle::Symbol, 'kilometric_ton'];
+        yield 'ordinary prefix' => [[], 'kilometers', UnitNameStyle::Symbol, 'km'];
+        yield 'exact symbol' => [[], 'kilogram', UnitNameStyle::Symbol, 'kg'];
+        yield 'different dimension' => [['km = second'], 'kilometer', UnitNameStyle::Symbol, 'kilometer'];
+        yield 'different scale' => [['km = 2 * meter'], 'kilometer', UnitNameStyle::Symbol, 'kilometer'];
+        yield 'canonical collision' => [
+            ['kilometer = second'], 'kilometre', UnitNameStyle::Canonical, 'kilometre',
+        ];
+        yield 'both candidates collide' => [
+            ['km = second', 'kilometer = 2 * meter'], 'kilometre', UnitNameStyle::Symbol, 'kilometre',
+        ];
+    }
+
+    #[DataProvider('lexicallyAmbiguousPrefixedSymbolProvider')]
+    public function testPrefixedSymbolFormattingRemainsReparsable(
+        string $input,
+        string $expected,
+        Typography $typography,
+    ): void {
+        $units = Units::default();
+        $options = new FormatOptions(
+            unitNameStyle: UnitNameStyle::Symbol,
+            typography: $typography,
+        );
+        $formatted = $units->formatText($input, $options);
+        $reformatted = $units->formatText($formatted, $options);
+        $equivalentAfterReparse = false;
+        $reparseError = null;
+
+        try {
+            $equivalentAfterReparse = $units->normalize($input)->equals($units->normalize($formatted));
+        } catch (\Throwable $exception) {
+            $reparseError = $exception::class;
+        }
+
+        $this->assertSame([
+            'formatted' => $expected,
+            'quantity unit' => $expected,
+            'reformatted' => $expected,
+            'equivalent after reparse' => true,
+            'reparse error' => null,
+        ], [
+            'formatted' => $formatted,
+            'quantity unit' => $units->quantity(3, $input)->formatUnit($options),
+            'reformatted' => $reformatted,
+            'equivalent after reparse' => $equivalentAfterReparse,
+            'reparse error' => $reparseError,
+        ]);
+    }
+
+    /** @return iterable<string, array{string, string, Typography}> */
+    public static function lexicallyAmbiguousPrefixedSymbolProvider(): iterable
+    {
+        foreach (Typography::cases() as $typography) {
+            yield 'percent after milli, ' . $typography->value => ['millipercent', 'millipercent', $typography];
+            yield 'percent after tera, ' . $typography->value => ['terapercent', 'terapercent', $typography];
+            yield 'arc minute after milli, ' . $typography->value => [
+                'milliarc_minute', 'milliarc_minute', $typography,
+            ];
+            yield 'arc second after kilo, ' . $typography->value => [
+                'kiloarc_second', 'kiloarc_second', $typography,
+            ];
+        }
+    }
+
+    public function testInvalidSymbolCandidatesFallBackWithoutRejectingValidInput(): void
+    {
+        foreach (['(', str_repeat('w', 1024)] as $symbol) {
+            $registry = new CompositeUnitRegistry(UnitRegistry::bundled(), new UnitRegistry(records: [
+                'widget' => ['type' => 'base', 'name' => 'widget'],
+                $symbol => ['type' => 'alias', 'name' => $symbol, 'def' => 'widget', 'aliasKind' => 'symbol'],
+            ]));
+            $units = new Units($registry);
+            $options = new FormatOptions(unitNameStyle: UnitNameStyle::Symbol);
+
+            $this->assertSame('kilowidget', $units->formatText('kilowidget', $options));
+        }
     }
 
     public function testCustomUnitsAndUnknownLeavesUseDeterministicFallbacks(): void

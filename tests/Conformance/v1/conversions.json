@@ -2,6 +2,18 @@
     "schema": "yumemi.conformance/v1",
     "factors": [
         {
+            "id": "milliinch-formatting-fallback",
+            "from": "milliinch",
+            "to": "milliinternational_inch",
+            "expected": { "numerator": "1", "denominator": "1" }
+        },
+        {
+            "id": "kilotonne-formatting-fallback",
+            "from": "kilotonne",
+            "to": "kilometric_ton",
+            "expected": { "numerator": "1", "denominator": "1" }
+        },
+        {
             "id": "inch-to-foot",
             "from": "inch",
             "to": "foot",

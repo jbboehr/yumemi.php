@@ -662,11 +662,17 @@ $options = FormatOptions::create()
 
 assert($units->formatText('kilometers / second^2', $options) === 'km · s⁻²');
 assert($units->quantity(3, 'kilometers / second^2')->formatUnit($options) === 'km · s⁻²');
+assert($units->formatText('milliinch', $options) === 'milliinternational_inch'); // min means minute
+assert($units->formatText('millipercent', $options) === 'millipercent'); // m% would mean meter times percent
 ```
 
 `Preserve` keeps the names supplied by the caller. `Canonical` resolves aliases, generated plurals, and one dynamic
 prefix to canonical names. `Symbol` selects the shortest deterministic catalog symbol; ASCII falls back to a canonical
 name when only Unicode symbols exist. Unknown expression leaves are preserved.
+
+Prefixed names use a symbol or canonical spelling only when the complete spelling parses as one identifier and preserves
+the unit and prefix scale in the current registry. `Symbol` tries the canonical spelling as a fallback; if neither
+spelling can be verified, the original name is retained. This also handles names shadowed by custom units.
 
 Unicode typography emits `·` and superscript integer powers. The parser accepts those forms, so Unicode output remains
 round-trippable when the dimensionless style is `One`. `Word` and `Empty` are presentation-only.

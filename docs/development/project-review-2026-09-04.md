@@ -114,6 +114,71 @@ assertions about internal type descriptions alone.
 
 ## Issue 2: Symbol formatting collisions
 
+**Second fix, reviewed:** Prefixed formatting now checks the complete candidate against the effective registry. It
+accepts a replacement only when it resolves to the same canonical unit and the same prefix definition and parses as one
+unchanged identifier. It tries the canonical concatenation if the symbol cannot be verified, and otherwise retains the
+input name. The result stays in the formatter's existing per-name cache; syntax checks use the parser's bounded cache.
+This avoids expression normalization during formatting and also preserves symbolic formatting of unknown or unsupported
+unit algebra.
+
+The check is deliberately conservative: it does not expand definitions to discover additional equivalent spellings. For
+example, `kgram` remains `kgram`, since `kg` and `kilogram` are exact catalog entries rather than the same prefix
+decomposition. Exact input `kilogram` still formats as `kg`.
+
+Regression tests cover the bundled collisions, ordinary prefixes and exact symbols, custom dimension and scale
+collisions, canonical-name collisions, both fallbacks being shadowed, ASCII and Unicode, quantity output, repeated
+formatter use, idempotence, and exact normalized equivalence. Six collision cases failed before the implementation
+change and passed afterward. The v1 conformance corpus also records exact conversion factors of one between the two
+bundled inputs and their fallback spellings, without changing the fixture schema.
+
+Independent review exposed another case within this fix: `millipercent` formatted as `m%`, which reparses as meter times
+percent. `terapercent` and prefixed arc-minute/arc-second symbols had the same token-boundary problem. Eight added
+ASCII/Unicode round-trip cases failed before the parser check and passed afterward. Additional tests verify fallback
+when a custom candidate has invalid syntax or exceeds the parser's token length limit.
+
+Performance was measured on local PHP 8.2.32 with the expanded `FormattingAndCatalogBench` inputs. The baseline loaded
+`ExprFormatter.php` from `4d20fc8` through a temporary PHPBench bootstrap; both runs used the same updated benchmark
+class. Sequential runs used nine iterations, 1,000 revolutions, and 100 warmup revolutions. Times below are PHPBench's
+reported modes, in microseconds per call:
+
+| Formatting case                       | Before |  After |
+| ------------------------------------- | -----: | -----: |
+| Preserve, resolved expression         |  7.376 |  7.146 |
+| Fresh formatter, resolved expression  | 12.944 | 12.410 |
+| Fresh formatter, `kilometer`          | 31.430 | 35.492 |
+| Fresh formatter, `milliinch`          | 32.107 | 36.494 |
+| Fresh formatter, `millipercent`       | 31.486 | 36.894 |
+| Reused formatter, resolved expression |  7.532 |  7.669 |
+| Reused formatter, `kilometer`         |  2.881 |  2.819 |
+| Reused formatter, `milliinch`         |  2.852 |  2.797 |
+| Reused formatter, `millipercent`      |  2.879 |  2.880 |
+
+Formatting a prefixed name with a fresh formatter costs about 4–5 additional microseconds in this measurement (13–17%).
+Reused formatters showed no meaningful regression; their observed changes were within the variation in these runs. These
+are local microbenchmarks with warmed registry and parser caches, not measurements of the first uncached parse,
+application latency, or a cross-version performance guarantee. Reproduce the current measurement with:
+
+```shell
+composer benchmark -- benchmarks/FormattingAndCatalogBench.php \
+  --filter='bench(PreservedFormatting|ColdSymbolFormatter|WarmSymbolFormatter)$' \
+  --iterations=9 --revs=1000 --warmup=100
+```
+
+Verification for this fix:
+
+- `composer test -- tests/Formatter tests/Conformance tests/Documentation` passed: 233 tests and 2,438 assertions.
+- A deterministic local sweep of all bundled prefixes with `percent`, `arc_minute`, and `arc_second` passed all 240
+  ASCII/Unicode checks for formatting idempotence and exact normalized equivalence after reparsing.
+- Independent correctness review and test hardening identified the punctuation defect described above; all retained
+  regressions passed after its correction.
+- `composer check:full` passed: PHPStan, 2,301 PHPUnit tests and 26,261 assertions with five expected skips,
+  documentation build/link and example checks, benchmark smoke tests, and consumer package checks.
+- `nix flake check --keep-going -L` passed on `x86_64-linux`, including PHP 8.2–8.5, consumers, documentation,
+  formatting, and generated-artifact checks. The matrix had 29 expected skips on PHP 8.2/8.3 and 24 on PHP 8.4/8.5. An
+  earlier run found Markdown wrapping differences; `nix fmt` corrected them before the passing run.
+- `composer cs:fix`, `nix fmt`, and `git diff --check` completed successfully. Other Nix platforms, mutation testing,
+  Xdebug branch coverage, and the parser probator were not run for this slice.
+
 P2. [`ExprFormatter::formatResolvedUnitName()`](../../src/Formatter/ExprFormatter.php) selects prefix and unit symbols
 independently, then concatenates them. It does not establish that the complete spelling resolves to the original unit.
 Exact catalog names take precedence over prefix decomposition, so the result can denote a different dimension.

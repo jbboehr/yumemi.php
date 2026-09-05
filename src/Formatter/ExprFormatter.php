@@ -40,6 +40,10 @@ use jbboehr\Yumemi\Analyzer\ResolvedUnitName;
 use jbboehr\Yumemi\Analyzer\UnitNameResolver;
 use jbboehr\Yumemi\Catalog\CatalogNameKind;
 use jbboehr\Yumemi\Expr;
+use jbboehr\Yumemi\Parser\Ast\Identifier;
+use jbboehr\Yumemi\Parser\ExpressionLimitExceededException;
+use jbboehr\Yumemi\Parser\ParseException;
+use jbboehr\Yumemi\Parser\Parser;
 use jbboehr\Yumemi\Registry\UnitRegistry;
 
 /** Registry-aware user-facing rendering of unit expressions. */
@@ -105,7 +109,33 @@ final class ExprFormatter
             ? $this->preferredPrefixSymbol($prefix->canonicalName) ?? $prefix->canonicalName
             : $prefix->canonicalName;
 
-        return $prefixName . $unitName;
+        foreach ([$prefixName . $unitName, $prefix->canonicalName . $unit->canonicalName] as $candidate) {
+            if ($candidate === $name) {
+                return $name;
+            }
+
+            // Concatenation can hit an exact name or a different prefix split. Prove identity
+            // from the same prefix definition and canonical unit, without normalizing expressions.
+            $candidateResolved = $this->unitNameResolver->resolve($candidate);
+            if (
+                $candidateResolved !== null
+                && $candidateResolved->prefixDefinition === $resolved->prefixDefinition
+                && $this->unitRegistry->describe($candidateResolved->unitName)?->canonicalName === $unit->canonicalName
+            ) {
+                // Punctuation symbols may resolve as names but parse as multiple unit leaves.
+                try {
+                    $candidateAst = Parser::parseString($candidate);
+                } catch (ParseException|ExpressionLimitExceededException) {
+                    continue;
+                }
+
+                if ($candidateAst instanceof Identifier && $candidateAst->identifier === $candidate) {
+                    return $candidate;
+                }
+            }
+        }
+
+        return $name;
     }
 
     /**

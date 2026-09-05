@@ -61,11 +61,14 @@ final class FormattingAndCatalogBench
     private ExprFormatter $warmFormatter;
     private FormatOptions $symbolOptions;
 
-    public function setUp(): void
+    /** @param array{unit?: string} $params */
+    public function setUp(array $params = []): void
     {
         $this->registry = new Udunits2UnitRegistry();
         $this->units = new Units($this->registry);
-        $this->expr = $this->units->parse('kilometer / second^2');
+        $this->expr = isset($params['unit'])
+            ? new Expr\Unit($params['unit'])
+            : $this->units->parse('kilometer / second^2');
         $this->symbolOptions = FormatOptions::create()
             ->withUnitNameStyle(UnitNameStyle::Symbol)
             ->withTypography(Typography::Unicode)
@@ -83,6 +86,7 @@ final class FormattingAndCatalogBench
 
     #[Bench\BeforeMethods('setUp')]
     #[Bench\Revs(10)]
+    #[Bench\ParamProviders('provideSymbolNames')]
     public function benchColdSymbolFormatter(): string
     {
         return $this->units->formatter($this->symbolOptions)->format($this->expr);
@@ -90,9 +94,19 @@ final class FormattingAndCatalogBench
 
     #[Bench\BeforeMethods('setUp')]
     #[Bench\Revs(500)]
+    #[Bench\ParamProviders('provideSymbolNames')]
     public function benchWarmSymbolFormatter(): string
     {
         return $this->warmFormatter->format($this->expr);
+    }
+
+    /** @return iterable<string, array{unit?: string}> */
+    public function provideSymbolNames(): iterable
+    {
+        yield 'resolved expression' => [];
+        yield 'dynamic prefix' => ['unit' => 'kilometer'];
+        yield 'symbol collision' => ['unit' => 'milliinch'];
+        yield 'punctuation symbol' => ['unit' => 'millipercent'];
     }
 
     #[Bench\BeforeMethods('setUp')]
