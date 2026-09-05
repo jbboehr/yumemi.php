@@ -414,6 +414,90 @@ for mixed numeric inputs.
 
 ## Issue 5: Native division inferred as float-only
 
+**Fifth fix, reviewed:** Native `/` preserves the actual integer or float result when both operand magnitudes are known.
+Unknown integer operands produce both numeric brands, following PHPStan's benevolent-union treatment of ordinary native
+division. Explicit operand unions remain strict through subsequent binary arithmetic. The same result calculation serves
+unit/unit, unit/scalar, and scalar/unit division; float operands and `fdiv()` retain their float behavior.
+
+The fix is confined to PHPStan. Unit algebra, runtime operations, and the runtime conformance corpus remain unchanged.
+The existing handling of zero divisors is preserved: inference avoids evaluating an undefined constant quotient. Unknown
+integer ranges conservatively produce unbounded integer-or-float results; this slice does not add interval division or
+divisibility analysis. `integerOverflowToFloat: false` does not erase fractional division results.
+
+Review caught a regression in chained expressions: for `unit_int<'meter'>|unit_int<'second'>`, passing
+`($value / 2) * 2` to a `unit_float<'meter'>` parameter lost the expected `argument.type` diagnostic. Multiplication's
+numeric overflow union made the entire result benevolent, allowing the seconds alternative to be discarded. The fix
+applies the existing source-union strictness helper to every binary operator when either operand is a union. Multiplying
+in either operand order and squaring the divided result now retain the incompatible-unit diagnostics; the equivalent
+chains with a single known unit remain accepted.
+
+Verification for this fix:
+
+- PHP experiments confirmed integer `4 / 2`, fractional `5 / 2`, float `4.0 / 2`, and float `PHP_INT_MIN / -1`. A
+  PHPStan comparison confirmed that bare uncertain integer division already retains both numeric kinds, while the
+  baseline branded path returned only `unit_float` and changed integer constant `2` into float constant `2.0`.
+- Before implementation, `composer test -- tests/PHPStan/UnitOperatorTypeSpecifyingExtensionTest.php` failed seven tests
+  covering numeric-kind preservation and all three operand positions. After implementation it passed: 55 tests and 337
+  assertions, including constant values, signs, the integer overflow boundary, float operands, and explicit unit-union
+  rejection.
+- `composer test -- tests/PHPStan/UnitDivisionTypeTest.php` passed: one fixture and 20 assertions covering constants,
+  integer/float branch narrowing, finite magnitude unions, mixed numeric brands, unit cancellation, and `fdiv()`.
+- The new inference fixture and the public `cutWholeMeterPiece()` example were also run against the isolated committed
+  implementation. Both failed because it returned a float brand for integer quotient `2`; the current implementation
+  passes both checks.
+- The initial independent correctness and adversarial test reviews found no actionable defect; the later user review
+  exposed the chained-arithmetic regression above. The initial test review added coverage for integer-zero divisors in
+  all three operand positions, known fractional results with overflow promotion disabled, and explicit right-hand unit
+  unions; the final focused run includes those checks.
+- The chained-expression regression test passed against isolated `48af89d` with all three expected diagnostics, failed
+  against the reviewed patch with zero diagnostics, and passed after the correction. Two existing direct multiplication
+  tests also failed when strengthened to require strict unions, then passed with the correction.
+- The follow-up independent code review found no further defect. The adversarial test review added two divisor-union
+  chains and matching single-unit controls, and strengthened the integration test to require exact diagnostic lines and
+  identifiers. The reviewed patch still fails this expanded test: it reports only the two divisor-union errors and loses
+  the three numerator-union errors.
+- After the correction,
+  `composer test -- tests/PHPStan/UnitOperatorTypeSpecifyingExtensionTest.php tests/PHPStan/UnitDivisionTypeTest.php tests/PHPStan/UnitTypeNodeResolverIntegrationTest.php tests/PHPStan/QuantityOperatorReturnTypeExtensionTest.php tests/PHPStan/UnitScalarTransformationTypeTest.php tests/PHPStan/UnitUnionTypeHelperTest.php`
+  passed: 90 tests and 830 assertions. An additional PHPStan probe confirmed that unary `+` and `-` retain both
+  incompatible-unit diagnostics after division. `composer analyse` passed.
+- The first post-review full Composer and Nix runs caught a field access on `mixed` in the integration test's decoded
+  JSON. An explicit array assertion fixed the test; its focused rerun passed with one test and 14 assertions before both
+  full gates were rerun successfully.
+- Final `composer check:full` passed: 2,351 tests, 26,544 assertions, and five expected skips, plus analysis,
+  formatting, documentation, benchmark smoke, and packaged consumers.
+- `nix flake check --keep-going -L path:/tmp/yumemi-slice5-review-final-cfugfy80` passed on `x86_64-linux`, using a
+  source snapshot that included the new unstaged fixtures. The PHP 8.2–8.5 matrix passed 2,351 tests per version, with
+  29 expected skips on PHP 8.2–8.3 and 24 on PHP 8.4–8.5. Separate extension-integration checks passed 61 tests and
+  4,746 assertions on each version. The skips concern optional catalog/UDUNITS2 tooling and native `RoundingMode`
+  availability.
+- Reliability review: **PASS**, following the review correction, independent follow-up reviews, and fresh final
+  verification. Other platforms, specialist mutation/probator campaigns, and the committed-revision compatibility
+  comparison were not rerun.
+
+Performance was remeasured after the review correction against `48af89d` on PHP 8.2.32 using the real `specifyType()`
+path. Operand types were constructed before timing; these scalar-operand cases exclude unit parsing. Each case warmed up
+with 1,000 calls, followed by seven batches of 5,000 calls. Three processes per version ran in alternating order; the
+table reports median process medians in microseconds per call. These are local adapter measurements, not whole-project
+analysis timings.
+
+| Operation                          | Before (µs) | After (µs) |
+| ---------------------------------- | ----------- | ---------- |
+| Integer / integer scalar           | 3.476       | 3.790      |
+| Float / float scalar               | 2.281       | 2.029      |
+| Integral constants / scalar        | 3.769       | 3.529      |
+| Fractional constants / scalar      | 3.770       | 3.522      |
+| Float constant / integer scalar    | 3.570       | 3.229      |
+| Explicit numeric union / scalar    | 15.506      | 21.665     |
+| Mixed unit union \* integer scalar | 21.439      | 80.818     |
+| Integer multiplication (control)   | 7.313       | 7.463      |
+| Float multiplication (control)     | 2.277       | 2.353      |
+
+When neither operand is a union, division returns its sole result directly, avoiding redundant union combination. Binary
+operators use the shared combination helper for union operands to preserve strictness. The mixed-unit multiplication
+case starts with a strict four-alternative union of integer/float meters/seconds, representing an uncertain divided
+value. It now takes about 59 microseconds more per inference call; previously it returned a benevolent union that could
+discard the seconds alternative. Single-kind inputs remain close to the baseline. Application runtime code is unchanged.
+
 P2. [`UnitOperatorTypeSpecifyingExtension::specifyMulDiv()`](../../src/PHPStan/UnitOperatorTypeSpecifyingExtension.php)
 forces division into float brands, including casting a calculated constant result to float. PHP can return an integer
 when dividing two integers with an integral quotient.

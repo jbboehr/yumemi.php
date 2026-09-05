@@ -337,27 +337,149 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
         $this->assertSame("(unit_float<'meter'>|unit_int<'meter'>)", $result->describe(VerbosityLevel::precise()));
     }
 
-    public function testDivCombinesUnitsAndAlwaysReturnsFloat(): void
+    public function testDivCombinesUnitsAndAllowsBothNumericKinds(): void
     {
         $distance = $this->unitInt('meter');
         $time = $this->unitInt('second');
 
         $result = $this->extension->specifyType('/', $distance, $time);
 
-        $this->assertInstanceOf(UnitFloatType::class, $result);
-        $this->assertSame("unit_float<'meter / second'>", $result->describe(VerbosityLevel::precise()));
+        $this->assertInstanceOf(BenevolentUnionType::class, $result);
+        $this->assertSame("(unit_float<'meter / second'>|unit_int<'meter / second'>)", $result->describe(VerbosityLevel::precise()));
     }
 
-    public function testIntDivIntSameUnitIsFloat(): void
+    public function testIntDivIntSameUnitAllowsBothNumericKinds(): void
     {
         $a = $this->unitInt('meter');
         $b = $this->unitInt('meter');
 
         $result = $this->extension->specifyType('/', $a, $b);
 
-        $this->assertInstanceOf(UnitFloatType::class, $result);
+        $this->assertInstanceOf(BenevolentUnionType::class, $result);
         // meter/meter → dimensionless "1" display
-        $this->assertSame("unit_float<'1'>", $result->describe(VerbosityLevel::precise()));
+        $this->assertSame("(unit_float<'1'>|unit_int<'1'>)", $result->describe(VerbosityLevel::precise()));
+    }
+
+    public function testConstantDivisionPreservesPhpResultKindAndValueInEveryOperandPosition(): void
+    {
+        $meter = $this->unit('meter');
+        $second = $this->unit('second');
+        foreach ([
+            [4, 2, 2],
+            [5, 2, 2.5],
+            [-4, 2, -2],
+            [0, -2, 0],
+            [PHP_INT_MAX, 1, PHP_INT_MAX],
+            [PHP_INT_MIN, -1, -(float) PHP_INT_MIN],
+            [4.0, 2, 2.0],
+            [4, 2.0, 2.0],
+        ] as [$left, $right, $expected]) {
+            if (is_int($left)) {
+                $leftBare = new ConstantIntegerType($left);
+                $leftUnit = new UnitConstantIntegerType($left, $meter);
+            } else {
+                $leftBare = new ConstantFloatType($left);
+                $leftUnit = new UnitConstantFloatType($left, $meter);
+            }
+            if (is_int($right)) {
+                $rightBare = new ConstantIntegerType($right);
+                $rightUnit = new UnitConstantIntegerType($right, $second);
+            } else {
+                $rightBare = new ConstantFloatType($right);
+                $rightUnit = new UnitConstantFloatType($right, $second);
+            }
+
+            $this->assertSame($expected, $left / $right);
+            foreach ([
+                [$leftUnit, $rightUnit, 'meter / second'],
+                [$leftUnit, $rightBare, 'meter'],
+                [$leftBare, $rightUnit, '1 / second'],
+            ] as [$leftType, $rightType, $expectedUnit]) {
+                $result = $this->extension->specifyType('/', $leftType, $rightType);
+                if (is_int($expected)) {
+                    $this->assertInstanceOf(UnitConstantIntegerType::class, $result);
+                } else {
+                    $this->assertInstanceOf(UnitConstantFloatType::class, $result);
+                }
+                $this->assertSame($expected, $result->getValue());
+                $this->assertSame($expectedUnit, $result->getUnitExpression()->displayString);
+            }
+        }
+    }
+
+    public function testConstantIntegerZeroDivisorWidensWithoutFoldingInEveryOperandPosition(): void
+    {
+        $meter = $this->unit('meter');
+        $second = $this->unit('second');
+
+        foreach ([
+            [new UnitConstantIntegerType(1, $meter), new UnitConstantIntegerType(0, $second), 'meter / second'],
+            [new UnitConstantIntegerType(1, $meter), new ConstantIntegerType(0), 'meter'],
+            [new ConstantIntegerType(1), new UnitConstantIntegerType(0, $second), '1 / second'],
+        ] as [$left, $right, $expectedUnit]) {
+            $result = $this->extension->specifyType('/', $left, $right);
+
+            $this->assertInstanceOf(UnitFloatType::class, $result);
+            $this->assertSame($expectedUnit, $result->getUnitExpression()->displayString);
+        }
+    }
+
+    public function testDivisionDoesNotDependOnTheIntegerOverflowSetting(): void
+    {
+        $extension = new UnitOperatorTypeSpecifyingExtension(false);
+        $fractional = $extension->specifyType(
+            '/',
+            new UnitConstantIntegerType(3, $this->unit('meter')),
+            new ConstantIntegerType(2),
+        );
+        $bounded = UnitIntegerTypeHelper::create($this->unit('meter'), 3, 5);
+        $result = $extension->specifyType('/', $bounded, new ConstantIntegerType(2));
+
+        $this->assertInstanceOf(UnitConstantFloatType::class, $fractional);
+        $this->assertSame("1.5&unit_float<'meter'>", $fractional->describe(VerbosityLevel::precise()));
+        $this->assertInstanceOf(BenevolentUnionType::class, $result);
+        $this->assertSame("(unit_float<'meter'>|unit_int<'meter'>)", $result->describe(VerbosityLevel::precise()));
+    }
+
+    public function testDivisionWithAnUnknownFloatOperandRemainsFloat(): void
+    {
+        foreach ([
+            [$this->unitInt('meter'), $this->unitFloat('second'), 'meter / second'],
+            [$this->unitFloat('meter'), $this->unitInt('second'), 'meter / second'],
+            [$this->unitInt('meter'), new FloatType(), 'meter'],
+            [$this->unitFloat('meter'), new IntegerType(), 'meter'],
+            [new FloatType(), $this->unitInt('second'), '1 / second'],
+            [new IntegerType(), $this->unitFloat('second'), '1 / second'],
+        ] as [$left, $right, $unit]) {
+            $result = $this->extension->specifyType('/', $left, $right);
+            $this->assertInstanceOf(UnitFloatType::class, $result);
+            $this->assertSame($unit, $result->getUnitExpression()->displayString);
+        }
+    }
+
+    public function testDivisionDoesNotWeakenExplicitUnitAlternatives(): void
+    {
+        $leftAlternatives = TypeCombinator::union($this->unitInt('meter'), $this->unitInt('second'));
+        $leftResult = $this->extension->specifyType('/', $leftAlternatives, new IntegerType());
+
+        $this->assertInstanceOf(UnionType::class, $leftResult);
+        $this->assertNotInstanceOf(BenevolentUnionType::class, $leftResult);
+        $this->assertSame(
+            "unit_float<'meter'>|unit_float<'second'>|unit_int<'meter'>|unit_int<'second'>",
+            $leftResult->describe(VerbosityLevel::precise()),
+        );
+        $this->assertFalse($this->unitFloat('meter')->accepts($leftResult, true)->yes());
+
+        $rightAlternatives = TypeCombinator::union($this->unitInt('minute'), $this->unitInt('second'));
+        $rightResult = $this->extension->specifyType('/', $this->unitInt('meter'), $rightAlternatives);
+
+        $this->assertInstanceOf(UnionType::class, $rightResult);
+        $this->assertNotInstanceOf(BenevolentUnionType::class, $rightResult);
+        $this->assertSame(
+            "unit_float<'meter / minute'>|unit_float<'meter / second'>"
+                . "|unit_int<'meter / minute'>|unit_int<'meter / second'>",
+            $rightResult->describe(VerbosityLevel::precise()),
+        );
     }
 
     public function testMulByBareIntegerAllowsFloatOverflow(): void
@@ -393,22 +515,22 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
         $this->assertSame("unit_int<'meter'>", $leftResult->describe(VerbosityLevel::precise()));
     }
 
-    public function testDivByBareScalarKeepsUnitAsFloat(): void
+    public function testDivByBareIntegerKeepsUnitAndBothNumericKinds(): void
     {
         $meters = $this->unitInt('meter');
         $result = $this->extension->specifyType('/', $meters, new IntegerType());
 
-        $this->assertInstanceOf(UnitFloatType::class, $result);
-        $this->assertSame("unit_float<'meter'>", $result->describe(VerbosityLevel::precise()));
+        $this->assertInstanceOf(BenevolentUnionType::class, $result);
+        $this->assertSame("(unit_float<'meter'>|unit_int<'meter'>)", $result->describe(VerbosityLevel::precise()));
     }
 
-    public function testBareScalarDivUnitInvertsUnitAsFloat(): void
+    public function testBareIntegerDivUnitInvertsUnitAndAllowsBothNumericKinds(): void
     {
         $seconds = $this->unitInt('second');
         $result = $this->extension->specifyType('/', new IntegerType(), $seconds);
 
-        $this->assertInstanceOf(UnitFloatType::class, $result);
-        $this->assertSame("unit_float<'1 / second'>", $result->describe(VerbosityLevel::precise()));
+        $this->assertInstanceOf(BenevolentUnionType::class, $result);
+        $this->assertSame("(unit_float<'1 / second'>|unit_int<'1 / second'>)", $result->describe(VerbosityLevel::precise()));
     }
 
     public function testMulByBareFloatPromotesToUnitFloat(): void
@@ -426,8 +548,9 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
 
         $result = $this->extension->specifyType('*', $left, $this->unitInt('meter'));
 
+        $this->assertNotInstanceOf(BenevolentUnionType::class, $result);
         $this->assertSame(
-            "(unit_float<'meter * second'>|unit_float<'meter ^ 2'>|unit_int<'meter * second'>|unit_int<'meter ^ 2'>)",
+            "unit_float<'meter * second'>|unit_float<'meter ^ 2'>|unit_int<'meter * second'>|unit_int<'meter ^ 2'>",
             $result->describe(VerbosityLevel::precise()),
         );
     }
@@ -439,8 +562,9 @@ final class UnitOperatorTypeSpecifyingExtensionTest extends TestCase
 
         $result = $this->extension->specifyType('*', $left, $this->unitInt('second'));
 
+        $this->assertNotInstanceOf(BenevolentUnionType::class, $result);
         $this->assertSame(
-            "(unit_float<'meter * second'>|unit_float<'second'>|unit_int<'meter * second'>|unit_int<'second'>)",
+            "unit_float<'meter * second'>|unit_float<'second'>|unit_int<'meter * second'>|unit_int<'second'>",
             $result->describe(VerbosityLevel::precise()),
         );
     }

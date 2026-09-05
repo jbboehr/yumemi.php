@@ -60,7 +60,7 @@ use PHPStan\Type\VerbosityLevel;
  * - **: left unit raised to a constant integer exponent
  * - %: both sides must be unit_int values with equivalent normalized units
  * - unit op bare numeric: treat bare value as dimensionless (* / only)
- * - int / int → unit_float (PHP division always yields float)
+ * - int / int: preserve known PHP result kinds; otherwise allow unit_int|unit_float
  * - overflow-capable integer operations optionally preserve unit_int|unit_float
  *
  * Quantity operators mirror the canonical runtime methods. Addition and subtraction convert compatible dimensions,
@@ -124,8 +124,14 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
                 }
             }
 
+            if ($operatorSigil === '/' && !$leftSide instanceof UnionType && !$rightSide instanceof UnionType) {
+                return $results[0];
+            }
+
             /** @var non-empty-list<Type> $results */
-            return $this->combineResults($results);
+            return $leftSide instanceof UnionType || $rightSide instanceof UnionType
+                ? UnitUnionTypeHelper::combineMapped($results, $leftSide, $rightSide)
+                : $this->combineResults($results);
         } catch (\Throwable $exception) {
             ShouldNotHappenException::rethrow($exception);
         }
@@ -419,18 +425,18 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
                 ));
             }
 
-            if ($operatorSigil === '/' || !$leftUnit['integer'] || !$rightUnit['integer']) {
-                if (
-                    $leftUnit['value'] !== null
-                    && $rightUnit['value'] !== null
-                    && ($operatorSigil !== '/'
-                        || ($rightUnit['value'] !== 0 && $rightUnit['value'] !== 0.0))
-                ) {
-                    $value = $operatorSigil === '*'
-                        ? $leftUnit['value'] * $rightUnit['value']
-                        : $leftUnit['value'] / $rightUnit['value'];
+            if ($operatorSigil === '/') {
+                return $this->divisionResult(
+                    $unit,
+                    $leftUnit['value'],
+                    $rightUnit['value'],
+                    $leftUnit['integer'] && $rightUnit['integer'],
+                );
+            }
 
-                    return new UnitConstantFloatType((float) $value, $unit);
+            if (!$leftUnit['integer'] || !$rightUnit['integer']) {
+                if ($leftUnit['value'] !== null && $rightUnit['value'] !== null) {
+                    return new UnitConstantFloatType((float) ($leftUnit['value'] * $rightUnit['value']), $unit);
                 }
 
                 return new UnitFloatType($unit);
@@ -446,18 +452,19 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
 
         if ($leftUnit !== null && $this->isBareNumeric($rightSide)) {
             // unit *| / scalar → same unit
-            if ($operatorSigil === '/' || !$leftUnit['integer'] || $rightSide->isFloat()->yes()) {
-                $rightValue = self::constantNumericValue($rightSide);
-                if (
-                    $leftUnit['value'] !== null
-                    && $rightValue !== null
-                    && ($operatorSigil !== '/' || ($rightValue !== 0 && $rightValue !== 0.0))
-                ) {
-                    $value = $operatorSigil === '*'
-                        ? $leftUnit['value'] * $rightValue
-                        : $leftUnit['value'] / $rightValue;
+            if ($operatorSigil === '/') {
+                return $this->divisionResult(
+                    $leftUnit['unit'],
+                    $leftUnit['value'],
+                    self::constantNumericValue($rightSide),
+                    $leftUnit['integer'] && $rightSide->isInteger()->yes(),
+                );
+            }
 
-                    return new UnitConstantFloatType((float) $value, $leftUnit['unit']);
+            if (!$leftUnit['integer'] || $rightSide->isFloat()->yes()) {
+                $rightValue = self::constantNumericValue($rightSide);
+                if ($leftUnit['value'] !== null && $rightValue !== null) {
+                    return new UnitConstantFloatType((float) ($leftUnit['value'] * $rightValue), $leftUnit['unit']);
                 }
 
                 return new UnitFloatType($leftUnit['unit']);
@@ -501,23 +508,47 @@ final class UnitOperatorTypeSpecifyingExtension implements OperatorTypeSpecifyin
 
             // scalar / unit → inverse unit
             $unit = UnitExpressionAlgebra::invert($rightUnit['unit']);
-            $leftValue = self::constantNumericValue($leftSide);
-            if (
-                $leftValue !== null
-                && $rightUnit['value'] !== null
-                && $rightUnit['value'] !== 0
-                && $rightUnit['value'] !== 0.0
-            ) {
-                return new UnitConstantFloatType((float) ($leftValue / $rightUnit['value']), $unit);
-            }
-
-            return new UnitFloatType($unit);
+            return $this->divisionResult(
+                $unit,
+                self::constantNumericValue($leftSide),
+                $rightUnit['value'],
+                $leftSide->isInteger()->yes() && $rightUnit['integer'],
+            );
         }
 
         return new ErrorType(sprintf(
             'Cannot use %s with these operand types for unit values.',
             $operatorSigil,
         ));
+    }
+
+    /**
+     * @logion [RAS 77:30] Beneath the seabed I beheld an angel kneeling, his shoulders pressed against the
+     *     foundations of an island. Above him the islanders were dancing, and every footfall shook the jewels of his
+     *     collar. He lifted no face to receive their praise. Yet when the children slept, he asked that their songs be
+     *     sung again.
+     */
+    private function divisionResult(
+        UnitExpression $unit,
+        int|float|null $leftValue,
+        int|float|null $rightValue,
+        bool $integerOperands,
+    ): Type {
+        if ($rightValue === 0 || $rightValue === 0.0) {
+            return new UnitFloatType($unit);
+        }
+
+        if ($leftValue !== null && $rightValue !== null) {
+            $value = $leftValue / $rightValue;
+
+            return is_int($value)
+                ? new UnitConstantIntegerType($value, $unit)
+                : new UnitConstantFloatType($value, $unit);
+        }
+
+        return $integerOperands
+            ? new BenevolentUnionType([new UnitIntegerType($unit), new UnitFloatType($unit)])
+            : new UnitFloatType($unit);
     }
 
     /**

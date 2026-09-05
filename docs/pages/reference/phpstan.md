@@ -155,11 +155,31 @@ Yumemi infers native unit types for unary `+` and `-` and for these binary opera
 | `%`         | Require two `unit_int` values with definitionally equivalent units        |
 | Comparisons | Require definitionally equivalent units and retain PHP's native result    |
 
-Multiplication and division may combine a unit value with a bare numeric scalar. Division always produces a
-`unit_float`; operations involving a float-like magnitude also produce a float brand. Yumemi preserves known integer
-constants and signed ranges through addition, subtraction, multiplication, unary signs, and nonnegative powers. It also
-preserves known float values through supported arithmetic when every required operand value is known. Exact integer
-endpoint arithmetic determines the result kind:
+Multiplication and division may combine a unit value with a bare numeric scalar. When two integers divide evenly and the
+quotient fits in PHP's integer range, `/` retains an integer:
+
+```php
+<?php
+
+use function jbboehr\Yumemi\unit;
+
+/** @param unit_int<'meter'> $length */
+function cutWholeMeterPiece(int $length): void {}
+
+$pieceLength = unit(4, 'meter') / 2;
+cutWholeMeterPiece($pieceLength);
+assert($pieceLength === 2);
+```
+
+`unit(5, 'meter') / 2` instead produces `2.5&unit_float<'meter'>`. A float operand or an overflowing integer quotient
+also produces a float brand. When integer operands are not known, Yumemi allows both `unit_int` and `unit_float`.
+PHPStan treats this as a benevolent union: a target may accept one of the possible numeric types, as with ordinary
+native division. Explicit operand unions remain strict through subsequent arithmetic, so this does not permit discarding
+an incompatible unit alternative. `fdiv()` always produces a float brand.
+
+Yumemi preserves known integer constants and signed ranges through addition, subtraction, multiplication, unary signs,
+and nonnegative powers. It also preserves known float values through supported arithmetic when every required operand
+value is known. For those overflow-capable integer operations, exact endpoint arithmetic determines the result kind:
 
 | Mathematical result relative to PHP's integer range | Inferred type                                           |
 | --------------------------------------------------- | ------------------------------------------------------- |
@@ -184,7 +204,8 @@ parameters:
 
 This setting changes static inference only; it cannot alter PHP's runtime overflow behavior. Proven-safe constants and
 ranges remain precise; a potentially overflowing result widens to an unbounded `unit_int` because PHPStan cannot
-represent an integer endpoint outside PHP's platform range.
+represent an integer endpoint outside PHP's platform range. The setting does not remove the float possibility from `/`,
+which can produce a fractional result without overflowing.
 
 For example, distance divided by time is inferred as speed, while distance multiplied by time is rejected at a speed
 boundary:

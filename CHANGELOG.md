@@ -58,6 +58,8 @@ These changes are planned for 0.2.0 because they change behavior documented in 0
 
 ### Fixed
 
+- Native `/` inference now preserves integer quotients and retains both numeric kinds for uncertain integer division.
+- Native arithmetic preserves explicit unit alternatives at assignment boundaries, including after chained division.
 - `unit()` now preserves integer and float alternatives in PHPStan inference, including scalar constants and integer
   ranges, so numeric type checks can narrow the resulting brand correctly.
 - `Rational` now isolates mutable GMP inputs and returns detached component copies, preserving quantities that share a

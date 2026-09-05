@@ -59,6 +59,24 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $this->assertStringContainsString('[OK] No errors', $output, $output);
     }
 
+    public function testChainedDivisionCannotDiscardIncompatibleUnitAlternatives(): void
+    {
+        $output = $this->analyse('unit-division-union-invalid.php', errorFormat: 'json');
+
+        $result = json_decode($output, true, flags: JSON_THROW_ON_ERROR);
+        $this->assertIsArray($result);
+        $this->assertSame(['errors' => 0, 'file_errors' => 5], $result['totals'] ?? null, $output);
+        $files = $result['files'] ?? null;
+        $this->assertIsArray($files, $output);
+        $this->assertCount(1, $files, $output);
+        $file = reset($files);
+        $this->assertIsArray($file, $output);
+        $messages = $file['messages'] ?? null;
+        $this->assertIsArray($messages, $output);
+        $this->assertSame([54, 55, 56, 57, 58], array_column($messages, 'line'), $output);
+        $this->assertSame(array_fill(0, 5, 'argument.type'), array_column($messages, 'identifier'), $output);
+    }
+
     public function testInvalidUnitPhpDocReportsErrors(): void
     {
         $output = $this->analyse('unit-phpdoc-invalid.php');
