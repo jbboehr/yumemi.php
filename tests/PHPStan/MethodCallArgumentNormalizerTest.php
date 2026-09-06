@@ -36,39 +36,26 @@
 
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
-use PHPStan\Testing\TypeInferenceTestCase;
+use jbboehr\Yumemi\PHPStan\MethodCallArgumentNormalizer;
+use PhpParser\Node\Arg;
+use PhpParser\Node\Expr\MethodCall;
+use PhpParser\Node\Expr\Variable;
+use PhpParser\Node\Scalar\Int_;
+use PHPStan\Analyser\Scope;
+use PHPUnit\Framework\TestCase;
 
-/**
- * Type-inference coverage for the Quantity<'...'> object path via assertType() fixtures.
- */
-final class QuantityReturnTypeExtensionTest extends TypeInferenceTestCase
+final class MethodCallArgumentNormalizerTest extends TestCase
 {
-    use AssertsFixtureUnderCoverage;
-
-    public static function getAdditionalConfigFiles(): array
+    public function testPositionalArgumentsBypassReflectionAndPreserveArgumentNodes(): void
     {
-        return [
-            __DIR__ . '/../../extension.neon',
-        ];
-    }
+        $first = new Arg(new Int_(1));
+        $second = new Arg(new Int_(2), unpack: true);
+        $call = new MethodCall(new Variable('receiver'), 'method', [$first, $second]);
+        $scope = $this->createMock(Scope::class);
+        $scope->expects($this->never())->method('getMethodReflection');
 
-    public function testFileAsserts(): void
-    {
-        $this->assertFixtureUnderCoverage(__DIR__ . '/data/quantity-assert.php');
-    }
+        $normalized = MethodCallArgumentNormalizer::normalize($call, $scope);
 
-    public function testMixedQuantityOperands(): void
-    {
-        $this->assertFixtureUnderCoverage(__DIR__ . '/data/quantity-mixed-operands.php');
-    }
-
-    public function testNamedArgumentsPreserveInference(): void
-    {
-        $this->assertFixtureUnderCoverage(__DIR__ . '/data/quantity-named-arguments-assert.php');
-    }
-
-    public function testNamedArgumentBoundariesPreserveInference(): void
-    {
-        $this->assertFixtureUnderCoverage(__DIR__ . '/data/quantity-named-arguments-boundary.php');
+        $this->assertSame([$first, $second], $normalized);
     }
 }

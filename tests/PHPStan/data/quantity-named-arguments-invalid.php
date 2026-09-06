@@ -34,41 +34,41 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\Tests\PHPStan;
+use jbboehr\Yumemi\Units;
 
-use PHPStan\Testing\TypeInferenceTestCase;
+use function jbboehr\Yumemi\unit;
 
-/**
- * Type-inference coverage for the Quantity<'...'> object path via assertType() fixtures.
- */
-final class QuantityReturnTypeExtensionTest extends TypeInferenceTestCase
+function inspectNamedQuantityCalls(Units $units): void
 {
-    use AssertsFixtureUnderCoverage;
+    $units->quantity(1, 'unknown_unit');
+    $units->quantity(value: 1, unit: 'unknown_unit');
+    $units->quantity(unit: 'unknown_unit', value: 1);
 
-    public static function getAdditionalConfigFiles(): array
-    {
-        return [
-            __DIR__ . '/../../extension.neon',
-        ];
-    }
+    $seconds = unit(1, 'second');
+    $units->quantity($seconds, 'meter');
+    $units->quantity(value: $seconds, unit: 'meter');
+    $units->quantity(unit: 'meter', value: $seconds);
 
-    public function testFileAsserts(): void
-    {
-        $this->assertFixtureUnderCoverage(__DIR__ . '/data/quantity-assert.php');
-    }
+    $units->point(1, 'celsius / second');
+    $units->point(value: 1, unit: 'celsius / second');
+    $units->point(unit: 'celsius / second', value: 1);
 
-    public function testMixedQuantityOperands(): void
-    {
-        $this->assertFixtureUnderCoverage(__DIR__ . '/data/quantity-mixed-operands.php');
-    }
+    $units->deltaQuantity(1, 'unknown_unit');
+    $units->deltaQuantity(value: 1, unit: 'unknown_unit');
+    $units->deltaQuantity(unit: 'unknown_unit', value: 1);
 
-    public function testNamedArgumentsPreserveInference(): void
-    {
-        $this->assertFixtureUnderCoverage(__DIR__ . '/data/quantity-named-arguments-assert.php');
-    }
+    $units->parseQuantity('2 unknown_unit');
+    $units->parseQuantity(input: '2 unknown_unit');
 
-    public function testNamedArgumentBoundariesPreserveInference(): void
-    {
-        $this->assertFixtureUnderCoverage(__DIR__ . '/data/quantity-named-arguments-boundary.php');
-    }
+    $distance = $units->quantity(1, 'meter');
+    $distance->decimalValueIn('second', 2, RoundingMode::HalfEven);
+    $distance->decimalValueIn(unit: 'second', scale: 2, mode: RoundingMode::HalfEven);
+    $distance->decimalValueIn(scale: 2, mode: RoundingMode::HalfEven, unit: 'second');
+    $distance->decimalValueIn('second', mode: RoundingMode::HalfEven, scale: 2);
+
+    $temperature = $units->point(1, 'celsius');
+    $temperature->decimalValueIn('meter', 2, RoundingMode::HalfEven);
+    $temperature->decimalValueIn(unit: 'meter', scale: 2, mode: RoundingMode::HalfEven);
+    $temperature->decimalValueIn(scale: 2, mode: RoundingMode::HalfEven, unit: 'meter');
+    $temperature->decimalValueIn('meter', mode: RoundingMode::HalfEven, scale: 2);
 }

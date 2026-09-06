@@ -267,6 +267,64 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $this->assertStringContainsString('Found 2 errors', $output, $output);
     }
 
+    public function testNamedQuantityCallsRetainStandaloneDiagnostics(): void
+    {
+        $output = $this->analyse('quantity-named-arguments-invalid.php', errorFormat: 'json');
+
+        $result = json_decode($output, true, flags: JSON_THROW_ON_ERROR);
+        $this->assertIsArray($result);
+        $this->assertSame(['errors' => 0, 'file_errors' => 22], $result['totals'] ?? null, $output);
+        $files = $result['files'] ?? null;
+        $this->assertIsArray($files);
+        $this->assertCount(1, $files);
+        $file = reset($files);
+        $this->assertIsArray($file);
+        $messages = $file['messages'] ?? null;
+        $this->assertIsArray($messages);
+        $this->assertSame([
+            43, 44, 45, 48, 49, 50, 52, 53, 54, 56, 57, 58, 60, 61,
+            64, 65, 66, 67, 70, 71, 72, 73,
+        ], array_column($messages, 'line'), $output);
+        $this->assertSame([
+            ...array_fill(0, 14, 'yumemi.invalidQuantityConstruction'),
+            ...array_fill(0, 4, 'yumemi.invalidQuantityConversion'),
+            ...array_fill(0, 4, 'yumemi.invalidPointQuantityOperation'),
+        ], array_column($messages, 'identifier'), $output);
+    }
+
+    public function testValidNamedQuantityCallsHaveNoDiagnostics(): void
+    {
+        $output = $this->analyse('quantity-named-arguments-assert.php');
+
+        $this->assertStringContainsString('[OK] No errors', $output, $output);
+    }
+
+    public function testMalformedNamedQuantityCallsRetainPhpStanDiagnostics(): void
+    {
+        $output = $this->analyse('quantity-named-arguments-ordinary.php', errorFormat: 'json');
+
+        $result = json_decode($output, true, flags: JSON_THROW_ON_ERROR);
+        $this->assertIsArray($result, $output);
+        $this->assertSame(['errors' => 0, 'file_errors' => 8], $result['totals'] ?? null, $output);
+        $files = $result['files'] ?? null;
+        $this->assertIsArray($files, $output);
+        $file = reset($files);
+        $this->assertIsArray($file, $output);
+        $messages = $file['messages'] ?? null;
+        $this->assertIsArray($messages, $output);
+        $this->assertSame([49, 50, 50, 51, 52, 52, 55, 55], array_column($messages, 'line'), $output);
+        $this->assertSame([
+            'argument.missing',
+            'argument.missing',
+            'argument.unknown',
+            'arguments.count',
+            'argument.missing',
+            'argument.unknown',
+            'argument.missing',
+            'argument.unknown',
+        ], array_column($messages, 'identifier'), $output);
+    }
+
     public function testMixedQuantityOperandsRejectIncorrectReturnContracts(): void
     {
         $output = $this->analyse('quantity-mixed-return-contracts.php', errorFormat: 'json');

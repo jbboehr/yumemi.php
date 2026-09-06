@@ -58,6 +58,8 @@ These changes are planned for 0.2.0 because they change behavior documented in 0
 
 ### Fixed
 
+- PHPStan now reports quantity construction and conversion errors consistently for positional and reordered named
+  arguments on `Units`, `Quantity`, and `PointQuantity` methods.
 - Native `/` inference now preserves integer quotients and retains both numeric kinds for uncertain integer division.
 - Native arithmetic preserves explicit unit alternatives at assignment boundaries, including after chained division.
 - `unit()` now preserves integer and float alternatives in PHPStan inference, including scalar constants and integer

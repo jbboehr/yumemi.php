@@ -114,8 +114,8 @@ final class UnitsQuantityReturnTypeExtension implements DynamicMethodReturnTypeE
      */
     private function inferPointType(MethodCall $methodCall, Scope $scope): ?Type
     {
-        $args = $methodCall->getArgs();
-        if (count($args) < 2) {
+        $args = MethodCallArgumentNormalizer::normalize($methodCall, $scope);
+        if ($args === null || count($args) < 2) {
             return null;
         }
 
@@ -148,8 +148,8 @@ final class UnitsQuantityReturnTypeExtension implements DynamicMethodReturnTypeE
      */
     private function inferDeltaQuantityType(MethodCall $methodCall, Scope $scope): ?Type
     {
-        $args = $methodCall->getArgs();
-        if (count($args) < 2) {
+        $args = MethodCallArgumentNormalizer::normalize($methodCall, $scope);
+        if ($args === null || count($args) < 2) {
             return null;
         }
 
@@ -176,8 +176,8 @@ final class UnitsQuantityReturnTypeExtension implements DynamicMethodReturnTypeE
 
     private function inferQuantityType(MethodCall $methodCall, Scope $scope): ?Type
     {
-        $args = $methodCall->getArgs();
-        if (count($args) < 2) {
+        $args = MethodCallArgumentNormalizer::normalize($methodCall, $scope);
+        if ($args === null || count($args) < 2) {
             return null;
         }
 
@@ -222,8 +222,8 @@ final class UnitsQuantityReturnTypeExtension implements DynamicMethodReturnTypeE
 
     private function inferParsedQuantityType(MethodCall $methodCall, Scope $scope): ?Type
     {
-        $args = $methodCall->getArgs();
-        if (count($args) < 1) {
+        $args = MethodCallArgumentNormalizer::normalize($methodCall, $scope);
+        if ($args === null || count($args) < 1) {
             return null;
         }
 

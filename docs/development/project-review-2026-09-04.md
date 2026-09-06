@@ -528,6 +528,88 @@ documentation together, using runtime PHP as the oracle for scalar result kind.
 
 ## Issue 6: Diagnostics depend on named-argument order
 
+**Sixth fix, reviewed:** Shared inference for `Units`, `Quantity`, and `PointQuantity` now maps explicit named arguments
+to their declared positions before checking units. The same standalone diagnostics apply to positional,
+declaration-order named, reordered named, and mixed positional/named calls, including unused expression statements.
+
+The new internal `MethodCallArgumentNormalizer` delegates named-argument mapping to PHPStan's existing normalizer and
+method reflection. Parameter names are taken from declarations rather than copied into a separate table. Positional
+calls return their original arguments without reflection or node allocation. First-class callable expressions are not
+treated as invocations; calls that cannot be normalized fall back to PHPStan's ordinary argument diagnostics.
+
+This is a PHPStan correction. Runtime methods, unit meaning, public signatures, diagnostic identifiers, and the runtime
+conformance corpus remain unchanged. Full argument-unpacking analysis is not expanded by this slice.
+
+Verification for this fix:
+
+- Before implementation,
+  `composer test -- --filter NamedQuantityCallsRetainStandaloneDiagnostics tests/PHPStan/UnitTypeNodeResolverIntegrationTest.php`
+  failed with 16 diagnostics instead of 22. Six reordered calls lost their construction or conversion diagnostic. After
+  implementation, every expected diagnostic appeared. The regression test also checks exact source lines and stable
+  identifiers.
+- The positive inference fixture checks 23 results across factory calls, quantity and point conversions, an explicit
+  optional argument, a named power, an unbranded receiver, and a dynamic target. A separate integration check verifies
+  that these calls produce no diagnostics.
+- `composer test -- tests/PHPStan/QuantityReturnTypeExtensionTest.php tests/PHPStan/PointQuantityReturnTypeExtensionTest.php tests/PHPStan/InvalidQuantityConstructionRuleTest.php tests/PHPStan/InvalidQuantityConversionRuleTest.php tests/PHPStan/InvalidQuantityArithmeticRuleTest.php tests/PHPStan/InvalidQuantityComparisonRuleTest.php tests/PHPStan/InvalidPointQuantityMethodRuleTest.php tests/PHPStan/UnitTypeNodeResolverIntegrationTest.php tests/PHPStan/MethodCallArgumentNormalizerTest.php`
+  passed after review fixes: 39 tests and 564 assertions. `composer analyse` passed.
+- A separate PHPStan probe accepted first-class quantity construction and conversion callables. Missing required
+  arguments and an unknown argument name produced only the expected native `argument.missing` and `argument.unknown`
+  diagnostics.
+- Runtime PHP experiments confirmed identical exception classes across positional, declaration-order named, and
+  reordered named calls: `UnitNotFoundException` for unknown-unit construction and `IncompatibleUnitException` for
+  incompatible quantity and point conversions. Valid reordered calls returned exact `1` meter and `32.00` Fahrenheit.
+- Independent adversarial tests found an introduced malformed-call regression: with a seconds-branded `$value`,
+  `quantity(unknown: 'meter', value: $value)` also produced `yumemi.invalidQuantityConstruction`. The upstream
+  normalizer appended the unknown argument into the missing unit's position. The committed baseline produced only
+  PHPStan's missing/unknown-parameter diagnostics; the new regression test initially observed nine diagnostics instead
+  of eight across its fixture. The helper now checks names against the selected method declaration before reordering;
+  the regression test passes with exactly the eight native diagnostics.
+- Additional tests protect twelve inference results across named arithmetic, roots, point translation, unpacking, and
+  first-class callables. A direct helper test checks that positional calls retain their original argument nodes and make
+  no method-reflection lookup.
+
+Review also exposed a preexisting limitation: `quantity(...[], value: unit(1, 'second'), unit: 'meter')` can infer
+`Quantity<'meter'>` and omit the construction diagnostic. An executable comparison with `b9e8446` confirmed identical
+behavior before and after this slice, including acceptance by a meter-quantity parameter. This is deferred with broader
+argument-unpacking support; returning early only from the new helper would not fix PHPStan's prior normalization in the
+dynamic-return path. The public PHPStan limitations now mention incomplete checking for unpacked arguments and calls
+through first-class callables.
+
+Performance was compared with `b9e8446` on PHP 8.2.32 using complete PHPStan analyses. Each of three valid workloads
+contained 1,000 functions and 6,000 method calls: positional setup followed by quantity/point construction and decimal
+conversion calls in the selected argument order. Each version had one warmup and three measured runs per workload,
+alternating version order, with isolated result caches and one analysis worker. Every run reported zero diagnostics.
+Median wall times were:
+
+| Argument order          | Baseline | Fix     | Change |
+| ----------------------- | -------- | ------- | ------ |
+| Positional              | 5.111 s  | 5.104 s | −0.1%  |
+| Declaration-order named | 5.310 s  | 5.405 s | +1.8%  |
+| Reordered named         | 5.015 s  | 5.412 s | +7.9%  |
+
+Positional performance was effectively unchanged. Named calls add declaration lookup, name validation, and argument
+mapping; reordered calls also gain unit validation that the baseline skipped. This is PHPStan analysis cost, with no
+application-runtime change. These are indicative local measurements, not performance thresholds: individual samples
+showed scheduling noise. The baseline loader was verified against the diagnostic regression fixture, producing the
+original 16 diagnostics while the fixed version produced 22.
+
+Final verification and reliability verdict:
+
+- **PASS_WITH_RESIDUAL_RISK.** The independent Breaker review and Test Attacker pass were reconciled with executable
+  baseline comparisons. The introduced unknown-name diagnostic regression was fixed and its reproduction passed; the
+  unpacking limitation above predates this change.
+- `composer check:full` passed: 2,357 tests, 26,628 assertions, and five expected skips, plus static analysis,
+  formatting, documentation build/link checks, benchmark smoke tests, and archive consumer checks.
+- `nix flake check --keep-going -L path:/tmp/yumemi-slice6-final-c5bl3b96` passed on `x86_64-linux`, using a complete
+  source snapshot that included the new unstaged helper and fixtures. The PHP 8.2–8.5 matrix passed 2,357 tests per
+  version, with 29 expected skips on PHP 8.2–8.3 and 24 on PHP 8.4–8.5. Separate extension-integration checks passed 61
+  tests and 4,746 assertions per PHP version. Consumer, documentation, generated-artifact, and other normal checks
+  passed.
+- Both new source declarations have one unique logion; preexisting logia were unchanged. No public headings changed.
+- Other platforms, specialist mutation/probator and branch-coverage campaigns, and the separate committed-revision
+  compatibility gate were not run. This slice changes PHPStan behavior only; its argument-unpacking and callable
+  limitations remain as described above.
+
 P2. The diagnostic rules call inference routines with the original method-call argument order. Those routines index
 `getArgs()` by position instead of resolving parameter names. Relevant paths include
 [`UnitsQuantityReturnTypeExtension::inferQuantityType()`](../../src/PHPStan/UnitsQuantityReturnTypeExtension.php),

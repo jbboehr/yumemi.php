@@ -34,41 +34,22 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\Tests\PHPStan;
+use jbboehr\Yumemi\Quantity;
+use jbboehr\Yumemi\Units;
 
-use PHPStan\Testing\TypeInferenceTestCase;
+use function jbboehr\Yumemi\unit;
+use function PHPStan\Testing\assertType;
 
-/**
- * Type-inference coverage for the Quantity<'...'> object path via assertType() fixtures.
- */
-final class QuantityReturnTypeExtensionTest extends TypeInferenceTestCase
-{
-    use AssertsFixtureUnderCoverage;
+$units = Units::default();
+$distance = $units->quantity(1, 'meter');
 
-    public static function getAdditionalConfigFiles(): array
-    {
-        return [
-            __DIR__ . '/../../extension.neon',
-        ];
-    }
+assertType(Quantity::class, ($units->quantity(...))(value: 1, unit: 'meter'));
+assertType(Quantity::class, ($distance->to(...))(unit: 'foot'));
 
-    public function testFileAsserts(): void
-    {
-        $this->assertFixtureUnderCoverage(__DIR__ . '/data/quantity-assert.php');
-    }
+$units->quantity(unit: 'meter');
+$units->quantity(value: 1, unknown: 'meter');
+$distance->to();
+$distance->to(target: 'foot');
 
-    public function testMixedQuantityOperands(): void
-    {
-        $this->assertFixtureUnderCoverage(__DIR__ . '/data/quantity-mixed-operands.php');
-    }
-
-    public function testNamedArgumentsPreserveInference(): void
-    {
-        $this->assertFixtureUnderCoverage(__DIR__ . '/data/quantity-named-arguments-assert.php');
-    }
-
-    public function testNamedArgumentBoundariesPreserveInference(): void
-    {
-        $this->assertFixtureUnderCoverage(__DIR__ . '/data/quantity-named-arguments-boundary.php');
-    }
-}
+$seconds = unit(1, 'second');
+$units->quantity(unknown: 'meter', value: $seconds);

@@ -34,41 +34,29 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\Tests\PHPStan;
+use jbboehr\Yumemi\Quantity;
+use jbboehr\Yumemi\Units;
 
-use PHPStan\Testing\TypeInferenceTestCase;
+use function PHPStan\Testing\assertType;
 
-/**
- * Type-inference coverage for the Quantity<'...'> object path via assertType() fixtures.
- */
-final class QuantityReturnTypeExtensionTest extends TypeInferenceTestCase
-{
-    use AssertsFixtureUnderCoverage;
+$units = Units::default();
+$distance = $units->quantity(1, unit: 'meter');
+$duration = $units->quantity(value: 1, unit: 'second');
 
-    public static function getAdditionalConfigFiles(): array
-    {
-        return [
-            __DIR__ . '/../../extension.neon',
-        ];
-    }
+assertType("Quantity<'meter'>", $distance);
+assertType("Quantity<'meter * second'>", $distance->mul(other: $duration));
+assertType("Quantity<'meter / second'>", $distance->div(other: $duration));
+assertType("Quantity<'1 / meter'>", $distance->rdiv(numerator: 2));
+assertType("Quantity<'meter ^ 2'>", $distance->pow(power: 2));
+assertType("Quantity<'meter'>", $units->quantity(unit: 'meter ^ 2', value: 1)->root(degree: 2));
 
-    public function testFileAsserts(): void
-    {
-        $this->assertFixtureUnderCoverage(__DIR__ . '/data/quantity-assert.php');
-    }
+$freezing = $units->point(0, unit: 'celsius');
+$rise = $units->deltaQuantity(1, unit: 'fahrenheit');
+$boiling = $units->point(unit: 'fahrenheit', value: 212);
 
-    public function testMixedQuantityOperands(): void
-    {
-        $this->assertFixtureUnderCoverage(__DIR__ . '/data/quantity-mixed-operands.php');
-    }
+assertType("PointQuantity<'celsius'>", $freezing->add(delta: $rise));
+assertType("Quantity<'delta_fahrenheit'>", $boiling->differenceFrom(origin: $freezing));
 
-    public function testNamedArgumentsPreserveInference(): void
-    {
-        $this->assertFixtureUnderCoverage(__DIR__ . '/data/quantity-named-arguments-assert.php');
-    }
-
-    public function testNamedArgumentBoundariesPreserveInference(): void
-    {
-        $this->assertFixtureUnderCoverage(__DIR__ . '/data/quantity-named-arguments-boundary.php');
-    }
-}
+assertType(Quantity::class, $units->quantity(...['value' => 1, 'unit' => 'meter']));
+assertType(Quantity::class, ($units->quantity(...))(value: 1, unit: 'meter'));
+assertType(Quantity::class, ($distance->to(...))(unit: 'foot'));

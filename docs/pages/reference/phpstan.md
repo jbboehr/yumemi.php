@@ -850,6 +850,9 @@ documentation. Keeping those concerns outside core avoids adding framework scope
 
 ## Diagnostics
 
+`Units`, `Quantity`, and `PointQuantity` method calls receive the same unit checks with positional or reordered named
+arguments, even when the result is discarded.
+
 Yumemi emits stable rule identifiers so errors can be suppressed or included in a PHPStan baseline at the appropriate
 scope:
 
@@ -935,6 +938,8 @@ Important limits of the current static model are:
 - Native `unit()`, `unit_factor()`, and `unit_to()` calls require statically recoverable unit expressions by default.
   Dynamic object parsing and conversion remain supported, but cannot retain a specific generic unit type.
 - PHPStan supports one configured registry and does not track runtime registry identity per value.
+- Quantity-method unit inference and diagnostics are incomplete for unpacked arguments and calls through first-class
+  callables. Use explicit method calls when static unit checking is needed.
 - Explicit integer/float casts and `intval()`/`floatval()`/`doubleval()` preserve native numeric brands and move a
   `unit_numeric_string` brand onto the resulting number. Implicit arithmetic and weak numeric coercion do not preserve a
   numeric-string brand; comparisons still require definitionally equivalent brands. `abs()`, `ceil()`, `floor()`,

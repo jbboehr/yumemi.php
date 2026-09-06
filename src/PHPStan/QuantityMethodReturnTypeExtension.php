@@ -117,7 +117,10 @@ final class QuantityMethodReturnTypeExtension implements DynamicMethodReturnType
     public function inferType(string $methodName, MethodCall $methodCall, Scope $scope): ?Type
     {
         $receiver = $scope->getType($methodCall->var);
-        $args = $methodCall->getArgs();
+        $args = MethodCallArgumentNormalizer::normalize($methodCall, $scope);
+        if ($args === null) {
+            return null;
+        }
 
         if ($methodName === 'toPreferred') {
             return new ObjectType(Quantity::class);
