@@ -492,8 +492,9 @@ deferred feature list.
 After the [documentation-detail cleanup](documentation-detail-audit-2026-09-06.md), the next planned work is preparation
 of `0.2.0` from `develop`, in reviewable slices with review before each commit:
 
-1. Review changes since `v0.1.1` against the compatibility policy and finish the upgrade guide, including rational
-   component access and changed runtime and PHPStan behavior.
+1. **Complete:** the [0.2 compatibility review](release-0.2-compatibility.md) classifies changes since `v0.1.1`; the
+   [upgrade guide](../pages/getting-started.md#upgrade-from-01) covers rational component access and changed runtime and
+   PHPStan behavior.
 2. Prepare the changelog, installation/status prose, Composer branch alias, and required lock/Nix metadata. Identify the
    tested optional native-extension release or commit.
 3. Follow the release runbook for dependency audit, full Composer and Nix checks, committed API comparison, historical
@@ -631,6 +632,10 @@ repeat the implementation's assumptions:
   and `composer check:bc` entry point protect committed PHP signatures without constraining the main PHP 8.2-8.5
   dependency matrix. Classify findings through the compatibility policy, and require migration guidance plus narrow,
   temporary acknowledgement for a deliberate later-`0.x` break instead of disabling or broadly bypassing the check.
+- **New follow-up from the [0.2 review](release-0.2-compatibility.md#documentation-and-regression-checks):** broaden
+  documentation PHPStan verification beyond the function-call rule. Operator and other standalone diagnostics need their
+  own verification. Preserve the Akashi corpus and expectations when extending coverage. The new upgrade examples
+  received a separate full CLI check, so this tooling follow-up does not block their publication.
 
 ### Known Limitations And Risks
 

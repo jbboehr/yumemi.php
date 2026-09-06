@@ -43,22 +43,98 @@ runtime calls or classes, may install it as a development dependency instead.
 
 ## Upgrade From 0.1
 
-Yumemi 0.2 keeps the supported 0.1 declarations source-compatible and can still read the documented serialized and JSON
-data written by 0.1. It changes some runtime and PHPStan behavior. Check these patterns before changing the Composer
-constraint from `^0.1`:
+The upcoming 0.2 release changes `Rational` component access and some runtime and PHPStan behavior. Review these
+patterns before changing a `^0.1` Composer constraint to `^0.2`, then rerun your application tests and PHPStan.
 
-| In 0.1 code...                                                                   | Change for 0.2                                                                                                                                                                                                |
-| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Relying on `equals()` to throw for incompatible units                            | Use `compareTo() === 0` if incompatibility should still throw. `equals()` now returns `false` for incompatible operands.                                                                                      |
-| Comparing `Quantity` or `PointQuantity` with `==`, `!=`, `<`, `<=`, `>`, or `>=` | Use `equals()` or the named ordering methods. PHPStan now reports `yumemi.nativeQuantityComparison`. Strict identity remains available through `===` and `!==`.                                               |
-| Changing the default with `Units::setDefault()` inside a Fiber                   | Set the default during synchronous bootstrap. To use another registry inside a Fiber, keep its `Units` instance and call methods on it. Changing the default from a Fiber now throws.                         |
-| Calling `$destination->difference($origin)`                                      | Prefer the direction-explicit `$destination->differenceFrom($origin)`. `difference()` remains as a deprecated compatibility alias.                                                                            |
-| Passing a resolved `Expr` to a semantic method on another `Units` instance       | Obtain or parse the expression through the `Units` instance that will use it. Cross-context and expired-context semantic operations now throw. Structural equality and formatting still work across contexts. |
+| In 0.1 code...                                                                                     | Change for 0.2                                                                                                                                                                                                      |
+| -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Reading `$value->numerator` or `$value->denominator`                                               | Call `$value->numerator()` or `$value->denominator()`. The properties are private, and the methods return detached GMP values.                                                                                      |
+| Relying on `equals()` to throw for incompatible dimensions or registry contexts                    | Use `compareTo() === 0` if incompatibility should still throw. `equals()` now returns `false` for incompatible operands.                                                                                            |
+| Comparing `Quantity` or `PointQuantity` with `==`, `!=`, `<`, `<=`, `>`, `>=`, or `<=>`            | Use `equals()`, the named ordering methods, or `compareTo()`. PHPStan reports `yumemi.nativeQuantityComparison`. Strict `===` and `!==` still test object identity.                                                 |
+| Changing the default with `Units::setDefault()` inside a Fiber                                     | Set it during synchronous bootstrap, before scheduling concurrent work. Inside a Fiber, use an explicit `Units` instance for a different registry. Changing the process-wide default there now throws.              |
+| Passing a resolved `Expr` to another `Units` instance, or keeping it after its context is released | Obtain the expression through the context that will use it and keep that context alive. Cross-context and expired-context semantic operations throw. Structural equality and formatting remain context-independent. |
+| Cloning a `Units` instance                                                                         | Reuse the original instance when values must interact. Construct `new Units($registry)` for an independent context and create its expressions and quantities through it. `Units` can no longer be cloned.           |
+| Calling `$destination->difference($origin)`                                                        | Prefer `$destination->differenceFrom($origin)`. The result still represents destination minus origin in the destination's difference scale. `difference()` remains a deprecated compatibility alias.                |
 
-Values serialized by PHP from tagged 0.1 releases remain readable. The documented JSON shapes have not changed, and
-`Units::quantityFromJson()` and `pointFromJson()` provide typed restoration through the receiving registry. The optional
-`ext-yumemi` companion provides native parsing and operator syntax. The method APIs and generated PHP parser work
-without it.
+For named point-subtraction arguments, `difference(other: $origin)` becomes `differenceFrom(origin: $origin)`.
+
+Component reads still return exact normalized integers:
+
+```php
+<?php
+
+use jbboehr\Yumemi\Number\Rational;
+
+$portion = new Rational(6, 8);
+$numerator = $portion->numerator();
+$denominator = $portion->denominator();
+
+assert(gmp_strval($numerator) === '3');
+assert(gmp_strval($denominator) === '4');
+```
+
+Changing an input GMP object or a returned component no longer changes the rational value. Construct a new `Rational`
+when you need a different value.
+
+For example, compare values in different compatible units with `equals()`:
+
+```php
+<?php
+
+use jbboehr\Yumemi\Units;
+
+$units = Units::default();
+$measuredLength = $units->quantity(1, 'meter');
+$storedLength = $units->quantity(100, 'centimeter');
+
+assert($measuredLength->equals($storedLength));
+```
+
+Recheck these static-analysis boundaries even if your application uses no runtime quantity operators:
+
+- `unit()` preserves both alternatives of an `int|float` input. Native division of branded integers can return an
+  integer or a float, matching PHP. Keep both kinds in declarations when either is possible, narrow with `is_int()` or
+  `is_float()`, or use `fdiv()` when you deliberately need a float result.
+- Quantity/scalar unions retain every possible result unit, and native arithmetic retains explicit unit unions through
+  chained operations. Narrow the alternatives before passing a result to a parameter that requires one unit.
+- Reordered named arguments and fixed-shape argument unpacking now receive unit checks. Correct newly reported unit
+  mismatches or convert compatible values explicitly. Dynamic unpacking and calls through first-class callables still
+  have [inference limits](reference/phpstan.md#limitations).
+- PHPDoc quantity types now follow namespaces and imports. Import `jbboehr\Yumemi\Quantity` and
+  `jbboehr\Yumemi\PointQuantity`, or use their fully qualified names. Renamed imports remain valid. Scalar pseudo-types
+  such as `unit_float` stay unqualified. These rules also apply to optional `@yumemi-*` tags.
+
+For example, these two division results have different native kinds:
+
+```php
+<?php
+
+use function jbboehr\Yumemi\unit;
+
+$wholeHalf = unit(4, 'meter') / 2; // unit_int<'meter'>
+$floatHalf = fdiv(unit(4, 'meter'), 2); // unit_float<'meter'>
+```
+
+If you use custom units or snapshot formatted output, review the corrected
+[ordering rules](reference/runtime.md#conversion-and-comparison) for negative and zero scales and the
+[formatting rules](reference/runtime.md#formatting). Prefixed names may keep a longer spelling when a shorter symbol
+would change their meaning. Reciprocal zero-scale expressions now fail instead of producing an undefined unit scale.
+
+Supported native-serialization payloads from tagged 0.1 releases remain readable under their documented registry
+constraints. JSON shapes are unchanged. The new `Units::quantityFromJson()` and `pointFromJson()` readers use the
+receiving registry's meaning for the stored unit name. See
+[Serialization](reference/runtime.md#debugging-json-and-serialization) for custom-context restoration. Existing
+`UnexpectedValueException` catches also continue to handle exact-output failures, with
+[more specific exception categories](reference/runtime.md#native-numeric-output) available when needed.
+
+If you inspect cross-context multiplication exceptions, their context IDs now appear in ascending order. Other quantity
+operations retain receiver-then-argument order. See
+[Contexts And Construction](reference/runtime.md#contexts-and-construction).
+
+The optional `ext-yumemi` companion adds native parsing and quantity operator syntax. The method APIs and PHP parser
+remain available without it. See [Native Parser Selection](reference/runtime.md#native-parser-selection) for automatic
+selection and the `YUMEMI_NATIVE_PARSER` control, and
+[Optional Quantity Operators](reference/phpstan.md#optional-quantity-operators) before enabling operator inference.
 
 ## Verify Static Analysis
 
