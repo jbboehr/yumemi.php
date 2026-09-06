@@ -899,9 +899,12 @@ test hardening. The local benchmark does not assess sustained sorting workloads,
 
 ## Issue 9: Deserialization context crosses Fibers
 
+Status: implemented and reviewed.
+
 P2. [`DeserializationContext::run()`](../../src/Internal/DeserializationContext.php) temporarily changes one static
-variable. Its save/restore sequence supports synchronous nesting, but overlapping Fibers can observe each other's
-context. PHP deserialization can invoke an application's `__unserialize()` callback, which may suspend.
+variable in the original implementation. Its save/restore sequence supports synchronous nesting, but overlapping Fibers
+could observe each other's context. PHP deserialization can invoke an application's `__unserialize()` callback, which
+may suspend.
 
 This example constructs trusted payloads locally and runs in a separate process:
 
@@ -945,7 +948,7 @@ try {
 }
 ```
 
-Observed output:
+Observed output before the fix:
 
 ```text
 bool(false)
@@ -953,13 +956,71 @@ bool(true)
 A custom-context Quantity must be restored with Units::deserialize().
 ```
 
-The first quantity is restored into the second context. Equivalent registry definitions allow its semantic validation to
-succeed, but the object belongs to the wrong `Units` instance. The second restoration then fails because the first call
-restored the shared slot to its earlier value. Both calls used the documented custom-context restoration API.
+The first quantity was restored into the second context. Equivalent registry definitions allowed its semantic validation
+to succeed, but the object belonged to the wrong `Units` instance. The second restoration then failed because the first
+call restored the shared slot to its earlier value. Both calls used the documented custom-context restoration API.
 
-Keep dynamically scoped deserialization state local to the current Fiber, with a separate main-execution context, and
-preserve synchronous nested restoration. Test interleaved success, failure, and nested calls, including context cleanup.
-The bootstrap-only policy for `Units::setDefault()` does not isolate this separate deserialization state.
+The fix gives each Fiber its own temporary context, with a separate main-execution slot. A weak map records Fiber
+identities without keeping abandoned Fibers alive. Nested scopes restore their preceding context in `finally`, and
+outermost scopes remove their map entry on exit. The main execution path does not allocate a map. Newly started Fibers
+do not inherit the context of the Fiber or main execution that started them.
+
+The example now prints `bool(true)` and `bool(false)`, and both restorations finish. Raw custom-value restoration in the
+main execution context also rejects a payload while another Fiber has a compatible context suspended. Default quantities
+and points still restore into `Units::default()`. The bootstrap policy for `Units::setDefault()` is unchanged.
+
+Experimental verification:
+
+- Before the fix, the ten new tests produced seven expected failures: incorrect context identity for both completion
+  orders, inherited context in child Fibers, interference after an exception, incorrectly bound native values, and raw
+  restoration borrowing a suspended Fiber's context. Three existing-behavior controls passed.
+- After the fix and independent test hardening,
+  `composer test -- tests/Internal/DeserializationContextTest.php tests/FiberDeserializationTest.php tests/SerializationTest.php tests/UnitsTest.php tests/Compatibility`
+  passed 170 tests and 1,091 assertions. Tests cover quantities, points, mixed default/custom graphs, nested failure,
+  and collection of contexts after completed or abandoned Fibers. PHPStan also passed.
+- Native payload versions and semantic validation are unchanged. The PHP-specific serialization and tagged-release
+  compatibility tests cover this scheduling change. The language-neutral conformance corpus has no affected case.
+
+Local PHP 8.2 performance measurements compared `041eaca` with the changed scope manager in separate processes. Each
+payload case used 100 warmup calls and 10,000 measured restores. Scope-only cases measured 200,000 calls. The table
+shows medians of five runs per implementation, alternating revision order after one whole-process warmup.
+
+| Operation                             | Before (µs/call) | After (µs/call) |
+| ------------------------------------- | ---------------: | --------------: |
+| Main execution, scalar restoration    |            0.355 |           0.384 |
+| Fiber, scalar restoration             |            0.354 |           0.479 |
+| Main execution, quantity restoration  |          124.589 |         124.561 |
+| Fiber, quantity restoration           |          125.975 |         126.077 |
+| Main execution, point restoration     |           52.455 |          51.014 |
+| Fiber, point restoration              |           52.148 |          51.253 |
+| Main execution, scope entry/read/exit |            0.142 |           0.186 |
+| Fiber, scope entry/read/exit          |            0.142 |           0.243 |
+
+The small scalar case exposes the added bookkeeping: about 0.03 µs per main-execution restore and 0.13 µs per Fiber
+restore. Representative quantity and point restoration stayed within 3% of baseline. These local warm-cache timings do
+not establish a cross-platform performance guarantee or measure peak native memory.
+
+Independent reliability review found no actionable production defects. Two additional tests protect an active sibling
+and main scope when another Fiber is abandoned, and verify context collection and exception identity after cancellation
+with `Fiber::throw()`. A scoped mutation run against `DeserializationContext` generated ten variants: nine were caught
+by tests and one timed out. The timeout is not evidence that the tests detected its semantic defect.
+
+Final verification after independent review:
+
+- `composer check:full` passed with 2,414 tests, 27,250 assertions, and five expected skips. PHPStan, formatting,
+  documentation examples, the book build and generated links, benchmark smoke tests, and consumer archive checks passed.
+- The `nix flake check --keep-going -L` gate passed on x86_64-linux using a complete source snapshot that included both
+  new test files. Each PHP 8.2–8.5 suite ran 2,414 tests. PHP 8.2/8.3 had 29 expected skips, and PHP 8.4/8.5 had 24. All
+  four native-extension checks passed with 61 tests and 4,746 assertions each. Other architectures were not run.
+- The report's example was executed again and produced the corrected output above. Existing logions were preserved, and
+  the new declaration's reference was verified as unique. Documentation formatting and `git diff --check` passed.
+- The subsequent review found no actionable defects after the same focused and full Composer checks and the x86_64-linux
+  Nix gate, including both new test files. Additional checks confirmed nested-scope cleanup after Fiber completion and
+  abandonment.
+
+Reliability verdict: PASS. No additional production defects were found. The two cancellation and abandonment tests were
+retained. The mutation timeout remains unclassified; no long randomized scheduling campaign or peak-memory profile was
+run.
 
 ## Issue 10: Unbounded semantic caches
 

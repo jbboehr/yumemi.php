@@ -421,6 +421,10 @@ parser and catalog output before running the UDUNITS2 differential cases.
 restored unit, normalized form, dimension, and affine transform still have the serialized meaning. Unknown versions,
 malformed fields, wrong registries, and custom values restored without `Units::deserialize()` must fail closed.
 
+The temporary custom context belongs to the current Fiber or the main execution context. Other Fibers do not inherit it,
+and suspending a restore must not expose its context elsewhere. Nested restores recover the enclosing context on success
+or failure; finishing or abandoning a Fiber must not leave its temporary context retained by the scope manager.
+
 PHP serialization and JSON serve different purposes. `Units::quantityFromJson()` and `pointFromJson()` admit only the
 documented exact value-and-unit object, bind the result to the receiving context, and reject malformed JSON structures.
 JSON does not claim the source registry's identity or semantics; the receiving registry deliberately interprets its unit

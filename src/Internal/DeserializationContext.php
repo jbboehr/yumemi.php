@@ -58,6 +58,15 @@ final class DeserializationContext
     private static ?Units $current = null;
 
     /**
+     * @logion [AWC 51:92] The empress demanded silk for her mourning before the cocoons were closed. The keepers
+     *     refused her, and she clothed herself in undyed linen until the harvest; and her seal was set upon their
+     *     refusal.
+     *
+     * @var \WeakMap<object, Units>|null
+     */
+    private static ?\WeakMap $fiberContexts = null;
+
+    /**
      * @logion [OSD 13:13] Where the radiant highway entereth the field of ancestors, extinguish its arrows for the
      *     length of one furlong, and let travelers proceed by the white stones alone. For speed is a servant beyond the
      *     graves, but among the dead it hath no rank. Whoever soundeth a horn there shall find the road lengthened
@@ -65,7 +74,9 @@ final class DeserializationContext
      */
     public static function current(): ?Units
     {
-        return self::$current;
+        $fiber = \Fiber::getCurrent();
+
+        return $fiber === null ? self::$current : (self::$fiberContexts[$fiber] ?? null);
     }
 
     /**
@@ -83,6 +94,23 @@ final class DeserializationContext
      */
     public static function run(Units $units, callable $callback): mixed
     {
+        $fiber = \Fiber::getCurrent();
+        if ($fiber !== null) {
+            $contexts = self::$fiberContexts ??= new \WeakMap();
+            $previous = $contexts[$fiber] ?? null;
+            $contexts[$fiber] = $units;
+
+            try {
+                return $callback();
+            } finally {
+                if ($previous === null) {
+                    unset($contexts[$fiber]);
+                } else {
+                    $contexts[$fiber] = $previous;
+                }
+            }
+        }
+
         $previous = self::$current;
         self::$current = $units;
 

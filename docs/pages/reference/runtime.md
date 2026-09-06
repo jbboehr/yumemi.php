@@ -794,13 +794,14 @@ Serialization compatibility applies to values emitted by PHP's `serialize()` in 
 previously released values remain readable.
 
 Raw `unserialize()` rejects a custom-context quantity with an exception directing the caller to `Units::deserialize()`.
-The scoped method restores its previous context in `finally`, including across nested calls, and forwards PHP's native
-`unserialize()` options. Pass `allowed_classes` to restrict which classes a known graph may instantiate and `max_depth`
-to bound nesting. The allow-list must include every serialized object class in the graph, including `Dimension` for new
-quantity and point payloads; `allowed_classes: false` produces `__PHP_Incomplete_Class` objects and cannot restore a
-quantity. Yumemi does not choose a default allow-list because `deserialize()` may return any caller-defined graph.
-Serialized unit semantics are checked against the selected registry, so a changed or incorrect registry is rejected
-rather than silently reinterpreting the value.
+The scoped method restores its previous context after nested calls or exceptions. Each Fiber and the main execution
+context have separate restoration scopes, so a suspended restore does not affect another one. The method forwards PHP's
+native `unserialize()` options. Pass `allowed_classes` to restrict which classes a known graph may instantiate and
+`max_depth` to bound nesting. The allow-list must include every serialized object class in the graph, including
+`Dimension` for new quantity and point payloads; `allowed_classes: false` produces `__PHP_Incomplete_Class` objects and
+cannot restore a quantity. Yumemi does not choose a default allow-list because `deserialize()` may return any
+caller-defined graph. Serialized unit semantics are checked against the selected registry, so a changed or incorrect
+registry is rejected rather than silently reinterpreting the value.
 
 One serialized graph may contain default values and values from one custom context. Graphs containing values from
 several distinct custom contexts require a future registry-identifier resolver. Never pass untrusted data to PHP
