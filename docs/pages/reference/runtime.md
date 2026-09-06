@@ -88,6 +88,9 @@ parser boundary.
 `Units::default()` returns one shared context backed by the generated UDUNITS2 catalog. Repeated calls return the same
 instance, so quantities created by separate calls can be combined.
 
+Contexts can be reused in long-running workers. Caches for arbitrary expression strings have bounded retention, and
+failed unit-name lookups are not retained. Eviction preserves conversion results and registry ownership.
+
 Use `new Units($registry)` for an isolated or customized catalog. Quantities can interact only when they belong to the
 same `Units` instance. Combining quantities from different contexts throws `IncompatibleQuantityContextException`, even
 when their unit strings happen to match. For cross-context multiplication, the exception records the two process-local

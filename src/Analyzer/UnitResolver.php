@@ -70,7 +70,7 @@ use jbboehr\Yumemi\Registry\UnitRegistry;
  */
 final class UnitResolver
 {
-    /** @var array<string, Expr|null> */
+    /** @var array<string, Expr> Successful names come from the finite registry and prefix set. */
     private array $cache = [];
 
     /** @var array<string, Expr> */
@@ -107,7 +107,7 @@ final class UnitResolver
             );
         }
 
-        if (array_key_exists($name, $this->cache)) {
+        if (isset($this->cache[$name])) {
             return $this->cache[$name];
         }
 
@@ -123,7 +123,11 @@ final class UnitResolver
             unset($this->resolving[$name]);
         }
 
-        return $this->cache[$name] = $resolved;
+        if ($resolved !== null) {
+            $this->cache[$name] = $resolved;
+        }
+
+        return $resolved;
     }
 
     public function resolveOrFail(string $name, ?SourceSpan $sourceSpan = null): Expr

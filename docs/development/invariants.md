@@ -291,9 +291,15 @@ admitting an expression to runtime resolution or PHPStan analysis. Inputs are li
 lexical tokens, 64 nested parentheses, and 1,024 bytes in one identifier or numeric token. Successful parser-cache
 entries have already passed those checks; failures never enter the cache.
 
+Caches populated by arbitrary expression strings must have bounded retention. Failed name lookups must not accumulate
+for the lifetime of a context. Successful name and definition caches may scale with the immutable registry's finite
+names and single-prefix combinations. Eviction must preserve exact results, registry ownership, parser limits, and
+diagnostic source spans.
+
 **Reason.** Doctrine Lexer materializes its token stream before the generated parser consumes it, while later expression
 processing traverses the resulting tree. Explicit byte, token, token-size, and nesting limits bound those costs without
-requiring an application to know which public API eventually invokes the shared parser.
+requiring an application to know which public API eventually invokes the shared parser. Per-expression limits alone do
+not bound retained state when a worker processes many different inputs.
 
 **Representative enforcement.** The handwritten [`Lexer`](../../src/Parser/Lexer.php) owns the limits and counters,
 while [`ParserUtils`](../../src/Parser/ParserUtils.php) checks input size before consulting the process-wide AST cache.
@@ -305,6 +311,8 @@ committed Unicode classification snapshot is independent of PHP's runtime PCRE v
 [`UnitRegistryBuilderTest`](../../tests/Registry/UnitRegistryBuilderTest.php),
 [`UnitExpressionParserTest`](../../tests/PHPStan/UnitExpressionParserTest.php), and the versioned conformance corpus
 cover direct parsing, custom definitions, PHPStan adaptation, cache behavior, exact boundaries, and multibyte inputs.
+[`ResolverCacheTest`](../../tests/Analyzer/ResolverCacheTest.php) covers conversion-cache eviction, collection of old
+results, expanded exact-value weights, and failed lookups through parsing, conversion, and registry introspection.
 
 **Invalid shortcut.** Applying limits or encoding checks only in a controller, checking after tokenization, allowing
 cached input to bypass the policy, or maintaining a separate PHPStan admission rule that can disagree with runtime

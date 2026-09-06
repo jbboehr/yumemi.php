@@ -58,6 +58,7 @@ These changes are planned for 0.2.0 because they change behavior documented in 0
 
 ### Fixed
 
+- Long-lived registry contexts no longer retain every measurement string or failed unit-name lookup they encounter.
 - `Units::deserialize()` now keeps custom registry contexts isolated across interleaved Fibers.
 - Quantity and point ordering now handles negative and accepted zero-scale units consistently with exact equality.
 - PHPStan quantity PHPDoc now respects namespaces and import aliases, including optional `@yumemi-*` tags, without

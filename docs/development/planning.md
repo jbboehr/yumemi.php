@@ -737,6 +737,12 @@ repeat the implementation's assumptions:
   all failures bypass caching. Immutable raw ASTs may be shared across registries, but resolved meaning never crosses a
   `Units` boundary. The AST budget is smaller because dense syntax trees and their source spans retain materially more
   memory per input byte than reduced expressions.
+- Conversion-string resolution now has its own context-local LRU, limited to 256 inputs of at most 512 bytes, 4 KiB of
+  represented weight per entry, and 64 KiB total. Its weight includes the input, symbolic source, dimension, exact
+  scale, and exact offset, so compact scientific notation cannot hide a large retained value. These are internal cache
+  budgets, not heap-size guarantees or parser admission limits. Failed name lookups are no longer retained. Successful
+  name, prefix-definition, and catalog classification caches remain finite functions of the immutable registry. Their
+  size can grow with the catalog and its supported prefix combinations.
 - On the same PHP 8.2 host after caching, warm compound `parse()` fell from about 55 to 0.23 microseconds, string and
   pre-parsed `Quantity::valueIn()` converged at about 4.5 and 4.2 microseconds, and string normalization converged with
   pre-parsed normalization at about 15 microseconds. Formatting fell from about 36 to 10 microseconds, point

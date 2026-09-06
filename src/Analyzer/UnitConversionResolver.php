@@ -52,6 +52,7 @@ use jbboehr\Yumemi\Expr\Constant;
 use jbboehr\Yumemi\Expr\Power;
 use jbboehr\Yumemi\Expr\Product;
 use jbboehr\Yumemi\Expr\Unit;
+use jbboehr\Yumemi\Internal\BoundedLruCache;
 use jbboehr\Yumemi\Number\Rational;
 use jbboehr\Yumemi\Parser\Ast;
 use jbboehr\Yumemi\Parser\AstNode;
@@ -99,9 +100,9 @@ final class UnitConversionResolver
      *     the humble flame, continue the procession; if they strike the colored glass, halt beneath the eaves, for
      *     beauty hath drawn living witness away from the light that feedeth it.
      *
-     * @var array<string, ResolvedConversionUnit>
+     * @var BoundedLruCache<ResolvedConversionUnit>
      */
-    private array $stringCache = [];
+    private readonly BoundedLruCache $stringCache;
 
     /** @var array<string, true> */
     private array $resolving = [];
@@ -116,6 +117,11 @@ final class UnitConversionResolver
         $this->symbolicAstConverter = AstConverter::symbolic();
         $this->unitNormalizer = new UnitNormalizer();
         $this->unitNameResolver = new UnitNameResolver($this->unitRegistry);
+        $this->stringCache = new BoundedLruCache(
+            maximumEntries: 256,
+            maximumEntryWeight: 4096,
+            maximumWeight: 64 * 1024,
+        );
     }
 
     public function areCompatible(Expr|string $left, Expr|string $right): bool
@@ -194,8 +200,8 @@ final class UnitConversionResolver
 
         Lexer::assertInputLength($unit);
 
-        if (isset($this->stringCache[$unit])) {
-            return $this->stringCache[$unit];
+        if (($cached = $this->stringCache->get($unit)) !== null) {
+            return $cached;
         }
 
         $ast = Parser::parseString($unit);
@@ -207,7 +213,19 @@ final class UnitConversionResolver
             $source = new Unit($unit);
         }
 
-        return $this->stringCache[$unit] = $resolved->withSource($source);
+        $resolved = $resolved->withSource($source);
+        if (strlen($unit) <= 512) {
+            // Represented text also accounts for exact values expanded from short scientific inputs.
+            // Entry count bounds object overhead; this weight is not a PHP heap-size measurement.
+            $weight = strlen($unit)
+                + strlen($source->toString())
+                + strlen($resolved->dimension->toString())
+                + strlen($resolved->conversion->scale->toString())
+                + strlen($resolved->conversion->offset->toString());
+            $this->stringCache->put($unit, $resolved, $weight);
+        }
+
+        return $resolved;
     }
 
     private function resolveExpr(Expr $expr): ResolvedConversionUnit

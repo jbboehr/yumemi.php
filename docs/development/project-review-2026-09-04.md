@@ -1024,13 +1024,15 @@ run.
 
 ## Issue 10: Unbounded semantic caches
 
-P2. [`UnitConversionResolver::resolve()`](../../src/Analyzer/UnitConversionResolver.php) stores each successful input
-string in an array with no eviction. [`Units::parseQuantity()`](../../src/Units.php) passes the complete measurement
-string through this resolver, so changing magnitudes create distinct retained entries. Releasing returned quantities
-does not release those entries while the `Units` context remains alive.
+Status: implemented and reviewed.
 
-The following small inspection demonstrates retention without a resource-stress workload. Reflection is used only to
-observe an internal cache during diagnosis.
+P2. In the original implementation, [`UnitConversionResolver::resolve()`](../../src/Analyzer/UnitConversionResolver.php)
+stores each successful input string in an array with no eviction. [`Units::parseQuantity()`](../../src/Units.php) passes
+the complete measurement string through this resolver, so changing magnitudes create distinct retained entries.
+Releasing returned quantities does not release those entries while the `Units` context remains alive.
+
+The following small inspection targeted the original array cache. Reflection was used only to observe retention during
+diagnosis.
 
 ```php
 <?php
@@ -1050,10 +1052,10 @@ $cache = (new ReflectionProperty($resolver, 'stringCache'))->getValue($resolver)
 echo json_encode(array_values(array_intersect($inputs, array_keys($cache)))), "\n";
 ```
 
-Observed output is `["2 meter","3 meter","4 meter"]`. Source inspection establishes that these entries have no eviction
+Observed output was `["2 meter","3 meter","4 meter"]`. Source inspection established that these entries had no eviction
 path. [`UnitNameResolver`](../../src/Analyzer/UnitNameResolver.php) and
-[`UnitResolver`](../../src/Analyzer/UnitResolver.php) also retain arbitrary lookup misses. Bounded AST and
-parsed-expression caches therefore do not bound the complete context's retained input state.
+[`UnitResolver`](../../src/Analyzer/UnitResolver.php) also retained arbitrary lookup misses. Bounded AST and
+parsed-expression caches therefore did not bound the complete context's retained input state.
 
 An additional bounded lifecycle experiment began with a fresh context and measured its string-cache entry count after
 three batches: `['2 meter', '3 meter', '4 meter']`, the same batch again, and `['5 meter', '6 meter', '7 meter']`. Each
@@ -1067,11 +1069,81 @@ Long-lived workers processing varied measurement strings can accumulate memory f
 review measured retained entry counts, not a byte-growth rate or an exhaustion threshold. It did not identify a native
 memory-corruption defect.
 
-Bound caches keyed by arbitrary expressions and names, including negative lookups. Reuse
-[`BoundedLruCache`](../../src/Internal/BoundedLruCache.php) where its contract fits, and distinguish finite catalog
-indexes from caches populated by open-ended inputs. Assess entry weights against retained values as well as input text.
-Add a bounded workload test that verifies eviction through the public parsing/conversion path and confirms that results
-remain stable after eviction.
+The fix uses the existing [`BoundedLruCache`](../../src/Internal/BoundedLruCache.php) for conversion strings. Each
+resolver retains at most 256 entries, admits input keys no longer than 512 bytes, and permits at most 4 KiB of
+represented weight per entry and 64 KiB in total. Weight includes the input, symbolic source, dimension, exact scale,
+and exact offset rendered as text. This accounts for expanded rational values, including large source constants that
+cancel from the final scale. These weights approximate retained data, not PHP heap bytes. Oversized results remain valid
+and are returned without caching.
+
+`UnitNameResolver` and `UnitResolver` no longer memoize failed names. Successful name and prefix-definition caches
+retain their direct array lookup: accepted spellings come from finite immutable registry names and one prefix applied to
+an exact residual. Registry classification is reached through validated descriptors from that same finite set. These
+caches can grow with the registry and its prefix combinations. They do not retain an unlimited sequence of distinct
+measurement strings or unknown names. The expression-identity cache remains weak.
+
+Experimental verification:
+
+- The original three-batch experiment was repeated against `f0fb146`: the conversion cache grew `0 → 3 → 3 → 6`, and
+  both resolver name caches retained the two unknown names with `null` values.
+- All ten initial regression cases failed before the fix. They exposed retained conversion results after varied
+  `parseQuantity()` calls, missing entry/weight eviction, oversized values remaining cached, and failed-name retention
+  through `parse()`, `unit()`, `dimension()`, and registry `describe()`.
+- The first focused run after the fix passed 123 tests and 1,784 assertions, including the existing resolver, cache, and
+  `Units` tests. Additional hardening checks a large affine offset independently of source and scale size.
+- Public behavior and serialized formats are unchanged. No language-neutral conformance case needs a different input or
+  expected output. Existing conformance and persistence tests remain part of the full gate.
+
+A bounded PHP 8.2 lifecycle probe processed four batches of 256 distinct quantity strings, dropping each returned
+quantity and collecting cycles after each batch. The original conversion cache grew to 257, 513, 769, and 1,025 entries
+(including one warmup). The changed cache stayed at 256. PHP-managed heap growth was approximately 0.77 → 2.09 MiB
+before and 0.86 → 0.86 MiB after. The bounded cache has some per-entry bookkeeping overhead but stopped accumulating
+results in this workload. A separate four-batch unknown-name probe left only the one successful warmup lookup cached
+after the fix, versus 1,026 entries before. Its measured heap growth fell from approximately 217 KiB to 2 KiB, including
+the probe's own retained sample records. These measurements cover PHP-managed heap usage, not process RSS or native GMP
+peak allocation.
+
+Local timings compared `f0fb146` with the changed resolvers in separate PHP 8.2 processes. Each operation had 100 warmup
+calls and 5,000 measured calls, except unknown-unit diagnostics, which used 1,000 measured calls. The table gives
+medians of five runs per implementation, alternating revision order after one whole-process warmup. Distinct inputs were
+unique within each run, and the cyclic workload rotated through 512 different measurement strings.
+
+| Operation                            | Before (µs/call) | After (µs/call) |
+| ------------------------------------ | ---------------: | --------------: |
+| Warm compound parsing                |            1.875 |           2.064 |
+| Warm conversion-factor lookup        |            4.155 |           4.562 |
+| Repeated quantity parsing            |          131.997 |         131.320 |
+| Distinct quantity parsing            |          110.007 |         111.613 |
+| Quantity parsing, 512-input cycle    |           98.229 |         112.995 |
+| Repeated unknown-unit diagnostic     |          105.136 |         112.306 |
+| Repeated unknown catalog description |            0.703 |           3.345 |
+
+The 512-input workload exceeds the cache's capacity and pays for repeated resolution after eviction. Repeated unknown
+descriptions redo name matching because failures are no longer retained. Warm parsing and conversion-factor lookup add
+roughly 0.19 and 0.41 µs per call. These are local tradeoffs, not portable regression thresholds. Successful name lookup
+still uses the existing direct arrays, and no new cache abstraction or public configuration was introduced.
+
+Independent correctness review and test hardening found no additional production defect. The retained tests verify that
+custom dimension names contribute to conversion weight and that cyclic failures clear both resolvers' in-progress state
+before a retry. Three targeted temporary mutations were detected: omitting dimension weight, omitting symbolic resolver
+cleanup, and omitting conversion resolver cleanup. Diagnostic prose is not part of these assertions.
+
+Final verification after independent review:
+
+- `composer test -- tests/Analyzer/ResolverCacheTest.php tests/Analyzer/UnitResolverTest.php tests/Internal/BoundedLruCacheTest.php tests/UnitsTest.php tests/AffineConversionTest.php tests/Conformance tests/Compatibility`
+  passed with 282 tests and 2,697 assertions, including affine behavior, conformance cases, and release persistence.
+- `composer check:full` passed with 2,428 tests, 28,757 assertions, and five expected skips. PHPStan, formatting,
+  documentation examples, book generation and internal links, benchmark smoke tests, and archive consumers passed.
+- The `nix flake check --keep-going -L` gate passed on x86_64-linux against a complete source snapshot containing the
+  new regression file. Each PHP 8.2–8.5 suite ran 2,428 tests. PHP 8.2/8.3 had 29 expected skips, and PHP 8.4/8.5
+  had 24. All four native-extension checks passed with 61 tests and 4,746 assertions each. Other architectures were not
+  run.
+- Documentation formatting and `git diff --check` passed. Public headings and existing logions were preserved. No new
+  named production declaration was introduced. Only this report's verification record changed after the final gates.
+
+Reliability verdict: PASS. The independent reviews found no additional production defect, and the retained hardening
+tests detected their three targeted mutations. The lifecycle and timing results describe bounded local workloads, not
+every worker access pattern or a native-memory budget. No broad mutation or probator campaign was run.
 
 ## Test and maintenance improvements
 

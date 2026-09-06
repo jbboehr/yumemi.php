@@ -45,7 +45,7 @@ use jbboehr\Yumemi\Registry\UnitRegistry;
  */
 final class UnitNameResolver
 {
-    /** @var array<string, ResolvedUnitName|null> */
+    /** @var array<string, ResolvedUnitName> Successful names come from the finite registry and prefix set. */
     private array $cache = [];
 
     /**
@@ -66,7 +66,7 @@ final class UnitNameResolver
 
     public function resolve(string $name): ?ResolvedUnitName
     {
-        if (array_key_exists($name, $this->cache)) {
+        if (isset($this->cache[$name])) {
             return $this->cache[$name];
         }
 
@@ -92,7 +92,7 @@ final class UnitNameResolver
             );
         }
 
-        return $this->cache[$name] = null;
+        return null;
     }
 
     private function existsExactly(string $name): bool
