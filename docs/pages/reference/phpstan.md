@@ -945,8 +945,10 @@ Important limits of the current static model are:
 - Native `unit()`, `unit_factor()`, and `unit_to()` calls require statically recoverable unit expressions by default.
   Dynamic object parsing and conversion remain supported, but cannot retain a specific generic unit type.
 - PHPStan supports one configured registry and does not track runtime registry identity per value.
-- Quantity-method unit inference and diagnostics are incomplete for unpacked arguments and calls through first-class
-  callables. Use explicit method calls when static unit checking is needed.
+- Calls on `Units`, `Quantity`, and `PointQuantity` can unpack arrays whose argument keys are statically known and
+  required. Arrays with optional elements or an unknown set of keys, and calls through first-class callables, have
+  incomplete unit checking. Mixing unpacking with explicit named arguments can lose the specific inferred return unit.
+  Use ordinary positional or named calls when that unit must be retained.
 - Explicit integer/float casts and `intval()`/`floatval()`/`doubleval()` preserve native numeric brands and move a
   `unit_numeric_string` brand onto the resulting number. Implicit arithmetic and weak numeric coercion do not preserve a
   numeric-string brand; comparisons still require definitionally equivalent brands. `abs()`, `ceil()`, `floor()`,

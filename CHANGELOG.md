@@ -58,6 +58,8 @@ These changes are planned for 0.2.0 because they change behavior documented in 0
 
 ### Fixed
 
+- PHPStan checks quantity calls that unpack fixed array shapes and avoids claiming a unit from an incomplete argument
+  mapping.
 - Long-lived registry contexts no longer retain every measurement string or failed unit-name lookup they encounter.
 - `Units::deserialize()` now keeps custom registry contexts isolated across interleaved Fibers.
 - Quantity and point ordering now handles negative and accepted zero-scale units consistently with exact equality.

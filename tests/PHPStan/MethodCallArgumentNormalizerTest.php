@@ -49,7 +49,7 @@ final class MethodCallArgumentNormalizerTest extends TestCase
     public function testPositionalArgumentsBypassReflectionAndPreserveArgumentNodes(): void
     {
         $first = new Arg(new Int_(1));
-        $second = new Arg(new Int_(2), unpack: true);
+        $second = new Arg(new Int_(2));
         $call = new MethodCall(new Variable('receiver'), 'method', [$first, $second]);
         $scope = $this->createMock(Scope::class);
         $scope->expects($this->never())->method('getMethodReflection');

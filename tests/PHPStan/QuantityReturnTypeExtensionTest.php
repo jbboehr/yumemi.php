@@ -71,4 +71,9 @@ final class QuantityReturnTypeExtensionTest extends TypeInferenceTestCase
     {
         $this->assertFixtureUnderCoverage(__DIR__ . '/data/quantity-named-arguments-boundary.php');
     }
+
+    public function testUnpackedArgumentsPreserveOnlyRecoverableUnits(): void
+    {
+        $this->assertFixtureUnderCoverage(__DIR__ . '/data/quantity-unpacked-arguments-assert.php');
+    }
 }

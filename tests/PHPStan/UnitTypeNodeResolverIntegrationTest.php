@@ -323,6 +323,53 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         ], array_column($messages, 'identifier'), $output);
     }
 
+    public function testUnpackedQuantityCallsRetainStandaloneDiagnostics(): void
+    {
+        $output = $this->analyse('quantity-unpacked-arguments-invalid.php', errorFormat: 'json');
+        $result = json_decode($output, true, flags: JSON_THROW_ON_ERROR);
+        $this->assertIsArray($result);
+        $this->assertSame(['errors' => 0, 'file_errors' => 19], $result['totals'] ?? null, $output);
+        $files = $result['files'] ?? null;
+        $this->assertIsArray($files);
+        $file = reset($files);
+        $this->assertIsArray($file);
+        $messages = $file['messages'] ?? null;
+        $this->assertIsArray($messages);
+        $this->assertSame([
+            45, 46, 47, 48, 49, 50, 51, 52, 56, 57, 58, 59, 60, 61, 64, 65, 66, 68, 68,
+        ], array_column($messages, 'line'), $output);
+        $this->assertSame([
+            ...array_fill(0, 8, 'yumemi.invalidQuantityConstruction'),
+            ...array_fill(0, 3, 'yumemi.invalidQuantityConversion'),
+            'yumemi.invalidQuantityArithmetic',
+            'yumemi.invalidQuantityComparison',
+            'yumemi.invalidQuantityArithmetic',
+            ...array_fill(0, 3, 'yumemi.invalidPointQuantityOperation'),
+            'argument.type',
+            'yumemi.invalidQuantityConstruction',
+        ], array_column($messages, 'identifier'), $output);
+    }
+
+    public function testMalformedUnpackedCallsRetainPhpStanDiagnostics(): void
+    {
+        $output = $this->analyse('quantity-unpacked-arguments-ordinary.php', errorFormat: 'json');
+        $result = json_decode($output, true, flags: JSON_THROW_ON_ERROR);
+        $this->assertIsArray($result);
+        $this->assertSame(['errors' => 0, 'file_errors' => 12], $result['totals'] ?? null, $output);
+        $files = $result['files'] ?? null;
+        $this->assertIsArray($files);
+        $file = reset($files);
+        $this->assertIsArray($file);
+        $messages = $file['messages'] ?? null;
+        $this->assertIsArray($messages);
+        $this->assertSame([
+            'argument.missing', 'argument.unknown', 'argument.missing', 'argument.duplicate',
+            'argument.duplicate', 'argument.unpackAfterNamed', 'argument.missing',
+            'argument.positionalAfterNamed', 'argument.unpackAfterNamed',
+            'argument.missing', 'argument.missing', 'argument.unknown',
+        ], array_column($messages, 'identifier'), $output);
+    }
+
     public function testValidNamedQuantityCallsHaveNoDiagnostics(): void
     {
         $output = $this->analyse('quantity-named-arguments-assert.php');

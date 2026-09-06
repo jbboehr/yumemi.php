@@ -570,10 +570,11 @@ Verification for this fix:
 
 Review also exposed a preexisting limitation: `quantity(...[], value: unit(1, 'second'), unit: 'meter')` can infer
 `Quantity<'meter'>` and omit the construction diagnostic. An executable comparison with `b9e8446` confirmed identical
-behavior before and after this slice, including acceptance by a meter-quantity parameter. This is deferred with broader
+behavior before and after this slice, including acceptance by a meter-quantity parameter. This was deferred with broader
 argument-unpacking support; returning early only from the new helper would not fix PHPStan's prior normalization in the
 dynamic-return path. The public PHPStan limitations now mention incomplete checking for unpacked arguments and calls
-through first-class callables.
+through first-class callables. The [argument-unpacking follow-up](#argument-unpacking-follow-up) below addresses fixed
+array shapes and the false construction inference.
 
 Performance was compared with `b9e8446` on PHP 8.2.32 using complete PHPStan analyses. Each of three valid workloads
 contained 1,000 functions and 6,000 method calls: positional setup followed by quantity/point construction and decimal
@@ -643,6 +644,78 @@ provides a local precedent. Keep any shared helper limited to argument mapping.
 
 Test equivalent positional, named, and reordered named calls, including unused expression statements. Compare stable
 diagnostic identifiers and inferred results across those spellings.
+
+### Argument-unpacking follow-up
+
+Status: implemented and reviewed.
+
+The shared argument normalizer now expands one statically known array shape with required keys before matching method
+parameters. Integer keys supply positional arguments in iteration order; string keys supply names. Multiple unpacked
+arrays and explicit leading positional arguments follow the same mapping. Optional elements, explicitly open shapes, and
+unresolved shape alternatives retain the declared return type. Existing unit rules still own construction, conversion,
+arithmetic, comparison, and affine validation.
+
+The original example has a second cause in PHPStan 2.2.5. Its `ArgumentsNormalizer::reorderArgs()` counts `...[]` as the
+first argument, then drops the explicit `value:` argument because that parameter position appears occupied. A direct
+experiment observed `...[], value: $seconds, unit: 'meter'` become `...[], 'meter'` before the dynamic return extension
+runs. The extension cannot reconstruct a discarded value. Yumemi now declines that partial mapping and keeps the
+declared return type. The diagnostic rule receives the original call and can still report the incompatible unit. This
+also rejects passing the result to a meter-only parameter. Supporting precise return inference for such mixed calls
+requires an upstream normalization change or a separate integration that preserves the original arguments.
+
+Verification began against `e128036`. The two new regression tests failed as intended: the valid unpacked constructor
+had no static unit, and all 19 expected errors were absent from the diagnostic fixture. After the fix, the fixture
+reports all 19 errors with the expected lines and identifiers. Inference checks cover construction, conversion,
+arithmetic, affine points, required shape keys, and conservative fallbacks. The existing fully unpacked named-array
+assertion now expects its recovered meter brand. The positional fast-path test still verifies identity of ordinary
+argument nodes without reflection.
+
+The initial malformed-call comparisons preserved PHPStan's nine missing, unknown, duplicate, and argument-order
+diagnostics. The baseline also emitted an irrelevant unit-construction error after a duplicate argument; the helper now
+declines that invalid mapping. Runtime methods, public signatures, diagnostic identifiers, and serialized formats are
+unchanged. No conformance fixture needs a different result. Only the existing normalizer method changed in production,
+and its logions were preserved.
+
+Final performance checks used PHP 8.2.32 and PHPStan 2.2.5, with separate processes for the exact `e128036` normalizer
+and the corrected version. Each workload contained 500 functions and 2,000 valid calls. One warmup preceded three
+measured runs per version, alternating revision order, using `--debug` and one analysis worker. Every run reported zero
+diagnostics. Median analysis times were:
+
+| Calls      |  Before |   After | Change |
+| ---------- | ------: | ------: | -----: |
+| Positional | 1.723 s | 1.726 s |  +0.2% |
+| Named      | 1.825 s | 1.835 s |  +0.5% |
+| Unpacked   | 1.466 s | 1.889 s | +28.9% |
+
+The ordinary-call differences are small relative to local timing variation. Unpacked calls now construct argument types
+and receive unit inference and validation that the baseline skipped. This is an analysis-time cost, with no
+application-runtime change. The focused gate passed 45 tests and 641 assertions; `composer analyse` passed.
+
+Independent correctness review found one introduced defect: an empty unpacked string key reached `new Identifier('')`
+and aborted analysis. The added regression reproduced the internal error before the guard was added, then passed with
+two native `argument.missing` diagnostics and one `argument.unknown`. The malformed fixture now expects twelve native
+diagnostics. The separate test review added an inference assertion for non-zero, negative integer keys in insertion
+order, backed by a PHP runtime control. It found no additional production defect. The fix introduces no new declarations
+or parser integration.
+
+Final verification after the review correction:
+
+- `composer test -- tests/PHPStan/MethodCallArgumentNormalizerTest.php tests/PHPStan/QuantityReturnTypeExtensionTest.php tests/PHPStan/PointQuantityReturnTypeExtensionTest.php tests/PHPStan/InvalidQuantityConstructionRuleTest.php tests/PHPStan/InvalidQuantityConversionRuleTest.php tests/PHPStan/InvalidQuantityArithmeticRuleTest.php tests/PHPStan/InvalidQuantityComparisonRuleTest.php tests/PHPStan/InvalidPointQuantityMethodRuleTest.php tests/PHPStan/UnitTypeNodeResolverIntegrationTest.php`
+  passed with 45 tests and 642 assertions. The
+  [diagnostic fixture](../../tests/PHPStan/data/quantity-unpacked-arguments-invalid.php),
+  [inference fixture](../../tests/PHPStan/data/quantity-unpacked-arguments-assert.php), and
+  [malformed-call fixture](../../tests/PHPStan/data/quantity-unpacked-arguments-ordinary.php) are retained regressions.
+- `composer check:full` passed with 2,431 tests, 28,811 assertions, and five expected skips, including PHPStan,
+  formatting, public documentation examples, book generation and links, benchmark smoke checks, and archive consumers.
+- `nix flake check --keep-going -L` passed on x86_64-linux against a complete source snapshot containing all three new
+  fixtures. The PHP 8.2–8.5 suites each ran 2,431 tests, with 29 expected skips on PHP 8.2/8.3 and 24 on PHP 8.4/8.5.
+  All four native-extension checks passed with 61 tests and 4,746 assertions each.
+- Documentation formatting and `git diff --check` passed. Public headings and existing logions are unchanged. Only this
+  report's verification record changed after the final gates.
+
+Reliability verdict: PASS after the empty-name correction. Conservative inference limits remain as described above.
+Other architectures, broad mutation and probator campaigns, branch coverage, and the separate committed-revision
+compatibility comparison were not run.
 
 ## Issue 7: Type resolution ignores namespace identity
 

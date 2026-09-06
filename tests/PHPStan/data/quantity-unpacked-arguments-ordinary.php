@@ -34,29 +34,14 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-use jbboehr\Yumemi\Quantity;
 use jbboehr\Yumemi\Units;
 
-use function PHPStan\Testing\assertType;
-
-$units = Units::default();
-$distance = $units->quantity(1, unit: 'meter');
-$duration = $units->quantity(value: 1, unit: 'second');
-
-assertType("Quantity<'meter'>", $distance);
-assertType("Quantity<'meter * second'>", $distance->mul(other: $duration));
-assertType("Quantity<'meter / second'>", $distance->div(other: $duration));
-assertType("Quantity<'1 / meter'>", $distance->rdiv(numerator: 2));
-assertType("Quantity<'meter ^ 2'>", $distance->pow(power: 2));
-assertType("Quantity<'meter'>", $units->quantity(unit: 'meter ^ 2', value: 1)->root(degree: 2));
-
-$freezing = $units->point(0, unit: 'celsius');
-$rise = $units->deltaQuantity(1, unit: 'fahrenheit');
-$boiling = $units->point(unit: 'fahrenheit', value: 212);
-
-assertType("PointQuantity<'celsius'>", $freezing->add(delta: $rise));
-assertType("Quantity<'delta_fahrenheit'>", $boiling->differenceFrom(origin: $freezing));
-
-assertType("Quantity<'meter'>", $units->quantity(...['value' => 1, 'unit' => 'meter']));
-assertType(Quantity::class, ($units->quantity(...))(value: 1, unit: 'meter'));
-assertType(Quantity::class, ($distance->to(...))(unit: 'foot'));
+function inspectMalformedUnpackedQuantityCalls(Units $units): void
+{
+    $units->quantity(...['value' => 1, 'wrong' => 'unknown_unit']);
+    $units->quantity(...['unit' => 'unknown_unit']);
+    $units->quantity(...[1], value: 2, unit: 'unknown_unit');
+    $units->quantity(...['value' => 1], ...['value' => 2, 'unit' => 'unknown_unit']);
+    $units->quantity(...['unit' => 'unknown_unit'], ...[1]);
+    $units->quantity(...['' => 1]);
+}

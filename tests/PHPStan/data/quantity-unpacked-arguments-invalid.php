@@ -37,26 +37,38 @@
 use jbboehr\Yumemi\Quantity;
 use jbboehr\Yumemi\Units;
 
-use function PHPStan\Testing\assertType;
+use function jbboehr\Yumemi\unit;
 
-$units = Units::default();
-$distance = $units->quantity(1, unit: 'meter');
-$duration = $units->quantity(value: 1, unit: 'second');
+function inspectUnpackedQuantityCalls(Units $units): void
+{
+    $seconds = unit(1, 'second');
+    $units->quantity(...[], value: $seconds, unit: 'meter');
+    $units->quantity(...['value' => $seconds, 'unit' => 'meter']);
+    $units->quantity(...[$seconds, 'meter']);
+    $units->quantity(...[], ...[], value: $seconds, unit: 'meter');
+    $units->quantity(...[1, 'unknown_unit']);
+    $units->point(...[1, 'celsius / second']);
+    $units->deltaQuantity(...['unit' => 'unknown_unit', 'value' => 1]);
+    $units->parseQuantity(...['2 unknown_unit']);
 
-assertType("Quantity<'meter'>", $distance);
-assertType("Quantity<'meter * second'>", $distance->mul(other: $duration));
-assertType("Quantity<'meter / second'>", $distance->div(other: $duration));
-assertType("Quantity<'1 / meter'>", $distance->rdiv(numerator: 2));
-assertType("Quantity<'meter ^ 2'>", $distance->pow(power: 2));
-assertType("Quantity<'meter'>", $units->quantity(unit: 'meter ^ 2', value: 1)->root(degree: 2));
+    $distance = $units->quantity(1, 'meter');
+    $duration = $units->quantity(1, 'second');
+    $distance->to(...['second']);
+    $distance->to(...[], unit: 'second');
+    $distance->decimalValueIn(...['second', 2, RoundingMode::HalfEven]);
+    $distance->add(...[$duration]);
+    $distance->compareTo(...['other' => $duration]);
+    $distance->root(...[2]);
 
-$freezing = $units->point(0, unit: 'celsius');
-$rise = $units->deltaQuantity(1, unit: 'fahrenheit');
-$boiling = $units->point(unit: 'fahrenheit', value: 212);
+    $temperature = $units->point(1, 'celsius');
+    $temperature->to(...['meter']);
+    $temperature->decimalValueIn(...['meter', 2, RoundingMode::HalfEven]);
+    $temperature->add(...[$distance]);
 
-assertType("PointQuantity<'celsius'>", $freezing->add(delta: $rise));
-assertType("Quantity<'delta_fahrenheit'>", $boiling->differenceFrom(origin: $freezing));
+    saveUnpackedDistance($units->quantity(...[], value: $seconds, unit: 'meter'));
+}
 
-assertType("Quantity<'meter'>", $units->quantity(...['value' => 1, 'unit' => 'meter']));
-assertType(Quantity::class, ($units->quantity(...))(value: 1, unit: 'meter'));
-assertType(Quantity::class, ($distance->to(...))(unit: 'foot'));
+/** @param Quantity<'meter'> $distance */
+function saveUnpackedDistance(Quantity $distance): void
+{
+}

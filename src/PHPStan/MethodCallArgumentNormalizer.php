@@ -41,10 +41,11 @@ use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Identifier;
 use PHPStan\Analyser\ArgumentsNormalizer;
 use PHPStan\Analyser\Scope;
+use PHPStan\Node\Expr\TypeExpr;
 use PHPStan\Reflection\ParametersAcceptorSelector;
 
 /**
- * Maps named method arguments to the positions consumed by shared inference and diagnostic rules.
+ * Maps named and statically known unpacked method arguments for shared inference and diagnostic rules.
  *
  * @logion [OSD 80:41] Unbraid the white horse’s mane when it hath carried the last pilgrim through the snow, and hang
  *     no victory bells upon its neck. Set barley before it beneath the shrine eaves; for the covenant remembereth the
@@ -55,7 +56,7 @@ use PHPStan\Reflection\ParametersAcceptorSelector;
 final class MethodCallArgumentNormalizer
 {
     /**
-     * Positional calls retain their original arguments without reflection or node allocation.
+     * Ordinary positional calls retain their original arguments without reflection or node allocation.
      *
      * @logion [OSD 99:14] When an enemy sleepeth beneath thy roof by sworn agreement, spread thine own riding cloak
      *     over his weapons, and lay no other pledge beside them. At dawn restore the weapons with both hands. Let thy
@@ -70,6 +71,48 @@ final class MethodCallArgumentNormalizer
         }
 
         $args = $methodCall->getArgs();
+        $expanded = null;
+        foreach ($args as $index => $argument) {
+            if (!$argument->unpack) {
+                if ($expanded !== null) {
+                    $expanded[] = $argument;
+                }
+                continue;
+            }
+
+            // PHPStan can discard named arguments while reordering a call that still contains unpacking.
+            // Rules receive the original call, but dynamic return extensions must decline this partial mapping.
+            if ($argument->getAttribute(ArgumentsNormalizer::ORIGINAL_ARG_ATTRIBUTE) instanceof Arg) {
+                return null;
+            }
+
+            $type = $scope->getType($argument->value);
+            $arrays = $type->getConstantArrays();
+            if (
+                !$type->isConstantArray()->yes()
+                || count($arrays) !== 1
+                || $arrays[0]->isUnsealed()->yes()
+                || $arrays[0]->getOptionalKeys() !== []
+            ) {
+                return null;
+            }
+
+            $expanded ??= array_slice($args, 0, $index);
+            $valueTypes = $arrays[0]->getValueTypes();
+            foreach ($arrays[0]->getKeyTypes() as $keyIndex => $keyType) {
+                $key = $keyType->getValue();
+                if ($key === '') {
+                    return null;
+                }
+                $expanded[] = new Arg(
+                    new TypeExpr($valueTypes[$keyIndex]),
+                    attributes: $argument->getAttributes(),
+                    name: is_string($key) ? new Identifier($key) : null,
+                );
+            }
+        }
+        $args = $expanded ?? $args;
+
         foreach ($args as $argument) {
             if ($argument->name === null) {
                 continue;
@@ -91,14 +134,26 @@ final class MethodCallArgumentNormalizer
                 $method->getNamedArgumentsVariants(),
             );
             $parameterNames = [];
-            foreach ($variant->getParameters() as $parameter) {
-                $parameterNames[$parameter->getName()] = true;
+            foreach ($variant->getParameters() as $position => $parameter) {
+                $parameterNames[$parameter->getName()] = $position;
             }
-            foreach ($args as $arg) {
+            $assigned = [];
+            $hasNamedArgument = false;
+            foreach ($args as $position => $arg) {
                 if ($arg->name !== null && !isset($parameterNames[$arg->name->toString()])) {
                     // PHPStan appends unknown named arguments, which can fill a missing declared position.
                     return null;
                 }
+                if ($arg->name !== null) {
+                    $hasNamedArgument = true;
+                    $position = $parameterNames[$arg->name->toString()];
+                } elseif ($hasNamedArgument) {
+                    return null;
+                }
+                if (isset($assigned[$position])) {
+                    return null;
+                }
+                $assigned[$position] = true;
             }
 
             return ArgumentsNormalizer::reorderArgs($variant, $args);
