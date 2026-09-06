@@ -50,5 +50,6 @@ only inside PHPStan; they do not create runtime wrappers.
   and formatting.
 - [Built-in and Custom Units](reference/catalog.md) documents UDUNITS2 behavior, custom registries, and introspection.
 
-Yumemi 0.1 is an initial public development release. Patch releases within the 0.1 line preserve the documented
-contract, while later 0.x minor releases may deliberately introduce documented breaking changes before 1.0.
+Yumemi 0.2 follows a public development contract. Patch releases within the 0.2 line preserve that contract, while later
+0.x minor releases may deliberately introduce documented breaking changes before 1.0. See
+[Upgrade From 0.1](getting-started.md#upgrade-from-01) when updating an existing application.

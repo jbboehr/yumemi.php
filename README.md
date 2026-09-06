@@ -15,15 +15,16 @@ The PHPStan extension catches incompatible units without requiring runtime wrapp
 real conversion, the runtime library supplies `Units`, exact `Quantity` values, and affine `PointQuantity` coordinates.
 Both layers share one parser, unit catalog, normalization engine, and meaning for expressions such as `meter / second`.
 
-**Status:** Yumemi 0.1 is an initial public development release. Patch releases within the 0.1 line preserve the
-documented contract; later 0.x minor releases may deliberately introduce documented breaking changes before 1.0.
+**Status:** Yumemi 0.2 follows a public development contract. Patch releases within the 0.2 line preserve that contract;
+later 0.x minor releases may deliberately introduce documented breaking changes before 1.0. See
+[Upgrade From 0.1](docs/pages/getting-started.md#upgrade-from-01) when updating an existing application.
 
 ## Installation
 
 Yumemi requires PHP 8.2 or later and the GMP extension:
 
 ```shell
-composer require jbboehr/yumemi:^0.1
+composer require jbboehr/yumemi:^0.2
 ```
 
 Applications using the extension must install PHPStan separately as a development dependency:

@@ -7,8 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-These changes are planned for 0.2.0 because they change behavior documented in 0.1. See
-[Upgrade From 0.1](docs/pages/getting-started.md#upgrade-from-01) before upgrading.
+## [0.2.0] - 2026-09-06
+
+This release changes behavior documented in 0.1. See [Upgrade From 0.1](docs/pages/getting-started.md#upgrade-from-01)
+before upgrading.
+
+The optional native companion is php-yumemi [0.1.0](https://github.com/jbboehr/php-yumemi/releases/tag/v0.1.0), pinned
+at [`472ca68`](https://github.com/jbboehr/php-yumemi/commit/472ca68fca569ecf47a471e14935584baa26bb21). The method APIs
+and PHP parser remain available without it.
 
 ### Added
 
@@ -74,8 +80,7 @@ These changes are planned for 0.2.0 because they change behavior documented in 0
 - `Rational` now isolates mutable GMP inputs and returns detached component copies, preserving quantities that share a
   magnitude.
 - Parser diagnostics now account for all valid continuations, including operators inside an unfinished group. This
-  corrects expected-token wording while preserving exception types and source spans. Pair it with php-yumemi
-  [`b17a185`](https://github.com/jbboehr/php-yumemi/commit/b17a185deaf53e1150eb390046f35de52c90465a).
+  corrects expected-token wording while preserving exception types and source spans.
 - Prefixed unit formatting now verifies replacement spellings and falls back when a registry collision or punctuation
   symbol would change the unit's meaning on reparse.
 - PHPStan now preserves all result units when `Quantity::mul()` or `div()` receives a quantity/scalar union, and accepts
@@ -144,6 +149,7 @@ These changes are planned for 0.2.0 because they change behavior documented in 0
 - Verified public documentation, portable runtime conformance fixtures, release-style consumer tests, and automatic or
   manual PHPStan extension registration.
 
-[Unreleased]: https://github.com/jbboehr/yumemi.php/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/jbboehr/yumemi.php/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/jbboehr/yumemi.php/releases/tag/v0.2.0
 [0.1.1]: https://github.com/jbboehr/yumemi.php/releases/tag/v0.1.1
 [0.1.0]: https://github.com/jbboehr/yumemi.php/releases/tag/v0.1.0

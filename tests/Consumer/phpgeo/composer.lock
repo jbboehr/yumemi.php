@@ -111,18 +111,21 @@
                 "phpbench/phpbench": "^1.7",
                 "phpstan/phpstan": "^2.2.5",
                 "phpstan/phpstan-deprecation-rules": "^2.0",
-                "phpstan/phpstan-phpunit": "^2.0.13",
+                "phpstan/phpstan-phpunit": "^2.0.18",
                 "phpstan/phpstan-strict-rules": "^2.0",
-                "phpunit/phpunit": "^11.5"
+                "phpunit/phpunit": "^11.5",
+                "symfony/filesystem": "^7.4",
+                "symfony/process": "^7.4"
             },
             "suggest": {
+                "ext-yumemi": "Enables optional Quantity operator syntax and compatible native unit-expression parsing; method APIs and the PHP parser remain available without it.",
                 "jbboehr/yumemi-apocrypha": "Provides curated unit-aware PHPStan integrations for supported third-party packages.",
                 "phpstan/phpstan": "Enables the bundled Yumemi unit types extension (extension.neon; requires PHPStan 2.2.5 or later)."
             },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "0.1.x-dev"
+                    "dev-master": "0.2.x-dev"
                 },
                 "phpstan": {
                     "includes": [
@@ -189,6 +192,7 @@
                     "/phpunit.branch.xml.dist",
                     "/phpunit.xml.dist",
                     "/result*",
+                    "/scripts",
                     "/secrets",
                     "/src/Catalog/PhpCatalogExporter.php",
                     "/src/Catalog/Udunits2CatalogImporter.php",
@@ -265,8 +269,7 @@
                     "make generate-catalog"
                 ],
                 "generate-parser": [
-                    "bison -S vendor/mrsuh/php-bison-skeleton/src/php-skel.m4 -o src/Parser/Parser.php src/Parser/grammar.y",
-                    "sed -i \"s/__DOLLAR__/$/g\" src/Parser/Parser.php"
+                    "scripts/generate-parser.sh"
                 ],
                 "infection": [
                     "infection --no-progress"
@@ -284,7 +287,7 @@
                     "infection --configuration=infection.phpstan.json5.dist --no-progress --min-msi=85 --min-covered-msi=85"
                 ],
                 "infection:phpstan:core": [
-                    "infection --configuration=infection.phpstan.json5.dist --no-progress --filter=src/PHPStan/InvalidUnitCallRule.php,src/PHPStan/InvalidUnitMinMaxFunctionRule.php,src/PHPStan/InvalidUnitRootFunctionRule.php,src/PHPStan/NativeUnitArgumentResolver.php,src/PHPStan/UnitExpression.php,src/PHPStan/UnitExpressionAlgebra.php,src/PHPStan/UnitExpressionParseResult.php,src/PHPStan/UnitExpressionParser.php,src/PHPStan/UnitConstantFloatType.php,src/PHPStan/UnitConstantIntegerType.php,src/PHPStan/UnitFactorFunctionDynamicReturnTypeExtension.php,src/PHPStan/UnitFloatType.php,src/PHPStan/UnitFunctionDynamicReturnTypeExtension.php,src/PHPStan/UnitIntegerRangeMath.php,src/PHPStan/UnitIntegerType.php,src/PHPStan/UnitIntegerTypeHelper.php,src/PHPStan/UnitNumericStringType.php,src/PHPStan/UnitMinMaxFunctionTypeResolverExtension.php,src/PHPStan/UnitOperatorTypeSpecifyingExtension.php,src/PHPStan/UnitPreservingFunctionTypeResolverExtension.php,src/PHPStan/UnitRootFunctionTypeResolverExtension.php,src/PHPStan/UnitToFunctionDynamicReturnTypeExtension.php,src/PHPStan/UnitUnaryOperatorTypeSpecifyingExtension.php,src/PHPStan/QuantityType.php,src/PHPStan/PointQuantityType.php,src/PHPStan/PointUnitExpression.php,src/PHPStan/PointUnitExpressionParseResult.php"
+                    "infection --configuration=infection.phpstan.json5.dist --no-progress --filter=src/PHPStan/InvalidUnitAngleFunctionRule.php,src/PHPStan/InvalidUnitArrayAggregationFunctionRule.php,src/PHPStan/InvalidUnitBinaryMathFunctionRule.php,src/PHPStan/InvalidUnitCallRule.php,src/PHPStan/InvalidUnitMinMaxFunctionRule.php,src/PHPStan/InvalidUnitRangeFunctionRule.php,src/PHPStan/InvalidUnitRootFunctionRule.php,src/PHPStan/NativeUnitArgumentResolver.php,src/PHPStan/UnitAngleFunctionTypeResolverExtension.php,src/PHPStan/UnitArrayAggregationFunctionTypeResolverExtension.php,src/PHPStan/UnitBinaryMathFunctionTypeResolverExtension.php,src/PHPStan/UnitExpression.php,src/PHPStan/UnitExpressionAlgebra.php,src/PHPStan/UnitExpressionParseResult.php,src/PHPStan/UnitExpressionParser.php,src/PHPStan/UnitConstantFloatType.php,src/PHPStan/UnitConstantIntegerType.php,src/PHPStan/UnitFactorFunctionDynamicReturnTypeExtension.php,src/PHPStan/UnitFloatType.php,src/PHPStan/UnitFunctionDynamicReturnTypeExtension.php,src/PHPStan/UnitIntegerRangeMath.php,src/PHPStan/UnitIntegerType.php,src/PHPStan/UnitIntegerTypeHelper.php,src/PHPStan/UnitNumericStringType.php,src/PHPStan/UnitMinMaxFunctionTypeResolverExtension.php,src/PHPStan/UnitOperatorTypeSpecifyingExtension.php,src/PHPStan/UnitPreservingFunctionTypeResolverExtension.php,src/PHPStan/UnitRangeFunctionTypeResolverExtension.php,src/PHPStan/UnitRootFunctionTypeResolverExtension.php,src/PHPStan/UnitToFunctionDynamicReturnTypeExtension.php,src/PHPStan/UnitUnaryOperatorTypeSpecifyingExtension.php,src/PHPStan/UnitUnionTypeHelper.php,src/PHPStan/QuantityType.php,src/PHPStan/PointQuantityType.php,src/PHPStan/PointUnitExpression.php,src/PHPStan/PointUnitExpressionParseResult.php"
                 ],
                 "test": [
                     "phpunit --no-coverage"

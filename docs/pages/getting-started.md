@@ -19,7 +19,7 @@ Most applications call Yumemi at runtime and also use its PHPStan extension. Ins
 dependency:
 
 ```shell
-composer require jbboehr/yumemi:^0.1
+composer require jbboehr/yumemi:^0.2
 ```
 
 Yumemi does not install PHPStan automatically in consuming projects. Install PHPStan and the extension installer as
@@ -43,8 +43,8 @@ runtime calls or classes, may install it as a development dependency instead.
 
 ## Upgrade From 0.1
 
-The upcoming 0.2 release changes `Rational` component access and some runtime and PHPStan behavior. Review these
-patterns before changing a `^0.1` Composer constraint to `^0.2`, then rerun your application tests and PHPStan.
+Yumemi 0.2 changes `Rational` component access and some runtime and PHPStan behavior. Review these patterns before
+changing a `^0.1` Composer constraint to `^0.2`, then rerun your application tests and PHPStan.
 
 | In 0.1 code...                                                                                     | Change for 0.2                                                                                                                                                                                                      |
 | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

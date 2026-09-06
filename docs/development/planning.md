@@ -495,8 +495,12 @@ of `0.2.0` from `develop`, in reviewable slices with review before each commit:
 1. **Complete:** the [0.2 compatibility review](release-0.2-compatibility.md) classifies changes since `v0.1.1`; the
    [upgrade guide](../pages/getting-started.md#upgrade-from-01) covers rational component access and changed runtime and
    PHPStan behavior.
-2. Prepare the changelog, installation/status prose, Composer branch alias, and required lock/Nix metadata. Identify the
-   tested optional native-extension release or commit.
+2. **Complete:** the changelog, installation/status prose, and Composer branch alias target `0.2.0`. The root lock
+   metadata and Nix dependency hash are refreshed. Consumer locks contain current Yumemi package metadata, with external
+   dependency records and the shared consumer closure unchanged. The optional companion is php-yumemi `0.1.0`, whose tag
+   resolves to the existing flake pin `472ca68fca569ecf47a471e14935584baa26bb21`. The changelog date is prepared as
+   `2026-09-06` and must match the actual publication date. The `^0.2` installation commands and release links require
+   publication of `v0.2.0`.
 3. Follow the release runbook for dependency audit, full Composer and Nix checks, committed API comparison, historical
    persistence, archive inspection, and CI verification of the exact release commit before signed-tag publication.
 4. Verify publication and clean installation, capture immutable `v0.2.0` persistence fixtures from the published

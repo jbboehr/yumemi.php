@@ -37,8 +37,8 @@ The additive application APIs are `Units::formatText()`, `quantityFromJson()`, `
 remains available. `difference(other: ...)` retains its old parameter name and behavior, while its preferred replacement
 uses `differenceFrom(origin: ...)`.
 
-The changes are already recorded under `Unreleased` in [CHANGELOG.md](../../CHANGELOG.md). This slice adds migration
-guidance and compatibility evidence without changing the library or preparing the release metadata.
+At review time, the changes were recorded under `Unreleased` in [CHANGELOG.md](../../CHANGELOG.md). This slice adds
+migration guidance and compatibility evidence without changing the library or preparing the release metadata.
 
 ## Retained Contracts
 
