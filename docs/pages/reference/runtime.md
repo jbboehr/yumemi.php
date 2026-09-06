@@ -282,9 +282,9 @@ with the same scale. Thus `meter` and `100 * centimeter` may be equivalent, but 
 `to()` returns a new quantity whose magnitude has been converted to the requested symbolic unit. `valueIn()` returns
 only the exact converted magnitude and leaves the quantity unchanged.
 
-`equals()` converts a compatible right operand exactly before comparing, and returns `false` when the dimensions or
-`Units` contexts are incompatible. `compareTo()`, `lessThan()`, `lessThanOrEqualTo()`, `greaterThan()`, and
-`greaterThanOrEqualTo()` perform the same exact conversion but throw when the operands cannot be compared.
+`equals()` compares exact values after compatible-unit conversion, and returns `false` when the dimensions or `Units`
+contexts are incompatible. `compareTo()`, `lessThan()`, `lessThanOrEqualTo()`, `greaterThan()`, and
+`greaterThanOrEqualTo()` use the same exact values but throw when the operands cannot be compared.
 
 `isCompatibleWith()` checks whether two quantities belong to the same `Units` context and have compatible dimensions. It
 returns `false` for a different context or dimension; it does not convert either magnitude or throw merely because the
@@ -317,8 +317,21 @@ assert($rate->toString() === '2/3 * centimeter / (foot * second)');
 assert($rate->valueIn('1 / second')->toString() === '25/1143');
 ```
 
-Semantic equality remains symmetric for accepted zero-scale units by comparing canonical values. A reciprocal zero-scale
-unit expression is undefined and is rejected during quantity construction with `DivisionByZeroError`.
+For both quantities and points, ordering follows a positive canonical scale. Increasing a coordinate in a negative scale
+moves in the opposite direction: `2 degree_west` is less than `1 degree_west` when expressed in `degree_east`.
+
+```php
+<?php
+
+use jbboehr\Yumemi\Units;
+
+$units = Units::default();
+assert($units->point(2, 'degree_west')->lessThan($units->point(1, 'degree_west')));
+```
+
+Accepted zero-scale units compare using their canonical value, so a quantity in `0 * meter` compares equal to `0 meter`.
+A reciprocal zero-scale unit expression is undefined and is rejected during quantity construction with
+`DivisionByZeroError`.
 
 ### Preferred Unit Profiles
 

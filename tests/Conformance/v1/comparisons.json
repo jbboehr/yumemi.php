@@ -1,0 +1,103 @@
+{
+    "schema": "yumemi.conformance/v1",
+    "quantities": [
+        {
+            "id": "quantity-negative-scale-orders-below-positive",
+            "left": {
+                "value": { "numerator": "1", "denominator": "1" },
+                "unit": "-1 * meter"
+            },
+            "right": {
+                "value": { "numerator": "2", "denominator": "1" },
+                "unit": "meter"
+            },
+            "expected": -1
+        },
+        {
+            "id": "quantity-negative-scale-reverses-coordinate-order",
+            "left": {
+                "value": { "numerator": "1", "denominator": "1" },
+                "unit": "-2 * meter"
+            },
+            "right": {
+                "value": { "numerator": "2", "denominator": "1" },
+                "unit": "-2 * meter"
+            },
+            "expected": 1
+        },
+        {
+            "id": "quantity-zero-scale-orders-as-canonical-zero",
+            "left": {
+                "value": { "numerator": "7", "denominator": "1" },
+                "unit": "0 * meter"
+            },
+            "right": {
+                "value": { "numerator": "0", "denominator": "1" },
+                "unit": "meter"
+            },
+            "expected": 0
+        },
+        {
+            "id": "quantity-zero-scale-orders-below-positive",
+            "left": {
+                "value": { "numerator": "7", "denominator": "1" },
+                "unit": "0 * meter"
+            },
+            "right": {
+                "value": { "numerator": "1", "denominator": "1" },
+                "unit": "meter"
+            },
+            "expected": -1
+        },
+        {
+            "id": "quantity-negative-dimensionless-scale-orders-below-zero",
+            "left": {
+                "value": { "numerator": "1", "denominator": "1" },
+                "unit": "-1 * percent"
+            },
+            "right": {
+                "value": { "numerator": "0", "denominator": "1" },
+                "unit": "1"
+            },
+            "expected": -1
+        }
+    ],
+    "points": [
+        {
+            "id": "point-west-orders-below-east",
+            "left": {
+                "value": { "numerator": "1", "denominator": "1" },
+                "unit": "degree_west"
+            },
+            "right": {
+                "value": { "numerator": "2", "denominator": "1" },
+                "unit": "degree_east"
+            },
+            "expected": -1
+        },
+        {
+            "id": "point-west-reverses-coordinate-order",
+            "left": {
+                "value": { "numerator": "1", "denominator": "1" },
+                "unit": "degree_west"
+            },
+            "right": {
+                "value": { "numerator": "2", "denominator": "1" },
+                "unit": "degree_west"
+            },
+            "expected": 1
+        },
+        {
+            "id": "point-affine-equivalent-coordinates-order-as-equal",
+            "left": {
+                "value": { "numerator": "0", "denominator": "1" },
+                "unit": "celsius"
+            },
+            "right": {
+                "value": { "numerator": "32", "denominator": "1" },
+                "unit": "fahrenheit"
+            },
+            "expected": 0
+        }
+    ]
+}

@@ -646,7 +646,7 @@ diagnostic identifiers and inferred results across those spellings.
 
 ## Issue 7: Type resolution ignores namespace identity
 
-Status: implemented in the working tree, awaiting review.
+Status: committed in `00e7335` after review and verification.
 
 Object type resolution now uses PHPStan's `NameScope` and matches the fully qualified Yumemi classes. Ordinary imports,
 renamed imports, namespace imports, fully qualified names, and references inside Yumemi's own namespace retain their
@@ -803,9 +803,11 @@ ordinary imports, and renamed imports. Loading Yumemi should leave another libra
 
 ## Issue 8: Ordering on negative scales
 
+Status: implemented and reviewed.
+
 P2. [`Quantity::compareTo()`](../../src/Quantity.php) and [`PointQuantity::compareTo()`](../../src/PointQuantity.php)
-convert the right operand into the left operand's scale and compare stored coordinates. When the left scale has a
-negative factor, numerical coordinate order is the reverse of order in the positive canonical scale.
+previously converted the right operand into the left operand's scale and compared stored coordinates. When the left
+scale has a negative factor, numerical coordinate order is the reverse of order in the positive canonical scale.
 
 ```php
 <?php
@@ -824,16 +826,76 @@ $reference = $reversed->point(2, 'kelvin');
 echo $point->compareTo($reference), '/', $reference->compareTo($point), "\n";
 ```
 
-Both lines print `1/1`. Each comparison claims that its left operand is greater, although the values in canonical units
-are `-1` and `2`. This violates antisymmetry and can invalidate sorting and range checks. The named ordering predicates
-delegate to these methods and inherit the defect.
+Before the fix, both lines printed `1/1`. Each comparison claimed that its left operand was greater, although the values
+in canonical units are `-1` and `2`. This violates antisymmetry and can invalidate sorting and range checks. The named
+ordering predicates delegate to these methods and inherited the defect.
 
-Compare through a consistently oriented canonical basis or account for scale orientation explicitly. Review zero-scale
-behavior separately: equality already uses a nonzero canonical basis, while ordering needs a coherent documented policy.
-Do not silently reject previously accepted scales without compatibility review.
+The fix compares both operands through their exact maps to a positive canonical scale. The example now prints `-1/1` on
+both lines. The same defect affected the bundled `degree_west` unit, whose definition has a negative factor relative to
+`degree_east`.
 
-Add properties for comparison antisymmetry, transitivity, and invariance under compatible unit conversion. Include
-positive and negative scales for quantities and named coordinate units.
+Accepted zero-scale quantities map to canonical zero. Points follow their exact affine map, including its offset.
+Comparison no longer tries to invert a zero scale, and `compareTo() === 0` agrees with `equals()` for comparable
+operands. Incompatible dimensions and registry contexts still throw from ordering, while equality still returns `false`.
+
+The shared internal `Units::compareValues()` method uses the existing resolved conversion maps. Equality delegates to
+the same comparison after its compatibility check. This avoids rebuilding canonical expressions or adding another cache.
+
+Experimental verification:
+
+- Before the production change, 19 new ordering cases produced nine reversed-order failures and seven division-by-zero
+  errors. The remaining three controls passed. The cases cover all named predicates, exact fractions, dimensionless
+  units, negative affine definitions and aliases, and zero scales.
+- Two additional ordering-property tests and eight portable comparison fixtures were checked against the committed value
+  classes at `3955976`: seven assertions failed on reversed ordering, two zero-scale cases threw, and the positive
+  affine control passed. The property tests check all pairs and increasing triples of six differently represented
+  values, plus comparison after conversion.
+- Independent correctness review found no introduced defect. A separate exact-arithmetic model passed 3,025 quantity
+  pairs, 5,929 point pairs, 2,913 conversion-invariance checks, and three incompatibility/exception-metadata checks. The
+  same model failed on the committed implementation's antisymmetry defect.
+- The independent test pass added a regression test for two affine points separated by `1e-30` degrees Celsius above
+  freezing. Exact ordering preserves this difference even though conversion to native floats loses it.
+- A local PHP 8.2 benchmark compared the committed and changed value classes in separate processes. Each case warmed up
+  for 100 calls, then measured 10,000 calls. The figures below are medians of three runs per revision, with revision
+  order alternated after a whole-process warmup.
+
+| Operation                            | Before (µs/call) | After (µs/call) |
+| ------------------------------------ | ---------------: | --------------: |
+| Quantity comparison, same unit       |            6.525 |           5.755 |
+| Quantity comparison, meter/foot      |            8.333 |           7.215 |
+| Quantity comparison, compound units  |           10.118 |           8.789 |
+| Point comparison, same unit          |            4.746 |           3.974 |
+| Point comparison, Celsius/Fahrenheit |            6.087 |           4.967 |
+| Quantity equality, same unit         |           22.042 |           8.534 |
+| Quantity equality, meter/foot        |           25.066 |          11.345 |
+| Quantity equality, compound units    |           75.169 |          14.741 |
+| Point equality, same unit            |           23.244 |           5.406 |
+| Point equality, Celsius/Fahrenheit   |           37.849 |           6.608 |
+
+An independent benchmark using seven runs of 200,000 calls also measured lower comparison times: `5.56` versus `6.13` µs
+for same-unit quantities, `7.11` versus `7.87` µs for mixed-unit quantities, and `4.80` versus `5.90` µs for affine
+points (changed versus committed implementation).
+
+These are local warm-cache measurements, not cross-platform performance guarantees. Cold resolution and peak memory were
+not measured by this comparison.
+
+Final verification passed after both independent reviews:
+
+- `composer test -- tests/QuantityTest.php tests/PointQuantityTest.php tests/RuntimeInvariantTest.php tests/Conformance`:
+  256 tests and 1,265 assertions, including the affine precision test.
+- `composer check:full`: 2,402 tests, 27,184 assertions, and five expected skips. PHPStan, formatting, documentation
+  examples, the book build and generated links, benchmark smoke tests, and consumer archive checks passed.
+- The `nix flake check --keep-going -L` gate passed on x86_64-linux using a complete source snapshot that included the
+  new comparison fixture. Each PHP 8.2–8.5 suite ran 2,402 tests. PHP 8.2/8.3 had 29 expected skips, and PHP 8.4/8.5
+  had 24. All four native-extension checks passed with 61 tests and 4,746 assertions each. Other architectures were not
+  run.
+- The independent exact-arithmetic model was rerun against the final production code and passed the same pair,
+  conversion, and exception checks above.
+- The subsequent review reported no actionable regressions after focused tests, an independent 2,125-pair comparison
+  check, and `composer check:full` (2,402 tests and five skips). That review did not rerun the Nix matrix.
+
+Reliability verdict: PASS. No additional production defects were found, and the affine precision test was retained as
+test hardening. The local benchmark does not assess sustained sorting workloads, cold resolution, or memory usage.
 
 ## Issue 9: Deserialization context crosses Fibers
 

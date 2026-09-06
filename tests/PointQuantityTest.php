@@ -185,6 +185,90 @@ final class PointQuantityTest extends TestCase
         $this->assertTrue($freezing->greaterThanOrEqualTo($freezingFahrenheit));
     }
 
+    public function testComparisonRetainsExactnessBeyondFloatPrecisionAcrossAffineScales(): void
+    {
+        $units = Units::default();
+        $slightlyAboveFreezing = $units->point(new Rational(1, gmp_pow(10, 30)), 'celsius');
+        $freezing = $units->point(32, 'fahrenheit');
+
+        $this->assertSame(1, $slightlyAboveFreezing->compareTo($freezing));
+    }
+
+    #[DataProvider('canonicalOrderingProvider')]
+    public function testOrderingUsesCanonicalValues(
+        int $leftValue,
+        string $leftUnit,
+        int $rightValue,
+        string $rightUnit,
+        int $expected,
+    ): void {
+        $units = new Units(UnitRegistryBuilder::default()
+            ->define('reverse_kelvin = -2 * kelvin')
+            ->define('reverse_temperature = reverse_kelvin @ 5')
+            ->alias('reverse_alias', 'reverse_temperature')
+            ->define('zero_kelvin = 0 * kelvin')
+            ->define('frozen_scale = zero_kelvin @ 5')
+            ->build());
+        $left = self::pointWithRuntimeUnit($units, $leftValue, $leftUnit);
+        $right = self::pointWithRuntimeUnit($units, $rightValue, $rightUnit);
+
+        $this->assertSame($expected, $left->compareTo($right));
+        $this->assertSame(-$expected, $right->compareTo($left));
+        $this->assertSame($expected === 0, $left->equals($right));
+        $this->assertSame($expected < 0, $left->lessThan($right));
+        $this->assertSame($expected <= 0, $left->lessThanOrEqualTo($right));
+        $this->assertSame($expected > 0, $left->greaterThan($right));
+        $this->assertSame($expected >= 0, $left->greaterThanOrEqualTo($right));
+    }
+
+    /** @return iterable<string, array{int, string, int, string, int}> */
+    public static function canonicalOrderingProvider(): iterable
+    {
+        yield 'west against east' => [1, 'degree_west', 2, 'degree_east', -1];
+        yield 'two west coordinates' => [1, 'degree_west', 2, 'degree_west', 1];
+        yield 'negative affine scale' => [1, 'reverse_temperature', -11, 'kelvin', -1];
+        yield 'equal affine coordinates' => [1, 'reverse_temperature', -12, 'kelvin', 0];
+        yield 'negative affine alias' => [1, 'reverse_alias', -11, 'kelvin', -1];
+        yield 'positive affine origin' => [0, 'celsius', 273, 'kelvin', 1];
+        yield 'zero scale below positive' => [7, 'zero_kelvin', 1, 'kelvin', -1];
+        yield 'zero scale affine origin' => [7, 'frozen_scale', 0, 'kelvin', 0];
+        yield 'two zero scales' => [7, 'zero_kelvin', 9, 'frozen_scale', 0];
+        yield 'negative against zero' => [1, 'reverse_kelvin', 7, 'zero_kelvin', -1];
+    }
+
+    public function testOrderingIsTransitiveAndInvariantUnderConversion(): void
+    {
+        $units = new Units(UnitRegistryBuilder::default()
+            ->define('reverse_kelvin = -2 * kelvin')
+            ->define('shifted_reverse = reverse_kelvin @ 5')
+            ->define('zero_kelvin = 0 * kelvin')
+            ->build());
+        $values = [
+            self::pointWithRuntimeUnit($units, 1, 'shifted_reverse'), // -12 kelvin
+            self::pointWithRuntimeUnit($units, 0, 'shifted_reverse'), // -10 kelvin
+            self::pointWithRuntimeUnit($units, 1, 'reverse_kelvin'), // -2 kelvin
+            self::pointWithRuntimeUnit($units, 7, 'zero_kelvin'), // 0 kelvin
+            $units->point(1, 'kelvin'),
+            $units->point(0, 'celsius'), // 273.15 kelvin
+        ];
+
+        foreach ($values as $i => $left) {
+            foreach ($values as $j => $right) {
+                $expected = $i <=> $j;
+                $this->assertSame($expected, $left->compareTo($right));
+                $this->assertSame($expected, $left->to('celsius')->compareTo($right->to('fahrenheit')));
+                if ($i >= $j) {
+                    continue;
+                }
+                foreach ($values as $k => $last) {
+                    if ($j < $k) {
+                        $this->assertTrue($left->lessThan($last));
+                    }
+                }
+            }
+        }
+    }
+
     public function testChecksPointCompatibilityWithoutConverting(): void
     {
         $units = Units::default();

@@ -312,6 +312,37 @@ final class Units
     }
 
     /**
+     * Compare value-object magnitudes through their exact canonical coordinate maps.
+     *
+     * @logion [OSD 64:54] When a household hath no silver for burial, carry its dead beneath the magistrate's canopy,
+     *     and let no collector follow the procession. For the shade was entrusted to his office before it was
+     *     embroidered with his name, and the debt of that office shall not descend upon the mourners. Let the
+     *     magistrate walk in the rain.
+     *
+     * @internal
+     * @return -1|0|1
+     *
+     * @throws IncompatibleUnitException when the units have incompatible dimensions
+     * @throws IncompatibleExpressionContextException when an expression belongs to another or expired context
+     */
+    public function compareValues(
+        Rational $leftValue,
+        Expr|string $leftUnit,
+        Rational $rightValue,
+        Expr|string $rightUnit,
+    ): int {
+        $left = $this->unitConversionResolver->resolve($this->bindUnitInput($leftUnit));
+        $right = $this->unitConversionResolver->resolve($this->bindUnitInput($rightUnit));
+
+        if (!$left->dimension->equals($right->dimension)) {
+            // Comparisons previously converted the right operand into the left operand's unit.
+            throw IncompatibleUnitException::create($right->source, $left->source, $right->dimension, $left->dimension);
+        }
+
+        return $left->conversion->apply($leftValue)->compareTo($right->conversion->apply($rightValue));
+    }
+
+    /**
      * @throws InvalidArgumentException when the input value is not finite
      * @throws ParseException when either unit string is malformed
      * @throws ExpressionLimitExceededException when either unit string exceeds a parser resource limit

@@ -153,6 +153,70 @@ final class QuantityTest extends TestCase
         );
     }
 
+    #[DataProvider('canonicalOrderingProvider')]
+    public function testOrderingUsesCanonicalValues(
+        int|Rational $leftValue,
+        string $leftUnit,
+        int|Rational $rightValue,
+        string $rightUnit,
+        int $expected,
+    ): void {
+        $units = Units::default();
+        $left = self::quantityWithRuntimeUnit($units, $leftValue, $leftUnit);
+        $right = self::quantityWithRuntimeUnit($units, $rightValue, $rightUnit);
+
+        $this->assertSame($expected, $left->compareTo($right));
+        $this->assertSame(-$expected, $right->compareTo($left));
+        $this->assertSame($expected === 0, $left->equals($right));
+        $this->assertSame($expected < 0, $left->lessThan($right));
+        $this->assertSame($expected <= 0, $left->lessThanOrEqualTo($right));
+        $this->assertSame($expected > 0, $left->greaterThan($right));
+        $this->assertSame($expected >= 0, $left->greaterThanOrEqualTo($right));
+    }
+
+    /** @return iterable<string, array{int|Rational, string, int|Rational, string, int}> */
+    public static function canonicalOrderingProvider(): iterable
+    {
+        yield 'negative left scale' => [1, '-1 * meter', 2, 'meter', -1];
+        yield 'two negative scales' => [1, '-2 * meter', 2, '-2 * meter', 1];
+        yield 'equal opposite spellings' => [1, '-1 * meter', -1, 'meter', 0];
+        yield 'zero scale below positive' => [7, '0 * meter', 1, 'meter', -1];
+        yield 'zero scale above negative' => [7, '0 * meter', 1, '-2 * meter', 1];
+        yield 'two zero scales' => [7, '0 * meter', 9, '0 * meter', 0];
+        yield 'negative dimensionless scale' => [1, '-1 * percent', 0, '1', -1];
+        yield 'zero dimensionless scale' => [5, '0', 0, '1', 0];
+        yield 'exact negative fractions' => [new Rational(1, 3), '-1 * meter', new Rational(-1, 4), 'meter', -1];
+    }
+
+    public function testOrderingIsTransitiveAndInvariantUnderConversion(): void
+    {
+        $units = Units::default();
+        $values = [
+            $units->quantity(3, '-1 * meter'),
+            $units->quantity(-200, 'centimeter'),
+            $units->quantity(1, '-1 * meter'),
+            $units->quantity(7, '0 * meter'),
+            $units->quantity(100, 'centimeter'),
+            $units->quantity(-2, '-1 * meter'),
+        ];
+
+        foreach ($values as $i => $left) {
+            foreach ($values as $j => $right) {
+                $expected = $i <=> $j;
+                $this->assertSame($expected, $left->compareTo($right));
+                $this->assertSame($expected, $left->to('foot')->compareTo($right->to('-2 * meter')));
+                if ($i >= $j) {
+                    continue;
+                }
+                foreach ($values as $k => $last) {
+                    if ($j < $k) {
+                        $this->assertTrue($left->lessThan($last));
+                    }
+                }
+            }
+        }
+    }
+
     public function testComparesDimensionlessAndDefinitionallyEquivalentQuantities(): void
     {
         $units = Units::default();

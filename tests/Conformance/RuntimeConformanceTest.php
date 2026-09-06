@@ -83,6 +83,7 @@ final class RuntimeConformanceTest extends TestCase
             'pointSignificantDecimals',
         ],
         'equalities.json' => ['quantities', 'points'],
+        'comparisons.json' => ['quantities', 'points'],
         'errors.json' => ['cases'],
     ];
 
@@ -377,6 +378,42 @@ final class RuntimeConformanceTest extends TestCase
     /**
      * @param array<string, mixed> $case
      */
+    #[DataProvider('quantityComparisonProvider')]
+    public function testQuantityComparisonConformance(array $case): void
+    {
+        $context = self::context('comparisons.json', $case);
+        self::assertKeys($case, ['id', 'left', 'right', 'expected'], $context);
+        $expected = self::integer($case, 'expected', $context);
+        self::assertContains($expected, [-1, 0, 1], $context);
+
+        $left = self::quantity($case['left'] ?? null, $context . '.left');
+        $right = self::quantity($case['right'] ?? null, $context . '.right');
+
+        self::assertSame($expected, $left->compareTo($right), $context);
+        self::assertSame(-$expected, $right->compareTo($left), $context);
+    }
+
+    /**
+     * @param array<string, mixed> $case
+     */
+    #[DataProvider('pointComparisonProvider')]
+    public function testPointComparisonConformance(array $case): void
+    {
+        $context = self::context('comparisons.json', $case);
+        self::assertKeys($case, ['id', 'left', 'right', 'expected'], $context);
+        $expected = self::integer($case, 'expected', $context);
+        self::assertContains($expected, [-1, 0, 1], $context);
+
+        $left = self::point($case['left'] ?? null, $context . '.left');
+        $right = self::point($case['right'] ?? null, $context . '.right');
+
+        self::assertSame($expected, $left->compareTo($right), $context);
+        self::assertSame(-$expected, $right->compareTo($left), $context);
+    }
+
+    /**
+     * @param array<string, mixed> $case
+     */
     #[DataProvider('deltaUnitProvider')]
     public function testDeltaUnitConformance(array $case): void
     {
@@ -607,6 +644,18 @@ final class RuntimeConformanceTest extends TestCase
     public static function pointEqualityProvider(): iterable
     {
         yield from self::provider('equalities.json', 'points');
+    }
+
+    /** @return iterable<string, array{array<string, mixed>}> */
+    public static function quantityComparisonProvider(): iterable
+    {
+        yield from self::provider('comparisons.json', 'quantities');
+    }
+
+    /** @return iterable<string, array{array<string, mixed>}> */
+    public static function pointComparisonProvider(): iterable
+    {
+        yield from self::provider('comparisons.json', 'points');
     }
 
     /** @return iterable<string, array{array<string, mixed>}> */

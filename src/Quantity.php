@@ -279,7 +279,7 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
     }
 
     /**
-     * Compare with a dimensionally compatible quantity after converting it to this quantity's unit.
+     * Compare exact values in a positive canonical scale, independently of either unit's orientation.
      *
      * @return -1|0|1 Negative when this quantity is smaller, positive when it is greater.
      *
@@ -290,7 +290,7 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
     {
         $this->assertSameContext($other);
 
-        return $this->value->compareTo($other->valueIn($this->resolvedUnit));
+        return $this->units->compareValues($this->value, $this->resolvedUnit, $other->value, $other->resolvedUnit);
     }
 
     /**
@@ -335,11 +335,7 @@ final class Quantity extends InternalQuantity implements \JsonSerializable
             return false;
         }
 
-        $canonicalUnit = NormalizedExpr::withoutConstant($this->normalizedUnit());
-
-        return $this->units->convert($this->value, $this->resolvedUnit, $canonicalUnit)->equals(
-            $this->units->convert($other->value, $other->resolvedUnit, $canonicalUnit),
-        );
+        return $this->compareTo($other) === 0;
     }
 
     public function toExpr(): Expr

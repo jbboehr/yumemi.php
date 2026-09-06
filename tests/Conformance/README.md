@@ -34,6 +34,10 @@ Dimension results use the named seven-axis object returned by `Dimension::jsonSe
 Equality fixtures store a left and right quantity or point plus a boolean result. They exercise semantic equality after
 exact compatible-unit conversion; incompatible dimensions produce `false` rather than an error.
 
+Comparison fixtures use the same left and right inputs, with an integer result of `-1`, `0`, or `1`. They record order
+in a positive canonical scale, including reversed coordinate scales and accepted zero-scale quantities. Their addition
+does not change the existing fixture families or their representations.
+
 ## Errors
 
 Error fixtures use semantic categories such as `unknown-unit`, `incompatible-unit`, `expression-limit`, and

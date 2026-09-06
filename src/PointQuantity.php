@@ -36,7 +36,6 @@
 
 namespace jbboehr\Yumemi;
 
-use jbboehr\Yumemi\Analyzer\NormalizedExpr;
 use jbboehr\Yumemi\Exception\DivisionByZeroError;
 use jbboehr\Yumemi\Exception\IncompatibleQuantityContextException;
 use jbboehr\Yumemi\Exception\IncompatibleUnitException;
@@ -291,7 +290,7 @@ final class PointQuantity implements \JsonSerializable
     {
         $this->assertSameContext($other->units);
 
-        return $this->value->compareTo($other->valueIn($this->unit));
+        return $this->units->compareValues($this->value, $this->unit, $other->value, $other->unit);
     }
 
     /**
@@ -421,13 +420,7 @@ final class PointQuantity implements \JsonSerializable
             return false;
         }
 
-        $canonicalUnit = NormalizedExpr::withoutConstant(
-            $this->units->normalize($this->units->deltaUnit($this->unit)),
-        );
-
-        return $this->units->convert($this->value, $this->unit, $canonicalUnit)->equals(
-            $this->units->convert($other->value, $other->unit, $canonicalUnit),
-        );
+        return $this->compareTo($other) === 0;
     }
 
     /**
