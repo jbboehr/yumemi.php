@@ -52,6 +52,37 @@ final class UnitTypeNodeResolverIntegrationTest extends TestCase
         $this->assertStringContainsString('[OK] No errors', $output, $output);
     }
 
+    public function testQuantityPhpDocRespectsImportsAndNamespaces(): void
+    {
+        $output = $this->analyse('quantity-phpdoc-names.php');
+
+        $this->assertStringContainsString('[OK] No errors', $output, $output);
+    }
+
+    public function testForeignQuantityPhpDocRetainsGenericTypes(): void
+    {
+        $output = $this->analyse('quantity-phpdoc-foreign.php');
+
+        $this->assertStringContainsString('[OK] No errors', $output, $output);
+    }
+
+    public function testRenamedQuantityImportsRetainUnitDiagnostics(): void
+    {
+        $output = $this->analyse('quantity-phpdoc-alias-invalid.php', errorFormat: 'json');
+
+        $result = json_decode($output, true, flags: JSON_THROW_ON_ERROR);
+        $this->assertIsArray($result, $output);
+        $this->assertSame(['errors' => 0, 'file_errors' => 2], $result['totals'] ?? null, $output);
+        $files = $result['files'] ?? null;
+        $this->assertIsArray($files, $output);
+        $this->assertCount(1, $files, $output);
+        $file = reset($files);
+        $this->assertIsArray($file, $output);
+        $messages = $file['messages'] ?? null;
+        $this->assertIsArray($messages, $output);
+        $this->assertSame(['argument.type', 'argument.type'], array_column($messages, 'identifier'), $output);
+    }
+
     public function testMixedNativeMagnitudesKeepBothScalarBranches(): void
     {
         $output = $this->analyse('unit-mixed-magnitude.php');

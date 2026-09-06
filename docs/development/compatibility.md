@@ -187,6 +187,10 @@ The supported PHPDoc types are:
 - `Quantity<'expression'>`; and
 - `PointQuantity<'coordinate-unit'>`.
 
+Quantity object forms identify the Yumemi classes through the PHPDoc namespace and imports, including renamed imports.
+Unrelated classes with the same short names remain ordinary PHPStan types. The three scalar pseudo-types use unqualified
+names and do not require imports. These rules also apply to optional `@yumemi-*` annotations.
+
 Ordinary PHPStan constant and integer-range types may intersect with `unit_int`; there is no separate constant-unit type
 syntax. `unit_numeric_string` remains a runtime string and preserves its unit only through documented explicit numeric
 casts. The documented assignment, operator, comparison, helper-return, quantity, and point inference rules are part of

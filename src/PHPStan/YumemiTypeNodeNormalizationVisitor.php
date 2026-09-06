@@ -36,6 +36,7 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
+use PHPStan\Analyser\NameScope;
 use PHPStan\PhpDocParser\Ast\AbstractNodeVisitor;
 use PHPStan\PhpDocParser\Ast\ConstExpr\ConstExprIntegerNode;
 use PHPStan\PhpDocParser\Ast\Node;
@@ -55,6 +56,13 @@ final class YumemiTypeNodeNormalizationVisitor extends AbstractNodeVisitor
 {
     public function __construct(
         private readonly bool $eraseUnits,
+        /**
+         * @logion [AWC 99:5] At the last audience of the island embassy, snow fell from the ambassadors’
+         *     sleeves, though the capital stood in summer. They spoke their farewells without accusation, for
+         *     the white mountain had consumed their homeland while they were upon the road. The court rose;
+         *     there was no sovereign left to whom its answer could be carried.
+         */
+        private readonly NameScope $nameScope,
     ) {
     }
 
@@ -90,15 +98,11 @@ final class YumemiTypeNodeNormalizationVisitor extends AbstractNodeVisitor
 
     private function eraseUnit(GenericTypeNode $node): ?IdentifierTypeNode
     {
-        $name = strtolower(ltrim($node->type->name, '\\'));
-        $parts = explode('\\', $name);
-        $shortName = end($parts);
-
-        return match ($shortName) {
-            'unit_int' => new IdentifierTypeNode('int'),
-            'unit_float' => new IdentifierTypeNode('float'),
-            'unit_numeric_string' => new IdentifierTypeNode('numeric-string'),
-            'quantity', 'pointquantity' => new IdentifierTypeNode($node->type->name),
+        return match (UnitTypeNodeResolverExtension::resolveKind($node->type->name, $this->nameScope)) {
+            'int' => new IdentifierTypeNode('int'),
+            'float' => new IdentifierTypeNode('float'),
+            'numeric-string' => new IdentifierTypeNode('numeric-string'),
+            'quantity', 'point' => new IdentifierTypeNode($node->type->name),
             default => null,
         };
     }

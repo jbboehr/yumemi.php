@@ -1,0 +1,8 @@
+<?php
+
+namespace YumemiStubFixture;
+
+/** @yumemi-param MeterValue $distance */
+function acceptsMeterValue(float $distance): void
+{
+}

@@ -58,6 +58,8 @@ These changes are planned for 0.2.0 because they change behavior documented in 0
 
 ### Fixed
 
+- PHPStan quantity PHPDoc now respects namespaces and import aliases, including optional `@yumemi-*` tags, without
+  capturing unrelated generic classes with the same short names.
 - PHPStan now reports quantity construction and conversion errors consistently for positional and reordered named
   arguments on `Units`, `Quantity`, and `PointQuantity` methods.
 - Native `/` inference now preserves integer quotients and retains both numeric kinds for uncertain integer division.

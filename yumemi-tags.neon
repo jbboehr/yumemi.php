@@ -6,6 +6,8 @@ services:
         class: jbboehr\Yumemi\PHPStan\YumemiTypeNodeNormalizer
     -
         class: jbboehr\Yumemi\PHPStan\YumemiDocTagPromoter
+        arguments:
+            typeAliases: %typeAliases%
     -
         class: jbboehr\Yumemi\PHPStan\YumemiTagPromotionRule
         tags:

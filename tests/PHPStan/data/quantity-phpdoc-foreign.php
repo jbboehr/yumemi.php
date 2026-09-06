@@ -34,26 +34,71 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\PHPStan;
+namespace Inventory;
 
-use PHPStan\Analyser\NameScope;
-use PHPStan\PhpDocParser\Ast\NodeTraverser;
-use PHPStan\PhpDocParser\Ast\NodeVisitor\CloningVisitor;
-use PHPStan\PhpDocParser\Ast\Type\TypeNode;
+use function PHPStan\Testing\assertType;
+
+/** @template T */
+class Quantity
+{
+}
+
+/** @template T */
+class PointQuantity
+{
+}
+
+/** @template T */
+class unit_int
+{
+}
+
+/** @template T */
+class unit_float
+{
+}
+
+/** @template T */
+class unit_numeric_string
+{
+}
 
 /**
- * @internal
+ * @param Quantity<string> $quantity
+ * @param PointQuantity<int> $point
+ * @param \Inventory\unit_int<string> $integer
+ * @param \Inventory\unit_float<string> $float
+ * @param \Inventory\unit_numeric_string<int> $numericString
  */
-final class YumemiTypeNodeNormalizer
-{
-    public function describe(TypeNode $type, bool $eraseUnits, NameScope $nameScope): string
-    {
-        $traverser = new NodeTraverser([
-            new CloningVisitor(),
-            new YumemiTypeNodeNormalizationVisitor($eraseUnits, $nameScope),
-        ]);
-        $nodes = $traverser->traverse([$type]);
+function inspectLocalInventoryTypes(
+    Quantity $quantity,
+    PointQuantity $point,
+    unit_int $integer,
+    unit_float $float,
+    unit_numeric_string $numericString,
+): void {
+    assertType('Inventory\\Quantity<string>', $quantity);
+    assertType('Inventory\\PointQuantity<int>', $point);
+    assertType('Inventory\\unit_int<string>', $integer);
+    assertType('Inventory\\unit_float<string>', $float);
+    assertType('Inventory\\unit_numeric_string<int>', $numericString);
+}
 
-        return (string) $nodes[0];
-    }
+namespace Shipping;
+
+use Inventory\PointQuantity;
+use Inventory\Quantity as Stock;
+
+use function PHPStan\Testing\assertType;
+
+/**
+ * @param Stock<string> $imported
+ * @param PointQuantity<int> $point
+ * @param \Inventory\Quantity<string> $fullyQualified
+ */
+function inspectImportedInventoryTypes(Stock $imported, PointQuantity $point, \Inventory\Quantity $fullyQualified): void
+{
+    assertType('Inventory\\Quantity<string>', $imported);
+    assertType('Inventory\\PointQuantity<int>', $point);
+    assertType('Inventory\\Quantity<string>', $fullyQualified);
 }

@@ -46,13 +46,16 @@ use PHPStan\Parser\Parser;
  */
 final class YumemiTagPromotingParser implements Parser
 {
-    private readonly NodeTraverser $traverser;
-
     public function __construct(
         private readonly Parser $wrappedParser,
-        YumemiDocTagPromoter $promoter,
+        /**
+         * @logion [OSD 15:75] When the cherry bough flowers above the place of sentence, let the condemned sit
+         *     beneath it until the petals fall. No judge shall shake the branch, and no priest shall call the
+         *     waiting an acquittal. The season hath been granted him; account its mornings among the gifts of
+         *     the throne.
+         */
+        private readonly YumemiDocTagPromoter $promoter,
     ) {
-        $this->traverser = new NodeTraverser($promoter);
     }
 
     /** @return array<Node\Stmt> */
@@ -76,7 +79,7 @@ final class YumemiTagPromotingParser implements Parser
     {
         try {
             /** @var array<Node\Stmt> */
-            return $this->traverser->traverse($nodes);
+            return (new NodeTraverser(clone $this->promoter))->traverse($nodes);
         } catch (\Throwable $exception) {
             ShouldNotHappenException::rethrow($exception);
         }

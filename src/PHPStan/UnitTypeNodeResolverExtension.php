@@ -36,6 +36,8 @@
 
 namespace jbboehr\Yumemi\PHPStan;
 
+use jbboehr\Yumemi\PointQuantity;
+use jbboehr\Yumemi\Quantity;
 use PHPStan\Analyser\NameScope;
 use PHPStan\PhpDoc\TypeNodeResolverExtension;
 use PHPStan\PhpDocParser\Ast\ConstExpr\ConstExprStringNode;
@@ -63,8 +65,6 @@ final class UnitTypeNodeResolverExtension implements TypeNodeResolverExtension
         'unit_int' => 'int',
         'unit_float' => 'float',
         'unit_numeric_string' => 'numeric-string',
-        'quantity' => 'quantity',
-        'pointquantity' => 'point',
     ];
 
     public function __construct(
@@ -80,19 +80,9 @@ final class UnitTypeNodeResolverExtension implements TypeNodeResolverExtension
             }
 
             $name = strtolower($typeNode->type->name);
-            if (!isset(self::NAMES[$name])) {
-                // Also accept FQCN-style names if users import aliases later.
-                $short = $name;
-                if (str_contains($name, '\\')) {
-                    $parts = explode('\\', $name);
-                    $short = end($parts);
-                }
-
-                if (!isset(self::NAMES[$short])) {
-                    return null;
-                }
-
-                $name = $short;
+            $kind = self::resolveKind($typeNode->type->name, $nameScope);
+            if ($kind === null) {
+                return null;
             }
 
             if (count($typeNode->genericTypes) !== 1) {
@@ -112,7 +102,7 @@ final class UnitTypeNodeResolverExtension implements TypeNodeResolverExtension
                 ));
             }
 
-            if (self::NAMES[$name] === 'point') {
+            if ($kind === 'point') {
                 $parsed = $this->parser->parsePoint($unitString);
                 if (!$parsed->isOk()) {
                     return new ErrorType($parsed->errorMessage() ?? 'Invalid point unit.');
@@ -128,7 +118,7 @@ final class UnitTypeNodeResolverExtension implements TypeNodeResolverExtension
 
             $unit = $parsed->expression();
 
-            return match (self::NAMES[$name]) {
+            return match ($kind) {
                 'int' => new UnitIntegerType($unit),
                 'float' => new UnitFloatType($unit),
                 'numeric-string' => new UnitNumericStringType($unit),
@@ -137,6 +127,23 @@ final class UnitTypeNodeResolverExtension implements TypeNodeResolverExtension
         } catch (\Throwable $exception) {
             ShouldNotHappenException::rethrow($exception);
         }
+    }
+
+    /**
+     * @logion [OSD 87:44] At the feast of reconciliation, let the mourner wear his grey sash among the wedding
+     *     colours, and command no song from him. Peace hath restored his place at the table; it hath not
+     *     returned his daughter. Serve him before the musicians begin, and let the bride herself receive his
+     *     blessing without requiring him to smile.
+     *
+     * @return 'int'|'float'|'numeric-string'|'quantity'|'point'|null
+     */
+    public static function resolveKind(string $name, NameScope $nameScope): ?string
+    {
+        return self::NAMES[strtolower($name)] ?? match (strtolower($nameScope->resolveStringName($name))) {
+            strtolower(Quantity::class) => 'quantity',
+            strtolower(PointQuantity::class) => 'point',
+            default => null,
+        };
     }
 
     private function extractStringLiteral(TypeNode $node): ?string

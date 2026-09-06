@@ -34,26 +34,78 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\PHPStan;
+namespace ScopedQuantityTags {
+    use jbboehr\Yumemi\{Quantity as Distance, PointQuantity as Coordinate, Units};
 
-use PHPStan\Analyser\NameScope;
-use PHPStan\PhpDocParser\Ast\NodeTraverser;
-use PHPStan\PhpDocParser\Ast\NodeVisitor\CloningVisitor;
-use PHPStan\PhpDocParser\Ast\Type\TypeNode;
+    use function PHPStan\Testing\assertType;
 
-/**
- * @internal
- */
-final class YumemiTypeNodeNormalizer
-{
-    public function describe(TypeNode $type, bool $eraseUnits, NameScope $nameScope): string
+    /**
+     * @return Distance
+     * @yumemi-return Distance<'meter'>
+     */
+    function measuredDistance(Units $units): Distance
     {
-        $traverser = new NodeTraverser([
-            new CloningVisitor(),
-            new YumemiTypeNodeNormalizationVisitor($eraseUnits, $nameScope),
-        ]);
-        $nodes = $traverser->traverse([$type]);
+        return $units->quantity(1, 'meter');
+    }
 
-        return (string) $nodes[0];
+    /**
+     * @return Coordinate
+     * @yumemi-return Coordinate<'celsius'>
+     */
+    function measuredTemperature(Units $units): Coordinate
+    {
+        return $units->point(0, 'celsius');
+    }
+
+    /** @yumemi-param Distance<'meter'> $distance */
+    function inspectDistance(Distance $distance): void
+    {
+        assertType("Quantity<'meter'>", $distance);
+    }
+
+    assertType("Quantity<'meter'>", measuredDistance(Units::default()));
+    assertType("PointQuantity<'celsius'>", measuredTemperature(Units::default()));
+}
+
+namespace TaggedInventory {
+    /** @template T */
+    class Quantity
+    {
+    }
+}
+
+namespace ForeignQuantityTags {
+    use TaggedInventory\Quantity;
+
+    use function PHPStan\Testing\assertType;
+
+    /**
+     * @param Quantity<unit_int<'meter'>> $stock
+     * @return Quantity<int>
+     * @yumemi-return Quantity<unit_int<'meter'>>
+     */
+    function keepStock(Quantity $stock): Quantity
+    {
+        assertType("TaggedInventory\\Quantity<unit_int<'meter'>>", $stock);
+
+        return $stock;
+    }
+
+    /** @param Quantity<unit_int<'meter'>> $stock */
+    function inspectStock(Quantity $stock): void
+    {
+        assertType("TaggedInventory\\Quantity<unit_int<'meter'>>", keepStock($stock));
+    }
+}
+
+namespace ResetQuantityTags {
+    use jbboehr\Yumemi\Quantity;
+
+    use function PHPStan\Testing\assertType;
+
+    /** @yumemi-param Quantity<'second'> $duration */
+    function inspectDuration(Quantity $duration): void
+    {
+        assertType("Quantity<'second'>", $duration);
     }
 }

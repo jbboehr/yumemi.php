@@ -36,7 +36,11 @@
 
 namespace jbboehr\Yumemi\Tests\PHPStan;
 
+use jbboehr\Yumemi\PHPStan\YumemiDocTagPromoter;
+use PhpParser\Node\Stmt\Function_;
+use PHPStan\Parser\Parser;
 use PHPStan\Testing\TypeInferenceTestCase;
+use PHPUnit\Framework\Attributes\TestWith;
 use Symfony\Component\Process\Process;
 
 // The @yumemi-return functions must exist in the process for native function reflection to resolve
@@ -61,6 +65,50 @@ final class YumemiReturnTagExtensionTest extends TypeInferenceTestCase
     public function testFileAsserts(): void
     {
         $this->assertFixtureUnderCoverage(__DIR__ . '/data/yumemi-tag-return.php');
+    }
+
+    public function testQuantityTagsRespectImportsAndForeignGenericContainers(): void
+    {
+        $output = $this->analyse('yumemi-tag-scoped-quantity.php');
+
+        $this->assertStringContainsString('[OK] No errors', $output, $output);
+    }
+
+    public function testQuantityTagNamespaceBoundariesPreserveValidationLayers(): void
+    {
+        $output = $this->analyse('yumemi-tag-namespace-boundaries.php');
+
+        $this->assertSame(2, substr_count($output, 'yumemi.docTagType'), $output);
+        $this->assertStringContainsString('generics.lessTypes', $output, $output);
+        $this->assertStringContainsString('[ERROR] Found 3 errors', $output, $output);
+    }
+
+    public function testTagImportsDoNotLeakBetweenParsedFiles(): void
+    {
+        $parser = self::getContainer()->getService('yumemiAnalysisParser');
+        $this->assertInstanceOf(Parser::class, $parser);
+        $first = $parser->parseString(<<<'PHP'
+<?php
+use jbboehr\Yumemi\Quantity as Distance;
+/** @yumemi-param Distance<'meter'> $distance */
+function firstFile(Distance $distance): void {}
+PHP);
+        $firstFunction = $first[1];
+        $this->assertInstanceOf(Function_::class, $firstFunction);
+        $this->assertNotNull($firstFunction->getDocComment());
+        $this->assertStringContainsString('@phpstan-param', $firstFunction->getDocComment()->getText());
+        $this->assertFalse($firstFunction->hasAttribute(YumemiDocTagPromoter::DIAGNOSTICS_ATTRIBUTE));
+
+        $second = $parser->parseString(<<<'PHP'
+<?php
+/** @yumemi-param Distance<'meter'> $distance */
+function secondFile(Distance $distance): void {}
+PHP);
+        $secondFunction = $second[0];
+        $this->assertInstanceOf(Function_::class, $secondFunction);
+        $this->assertNotNull($secondFunction->getDocComment());
+        $this->assertStringNotContainsString('@phpstan-param', $secondFunction->getDocComment()->getText());
+        $this->assertTrue($secondFunction->hasAttribute(YumemiDocTagPromoter::DIAGNOSTICS_ATTRIBUTE));
     }
 
     /**
@@ -123,6 +171,75 @@ final class YumemiReturnTagExtensionTest extends TypeInferenceTestCase
         $this->assertStringContainsString("unit_int<'meter'>", $output, $output);
     }
 
+    /** @param array<string, string> $aliases */
+    #[TestWith([['MeterValue' => "unit_float<'meter'>"]])]
+    #[TestWith([['MeterValue' => 'MeterScalar', 'MeterScalar' => "unit_float<'meter'>"]])]
+    public function testConfiguredTypeAliasInStubRetainsUnitConstraint(array $aliases): void
+    {
+        $output = $this->analyse(
+            'yumemi-tag-stub-type-alias.php',
+            stub: 'yumemi-tag-stub-type-alias.stub',
+            typeAliases: $aliases,
+        );
+
+        $this->assertStringContainsString('[ERROR] Found 1 error', $output, $output);
+        $this->assertStringContainsString('argument.type', $output, $output);
+        $this->assertStringContainsString("unit_float<'meter'>", $output, $output);
+        $this->assertStringContainsString("unit_float<'second'>", $output, $output);
+    }
+
+    public function testConfiguredAliasesPreserveNestedTypesAndGlobalScope(): void
+    {
+        $output = $this->analyse('yumemi-tag-configured-aliases.php', typeAliases: [
+            'MeterValue' => "unit_float<'meter'>",
+            'MeterStock' => 'Quantity<MeterValue>',
+            'MeasuredDistance' => "\\jbboehr\\Yumemi\\Quantity<'meter'>",
+            'MeterPacket' => 'array{distance: MeterValue}',
+        ]);
+
+        $this->assertSame(2, substr_count($output, 'yumemi.docTagType'), $output);
+        $this->assertStringContainsString('[ERROR] Found 2 errors', $output, $output);
+        $this->assertStringNotContainsString('phpstan.type', $output, $output);
+    }
+
+    public function testRepeatedNestedAliasInStubRetainsEveryUnitConstraint(): void
+    {
+        $output = $this->analyse(
+            'yumemi-tag-stub-nested-type-alias.php',
+            stub: 'yumemi-tag-stub-nested-type-alias.stub',
+            typeAliases: [
+                'MeterValue' => "unit_float<'meter'>",
+                'MeterPair' => 'array{first: MeterValue, second: MeterValue}',
+            ],
+        );
+
+        $this->assertStringContainsString('[ERROR] Found 1 error', $output, $output);
+        $this->assertStringContainsString('argument.type', $output, $output);
+        $this->assertStringContainsString("unit_float<'meter'>", $output, $output);
+        $this->assertStringContainsString("unit_float<'second'>", $output, $output);
+    }
+
+    public function testConfiguredAliasValidatesEveryNestedUnitLeaf(): void
+    {
+        $output = $this->analyse('yumemi-tag-configured-alias-invalid-nested.php', typeAliases: [
+            'MixedUnitPacket' => "array{valid: unit_float<'meter'>, invalid: unit_float<'not_a_real_unit_xyz'>}",
+        ]);
+
+        $this->assertSame(1, substr_count($output, 'yumemi.docTagType'), $output);
+        $this->assertStringContainsString('[ERROR] Found 1 error', $output, $output);
+        $this->assertStringContainsString('not_a_real_unit_xyz', $output, $output);
+    }
+
+    public function testConfiguredAliasDoesNotChangeFallbackMatching(): void
+    {
+        $output = $this->analyse('yumemi-tag-configured-alias-fallback.php', typeAliases: [
+            'MeterValue' => "unit_float<'meter'>",
+        ]);
+
+        $this->assertSame(1, substr_count($output, 'yumemi.docTagTransform'), $output);
+        $this->assertStringContainsString('[ERROR] Found 1 error', $output, $output);
+    }
+
     public function testStubTagsRemainIgnoredWithoutTheOptInConfig(): void
     {
         $output = $this->analyse('yumemi-tag-stub.php', false, 'yumemi-tag-stub.stub');
@@ -130,8 +247,13 @@ final class YumemiReturnTagExtensionTest extends TypeInferenceTestCase
         $this->assertStringContainsString('[OK] No errors', $output, $output);
     }
 
-    private function analyse(string $fixture, bool $withTagPromotion = true, ?string $stub = null): string
-    {
+    /** @param array<string, string> $typeAliases */
+    private function analyse(
+        string $fixture,
+        bool $withTagPromotion = true,
+        ?string $stub = null,
+        array $typeAliases = [],
+    ): string {
         $fixturePath = __DIR__ . '/data/' . $fixture;
         $this->assertFileExists($fixturePath);
 
@@ -160,13 +282,14 @@ final class YumemiReturnTagExtensionTest extends TypeInferenceTestCase
                 $stubFiles = "    bootstrapFiles:\n        - {$bootstrapPath}\n    stubFiles:\n        - {$stubPath}\n";
             }
 
+            $aliasConfig = $typeAliases === [] ? '' : "    typeAliases: " . json_encode($typeAliases, JSON_THROW_ON_ERROR) . "\n";
             $neon = <<<NEON
 {$includes}parameters:
     level: max
     tmpDir: {$cache}
     paths:
         - {$fixturePath}
-{$stubFiles}    treatPhpDocTypesAsCertain: true
+{$stubFiles}{$aliasConfig}    treatPhpDocTypesAsCertain: true
     reportUnmatchedIgnoredErrors: false
 NEON;
             $this->assertNotFalse(file_put_contents($config, $neon));
@@ -180,12 +303,14 @@ NEON;
                 'analyse',
                 '--no-ansi',
                 '--no-progress',
+                '--debug',
                 '--memory-limit=512M',
                 '--error-format=table',
                 '-c',
                 $config,
             ], env: ['GITHUB_ACTIONS' => false], timeout: null);
             $process->run();
+            $this->assertContains($process->getExitCode(), [0, 1], $process->getOutput() . $process->getErrorOutput());
 
             return $process->getOutput() . $process->getErrorOutput();
         } finally {

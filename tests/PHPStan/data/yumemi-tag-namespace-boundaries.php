@@ -34,26 +34,81 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\PHPStan;
-
-use PHPStan\Analyser\NameScope;
-use PHPStan\PhpDocParser\Ast\NodeTraverser;
-use PHPStan\PhpDocParser\Ast\NodeVisitor\CloningVisitor;
-use PHPStan\PhpDocParser\Ast\Type\TypeNode;
-
-/**
- * @internal
- */
-final class YumemiTypeNodeNormalizer
-{
-    public function describe(TypeNode $type, bool $eraseUnits, NameScope $nameScope): string
+namespace YumemiTagBoundaryModel {
+    /** @template T */
+    class Quantity
     {
-        $traverser = new NodeTraverser([
-            new CloningVisitor(),
-            new YumemiTypeNodeNormalizationVisitor($eraseUnits, $nameScope),
-        ]);
-        $nodes = $traverser->traverse([$type]);
+    }
 
-        return (string) $nodes[0];
+    /**
+     * @template T
+     * @template U
+     */
+    class Pair
+    {
+    }
+}
+
+namespace YumemiTagNamespaceBoundaries {
+    use jbboehr\Yumemi\{Quantity as Distance, Units, function unit};
+    use jbboehr\Yumemi as Measures;
+    use YumemiTagBoundaryModel\{Pair, Quantity};
+
+    use function PHPStan\Testing\assertType;
+
+    /**
+     * @param Distance $distance
+     * @return Measures\Quantity
+     * @yumemi-param Distance<'meter'> $distance
+     * @yumemi-return Measures\Quantity<'second'>
+     */
+    function relay(Distance $distance, Units $units): Measures\Quantity
+    {
+        assertType("Quantity<'meter'>", $distance);
+
+        return $units->quantity(unit(1, 'second'), 'second');
+    }
+
+    $units = Units::default();
+    assertType("Quantity<'second'>", relay($units->quantity(1, 'meter'), $units));
+
+    /**
+     * @var \jbboehr\Yumemi\PointQuantity $point
+     * @yumemi-var \jbboehr\Yumemi\PointQuantity<'celsius'> $point
+     */
+    $point = $units->point(0, 'celsius');
+    assertType("PointQuantity<'celsius'>", $point);
+
+    /**
+     * A foreign class with the same short name is not itself a Yumemi unit type.
+     *
+     * @return Quantity<string>
+     * @yumemi-return Quantity<'meter'>
+     */
+    function invalidForeignQuantity(): Quantity
+    {
+        throw new \RuntimeException();
+    }
+
+    /**
+     * Unit validation still descends through an unrelated generic container.
+     *
+     * @return Pair<int, string>
+     * @yumemi-return Pair<unit_int<'not_a_real_unit_xyz'>, string>
+     */
+    function invalidNestedUnit(): Pair
+    {
+        throw new \RuntimeException();
+    }
+
+    /**
+     * PHPStan remains responsible for validating the surrounding generic type.
+     *
+     * @return Pair<int>
+     * @yumemi-return Pair<unit_int<'meter'>>
+     */
+    function invalidOuterGeneric(): Pair
+    {
+        throw new \RuntimeException();
     }
 }

@@ -34,26 +34,40 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\PHPStan;
+namespace jbboehr\Yumemi\Tests\PHPStan;
 
+use jbboehr\Yumemi\PHPStan\UnitTypeNodeResolverExtension;
 use PHPStan\Analyser\NameScope;
-use PHPStan\PhpDocParser\Ast\NodeTraverser;
-use PHPStan\PhpDocParser\Ast\NodeVisitor\CloningVisitor;
-use PHPStan\PhpDocParser\Ast\Type\TypeNode;
+use PHPStan\PhpDocParser\Ast\Type\GenericTypeNode;
+use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
+use PHPStan\Testing\TypeInferenceTestCase;
 
-/**
- * @internal
- */
-final class YumemiTypeNodeNormalizer
+final class UnitTypeNodeResolverTest extends TypeInferenceTestCase
 {
-    public function describe(TypeNode $type, bool $eraseUnits, NameScope $nameScope): string
-    {
-        $traverser = new NodeTraverser([
-            new CloningVisitor(),
-            new YumemiTypeNodeNormalizationVisitor($eraseUnits, $nameScope),
-        ]);
-        $nodes = $traverser->traverse([$type]);
+    use AssertsFixtureUnderCoverage;
 
-        return (string) $nodes[0];
+    public static function getAdditionalConfigFiles(): array
+    {
+        return [__DIR__ . '/../../extension.neon'];
+    }
+
+    public function testQuantityNamesFollowPhpDocScope(): void
+    {
+        $this->assertFixtureUnderCoverage(__DIR__ . '/data/quantity-phpdoc-names.php');
+    }
+
+    public function testUnrelatedGenericClassesRetainTheirTypes(): void
+    {
+        $resolver = self::getContainer()->getByType(UnitTypeNodeResolverExtension::class);
+        $scope = new NameScope('Inventory', ['stock' => 'Inventory\\Quantity']);
+
+        foreach ([
+            'Quantity', 'PointQuantity', 'Stock', '\\Inventory\\Quantity',
+            '\\Inventory\\unit_int', '\\Inventory\\unit_float', '\\Inventory\\unit_numeric_string',
+        ] as $name) {
+            $node = new GenericTypeNode(new IdentifierTypeNode($name), [new IdentifierTypeNode('string')]);
+
+            $this->assertNull($resolver->resolve($node, $scope), $name);
+        }
     }
 }

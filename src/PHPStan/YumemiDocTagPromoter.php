@@ -41,19 +41,21 @@ use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use PhpParser\Node\FunctionLike;
 use PhpParser\Node\Expr\Variable;
+use PhpParser\Node\Stmt\GroupUse;
+use PhpParser\Node\Stmt\Namespace_;
+use PhpParser\Node\Stmt\Use_;
 use PhpParser\NodeVisitorAbstract;
+use PHPStan\Analyser\NameScope;
 use PHPStan\Node\VirtualNode;
 use PHPStan\PhpDoc\PhpDocStringResolver;
-use PHPStan\PhpDoc\TypeStringResolver;
 use PHPStan\PhpDocParser\Ast\PhpDoc\GenericTagValueNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\ParamTagValueNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocTagNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\ReturnTagValueNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\VarTagValueNode;
-use PHPStan\Type\ErrorType;
-use PHPStan\Type\Type;
-use PHPStan\Type\TypeTraverser;
+use PHPStan\PhpDocParser\Ast\NodeTraverser;
+use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 
 /**
  * Promotes valid extension-optional @yumemi-* tags into PHPStan's native PHPDoc surface.
@@ -79,17 +81,64 @@ final class YumemiDocTagPromoter extends NodeVisitorAbstract
         self::VAR => '@phpstan-var',
     ];
 
+    /**
+     * @logion [RAS 75:97] A comet was wound thrice about the wrist of the youngest angel, and wherever he went
+     *     its fire bowed after him. I asked what victory had earned him this adornment. He opened his scorched
+     *     hand, and there lay the petition of a city that had not yet been born.
+     */
+    private NameScope $nameScope;
+
+    /**
+     * @logion [AWC 32:98] At her investiture, the empress asked why the pearl divers were absent from the hall.
+     *     The treasurer named the dead; she dismissed him before he could name the price. Through the ceremony
+     *     she wore the necklace in her hands, and received every oath with its weight upon her palms.
+     *
+     * @var array<string, TypeNode>
+     */
+    private readonly array $typeAliases;
+
+    /** @param array<string, string> $typeAliases */
     public function __construct(
         private readonly PhpDocStringResolver $phpDocStringResolver,
-        private readonly TypeStringResolver $typeStringResolver,
+        /**
+         * @logion [OSD 40:9] Hang the red cord outside the birthing chamber, and let every officer who passeth
+         *     loosen his ceremonial belt. Within, a woman contendeth for a life upon which the court hath yet
+         *     laid no command. Until the child hath cried, neither tribute nor petition shall be carried across
+         *     that threshold.
+         */
+        private readonly UnitTypeNodeResolverExtension $unitTypeResolver,
         private readonly YumemiTypeNodeNormalizer $normalizer,
+        array $typeAliases = [],
     ) {
+        $this->nameScope = new NameScope(null, []);
+        $aliasTypes = [];
+        foreach ($typeAliases as $name => $definition) {
+            foreach ($this->resolvePhpDoc(sprintf('/** @return %s */', $definition))->getReturnTagValues() as $tag) {
+                $aliasTypes[$name] = $tag->type;
+            }
+        }
+        $this->typeAliases = $aliasTypes;
     }
 
     public function enterNode(Node $node): ?Node
     {
         if ($node instanceof VirtualNode) {
             return null;
+        }
+
+        if ($node instanceof Namespace_) {
+            $this->nameScope = new NameScope($node->name?->toString(), []);
+        } elseif ($node instanceof Use_ || $node instanceof GroupUse) {
+            $uses = $this->nameScope->getUses();
+            foreach ($node->uses as $use) {
+                if (($use->type === Use_::TYPE_UNKNOWN ? $node->type : $use->type) !== Use_::TYPE_NORMAL) {
+                    continue;
+                }
+                $prefix = $node instanceof GroupUse ? $node->prefix->toString() . '\\' : '';
+                $uses[strtolower($use->getAlias()->toString())] = $prefix . $use->name->toString();
+            }
+            $namespace = $this->nameScope->getNamespace();
+            $this->nameScope = new NameScope($namespace === '' ? null : $namespace, $uses);
         }
 
         $docComment = $node->getDocComment();
@@ -315,38 +364,16 @@ final class YumemiDocTagPromoter extends NodeVisitorAbstract
 
     private function unitTypeError(\PHPStan\PhpDocParser\Ast\Type\TypeNode $typeNode): ?string
     {
-        try {
-            $type = $this->typeStringResolver->resolve((string) $typeNode);
-        } catch (\Throwable) {
-            return 'the payload is not a valid PHPDoc type.';
+        // Class reflection can re-enter this parser before its file has finished parsing. Validate
+        // unit leaves here; PHPStan checks their surrounding types after promotion.
+        $visitor = new YumemiTypeNodeValidationVisitor($this->unitTypeResolver, $this->nameScope, $this->typeAliases);
+        (new NodeTraverser([$visitor]))->traverse([$typeNode]);
+
+        if ($visitor->error !== null) {
+            return $visitor->error;
         }
 
-        $hasUnit = false;
-        $error = null;
-        TypeTraverser::map($type, static function (Type $inner, callable $traverse) use (&$hasUnit, &$error): Type {
-            if ($inner instanceof ErrorType) {
-                $error ??= $inner->getReason() ?? 'the unit type is invalid.';
-
-                return $inner;
-            }
-            if (
-                $inner instanceof UnitIntegerType
-                || $inner instanceof UnitFloatType
-                || $inner instanceof UnitNumericStringType
-                || $inner instanceof QuantityType
-                || $inner instanceof PointQuantityType
-            ) {
-                $hasUnit = true;
-            }
-
-            return $traverse($inner);
-        });
-
-        if ($error !== null) {
-            return $error;
-        }
-
-        return $hasUnit
+        return $visitor->hasUnit
             ? null
             : "expected a type containing unit_int<'...'>, unit_float<'...'>, unit_numeric_string<'...'>, "
                 . "Quantity<'...'>, or PointQuantity<'...'>.";
@@ -460,12 +487,12 @@ final class YumemiDocTagPromoter extends NodeVisitorAbstract
         if ($fallbackType === null) {
             throw new LogicException('The fallback Yumemi tag has an unexpected value node.');
         }
-        $expected = $this->normalizer->describe($fallbackType, false);
-        if ($expected === $this->normalizer->describe($candidate->type, false)) {
+        $expected = $this->normalizer->describe($fallbackType, false, $this->nameScope);
+        if ($expected === $this->normalizer->describe($candidate->type, false, $this->nameScope)) {
             return true;
         }
 
-        $erased = $this->normalizer->describe($candidate->type, true);
+        $erased = $this->normalizer->describe($candidate->type, true, $this->nameScope);
         if ($expected === $erased) {
             return true;
         }

@@ -34,26 +34,22 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\PHPStan;
+namespace InvalidImportedUnits;
 
-use PHPStan\Analyser\NameScope;
-use PHPStan\PhpDocParser\Ast\NodeTraverser;
-use PHPStan\PhpDocParser\Ast\NodeVisitor\CloningVisitor;
-use PHPStan\PhpDocParser\Ast\Type\TypeNode;
+use jbboehr\Yumemi\PointQuantity as Coordinate;
+use jbboehr\Yumemi\Quantity as Distance;
+use jbboehr\Yumemi\Units;
 
-/**
- * @internal
- */
-final class YumemiTypeNodeNormalizer
+/** @param Distance<'meter'> $distance */
+function saveImportedDistance(Distance $distance): void
 {
-    public function describe(TypeNode $type, bool $eraseUnits, NameScope $nameScope): string
-    {
-        $traverser = new NodeTraverser([
-            new CloningVisitor(),
-            new YumemiTypeNodeNormalizationVisitor($eraseUnits, $nameScope),
-        ]);
-        $nodes = $traverser->traverse([$type]);
-
-        return (string) $nodes[0];
-    }
 }
+
+/** @param Coordinate<'celsius'> $temperature */
+function saveImportedTemperature(Coordinate $temperature): void
+{
+}
+
+$units = Units::default();
+saveImportedDistance($units->quantity(1, 'second'));
+saveImportedTemperature($units->point(0, 'kelvin'));

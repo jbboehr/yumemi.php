@@ -43,7 +43,8 @@ libraries.
 
 `unit_int<'unit'>` and `unit_float<'unit'>` are PHPDoc types for native integers and floats with a statically known
 unit. A branded value is not a wrapper or subclass: it remains an ordinary PHP number at runtime. The types work in
-ordinary `@param`, `@return`, `@var`, generic, union, intersection, and nullable positions.
+ordinary `@param`, `@return`, `@var`, generic, union, intersection, and nullable positions. Write `unit_int`,
+`unit_float`, and `unit_numeric_string` without a namespace prefix or import.
 
 Feet are therefore distinct from meters even though both values are native floats:
 
@@ -606,7 +607,11 @@ the PHPStan diagnostic does not relax the runtime budget.
 
 ## Quantity Types
 
-Runtime quantities have the generic PHPStan forms `Quantity<'unit'>` and `PointQuantity<'coordinate'>`.
+Runtime quantities have the generic PHPStan forms `Quantity<'unit'>` and `PointQuantity<'coordinate'>`. Import
+`jbboehr\Yumemi\Quantity` and `jbboehr\Yumemi\PointQuantity`, or use their fully qualified names. Renamed and namespace
+imports work too: `use jbboehr\Yumemi\Quantity as Distance` permits `Distance<'meter'>`. An unrelated class named
+`Quantity` or `PointQuantity` retains its ordinary PHPStan type.
+
 `Units::quantity()`, `parseQuantity()`, `deltaQuantity()`, and `point()` infer the corresponding type when their
 relevant string is constant or a finite literal-string union. Fluent methods preserve or transform the generic brand
 while performing the real exact operation at runtime. Finite unions of branded quantity or point receivers and operands
@@ -805,6 +810,8 @@ includes:
 
 Without `yumemi-tags.neon`, these are unknown tags and the ordinary PHPDoc or native types remain effective. With it,
 Yumemi promotes them onto PHPStan's normal type surface for parameters, returns, properties, and local variables.
+Quantity names follow the same namespace and import rules as ordinary PHPDoc. Use the same class spelling in a fallback
+and its Yumemi tag, including any import alias.
 
 A Yumemi tag may replace a fallback only when erasing its units produces the same PHPDoc structure. Every
 `unit_int<'...'>` must erase to `int`, every `unit_float<'...'>` to `float`, every `unit_numeric_string<'...'>` to

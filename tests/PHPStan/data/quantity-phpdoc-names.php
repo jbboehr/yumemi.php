@@ -34,26 +34,65 @@
  * <http://www.gnu.org/licenses/> and the LICENSE_EXCEPTION file.
  */
 
-namespace jbboehr\Yumemi\PHPStan;
+namespace YumemiTypeNames;
 
-use PHPStan\Analyser\NameScope;
-use PHPStan\PhpDocParser\Ast\NodeTraverser;
-use PHPStan\PhpDocParser\Ast\NodeVisitor\CloningVisitor;
-use PHPStan\PhpDocParser\Ast\Type\TypeNode;
+use jbboehr\Yumemi as Measures;
+use jbboehr\Yumemi\PointQuantity;
+use jbboehr\Yumemi\PointQuantity as Coordinate;
+use jbboehr\Yumemi\Quantity;
+use jbboehr\Yumemi\Quantity as Distance;
+
+use function PHPStan\Testing\assertType;
 
 /**
- * @internal
+ * @param Quantity<'meter'> $ordinary
+ * @param Distance<'meter'> $renamed
+ * @param Measures\Quantity<'meter'> $qualifiedAlias
+ * @param \jbboehr\Yumemi\Quantity<'meter'> $fullyQualified
+ * @param PointQuantity<'celsius'> $point
+ * @param Coordinate<'celsius'> $renamedPoint
+ * @param Measures\PointQuantity<'celsius'> $qualifiedPointAlias
+ * @param \jbboehr\Yumemi\PointQuantity<'celsius'> $fullyQualifiedPoint
+ * @param unit_int<'meter'> $integer
+ * @param unit_float<'meter'> $float
+ * @param unit_numeric_string<'meter'> $numericString
  */
-final class YumemiTypeNodeNormalizer
-{
-    public function describe(TypeNode $type, bool $eraseUnits, NameScope $nameScope): string
-    {
-        $traverser = new NodeTraverser([
-            new CloningVisitor(),
-            new YumemiTypeNodeNormalizationVisitor($eraseUnits, $nameScope),
-        ]);
-        $nodes = $traverser->traverse([$type]);
+function inspectImportedTypes(
+    Quantity $ordinary,
+    Distance $renamed,
+    Measures\Quantity $qualifiedAlias,
+    \jbboehr\Yumemi\Quantity $fullyQualified,
+    PointQuantity $point,
+    Coordinate $renamedPoint,
+    Measures\PointQuantity $qualifiedPointAlias,
+    \jbboehr\Yumemi\PointQuantity $fullyQualifiedPoint,
+    int $integer,
+    float $float,
+    string $numericString,
+): void {
+    assertType("Quantity<'meter'>", $ordinary);
+    assertType("Quantity<'meter'>", $renamed);
+    assertType("Quantity<'meter'>", $qualifiedAlias);
+    assertType("Quantity<'meter'>", $fullyQualified);
+    assertType("PointQuantity<'celsius'>", $point);
+    assertType("PointQuantity<'celsius'>", $renamedPoint);
+    assertType("PointQuantity<'celsius'>", $qualifiedPointAlias);
+    assertType("PointQuantity<'celsius'>", $fullyQualifiedPoint);
+    assertType("unit_int<'meter'>", $integer);
+    assertType("unit_float<'meter'>", $float);
+    assertType("unit_numeric_string<'meter'>", $numericString);
+}
 
-        return (string) $nodes[0];
-    }
+namespace jbboehr\Yumemi;
+
+use function PHPStan\Testing\assertType;
+
+/**
+ * @param Quantity<'second'> $duration
+ * @param PointQuantity<'kelvin'> $temperature
+ */
+function inspectLocalQuantityTypes(Quantity $duration, PointQuantity $temperature): void
+{
+    assertType("Quantity<'second'>", $duration);
+    assertType("PointQuantity<'kelvin'>", $temperature);
 }

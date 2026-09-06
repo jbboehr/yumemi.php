@@ -646,6 +646,116 @@ diagnostic identifiers and inferred results across those spellings.
 
 ## Issue 7: Type resolution ignores namespace identity
 
+Status: implemented in the working tree, awaiting review.
+
+Object type resolution now uses PHPStan's `NameScope` and matches the fully qualified Yumemi classes. Ordinary imports,
+renamed imports, namespace imports, fully qualified names, and references inside Yumemi's own namespace retain their
+unit brands. Unrelated generic classes named `Quantity`, `PointQuantity`, or a qualified scalar pseudo-type remain under
+PHPStan's ordinary resolution. Unqualified `unit_int`, `unit_float`, and `unit_numeric_string` remain extension-owned.
+
+Optional `@yumemi-*` promotion now carries namespace and class-import context into unit validation and fallback
+matching. Each parser traversal owns its import scope. Early validation visits PHPDoc unit nodes without reflecting user
+classes, leaving surrounding generic-type checks to PHPStan after promotion. This avoids re-entering the parser while a
+referenced class's source is still being parsed. Runtime behavior and the conformance corpus are unchanged.
+
+Experimental verification:
+
+- Before implementation, five focused regression tests failed for the expected namespace-resolution differences. Plain
+  PHPStan accepted the unrelated-class fixture with zero diagnostics.
+- After the resolver change, the same five tests passed with 48 assertions. A broader run exposed loss of an existing
+  `@yumemi-return Quantity<'newton'>` brand because promotion previously resolved types without imports.
+- A new optional-tag fixture exposed recursive class reflection during parser-level validation. The default parallel CLI
+  misleadingly reported no errors, while debug mode failed. The optional-tag CLI test helper now runs in debug mode and
+  verifies the process exit code. After limiting early validation to unit nodes, the focused suite passed with 49 tests
+  and 443 assertions, including foreign generic containers that contain unit types.
+- A separate parser lifecycle test passed with nine assertions. Removing the per-traversal promoter clone made it fail
+  because an import from the first file incorrectly branded a name in the second file. The mutation was reverted.
+
+The initial independent correctness review found no actionable defect. The separate test review added
+[`yumemi-tag-namespace-boundaries.php`](../../tests/PHPStan/data/yumemi-tag-namespace-boundaries.php), covering mixed
+group imports, namespace aliases, fully qualified point types, foreign quantity rejection, nested invalid units, and
+PHPStan's surrounding-generic diagnostics. That test passed with 11 assertions. The test also verifies that ordinary
+PHPStan diagnostics remain visible after early validation is limited to Yumemi's own unit types.
+
+A subsequent review found that configured PHPStan aliases in optional stub annotations had lost their unit constraints.
+For `MeterValue: "unit_float<'meter'>"`, `@yumemi-param MeterValue $distance` was not promoted because validation
+skipped identifier nodes. A new CLI regression test accepted a seconds-branded argument in the working tree, while the
+same fixture against `0374ee7` produced `argument.type`. Both direct and chained aliases failed before the review fix
+and passed afterward.
+
+Validation now inspects the syntax of configured aliases in their global scope. Definitions are parsed once, alias
+cycles are detected during traversal, and class reflection remains deferred to PHPStan. The promoted annotation keeps
+its original alias spelling. Existing fallback-matching rules are unchanged. Additional tests cover nested aliases,
+aliases containing foreign generic classes, fully qualified quantity aliases, and array/object shape keys whose names
+happen to match aliases. A field name alone must not count as a unit-bearing type.
+
+A second independent correctness review raised a redundant-union case: a configured alias containing
+`int|unit_int<'meter'>` passes syntactic validation even though PHPStan simplifies its effective type to `int`.
+Experiments confirmed that the equivalent inline annotation previously emitted `yumemi.docTagType` and now does not;
+neither revision rejects its plain-integer or seconds-branded callers. Stub experiments with both inline and aliased
+forms produced zero diagnostics on both revisions. An alias in an ordinary source annotation caused parser re-entry and
+a process crash on `0374ee7`, so that case did not provide the proposed baseline diagnostic. No additional fix was
+applied: the explicit `int` alternative already allows those callers, and reproducing PHPStan's type simplification
+during parser validation would expand this change substantially. The diagnostic difference remains a known limitation of
+syntactic validation.
+
+The separate test review demonstrated no additional production defect. It added three tests covering repeated aliases
+inside stub array shapes, invalid unit leaves after valid ones, and preservation of structural fallback matching. All
+three passed with 35 assertions. The repeated nested-stub test also passed against `0374ee7` and failed against the
+immediate pre-fix snapshot, confirming that the fix restores existing constraints. The broader baseline comparison
+crashed while parsing the source-level invalid-alias and fallback cases; the current implementation handled both.
+
+Performance comparison before the configured-alias review fix, against `0374ee7`, PHP 8.2.32 and PHPStan 2.2.5 on this
+host: 200 cases per workload, one warmup and three measured runs per revision, alternating execution order, with a fresh
+result cache for each run. All 32 analyses completed with zero diagnostics. Values are median complete CLI times,
+including startup.
+
+| Workload                         | Base    | Working tree | Change |
+| -------------------------------- | ------- | ------------ | ------ |
+| Native PHPDoc brands             | 0.865 s | 0.844 s      | -2.4%  |
+| Imported quantity PHPDoc         | 0.863 s | 0.880 s      | +2.0%  |
+| Quantity method inference        | 2.201 s | 2.197 s      | -0.2%  |
+| Optional native-unit annotations | 1.187 s | 1.158 s      | -2.4%  |
+
+These small differences do not establish a material speedup or slowdown. The scalar-name lookup remains direct, and
+runtime quantity operations are unchanged. This comparison does not measure warm result-cache reuse, renamed-import
+workloads that failed on the base, or large projects with many imported user classes.
+
+The configured-alias fix was measured separately against `0374ee7` using 200 stub-declared functions and valid
+meter-branded calls. Each workload used one warmup and three measured runs per revision, alternating execution order,
+with isolated result caches and PHPStan debug mode. All 24 analyses completed with zero diagnostics.
+
+| Stub workload                   | Base    | Review fix | Change |
+| ------------------------------- | ------- | ---------- | ------ |
+| Direct configured alias         | 1.043 s | 1.055 s    | +1.1%  |
+| Chained configured alias        | 1.034 s | 1.045 s    | +1.1%  |
+| Direct unit, 100 unused aliases | 1.067 s | 1.062 s    | -0.5%  |
+
+These medians do not show a material regression. They include complete CLI startup and do not establish performance for
+large alias graphs or warm result-cache reuse.
+
+Final repository verification:
+
+- `COMPOSER_PROCESS_TIMEOUT=0 composer test --` with the PHPStan test files `UnitTypeNodeResolverTest.php`,
+  `UnitTypeNodeResolverIntegrationTest.php`, `YumemiReturnTagExtensionTest.php`, `YumemiTagPromotionRuleTest.php`, and
+  `ShouldNotHappenBoundaryTest.php` passed: 57 tests and 537 assertions.
+- `COMPOSER_PROCESS_TIMEOUT=0 composer check:full` passed: 2,371 tests, 26,830 assertions, five expected skips, plus
+  Composer validation, formatting, PHPStan analysis, documentation examples, mdBook build and links, benchmark smoke,
+  and packaged-consumer checks.
+- `nix flake check --keep-going -L path:/tmp/yumemi-slice7-source-sci_cfdo` passed on `x86_64-linux`, using a complete
+  tracked-and-untracked source snapshot. Each PHP 8.2–8.5 suite ran 2,371 tests. PHP 8.2/8.3 had 29 expected skips and
+  PHP 8.4/8.5 had 24. All remaining flake checks passed. Only this report's verification notes changed afterward.
+- Fifteen new in-scope declarations have unique, independently generated logions. Their references and text were
+  checked, and preexisting declaration logions were preserved.
+
+Reliability verdict: `PASS_WITH_RESIDUAL_RISK`. The redundant-union diagnostic difference above remains accepted.
+Circular or very deep alias graphs, callable/conditional/offset-access aliases, and renamed quantity class imports
+inside stub files were not separately exercised. Other host architectures, mutation testing beyond the focused
+clone-removal check, Xdebug branch coverage, the parser probator, and the committed-revision compatibility gate were not
+run. The review report is outside the public documentation example corpus, as noted above.
+
+Original finding (before this change):
+
 P2. [`UnitTypeNodeResolverExtension::resolve()`](../../src/PHPStan/UnitTypeNodeResolverExtension.php) recognizes object
 types by their short name and ignores the supplied `NameScope`. It can capture an unrelated generic class even when the
 annotation uses that class's fully qualified name.
