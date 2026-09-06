@@ -186,7 +186,7 @@ Malformed syntax throws `Parser\ParseException`. When available, its `SourceSpan
 in the decoded unit expression. The exception message renders a one-based line and column plus a bounded caret excerpt.
 Malformed numeric text such as `1.2.3` is reported as syntax, and the source span covers the complete malformed token.
 Input must be valid UTF-8: a malformed byte sequence produces the same exception with a span marking its first invalid
-byte, before either parser backend or the successful-expression cache sees the input.
+byte.
 
 Unknown names throw `UnitNotFoundException`. Parsed but unsupported constructs throw `UnsupportedSyntaxException` or a
 more specific semantic exception. These runtime exceptions expose an optional `span` property using the same zero-based,
@@ -194,5 +194,5 @@ half-open byte convention. A direct failure identifies the offending name or con
 an alias or stored catalog definition, the span remains attached to the outer identifier written by the caller rather
 than referring to source text that the caller did not provide.
 
-The PHPStan extension uses the same parser and resolver, and its parse-result objects expose the same range through
-`errorSpan()`. Its handling of constant and dynamic strings is documented in [Limitations](phpstan.md#limitations).
+For errors during static analysis, see [PHPStan Diagnostics](phpstan.md#diagnostics) and the
+[limitations for constant and dynamic strings](phpstan.md#limitations).

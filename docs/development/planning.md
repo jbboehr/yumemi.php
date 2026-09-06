@@ -487,6 +487,20 @@ deferred feature list.
 - Do not add another feature merely to make the first release appear larger. Fix correctness or contract problems found
   by the surface audit, but otherwise use the `0.x` series to discover real workflow needs.
 
+#### Next Release: 0.2.0
+
+After the [documentation-detail cleanup](documentation-detail-audit-2026-09-06.md), the next planned work is preparation
+of `0.2.0` from `develop`, in reviewable slices with review before each commit:
+
+1. Review changes since `v0.1.1` against the compatibility policy and finish the upgrade guide, including rational
+   component access and changed runtime and PHPStan behavior.
+2. Prepare the changelog, installation/status prose, Composer branch alias, and required lock/Nix metadata. Identify the
+   tested optional native-extension release or commit.
+3. Follow the release runbook for dependency audit, full Composer and Nix checks, committed API comparison, historical
+   persistence, archive inspection, and CI verification of the exact release commit before signed-tag publication.
+4. Verify publication and clean installation, capture immutable `v0.2.0` persistence fixtures from the published
+   package, and remove temporary compatibility acknowledgements once the new tag becomes the comparison baseline.
+
 #### Stable Release: 1.0.0
 
 - Accumulate real use across multiple `0.x` releases, including runtime conversion, PHPStan analysis, a custom registry,
@@ -600,53 +614,13 @@ repeat the implementation's assumptions:
   to development branches remain at their committed revisions because copied or generated integrations are tested
   against those exact inputs. Ordinary lock-file jobs verify one reproducible dependency snapshot and do not cover
   either released edge.
-- Continue focused Xdebug branch audits rather than enforcing a global path-coverage floor. The focused `src/Registry`
-  audit reached 98.95% branch and 98.65% line coverage after adding contract tests for malformed catalog shapes,
-  transactional builder batches, and resilient introspection; the remaining outcomes are structurally unreachable under
-  normal PHP array construction. The `PointQuantity` audit reached 100% of its 83 branches and 132 executable lines,
-  with all 137 focused mutants killed. The catalog semantic-core audit reached 98.75% branch and 99.03% line coverage;
-  `AffineDeltaUnitSynthesizer` is fully covered, while `UnitDefinitionClassifier` leaves only a nameless record excluded
-  by the catalog-record contract. The importer/exporter audit reached 100% of 214 branches and 233 executable lines,
-  added clean domain failures for unreadable and malformed XML, and verifies byte-identical regeneration from the real
-  split UDUNITS2 database in the Nix-backed test group. The focused formatting audit reached 86.36% of 110 branches and
-  96.00% of 150 executable lines across 156 relevant tests, added a shortest-codepoint symbol-selection contract, and
-  killed 119 of 125 focused mutants; all six survivors were behaviorally equivalent. Canonical reduction makes the
-  remaining renderer branches unreachable, while the untested name fallbacks require contradictory registry lookup and
-  descriptor APIs. A complete-suite Xdebug run proved impractical once generative round trips took several minutes per
-  data case, so this is explicitly a focused percentage; the complete PHPUnit suite remains the separate behavioral
-  gate. The handwritten parser audit covered 99.31% of 145 branches and 98.91% of 183 executable lines across 330
-  focused tests after excluding generated `Parser.php`. It found one diagnostic-excerpt off-by-one and killed 186 of 193
-  focused mutants for 96% covered MSI. The remaining uncovered branch is the defensive `parse() === false` fallback
-  excluded by the generated parser's success-or-throw contract. A 2026-08-10 parser resource-budget follow-up covered
-  98.84% of 172 handwritten parser branches, reached 100% branch and line coverage in `Lexer`, and raised focused
-  covered MSI from 82% to 86% by adding contracts for eager input rejection, separated nesting, depth recovery, and
-  limit diagnostics. No runtime defect was found; remaining survivors are equivalent or defensive states, apart from a
-  timeout that removes circular-resolution termination. Add tests only when an uncovered outcome is reachable and
-  observably meaningful. Path coverage remains informational because combinations grow rapidly;
-  `PointQuantity::__unserialize()` alone exposes 4,096 paths through compound payload validation.
-- Triage Infection's escaped and timed-out mutants periodically before raising the MSI floor. Add contract-level
-  assertions for observable survivors, record or ignore behaviorally equivalent mutations, distinguish deliberately
-  unreachable defensive branches, and confirm that timeouts are explained by removed termination guards rather than
-  ordinary performance failures. A focused 2026-08-09 `Rational` audit generated 547 mutants and reduced escaped mutants
-  from 80 to 66, raising covered MSI from 85% to 87%. The added contracts cover decimal parsing, native integer
-  boundaries, exact rounding, binary64 exponent-estimate correction, significand carry, binary64 boundaries, and strict
-  underflow. The remaining survivors are equivalent normalization and zero fast paths, scaling by one, sign guards,
-  casts, or exception prose. Four timeouts remove progress or termination from denominator reduction for terminating
-  decimals. The audit found no runtime defect.
-- A focused 2026-08-14 audit of the native binary-math resolver and its diagnostic rule generated 190 mutants and raised
-  covered MSI from 83% to 95% by adding contracts for incomplete calls, native fallback ownership, bare constants,
-  nonnumeric alternatives, complete Cartesian union results, and symmetric benevolent-union handling. In the final
-  campaign, 181 mutants were killed. The nine survivors are behaviorally equivalent: six remove redundant `int|float`
-  casts before native float-returning functions, two reverse coalescing operands that are equal or have only one
-  non-null value by construction, and one changes loop control only after a bare `float` result has already subsumed the
-  remaining branded-float alternatives. The audit found no additional implementation defect.
-- A 2026-08-15 repository-wide mutation refresh generated 3,813 runtime and 3,341 PHPStan mutants. It added direct
-  contracts for cross-context same-unit arithmetic, unknown compaction-family lookup failures, and every `UnitSemantics`
-  capability combination. Focused Xdebug follow-up reached 100% branch coverage in `PreferredUnitProfile`,
-  `UnitSemantics`, `UnitIntegerRangeMath`, and `UnitUnionTypeHelper`; the angle, aggregation, and binary-math resolvers
-  reached 94.52% to 96.47% in their direct test scope. Remaining sampled survivors and uncovered branches were
-  equivalent representation changes, defensive registry or PHPStan states, cache behavior, or exception prose rather
-  than missing public contracts. Retain these focused audits instead of adopting a global coverage floor.
+- Continue [focused Xdebug branch audits](branch-coverage.md) instead of enforcing a global path-coverage floor. Add
+  tests when an uncovered outcome is reachable and observably meaningful. Record the focused scope when a complete
+  Xdebug run is impractical, and keep the ordinary full suite as the separate behavioral gate.
+- Triage [escaped and timed-out mutants](mutation-testing.md#investigating-an-escape) before raising the MSI floor. Add
+  contracts for observable survivors, distinguish equivalent or unreachable states, and explain timeouts caused by
+  removed termination guards. The [recorded audits](branch-coverage.md#recorded-audits) retain campaign counts,
+  findings, and verification limits, including the rational and native binary-math investigations.
 - Maintain the machine-checked inventory of stable public `yumemi.*` diagnostic identifiers. It proves that every public
   rule identifier is represented in the compatibility policy and PHPStan reference, records an emitting implementation
   and representative local-ignore fixture for every listed identifier, and explicitly classifies non-diagnostic
@@ -680,35 +654,11 @@ repeat the implementation's assumptions:
   consumers may legitimately have an older analyzer installed. Extension users require PHPStan 2.2.5 or later; automatic
   registration in a project with an older version remains an unsupported integration and should produce clear setup
   guidance rather than making the runtime package uninstallable.
-- Explicit integer/float casts and decimal `intval()`/`floatval()`/`doubleval()` conversions preserve native numeric
-  brands and move a `unit_numeric_string` brand onto the resulting number. A non-decimal or dynamic `intval()` base
-  leaves a branded numeric-string result unbranded. Implicit arithmetic and weak numeric coercion do not preserve a
-  numeric-string brand; comparisons still require definitionally equivalent brands. `abs()`, `ceil()`, `floor()`, and
-  `round()` preserve native numeric unit brands. Supported finite constant `round()` inputs retain exact result
-  alternatives when precision and half-rounding mode are statically known; dynamic, non-finite, excessively broad, PHP
-  8.4 directional-enum, and cross-era cases retain the generalized brand. Native `min()` and `max()` preserve a common
-  definitionally equivalent brand across direct, array, and unpacked candidates, retain finite constant extrema, narrow
-  known integer ranges, and report `yumemi.invalidUnitSelection` when a possible returning candidate is bare or
-  differently branded. Native `array_sum()` preserves one definitionally equivalent direct element brand, retains exact
-  sums and integer ranges for known shapes, models possible empty input and integer overflow, and reports
-  `yumemi.invalidUnitAggregation` for bare or differently branded summands. Native `array_product()` composes units
-  across sealed, statically known array shapes, retains fixed constants and integer ranges, accepts bare numeric factors
-  as dimensionless, and reports `yumemi.invalidUnitAggregation` when cardinality, factor types, possible products, or
-  derived exponents prevent one sound result. Native `range()` requires definitionally equivalent branded endpoints and
-  explicit steps, retains exact small ranges or bounded non-empty integer lists, and reports `yumemi.invalidUnitRange`
-  when one sound numeric brand cannot be established. Native `sqrt()` transforms an exact symbolic square unit, retains
-  finite nonnegative constants, generalizes negative or non-finite constants, and diagnoses branded units without an
-  exact symbolic root. Native `fdiv()` follows division unit algebra; `fmod()` and `hypot()` require definitionally
-  equivalent branded operands and diagnose mixed or incompatible calls. Native `intdiv()` applies quotient unit algebra
-  to integer operands, retains exact constants and truncation-toward-zero ranges, and leaves zero-divisor and
-  `PHP_INT_MIN / -1` throw analysis to PHPStan. Native `pow()` mirrors `**` for statically known integer exponents,
-  including bounds, constant folding, integer ranges, overflow promotion, finite alternatives, and derived-unit
-  overflow. Other casts and unsupported PHP built-ins can erase brands. Continue adding targeted integrations only for
-  demonstrated workflows. Native `deg2rad()`, `rad2deg()`, direct and inverse trigonometry, and binary `atan2()` enforce
-  the canonical angle, exact unscaled-ratio, and equivalent-operand contracts in the completed
-  [angle-function design](native-angle-functions.md). Fractional or otherwise generalized native powers remain deferred
-  because they require distinct correlation or approximation semantics. Exact runtime-object roots are supported through
-  `Quantity::root()`.
+- Supported casts and native numeric functions preserve or transform brands as described in the
+  [PHPStan reference](../pages/reference/phpstan.md#casts-and-scalar-functions). Other casts, unsupported built-ins, and
+  implicit numeric-string coercion can erase brands. Add integrations only for demonstrated workflows. Fractional or
+  generalized native powers remain deferred because they require distinct correlation or approximation semantics. Exact
+  runtime-object roots are supported through `Quantity::root()`.
 - Native helpers accept finite alternatives only when every valid path produces one semantic result unit. Independent
   source and target alternatives lose value correlation, so conversion helpers validate the Cartesian product and fail
   closed if any pair is invalid. Quantity boundaries continue to preserve finite target unions.
@@ -716,83 +666,23 @@ repeat the implementation's assumptions:
   remain accepted while `Pa` is pascal; Yumemi does not special-case these catalog-valid ambiguities.
 - Unit, dimension, and scientific-decimal exponents are bounded to `-10000` through `10000`; checked composition rejects
   larger effective powers before native integer overflow or unbounded GMP exponentiation.
-- Dynamic runtime parsing now enforces one shared fixed budget before resolution: 4,096 input bytes, 256 non-whitespace
-  lexical tokens, 64 nested parentheses, and 1,024 bytes in one identifier or numeric token. The input check precedes
-  Doctrine Lexer's eager token allocation and the successful AST cache; token count bounds subsequent expression-tree
-  work. Runtime, custom-registry, catalog, and PHPStan paths share the same policy and
-  `ExpressionLimitExceededException` category. These bounds are defense in depth rather than a substitute for smaller
-  application-specific limits at external boundaries.
+- Runtime and PHPStan parsing share fixed [resource limits](../pages/reference/unit-syntax.md#resource-limits),
+  including catalog and custom definitions. These bounds are defense in depth; applications still need smaller limits
+  appropriate to their external inputs. Preserve the
+  [bounded-work invariant](invariants.md#unit-expression-work-is-bounded) when changing parsing or resolution.
 - The UDUNITS2 importer still special-cases `cm2` syntax.
 - Expression arithmetic reduces eagerly. The benchmark suite measures representative reduction and normalization, but no
   cross-machine regression floor or production-workload profile has established that this is a hot path.
-- Paired helper-boundary benchmarks and local hardware-counter profiles identified repeated parsing as a concrete
-  runtime cost. Before caching, repeated `Quantity::valueIn()` with a compound string target took about 17 times the
-  wall time and 15 times the retired instructions of the equivalent pre-parsed target; string-based quantity
-  construction took about 9 times both. Formatting, normalization, quantity parsing, point construction, and affine
-  delta derivation showed the same parser-heavy behavior.
-- Successful parser ASTs now use one process-local, exact-input LRU cache, while fully resolved expressions use a
-  separate cache owned by each immutable `Units` context. Both retain at most 256 expressions no longer than 512 bytes.
-  The AST cache additionally retains at most 16 KiB of source-input weight across all entries; each resolved cache
-  permits at most 64 KiB. These weights bound represented input rather than exact PHP heap usage. Oversized inputs and
-  all failures bypass caching. Immutable raw ASTs may be shared across registries, but resolved meaning never crosses a
-  `Units` boundary. The AST budget is smaller because dense syntax trees and their source spans retain materially more
-  memory per input byte than reduced expressions.
-- Conversion-string resolution now has its own context-local LRU, limited to 256 inputs of at most 512 bytes, 4 KiB of
-  represented weight per entry, and 64 KiB total. Its weight includes the input, symbolic source, dimension, exact
-  scale, and exact offset, so compact scientific notation cannot hide a large retained value. These are internal cache
-  budgets, not heap-size guarantees or parser admission limits. Failed name lookups are no longer retained. Successful
-  name, prefix-definition, and catalog classification caches remain finite functions of the immutable registry. Their
-  size can grow with the catalog and its supported prefix combinations.
-- On the same PHP 8.2 host after caching, warm compound `parse()` fell from about 55 to 0.23 microseconds, string and
-  pre-parsed `Quantity::valueIn()` converged at about 4.5 and 4.2 microseconds, and string normalization converged with
-  pre-parsed normalization at about 15 microseconds. Formatting fell from about 36 to 10 microseconds, point
-  construction from about 49 to 2.7, affine delta derivation from about 34 to 1.9, and `parseQuantity()` from about 72
-  to 33.
-- Persistence validation is intentionally substantial. Representative quantity and point deserialization took about 205
-  and 112 microseconds before caching and about 87 and 27 afterward. Restoration still revalidates normalized units,
-  dimensions, origins, and scales; preserve those semantic seals rather than pursuing lower timings by weakening them.
-- Representative rational arithmetic and decimal rendering remained below 4 microseconds, cached dimensions and
-  compatibility below 0.4 microseconds, custom registry overlay construction below 0.4 milliseconds, and full-catalog
-  description below 2 milliseconds. These measurements do not justify dedicated optimization work.
-- Hardware-counter benchmarks depend on unreleased `phpbench-perfidious` adapter code and local Linux `perf_events`
-  permissions; they are optional and intentionally excluded from CI.
-- The opt-in end-to-end PHPStan benchmark isolates result-cache directories and separates bootstrap, ordinary scalar,
-  branded native, runtime-object inference, annotation-promotion, and mixed workloads. Use several fixture sizes before
-  attributing elapsed time to Yumemi: PHPStan container startup is substantial, scalar and branded fixtures are not
-  structurally identical, each workload is one source file and therefore single-process, and local wall times are
-  diagnostic rather than portable regression floors or project-scale throughput measurements.
-- On the same PHP 8.2 host with 400 generated cases and isolated result caches, Yumemi-enabled startup took about 0.88
-  seconds versus 0.86 without the extension, while ordinary scalar analysis took about 3.98 seconds with Yumemi versus
-  3.77 without it. Focused branded workloads took about 1.2 seconds for PHPDoc type resolution, 2.28 for operators and
-  ranges, 1.48 for `abs()`, 2.78 for `min()`/`max()`, 1.38 for `sqrt()`, 3.48 for the composite built-ins workload, and
-  2.99 for native helpers. Combined native, quantity/point, annotation-promotion, and mixed workloads took about 4.98,
-  3.49, 1.78, and 3.68 seconds respectively. The composite result is not an independent optimization target. These
-  results are linear enough to reject a broad scaling defect, but identify extrema and helper analysis as the first
-  candidates for deeper profiling.
-- Dynamic return/expression inference and companion diagnostic rules both call the same `analyseCall()` methods for
-  helpers, extrema, and roots. A focused 400-case extrema experiment safely memoized analysis by exact AST node and
-  `Scope`, but moved the local median only from about 2.898 to 2.886 seconds (roughly 0.4%); the cache was therefore
-  discarded. Do not apply node-level memoization to helpers or roots by analogy. Profile the helper path to identify a
-  material repeated operation before adding cache state; root analysis is already comparatively cheap.
-- The 2026-08-09 native-helper profiling pass measured a byte-identical 400-case pair at about 2.766 seconds without
-  Yumemi and 2.989 seconds with it, placing the extension's helper-fixture cost near 222 milliseconds. Focused
-  one-helper pairs attributed roughly 114 milliseconds each to `unit()` and `unit_factor()` and 124 milliseconds to
-  `unit_to()`, so no helper is a singular hotspot. In a separate 20-case Xdebug profile, all helper inference and
-  diagnostic entry points accounted for about 104 milliseconds of 3.61 instrumented seconds; parser calls accounted for
-  49 milliseconds, argument lookup for 3.3, and finite-string extraction for 1.3. The rule and return extensions receive
-  different `FiberScope` and `MutatingScope` wrappers, so an exact node-and-scope cache cannot share their analyses,
-  while a node-only cache would risk stale scope-dependent types. Retain the controlled benchmark, but do not add helper
-  cache state without a new profile identifying safely reusable material work.
-- The 2026-08-15 PHPStan benchmark expansion added focused rounding, integer-math, angle, and aggregation workloads. At
-  400 generated declarations on the same PHP 8.2 host, median isolated-process times were about 1.29 seconds for branded
-  type resolution, 2.49 for `round()`, 2.69 for `intdiv()` plus `pow()`, 4.19 for angle and trigonometric functions, and
-  2.79 for `array_sum()`. Measurements at 50 and 200 declarations scaled approximately linearly; a noisy first
-  aggregation sample was not reproduced in seven isolated reruns. No source-level PHPStan profile is justified without a
-  nonlinear or application-observed regression.
-- The corresponding runtime subjects measured preferred-profile construction at about 16.3 microseconds, repeated
-  profile application at 12.0 microseconds, cached engineering compaction at 21.7 microseconds, and first compaction in
-  a fresh context at 25.0 microseconds. The small first-use premium confirms that the catalog index and family cache are
-  effective; do not add another selection cache based on these measurements.
+- Repeated string parsing and conversion use bounded caches. Keep resolved meaning within its owning `Units` context,
+  bypass failures, and preserve restoration validation. The [cache policy](architecture.md#cache-retention) records
+  retention budgets; [runtime measurements](benchmarking.md#runtime-parsing-and-persistence) explain the tradeoff.
+- PHPStan profiles did not justify additional inference caches. Exact node-and-scope memoization had negligible benefit,
+  and sharing helper results across different scopes would risk stale types. Reconsider only after a controlled profile
+  identifies material work that can safely be reused. Preserve the isolated benchmark controls and
+  [memoization evidence](benchmarking.md#phpstan-inference-and-memoization).
+- Preferred and compact selection measurements did not justify another selection cache. Revisit after a production
+  profile identifies selection as material; retain the
+  [first-use and repeated-use comparison](benchmarking.md#preferred-and-compact-selection).
 - Dimensional analysis intentionally cannot distinguish semantically different quantities with the same dimension, such
   as gray and sievert.
 - Exact catalog decimals for angles can normalize to large rationals; this is correct but can produce unwieldy display

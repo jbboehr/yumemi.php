@@ -468,12 +468,10 @@ Ordinary assignment remains definitionally based, however: passing `degree_north
 return explicitly declared as only `arc_degree` leaves the native call with that declared type. Convert before that
 boundary when the nominal distinction must remain visible.
 
-These fixed native contracts require the configured registry's effective `radian` and `arc_degree` semantic records and
-fully resolved meanings to match the bundled canonical entries. Descriptive catalog prose and record-key order do not
-affect that check, but redefinitions of dependencies such as `pi` or `rad` disable angle inference. An isolated registry
-or one that changes either canonical meaning leaves angle calls to PHPStan instead of inferring a potentially false
-brand. Additional aliases remain valid when they resolve to the verified canonical entries. Convert another angular
-scale explicitly before calling the native function.
+These fixed native contracts require the bundled canonical `radian` and `arc_degree` definitions and the unchanged
+meanings of their dependencies. Missing or changed definitions, including redefinitions of `pi` or `rad`, leave angle
+calls to PHPStan without Yumemi's angle inference. Additional aliases remain valid when they resolve to the canonical
+entries. Convert another angular scale explicitly before calling the native function.
 
 For branded integers, `abs()` retains exact constants and computes the hull of known ranges. The `PHP_INT_MIN` case can
 produce a float at runtime, so unbounded or partially exposed ranges follow the same `integerOverflowToFloat` policy as
@@ -635,56 +633,6 @@ storeAverageSpeed($speed);
 assert($speed->toString() === '10 * meter / second');
 ```
 
-### Optional Quantity Operators
-
-The companion `ext-yumemi` extension lets `Quantity` objects use PHP arithmetic operators by delegating to the method
-API. This syntax is optional at both boundaries: the native extension must be loaded at runtime, and its PHPStan model
-must be enabled explicitly. Projects that use only `extension.neon` continue to reject object arithmetic, matching PHP
-without the native extension.
-
-Enable operator inference after the primary extension:
-
-```neon
-includes:
-    - vendor/jbboehr/yumemi/extension.neon
-    - vendor/jbboehr/yumemi/yumemi-operators.neon
-```
-
-When `phpstan/extension-installer` already loads `extension.neon`, include only `yumemi-operators.neon` yourself. When
-listing both files manually, keep the order shown: `yumemi-operators.neon` is a parameter overlay and must follow
-`extension.neon`. PHPStan cannot determine whether `ext-yumemi` will be loaded in the deployed runtime; enabling this
-file is the application's declaration that operator-bearing code runs with that extension. The always-available method
-API remains preferable for reusable libraries whose consumers may not install it.
-
-The inferred operations mirror the runtime handler:
-
-| Expression                                   | Accepted operands                       | Inferred unit                                  |
-| -------------------------------------------- | --------------------------------------- | ---------------------------------------------- |
-| `+$quantity`, `-$quantity`                   | one quantity                            | the quantity's unit                            |
-| `$left + $right`, `$left - $right`           | two dimensionally compatible quantities | the left quantity's unit                       |
-| `$left * $right`                             | two quantities                          | the product of their units                     |
-| `$left / $right`                             | two quantities                          | the quotient of their units                    |
-| `$quantity * $scalar`, `$scalar * $quantity` | `int` or `Rational` scalar              | the quantity's unit                            |
-| `$quantity / $scalar`                        | `int` or `Rational` scalar              | the quantity's unit                            |
-| `$scalar / $quantity`                        | `int` or `Rational` scalar              | the reciprocal quantity unit                   |
-| `$quantity ** $power`                        | integer exponent                        | the powered unit when the exponent is constant |
-
-A dynamic integer exponent produces an unbranded `Quantity` because PHPStan cannot know its result unit. Scalar-left
-addition, subtraction, and exponentiation; float scalars; modulo; incompatible addition or subtraction; and units beyond
-the supported exponent range produce PHPStan's standard `binaryOp.invalid` diagnostic.
-
-```text
-$distance = $units->quantity(100, 'meter');
-$duration = $units->quantity(10, 'second');
-
-$remaining = -$distance; // Quantity<'meter'>
-$speed = $distance / $duration; // Quantity<'meter / second'>
-$total = $distance + $units->quantity(3, 'foot'); // Quantity<'meter'>
-```
-
-At runtime, the companion extension implements unary plus and minus through `mul(1)` and `mul(-1)`. They therefore
-retain the same concrete quantity type, symbolic unit, and registry context as the corresponding method calls.
-
 The extension models current unit-sensitive methods, including:
 
 - arithmetic through `abs()`, `add()`, `sub()`, `addWithSameUnit()`, `subWithSameUnit()`, `mul()`, `div()`, `rdiv()`,
@@ -744,6 +692,55 @@ is valid to call with known incompatible point dimensions and returns `false` at
 Direct PHPDoc may use forms such as `PointQuantity<'celsius'>`. Dynamic coordinate strings fall back to unbranded
 `PointQuantity`, following the same policy as ordinary quantities.
 
+### Optional Quantity Operators
+
+The companion `ext-yumemi` extension lets `Quantity` objects use PHP arithmetic operators by delegating to the method
+API. This syntax is optional at both boundaries: the native extension must be loaded at runtime, and its PHPStan model
+must be enabled explicitly. Projects that use only `extension.neon` continue to reject object arithmetic, matching PHP
+without the native extension.
+
+Enable operator inference after the primary extension:
+
+```neon
+includes:
+    - vendor/jbboehr/yumemi/extension.neon
+    - vendor/jbboehr/yumemi/yumemi-operators.neon
+```
+
+When `phpstan/extension-installer` already loads `extension.neon`, include only `yumemi-operators.neon` yourself. When
+listing both files manually, keep the order shown: `yumemi-operators.neon` is a parameter overlay and must follow
+`extension.neon`. PHPStan cannot determine whether `ext-yumemi` will be loaded in the deployed runtime; enabling this
+file is the application's declaration that operator-bearing code runs with that extension. The always-available method
+API remains preferable for reusable libraries whose consumers may not install it.
+
+The inferred operations mirror the runtime handler:
+
+| Expression                                   | Accepted operands                       | Inferred unit                                  |
+| -------------------------------------------- | --------------------------------------- | ---------------------------------------------- |
+| `+$quantity`, `-$quantity`                   | one quantity                            | the quantity's unit                            |
+| `$left + $right`, `$left - $right`           | two dimensionally compatible quantities | the left quantity's unit                       |
+| `$left * $right`                             | two quantities                          | the product of their units                     |
+| `$left / $right`                             | two quantities                          | the quotient of their units                    |
+| `$quantity * $scalar`, `$scalar * $quantity` | `int` or `Rational` scalar              | the quantity's unit                            |
+| `$quantity / $scalar`                        | `int` or `Rational` scalar              | the quantity's unit                            |
+| `$scalar / $quantity`                        | `int` or `Rational` scalar              | the reciprocal quantity unit                   |
+| `$quantity ** $power`                        | integer exponent                        | the powered unit when the exponent is constant |
+
+A dynamic integer exponent produces an unbranded `Quantity` because PHPStan cannot know its result unit. Scalar-left
+addition, subtraction, and exponentiation; float scalars; modulo; incompatible addition or subtraction; and units beyond
+the supported exponent range produce PHPStan's standard `binaryOp.invalid` diagnostic.
+
+```text
+$distance = $units->quantity(100, 'meter');
+$duration = $units->quantity(10, 'second');
+
+$remaining = -$distance; // Quantity<'meter'>
+$speed = $distance / $duration; // Quantity<'meter / second'>
+$total = $distance + $units->quantity(3, 'foot'); // Quantity<'meter'>
+```
+
+Unary plus and minus retain the concrete quantity type, symbolic unit, and registry context.
+
 ## Registry Configuration
 
 PHPStan uses the default UDUNITS2 catalog unless `parameters.yumemi.registryFactory` names an autoloadable class
@@ -786,8 +783,7 @@ parameters:
 
 Use `UnitRegistryBuilder::default()` to extend or override UDUNITS2, or `UnitRegistryBuilder::empty()` for an isolated
 catalog. `baseUnit()` introduces a named primitive dimension; subsequent `define()` calls derive related units through
-ordinary expressions. Unit definitions and primitive-dimension metadata both contribute to PHPStan's result-cache
-fingerprint.
+ordinary expressions. Changes to registry semantics invalidate cached PHPStan analysis results.
 
 The configured registry controls static analysis only. Applications using custom units in both layers should construct
 their runtime `Units` context from the same factory. Instance APIs use that context directly; applications using
@@ -852,8 +848,7 @@ separately packaged integrations described below.
 
 Curated stubs for third-party packages live in the separately versioned
 [Yumemi Apocrypha](https://github.com/jbboehr/yumemi-apocrypha.php) package. Apocrypha uses the generic `@yumemi-*`
-promotion mechanism above while owning package selection, supported-version policy, upstream fixtures, and integration
-documentation. Keeping those concerns outside core avoids adding framework scope or dependencies to Yumemi itself.
+promotion mechanism above. See its documentation for supported packages, versions, and configuration.
 
 ## Diagnostics
 

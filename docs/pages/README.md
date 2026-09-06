@@ -52,5 +52,3 @@ only inside PHPStan; they do not create runtime wrappers.
 
 Yumemi 0.1 is an initial public development release. Patch releases within the 0.1 line preserve the documented
 contract, while later 0.x minor releases may deliberately introduce documented breaking changes before 1.0.
-Architecture, implementation status, and deferred work are tracked in the
-[repository planning document](https://github.com/jbboehr/yumemi.php/blob/master/docs/development/planning.md).

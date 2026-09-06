@@ -125,6 +125,13 @@ Yumemi's generation authority then consists of:
 - [`PhpCatalogExporter`](../../src/Catalog/PhpCatalogExporter.php), which uses `brick/varexporter` for deterministic
   PHP.
 
+Internal catalog records store direct or exact-name-inherited affine and logarithmic markers, but do not eagerly
+materialize `UnsupportedExpression` or transitive composite results. Generated delta records are ordinary multiplicative
+declarations materialized during catalog import or immutable-registry build. This keeps catalog generation deterministic
+and avoids resolving the full catalog merely for introspection. At runtime, descriptors lazily resolve and cache
+capabilities for the complete canonical or dynamically prefixed spelling against the effective registry. This keeps
+transitive definitions and overlays consistent with executable behavior.
+
 The command wrapper adds the UCAR-derived-file header. The public contributor procedure is maintained in
 [Regenerating the UDUNITS2 Catalog](../pages/contributing/catalog-generation.md). In the Nix development shell, run:
 

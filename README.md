@@ -98,10 +98,9 @@ assert($length->exactDecimalValueIn('meter') === '0.3048');
 assert($length->unitToString() === 'meter');
 ```
 
-Quantity arithmetic distinguishes symbolic reduction from catalog conversion. Addition, subtraction, and comparisons
-convert compatible operands exactly; multiplication and division reduce the caller's chosen units. Explicit
-`normalize()` and `simplify()` operations control definition substitution. `PointQuantity` conversion and comparison
-apply affine offsets, point subtraction returns a multiplicative difference, and compatible quantities translate points.
+See [quantity arithmetic](docs/pages/reference/runtime.md#quantity-arithmetic) and
+[temperature conversion](docs/pages/reference/runtime.md#affine-conversion) for operations on units and coordinate
+scales.
 
 ## Documentation
 
@@ -116,10 +115,6 @@ apply affine offsets, point subtraction returns a multiplicative difference, and
   output, dimensions, formatting, and string forms.
 - [Built-in and Custom Units](docs/pages/reference/catalog.md) documents UDUNITS2 data, introspection, custom
   registries, and semantic capabilities.
-
-Architecture, implementation status, and deferred work are tracked in the
-[planning document](docs/development/planning.md). The broader feature comparison is in
-[Pint parity](docs/development/pint-parity.md).
 
 ## License
 

@@ -58,7 +58,10 @@ The foundational model represents exact values and unit syntax without knowing a
   `ext-yumemi` parser ABI is loaded, [`NativeParserAdapter`](../../src/Parser/NativeParserAdapter.php) translates its
   syntax-only neutral tree and structured failures into those same PHP contracts; the generated PHP parser remains the
   required fallback and grammar authority. A false `YUMEMI_NATIVE_PARSER` process setting provides an operational
-  rollback to that fallback without unloading the extension.
+  rollback to that fallback without unloading the extension. Successful cached ASTs are backend-neutral. Unit resolution
+  and arithmetic remain in PHP. The native lexer uses a committed Unicode classification snapshot, while the PHP lexer
+  uses PHP's loaded PCRE version. Identifier code points added or reclassified between those versions can tokenize
+  differently. UTF-8 validation rejects malformed input before either backend or the successful-expression cache.
 - [`Expr`](../../src/Expr.php) and its expression nodes represent constants, units, products, and integer powers. A
   resolved unit leaf may retain a weak reference to the `Units` context that assigned meaning to its catalog name; the
   reference preserves semantic identity without making the registry mutable.
@@ -129,7 +132,8 @@ Everything under [`src/PHPStan`](../../src/PHPStan) translates runtime semantics
 - rules produce user-facing diagnostics and stable identifiers;
 - the optional tag-promoting parser transforms `@yumemi-*` annotations;
 - registry configuration supplies one runtime `UnitRegistry` to the adapter; and
-- result-cache metadata hashes effective registry semantics.
+- result-cache metadata hashes effective registry semantics, including unit definitions and primitive-dimension
+  metadata.
 
 The adapter calls [`UnitExpressionParser`](../../src/PHPStan/UnitExpressionParser.php), which delegates parsing,
 dimensions, and normalization to `Units`. Type-level algebra combines the same `Expr` and `Dimension` values rather than
@@ -196,7 +200,8 @@ artifacts, public behavior, and verification rather than the current tool's inte
 ### External Integration Package
 
 [Yumemi Apocrypha](https://github.com/jbboehr/yumemi-apocrypha.php) owns curated third-party stubs and their upstream
-version matrices. Yumemi core owns only the generic `@yumemi-*` promotion mechanism.
+version matrices, upstream fixtures, and integration documentation. Yumemi core owns only the generic `@yumemi-*`
+promotion mechanism.
 
 This package boundary is justified by an independent consumer surface, dependency matrix, release cadence, and
 maintenance scope. Core must not acquire framework packages merely to broaden curated stub coverage.
@@ -210,6 +215,10 @@ unit string -> parse and resolve inside Units -> context-bound Expr
 low-level Expr -> ExpressionContextResolver::bind(receiving Units)
                -> bound copy, same-context reuse, or rejection
 ```
+
+Admission leaves the caller's unbound expression unchanged, so it can be admitted independently into another context. It
+attaches context without resolving definition-less unit names through the receiving catalog. Application code should
+obtain named expressions from `Units::parse()` or `Units::unit()`.
 
 Admission copies only the nodes needed to attach a context to unbound leaves; an already bound tree is reused. It never
 rebinds an expression from another context, and an expired or mixed context fails before resolution, reduction,
@@ -245,6 +254,25 @@ source and target string or Expr
 
 Affine coordinates use the same conversion core but enter through `PointQuantity`. Synthesized delta definitions expose
 their scale as ordinary multiplicative units without carrying the coordinate origin into algebra.
+
+## Cache Retention
+
+These internal budgets bound retained representations, not exact PHP heap use. For measurements and rejected cache
+proposals, see [Recorded Investigations](benchmarking.md#recorded-investigations).
+
+- Successful parser ASTs now use one process-local, exact-input LRU cache, while fully resolved expressions use a
+  separate cache owned by each immutable `Units` context. Both retain at most 256 expressions no longer than 512 bytes.
+  The AST cache additionally retains at most 16 KiB of source-input weight across all entries; each resolved cache
+  permits at most 64 KiB. These weights bound represented input rather than exact PHP heap usage. Oversized inputs and
+  all failures bypass caching. Immutable raw ASTs may be shared across registries, but resolved meaning never crosses a
+  `Units` boundary. The AST budget is smaller because dense syntax trees and their source spans retain materially more
+  memory per input byte than reduced expressions.
+- Conversion-string resolution now has its own context-local LRU, limited to 256 inputs of at most 512 bytes, 4 KiB of
+  represented weight per entry, and 64 KiB total. Its weight includes the input, symbolic source, dimension, exact
+  scale, and exact offset, so compact scientific notation cannot hide a large retained value. These are internal cache
+  budgets, not heap-size guarantees or parser admission limits. Failed name lookups are no longer retained. Successful
+  name, prefix-definition, and catalog classification caches remain finite functions of the immutable registry. Their
+  size can grow with the catalog and its supported prefix combinations.
 
 ## PHPStan Data Flow
 

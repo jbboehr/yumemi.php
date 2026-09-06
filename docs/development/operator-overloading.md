@@ -1,6 +1,7 @@
 # Operator Overloading Extension Plan
 
-Snapshot date: 2026-08-29
+Design and verification snapshot: 2026-08-29. Original proposals and release-status assessments are preserved under
+[Historical Proposals](#historical-proposals).
 
 PHP does not expose operator overloading to userland classes, but internal classes can participate in object operators
 through Zend object handlers. In particular, `zend_object_handlers` has a `do_operation` slot that an extension can
@@ -15,6 +16,14 @@ internal `InternalQuantity` PHP fallback when `ext-yumemi` is absent; when the e
 the native base and operators delegate to the existing methods, including power and reverse division. An opt-in
 integration suite verifies the real extension against this library. PHPStan models the same operator surface only when
 `yumemi-operators.neon` is explicitly loaded; method-call inference remains available through the primary configuration.
+
+### Maintenance and Release Coordination
+
+Keep the handler's method delegation, pure-PHP fallback, and opt-in PHPStan model aligned when either package changes.
+For release work, follow
+[Coordinate the Optional Native Extension](release-and-succession.md#coordinate-the-optional-native-extension): record
+the tested companion version or commit, run the supported-PHP integration matrix, and verify paired installation. Check
+publication status during that process rather than treating the original first-tag assessment below as current.
 
 ## Goal
 
@@ -262,63 +271,6 @@ Static-analysis policy should mirror runtime behavior:
 Operators should not be added to examples until PHPStan can check them. Otherwise users get nice syntax but lose the
 project's main value proposition.
 
-## Spike Checklist
-
-Build the smallest possible extension before designing the full package:
-
-1. Register internal abstract `InternalQuantity`.
-2. Set a custom `create_object` and handlers table.
-3. Implement `do_operation` with obvious debug behavior.
-4. Define a PHP `Quantity extends InternalQuantity` with public properties.
-5. Confirm `new Quantity() + new Quantity()` reaches `do_operation`.
-6. Confirm PHP-declared properties work normally.
-7. Confirm PHP methods on the subclass can be called from the handler.
-8. Confirm returned objects and exceptions behave correctly.
-9. Confirm clone/debug/GC/property behavior is not broken.
-10. Test PHP 8.2, 8.3, 8.4, and 8.5 if available.
-11. Test Composer normal autoload.
-12. Test Composer optimized autoload.
-13. Test without the extension loaded.
-
-Only after this spike passes should we decide package shape.
-
-## Likely Package Shape
-
-Main package:
-
-```text
-jbboehr/yumemi
-```
-
-Optional extension package:
-
-```text
-ext-yumemi
-```
-
-Possible source layout if kept in one repository:
-
-```text
-src/
-  InternalQuantity.php
-  Quantity.php
-ext/
-  config.m4
-  php_yumemi.h
-  yumemi.c
-  yumemi_quantity.c
-  tests/
-```
-
-Possible separate repository:
-
-```text
-jbboehr/yumemi-ext
-```
-
-Recommendation: start in a separate spike directory or separate repository. Merge into the main repository only after
-the inheritance/handler proof works.
-
 ## Test Plan
 
 Pure PHP tests:
@@ -406,7 +358,70 @@ necessary.
 
 Operator syntax can hide meaningful errors. Exception messages from delegated methods need to stay clear.
 
-## Priority
+## Historical Proposals
+
+The following sections preserve the original feasibility checklist, packaging alternatives, and 2026-08-29 release
+assessment. Their future-tense instructions describe the plan at that time. The separate native repository and library
+integration are implemented; these sections are rationale and historical evidence, not pending design tasks.
+
+### Spike Checklist
+
+Build the smallest possible extension before designing the full package:
+
+1. Register internal abstract `InternalQuantity`.
+2. Set a custom `create_object` and handlers table.
+3. Implement `do_operation` with obvious debug behavior.
+4. Define a PHP `Quantity extends InternalQuantity` with public properties.
+5. Confirm `new Quantity() + new Quantity()` reaches `do_operation`.
+6. Confirm PHP-declared properties work normally.
+7. Confirm PHP methods on the subclass can be called from the handler.
+8. Confirm returned objects and exceptions behave correctly.
+9. Confirm clone/debug/GC/property behavior is not broken.
+10. Test PHP 8.2, 8.3, 8.4, and 8.5 if available.
+11. Test Composer normal autoload.
+12. Test Composer optimized autoload.
+13. Test without the extension loaded.
+
+Only after this spike passes should we decide package shape.
+
+### Likely Package Shape
+
+Main package:
+
+```text
+jbboehr/yumemi
+```
+
+Optional extension package:
+
+```text
+ext-yumemi
+```
+
+Possible source layout if kept in one repository:
+
+```text
+src/
+  InternalQuantity.php
+  Quantity.php
+ext/
+  config.m4
+  php_yumemi.h
+  yumemi.c
+  yumemi_quantity.c
+  tests/
+```
+
+Possible separate repository:
+
+```text
+jbboehr/yumemi-ext
+```
+
+Recommendation: start in a separate spike directory or separate repository. Merge into the main repository only after
+the inheritance/handler proof works.
+
+### Priority
 
 This is a good experiment, but it should not block the core project.
 
@@ -419,7 +434,7 @@ publish the first immutable PIE tag, then prove a clean install with its named c
 The spike is now unblocked, but it remains a side quest. The main product value is still static dimensional analysis,
 and the extension must not become a dependency of the pure-PHP package.
 
-## Strategic Conclusion
+### Strategic Conclusion
 
 The `InternalQuantity` base-class plan is the selected optional operator-overloading architecture:
 

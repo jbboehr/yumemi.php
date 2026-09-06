@@ -108,6 +108,9 @@ rationale recoverable without requiring speculative abstraction or package split
 The project-specific [`docs/development/invariants.md`](docs/development/invariants.md) identifies the semantic rules
 that architectural and behavior changes must preserve or deliberately revise.
 
+[Planning](docs/development/planning.md) tracks implementation status, release preparation, and deferred work.
+[Pint parity](docs/development/pint-parity.md) compares capabilities and records the remaining feature gaps.
+
 [`docs/development/architecture.md`](docs/development/architecture.md) maps the semantic core, adapters, generated
 artifacts, dependency direction, and expected replacement boundaries.
 

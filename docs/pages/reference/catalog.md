@@ -152,10 +152,8 @@ entry exists, it applies the same one-prefix-plus-exact-unit decomposition used 
 was canonical, an alias, a symbol, an explicit plural, a generated plural, or dynamically prefixed.
 
 `describe()` does not accept compound expressions as lookup names, normalize definitions, or materialize dynamically
-prefixed spellings as exact catalog entries. Generated affine-difference units are exact catalog entries. To report
-truthful capabilities, introspection lazily resolves the complete canonical or dynamically prefixed spelling against the
-effective registry. A dynamically prefixed descriptor exposes its prefix and exact residual unit through
-`prefixDecomposition`:
+prefixed spellings as exact catalog entries. Generated affine-difference units are exact catalog entries. A dynamically
+prefixed descriptor exposes its prefix and exact residual unit through `prefixDecomposition`:
 
 ```php
 <?php
@@ -206,14 +204,9 @@ The expression and quantity models intentionally support only multiplicative uni
   composites, malformed or cyclic custom definitions, missing dependencies, and invalid prefixes.
 
 Known affine and logarithmic UDUNITS2 definitions remain in the generated catalog. Aliases are classified through their
-canonical entry, and direct custom `@` or `lg(...)` definitions receive the same classification. Descriptors lazily
-resolve and cache capabilities against the effective registry, so transitive definitions and overlays cannot leave
-capability methods out of sync with runtime behavior.
-
-Internal catalog records store direct or exact-name-inherited affine and logarithmic markers, but do not eagerly
-materialize `UnsupportedExpression` or transitive composite results. Generated delta records are ordinary multiplicative
-declarations materialized during catalog import or immutable-registry build. This keeps catalog generation deterministic
-and avoids resolving the full catalog merely for introspection.
+canonical entry, and direct custom `@` or `lg(...)` definitions receive the same classification. Capabilities describe
+the complete spelling in the configured registry, including its aliases, prefixes, and dependent definitions. Use
+`supportsMultiplicativeAlgebra()` and `supportsConversion()` to choose an operation.
 
 Affine classification means "unsupported by multiplicative `Expr` algebra," not "unsupported everywhere." See
 [Affine Conversion](runtime.md#affine-conversion) for executable boundaries and [Limitations](phpstan.md#limitations)

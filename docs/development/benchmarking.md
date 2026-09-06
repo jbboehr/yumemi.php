@@ -165,3 +165,69 @@ attributing compaction cost to ordinary quantity conversion.
 Use measurements to identify an optimization target before changing cache ownership or expression semantics. A faster
 microbenchmark is not sufficient if the corresponding operation does not materially contribute to an application or
 PHPStan analysis workload.
+
+## Recorded Investigations
+
+These measurements were recorded during the initial runtime and PHPStan performance investigations through 2026-08-15
+and moved here from the roadmap on 2026-09-06. They describe those implementations on the same local PHP 8.2 host, not a
+fresh benchmark of the current revision or portable regression floors. The current internal cache budgets are recorded
+in [Cache Retention](architecture.md#cache-retention). Use the controls above when repeating a comparison.
+
+### Runtime Parsing and Persistence
+
+- Paired helper-boundary benchmarks and local hardware-counter profiles identified repeated parsing as a concrete
+  runtime cost. Before caching, repeated `Quantity::valueIn()` with a compound string target took about 17 times the
+  wall time and 15 times the retired instructions of the equivalent pre-parsed target; string-based quantity
+  construction took about 9 times both. Formatting, normalization, quantity parsing, point construction, and affine
+  delta derivation showed the same parser-heavy behavior.
+- On the same PHP 8.2 host after caching, warm compound `parse()` fell from about 55 to 0.23 microseconds, string and
+  pre-parsed `Quantity::valueIn()` converged at about 4.5 and 4.2 microseconds, and string normalization converged with
+  pre-parsed normalization at about 15 microseconds. Formatting fell from about 36 to 10 microseconds, point
+  construction from about 49 to 2.7, affine delta derivation from about 34 to 1.9, and `parseQuantity()` from about 72
+  to 33.
+- Persistence validation is intentionally substantial. Representative quantity and point deserialization took about 205
+  and 112 microseconds before caching and about 87 and 27 afterward. Restoration still revalidates normalized units,
+  dimensions, origins, and scales; preserve those semantic seals rather than pursuing lower timings by weakening them.
+- Representative rational arithmetic and decimal rendering remained below 4 microseconds, cached dimensions and
+  compatibility below 0.4 microseconds, custom registry overlay construction below 0.4 milliseconds, and full-catalog
+  description below 2 milliseconds. These measurements do not justify dedicated optimization work.
+
+### PHPStan Inference and Memoization
+
+- On the same PHP 8.2 host with 400 generated cases and isolated result caches, Yumemi-enabled startup took about 0.88
+  seconds versus 0.86 without the extension, while ordinary scalar analysis took about 3.98 seconds with Yumemi versus
+  3.77 without it. Focused branded workloads took about 1.2 seconds for PHPDoc type resolution, 2.28 for operators and
+  ranges, 1.48 for `abs()`, 2.78 for `min()`/`max()`, 1.38 for `sqrt()`, 3.48 for the composite built-ins workload, and
+  2.99 for native helpers. Combined native, quantity/point, annotation-promotion, and mixed workloads took about 4.98,
+  3.49, 1.78, and 3.68 seconds respectively. The composite result is not an independent optimization target. These
+  results are linear enough to reject a broad scaling defect, but identify extrema and helper analysis as the first
+  candidates for deeper profiling.
+- Dynamic return/expression inference and companion diagnostic rules both call the same `analyseCall()` methods for
+  helpers, extrema, and roots. A focused 400-case extrema experiment safely memoized analysis by exact AST node and
+  `Scope`, but moved the local median only from about 2.898 to 2.886 seconds (roughly 0.4%); the cache was therefore
+  discarded. Do not apply node-level memoization to helpers or roots by analogy. Profile the helper path to identify a
+  material repeated operation before adding cache state; root analysis is already comparatively cheap.
+- The 2026-08-09 native-helper profiling pass measured a byte-identical 400-case pair at about 2.766 seconds without
+  Yumemi and 2.989 seconds with it, placing the extension's helper-fixture cost near 222 milliseconds. Focused
+  one-helper pairs attributed roughly 114 milliseconds each to `unit()` and `unit_factor()` and 124 milliseconds to
+  `unit_to()`, so no helper is a singular hotspot. In a separate 20-case Xdebug profile, all helper inference and
+  diagnostic entry points accounted for about 104 milliseconds of 3.61 instrumented seconds; parser calls accounted for
+  49 milliseconds, argument lookup for 3.3, and finite-string extraction for 1.3. The rule and return extensions receive
+  different `FiberScope` and `MutatingScope` wrappers, so an exact node-and-scope cache cannot share their analyses,
+  while a node-only cache would risk stale scope-dependent types. Retain the controlled benchmark, but do not add helper
+  cache state without a new profile identifying safely reusable material work.
+- The 2026-08-15 PHPStan benchmark expansion added focused rounding, integer-math, angle, and aggregation workloads. At
+  400 generated declarations on the same PHP 8.2 host, median isolated-process times were about 1.29 seconds for branded
+  type resolution, 2.49 for `round()`, 2.69 for `intdiv()` plus `pow()`, 4.19 for angle and trigonometric functions, and
+  2.79 for `array_sum()`. Measurements at 50 and 200 declarations scaled approximately linearly; a noisy first
+  aggregation sample was not reproduced in seven isolated reruns. No source-level PHPStan profile is justified without a
+  nonlinear or application-observed regression.
+
+### Preferred and Compact Selection
+
+The 2026-08-15 runtime expansion accompanied the focused PHPStan workloads described above.
+
+- The corresponding runtime subjects measured preferred-profile construction at about 16.3 microseconds, repeated
+  profile application at 12.0 microseconds, cached engineering compaction at 21.7 microseconds, and first compaction in
+  a fresh context at 25.0 microseconds. The small first-use premium confirms that the catalog index and family cache are
+  effective; do not add another selection cache based on these measurements.

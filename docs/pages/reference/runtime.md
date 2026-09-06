@@ -69,19 +69,16 @@ categories by meaning; internal invariant failures remain implementation details
 
 ### Native Parser Selection
 
-When a compatible `ext-yumemi` parser ABI is loaded, Yumemi automatically uses it for syntax parsing while retaining the
-generated PHP parser as its grammar authority and fallback. Both paths produce the same AST, source-span, exception, and
-resource-limit contracts; unit resolution and arithmetic remain in PHP. The native lexer uses a committed Unicode
-classification snapshot, while the PHP lexer uses the PCRE version loaded by PHP. Rare identifier code points added or
-reclassified between those Unicode data versions can therefore tokenize differently.
+Yumemi automatically uses a compatible `ext-yumemi` parser when loaded and falls back to PHP otherwise. Both parsers
+provide the same source-location, exception, and resource-limit contracts. Rare Unicode identifiers can tokenize
+differently between the parsers because their Unicode data versions may differ.
 
 Set `YUMEMI_NATIVE_PARSER` to `0`, `false`, `off`, `no`, or an empty string in the process environment to force the PHP
 parser even when the extension is loaded. Values are case-insensitive. Leave the variable unset, or set it to `1`,
 `true`, `on`, or `yes`, for automatic native selection. Any other explicit value fails closed to the PHP fallback so a
 misspelled setting cannot unexpectedly enable the optional native path. Configure the flag before application or worker
-startup so every parse in that process follows one policy; already-cached successful ASTs are backend-neutral values.
-This switch also affects unit expressions parsed during PHPStan analysis because the runtime and analyzer share the same
-parser boundary.
+startup so every parse in that process follows one policy. This switch also affects unit expressions parsed during
+PHPStan analysis.
 
 ## Contexts And Construction
 
@@ -101,11 +98,8 @@ ordering in `leftContextId` and `rightContextId`.
 Resolved expressions returned by `parse()`, `unit()`, `normalize()`, and quantity unit accessors retain the same context
 boundary. Passing one to a different `Units` instance, combining expressions from different contexts, or semantically
 using an expression after its context has been released throws `IncompatibleExpressionContextException`. Structural
-equality and formatting remain context-independent. Low-level expression construction is internal. When such an
-expression contains unbound unit leaves, a semantic operation stamps a context on an immutable copy for that operation;
-the caller's expression remains unbound and can be admitted independently elsewhere. Context admission does not resolve
-a definition-less unit name through the receiving catalog, so application code should obtain named expressions from
-`parse()` or `unit()`.
+equality and formatting remain context-independent. Obtain named expressions through `Units::parse()` or `Units::unit()`
+so they use that context's catalog definitions.
 
 Native helpers such as `unit()`, `unit_factor()`, and `unit_to()` use the process-wide default context. Applications
 that configure the PHPStan extension with custom units should install the matching runtime context during synchronous
@@ -619,8 +613,8 @@ use `convert()`, `convertFloat()`, or `unit_to()` for affine conversion.
 
 ## Dimensions
 
-`Units::dimension()`, `Quantity::dimension()`, and resolved expressions expose a `Dimension`. Its ordinary fast path is
-the seven fixed SI powers in this order:
+`Units::dimension()`, `Quantity::dimension()`, and resolved expressions expose a `Dimension`. Its seven SI powers have
+this fixed order:
 
 ```text
 length, mass, time, electric current, temperature, amount of substance, luminous intensity
@@ -638,8 +632,7 @@ degree. `powers()` retains its seven-element SI view. `namedPowers()` returns ev
 use lower snake case and format after SI axes in deterministic bytewise order.
 
 All axes participate equally in compatibility. Dimensional equality still cannot distinguish semantically different
-quantities with the same dimension, such as gray and sievert; that distinction would require a separate quantity-kind
-model rather than another dimension subclass.
+quantities with the same dimension, such as gray and sievert.
 
 ## Formatting
 

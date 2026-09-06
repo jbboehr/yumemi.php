@@ -88,6 +88,12 @@ These are point-in-time diagnostics, not enforced floors:
   survivors alter dominated guards or choose an equally valid excerpt boundary. The sole uncovered branch is
   `ParserUtils::parseString()`'s defensive `parse() === false` fallback: the generated parser either succeeds or invokes
   the throwing error handler.
+- A focused 2026-08-09 `Rational` audit generated 547 mutants and reduced escaped mutants from 80 to 66, raising covered
+  MSI from 85% to 87%. The added contracts cover decimal parsing, native integer boundaries, exact rounding, binary64
+  exponent-estimate correction, significand carry, binary64 boundaries, and strict underflow. The remaining survivors
+  are equivalent normalization and zero fast paths, scaling by one, sign guards, casts, or exception prose. Four
+  timeouts remove progress or termination from denominator reduction for terminating decimals. The audit found no
+  runtime defect.
 - The 2026-08-10 parser resource-budget follow-up covered 98.84% of 172 branches and 98.83% of 256 executable lines in
   the handwritten `src/Parser` scope across 286 focused parser and integration tests. `Lexer` reached 100% of its 70
   branches and 101 executable lines. Added contracts exercise eager lexer input rejection, nesting separated by other
@@ -99,6 +105,13 @@ These are point-in-time diagnostics, not enforced floors:
   killed 205, improving covered MSI from 82% to 86%; 33 escaped and one timed out. The surviving changes are equivalent
   cache and ranking mutations, unreachable defensive parser states, or exception-code and prose details, while the
   timeout removes circular-resolution termination. No runtime defect was found.
+- A focused 2026-08-14 audit of the native binary-math resolver and its diagnostic rule generated 190 mutants and raised
+  covered MSI from 83% to 95% by adding contracts for incomplete calls, native fallback ownership, bare constants,
+  nonnumeric alternatives, complete Cartesian union results, and symmetric benevolent-union handling. In the final
+  campaign, 181 mutants were killed. The nine survivors are behaviorally equivalent: six remove redundant `int|float`
+  casts before native float-returning functions, two reverse coalescing operands that are equal or have only one
+  non-null value by construction, and one changes loop control only after a bare `float` result has already subsumed the
+  remaining branded-float alternatives. The audit found no additional implementation defect.
 - The 2026-08-15 repository-wide mutation refresh generated 3,813 runtime mutants and 3,341 PHPStan mutants. The runtime
   campaign killed 3,454, with 259 escaped, 85 timed out, and 15 errored or syntactically invalid; the PHPStan campaign
   killed 3,007, with 291 escaped, 38 timed out, and five errored. Triage added observable contracts for cross-context
